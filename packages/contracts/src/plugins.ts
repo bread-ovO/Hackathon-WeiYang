@@ -75,6 +75,7 @@ export interface InstalledPlugin {
   grantVersion: number
   eventCount: number
   lastSuccessAt: string | null
+  runtime?: { state: 'reading' | 'waiting' | 'retrying' | 'paused'; retryAttempt: number; nextRetryAt: string | null }
 }
 export interface PluginInspection {
   inspectionId: string
