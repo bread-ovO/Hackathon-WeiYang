@@ -52,3 +52,5 @@ export function splitTaskId(parent: string, children: string[]): string[] { if (
 export function canRevoke(source: 'automatic'|'manual', status: TaskStatus): boolean { return (source==='automatic'||source==='manual') && status!=='cancelled' }
 
 export function shouldNotify(enabled: boolean, quietHours: boolean, due: boolean): boolean { return enabled && !quietHours && due }
+
+export function withinNotificationCooldown(lastSentAt: string|null, now: string, cooldownMs: number): boolean { return !!lastSentAt && Date.parse(now)-Date.parse(lastSentAt)<cooldownMs }
