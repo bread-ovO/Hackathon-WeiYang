@@ -18,3 +18,6 @@ docs/planning/base-auth.png
 
 # Locally built competitor research and isolated test data
 .research/
+
+# PET01: official Cubism SDK zip (proprietary Live2D assets), fetched by scripts/fetch-pet-sdk.mjs
+.pet-sdk/
