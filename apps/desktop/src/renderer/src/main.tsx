@@ -22,7 +22,7 @@ import {
   FolderSimple,
   type Icon as PhosphorIcon,
 } from '@phosphor-icons/react'
-import type { DesktopBridge, Health } from '@memo/contracts'
+import type { DesktopBridge, Health, PetModelIssue, PetSpeechState, PetState } from '@memo/contracts'
 import { demoTasks, type Task } from './demo'
 import {
   AppButton,
@@ -96,6 +96,128 @@ function App() {
   const [undo, setUndo] = useState<Task[] | null>(null)
   const [realCount, setRealCount] = useState(0)
   const searchRef = useRef<HTMLInputElement>(null)
+  const [petState, setPetState] = useState<PetState | null>(null),
+    [petBusy, setPetBusy] = useState(false),
+    [petMessage, setPetMessage] = useState(''),
+    [petIssues, setPetIssues] = useState<PetModelIssue[] | null>(null),
+    [speech, setSpeech] = useState<PetSpeechState | null>(null)
+    const refreshPet = async () => {
+    // The pet worker starts alongside the app; tolerate a brief not-ready window.
+    const r = await window.memo.pet.speechConfig()
+    if (r.ok) setSpeech(r.data)
+    for (let attempt = 0; attempt < 5; attempt++) {
+      const reply = await window.memo.pet.state()
+      if (reply.ok) {
+        setPetState(reply.data)
+        return
+      }
+      if (reply.error !== 'PET_UNAVAILABLE') return
+      await new Promise((r) => setTimeout(r, 300))
+    }
+  }
+  const finishImport = async (entry: string) => {
+    setPetBusy(true)
+    try {
+      const reply = await window.memo.pet.importChosen(entry)
+      if (!reply.ok) {
+        setPetMessage('导入没有完成，请重新选择目录。')
+        return
+      }
+      const result = reply.data
+      if (result.status === 'invalid') {
+        setPetIssues(result.issues)
+        setPetMessage('模型未通过校验，没有导入。')
+        return
+      }
+      setPetMessage(
+        result.status === 'duplicate'
+          ? '这个模型已经导入过，未重复复制。'
+          : '模型已导入，可在列表中设为当前。',
+      )
+      await refreshPet()
+    } finally {
+      setPetBusy(false)
+    }
+  }
+  const startPetImport = async () => {
+    setPetIssues(null)
+    setPetMessage('')
+    setPetBusy(true)
+    try {
+      const reply = await window.memo.pet.openImportDialog()
+      if (!reply.ok) {
+        setPetMessage('暂时无法打开目录选择。')
+        return
+      }
+      const choice = reply.data
+      if (choice.status === 'cancelled') return
+      if (choice.status === 'no-model') {
+        setPetMessage(
+          choice.cmo3Found
+            ? '目录里没有 .model3.json；.cmo3 是编辑工程文件，请先在 Cubism Editor 导出运行时模型。'
+            : '目录里没有找到 .model3.json 模型入口。',
+        )
+        return
+      }
+      if (choice.status === 'ready') {
+        await finishImport(choice.entry)
+        return
+      }
+      void choice.entries
+    } finally {
+      setPetBusy(false)
+    }
+  }
+  const selectPetModel = async (modelId: string) => {
+    setPetBusy(true)
+    try {
+      const reply = await window.memo.pet.select(modelId)
+      if (reply.ok) {
+        setPetState(reply.data)
+        setPetMessage('已切换当前模型。')
+      } else setPetMessage('切换没有完成。')
+    } finally {
+      setPetBusy(false)
+    }
+  }
+  const patchSpeech = async (patch: Record<string, unknown>) => {
+    setPetBusy(true)
+    try {
+      const reply = await window.memo.pet.setSpeechConfig(patch)
+      if (reply.ok) setSpeech(reply.data)
+      else setPetMessage('设置没有保存，请重试。')
+    } finally {
+      setPetBusy(false)
+    }
+  }
+  const previewSpeech = async () => {
+    setPetBusy(true)
+    try {
+      const reply = await window.memo.pet.previewSpeech()
+      setPetMessage(reply.ok && reply.data.shown ? '气泡已显示在桌宠旁。' : '请先显示桌宠后再试。')
+    } finally {
+      setPetBusy(false)
+    }
+  }
+  const togglePetDisplay = async (want: boolean) => {
+    setPetBusy(true)
+    try {
+      const reply = want
+        ? await window.memo.pet.show()
+        : await window.memo.pet.hide()
+      if (reply.ok) {
+        setPetState((prev) => prev && { ...prev, display: want })
+        if (want) setPetMessage('桌宠已显示在桌面上。')
+      } else if (reply.error === 'UNKNOWN_MODEL')
+        setPetMessage('请先把一个模型设为当前，再显示桌宠。')
+      else setPetMessage('桌宠暂时无法显示。')
+    } finally {
+      setPetBusy(false)
+    }
+  }
+  useEffect(() => {
+    if (page === '设置') void refreshPet()
+  }, [page])
   useEffect(() => {
     let active = true
     const refresh = async () => {
@@ -750,6 +872,160 @@ function App() {
               </p>
             </section>
             <CredentialsPanel />
+            <section className="runtime" aria-label="桌宠模型">
+              <div className="section-heading">
+                <h2>桌宠模型</h2>
+                <span className="muted">
+                  {petState
+                    ? petState.currentModelId
+                      ? `已选 ${petState.models.length} 个模型`
+                      : `已导入 ${petState.models.length} 个模型，未选择`
+                    : '读取中'}
+                </span>
+              </div>
+              <p className="muted">
+                选择包含 .model3.json 的模型目录导入。首版不支持 .cmo3
+                工程文件；导入只复制校验通过的运行时资源。
+              </p>
+              {petState?.models.length ? (
+                <ul style={{ listStyle: 'none', padding: 0, margin: '12px 0' }}>
+                  {petState.models.map((model) => (
+                    <li
+                      key={model.id}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 8,
+                        padding: '6px 0',
+                      }}
+                    >
+                      <span style={{ flex: 1 }}>
+                        {model.entry}
+                        {model.id === petState.currentModelId ? (
+                          <span className="muted"> · 当前</span>
+                        ) : null}
+                      </span>
+                      {model.id !== petState.currentModelId && (
+                        <AppButton
+                          disabled={petBusy}
+                          onClick={() => void selectPetModel(model.id)}
+                        >
+                          设为当前
+                        </AppButton>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <AppButton disabled={petBusy} onClick={() => void startPetImport()}>
+                  导入模型目录
+                </AppButton>
+                {petState?.display ? (
+                  <AppButton disabled={petBusy} onClick={() => void togglePetDisplay(false)}>
+                    隐藏桌宠
+                  </AppButton>
+                ) : (
+                  <AppButton
+                    disabled={petBusy || !petState?.currentModelId}
+                    onClick={() => void togglePetDisplay(true)}
+                  >
+                    显示桌宠
+                  </AppButton>
+                )}
+                {petBusy ? <span className="muted">处理中…</span> : null}
+              </div>
+              {petMessage ? (
+                <p className="muted" role="status">
+                  {petMessage}
+                </p>
+              ) : null}
+              {petIssues ? (
+                <ul
+                  style={{
+                    listStyle: 'none',
+                    padding: 0,
+                    maxHeight: 160,
+                    overflow: 'auto',
+                  }}
+                  aria-label="校验问题清单"
+                >
+                  {petIssues.map((issue, index) => (
+                    <li key={`${issue.code}-${issue.resource}-${index}`}>
+                      <span className="muted">
+                        {issue.resource} — {issue.message}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+            </section>
+            <section className="runtime" aria-label="桌宠说话">
+              <div className="section-heading">
+                <h2>桌宠说话</h2>
+                <span className="muted">
+                  {speech
+                    ? `${speech.config.enabled ? '已开启' : '已关闭'} · 今天 ${speech.todayCount}/${speech.config.dailyCap} 句`
+                    : '读取中'}
+                </span>
+              </div>
+              <p className="muted">
+                偶尔用文字气泡说一句话。默认不播音；静默时段{' '}
+                {speech?.config.quietStart ?? '22:00'}–
+                {speech?.config.quietEnd ?? '09:00'} 内不打扰。
+              </p>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+                <AppButton
+                  disabled={petBusy}
+                  onClick={() => void patchSpeech({ enabled: !(speech?.config.enabled ?? true) })}
+                >
+                  {speech?.config.enabled ? '关闭说话' : '开启说话'}
+                </AppButton>
+                <AppButton
+                  disabled={petBusy}
+                  onClick={() => void patchSpeech({ paused: !(speech?.config.paused ?? false) })}
+                >
+                  {speech?.config.paused ? '恢复' : '暂停'}
+                </AppButton>
+                <AppButton disabled={petBusy} onClick={() => void previewSpeech()}>
+                  试一句话
+                </AppButton>
+                <label className="muted" style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+                  频率
+                  <select
+                    aria-label="说话频率"
+                    value={
+                      speech ? (speech.config.minMinutes <= 20 ? 'high' : speech.config.minMinutes >= 90 ? 'low' : 'normal') : 'normal'
+                    }
+                    onChange={(event) => {
+                      const ranges = { high: [20, 45], normal: [45, 90], low: [90, 150] } as const
+                      const [minMinutes, maxMinutes] = ranges[event.target.value as keyof typeof ranges]!
+                      void patchSpeech({ minMinutes, maxMinutes })
+                    }}
+                  >
+                    <option value="low">低</option>
+                    <option value="normal">标准</option>
+                    <option value="high">高</option>
+                  </select>
+                </label>
+                <label className="muted" style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+                  静默
+                  <input
+                    aria-label="静默开始"
+                    type="time"
+                    value={speech?.config.quietStart ?? '22:00'}
+                    onChange={(event) => void patchSpeech({ quietStart: event.target.value })}
+                  />
+                  –
+                  <input
+                    aria-label="静默结束"
+                    type="time"
+                    value={speech?.config.quietEnd ?? '09:00'}
+                    onChange={(event) => void patchSpeech({ quietEnd: event.target.value })}
+                  />
+                </label>
+              </div>
+            </section>
             <div className="connection-note">
               <h3>关于设计预览</h3>
               <p>

@@ -82,5 +82,22 @@ const bridge: DesktopBridge = {
         method: 'workspace.updateTask',
       }),
   }),
+  pet: Object.freeze({
+    state: () => ipcRenderer.invoke('memo:request', { method: 'pet.state' }),
+    openImportDialog: () =>
+      ipcRenderer.invoke('memo:request', { method: 'pet.openImportDialog' }),
+    importChosen: (entry: string) =>
+      ipcRenderer.invoke('memo:request', { method: 'pet.importChosen', entry }),
+    select: (modelId: string) =>
+      ipcRenderer.invoke('memo:request', { method: 'pet.select', modelId }),
+    show: () => ipcRenderer.invoke('memo:request', { method: 'pet.show' }),
+    hide: () => ipcRenderer.invoke('memo:request', { method: 'pet.hide' }),
+    speechConfig: () =>
+      ipcRenderer.invoke('memo:request', { method: 'pet.speechConfig' }),
+    setSpeechConfig: (patch: Record<string, unknown>) =>
+      ipcRenderer.invoke('memo:request', { method: 'pet.setSpeechConfig', ...patch }),
+    previewSpeech: () =>
+      ipcRenderer.invoke('memo:request', { method: 'pet.previewSpeech' }),
+  }),
 }
 contextBridge.exposeInMainWorld('memo', Object.freeze(bridge))

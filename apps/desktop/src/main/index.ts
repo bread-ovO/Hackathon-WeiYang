@@ -4,11 +4,13 @@ import {
   ipcMain,
   protocol,
   net,
+  screen,
   session,
   Tray,
   Menu,
   nativeImage,
   dialog,
+  powerMonitor,
 } from 'electron'
 import { join, resolve, sep } from 'node:path'
 import { mkdirSync } from 'node:fs'
@@ -29,6 +31,12 @@ import {
   electronTrayPlatform,
   type TrayController,
 } from './tray'
+import { createPetImportFlow } from './pet/import-flow'
+import { PetWorkerClient } from './pet/worker-client'
+import { createPetWindowController, type PetWindowLike } from './pet/pet-window'
+import { resolveModelResource } from './pet/model-route'
+import { createSpeechScheduler, type SpeechState } from './pet/speech-scheduler'
+import { createBubbleController } from './pet/bubble-window'
 protocol.registerSchemesAsPrivileged([
   {
     scheme: 'memo',
@@ -37,6 +45,10 @@ protocol.registerSchemesAsPrivileged([
 ])
 let window: BrowserWindow | null = null
 let core: CoreClient | undefined
+let petWorker: PetWorkerClient | undefined
+let petWindowControllerRef: ReturnType<typeof createPetWindowController> | undefined
+let bubbleControllerRef: ReturnType<typeof createBubbleController> | undefined
+let speechTimerRef: ReturnType<typeof setInterval> | undefined
 let quitting = false
 let choosingSource = false
 let savingExport = false
@@ -76,10 +88,23 @@ else {
     .whenReady()
     .then(async () => {
       const rendererRoot = resolve(__dirname, '../renderer')
-      protocol.handle('memo', (request) => {
+      protocol.handle('memo', async (request) => {
         const url = new URL(request.url)
         if (url.hostname !== 'app')
           return new Response('Forbidden', { status: 403 })
+        // PET06: controlled model assets are mapped by id only; the handler
+        // never accepts renderer-supplied filesystem paths.
+        const modelResource = resolveModelResource(
+          decodeURIComponent(url.pathname),
+          join(app.getPath('userData'), 'pet-models'),
+        )
+        if (modelResource) {
+          try {
+            return await net.fetch(pathToFileURL(modelResource).toString())
+          } catch {
+            return new Response('Not found', { status: 404 })
+          }
+        }
         let path: string
         try {
           path = resolve(rendererRoot, '.' + decodeURIComponent(url.pathname))
@@ -88,7 +113,11 @@ else {
         }
         if (!path.startsWith(rendererRoot + sep))
           return new Response('Forbidden', { status: 403 })
-        return net.fetch(pathToFileURL(path).toString())
+        try {
+          return await net.fetch(pathToFileURL(path).toString())
+        } catch {
+          return new Response('Not found', { status: 404 })
+        }
       })
       session.defaultSession.setPermissionRequestHandler(
         (_webContents, _permission, callback) => callback(false),
@@ -123,6 +152,64 @@ else {
           return result.canceled ? null : (result.filePaths[0] ?? null)
         },
       })
+      petWorker = new PetWorkerClient(
+        join(__dirname, 'pet-worker.js'),
+        join(data, 'pet-models'),
+      )
+      petWorker.start()
+      const petPageURL = devURL ? `${devURL}/pet.html` : 'memo://app/pet.html'
+      const bubblePageURL = devURL ? `${devURL}/bubble.html` : 'memo://app/bubble.html'
+      let petBrowserWindow: BrowserWindow | null = null
+      const petWindow = createPetWindowController({
+        platform: {
+          createWindow: (): PetWindowLike => {
+            const created = new BrowserWindow({
+              width: 320,
+              height: 420,
+              transparent: true,
+              frame: false,
+              resizable: false,
+              skipTaskbar: true,
+              hasShadow: false,
+              show: false,
+              webPreferences: {
+                preload: join(__dirname, '../preload/pet.js'),
+                sandbox: true,
+                contextIsolation: true,
+                nodeIntegration: false,
+                webSecurity: true,
+              },
+            })
+            // Same deny posture as the main window; no window.open, no
+            // navigation away from the pet page, no webviews.
+            created.webContents.setWindowOpenHandler(() => ({ action: 'deny' }))
+            created.webContents.on('will-navigate', (event, url) => {
+              if (!isTrustedPage(url, petPageURL)) event.preventDefault()
+            })
+            created.webContents.on('will-attach-webview', (event) =>
+              event.preventDefault(),
+            )
+            void created.loadURL(petPageURL)
+            petBrowserWindow = created
+            // BrowserWindow satisfies the structural surface; event listener
+            // variance needs this single adapter cast.
+            return created as unknown as PetWindowLike
+          },
+          usableArea: () => screen.getPrimaryDisplay().workArea,
+          onDisplayChanged: (listener) => {
+            screen.on('display-removed', listener)
+            screen.on('display-metrics-changed', listener)
+          },
+        },
+        hasCurrentModel: async () => {
+          const reply = await petWorker!.request('list')
+          return reply.ok
+            ? (reply.data as { currentModelId: string | null })
+                .currentModelId !== null
+            : false
+        },
+        stateFile: join(data, 'pet-window.json'),
+      })
       let ticking = false
       const pluginTimer = setInterval(() => {
         if (ticking) return
@@ -135,6 +222,127 @@ else {
           })
       }, 30_000)
       pluginTimer.unref()
+      petWindowControllerRef = petWindow
+      // PET09/10/11: proactive speech — bubble window, low-frequency
+      // scheduler with injectable clock, lock-screen suppression.
+      let bubbleBrowserWindow: BrowserWindow | null = null
+      const bubble = createBubbleController({
+        createWindow: () => {
+          const created = new BrowserWindow({
+            width: 280,
+            height: 150,
+            transparent: true,
+            frame: false,
+            resizable: false,
+            skipTaskbar: true,
+            focusable: false,
+            show: false,
+            parent: petBrowserWindow ?? undefined,
+            webPreferences: {
+              preload: join(__dirname, '../preload/bubble.js'),
+              sandbox: true,
+              contextIsolation: true,
+              nodeIntegration: false,
+              webSecurity: true,
+            },
+          })
+          created.webContents.setWindowOpenHandler(() => ({ action: 'deny' }))
+          void created.loadURL(bubblePageURL)
+          bubbleBrowserWindow = created
+          return created
+        },
+        usableArea: () => screen.getPrimaryDisplay().workArea,
+        petBounds: () => petBrowserWindow?.getBounds() ?? null,
+      })
+      bubbleControllerRef = bubble
+      ipcMain.on('bubble:close', (event) => {
+        const sender = bubbleBrowserWindow?.webContents
+        if (sender && event.sender === sender) bubble.dismiss()
+      })
+      ipcMain.on('bubble:ready', (event) => {
+        // The first show may race page load; replay the current text.
+        const sender = bubbleBrowserWindow?.webContents
+        if (sender && event.sender === sender) bubble.replay()
+      })
+      const speech = createSpeechScheduler({
+        now: () => Date.now(),
+        presets: [
+          '要不要看看今天还在跟进的事？',
+          '有想跟进但还没开始的事吗？慢慢来。',
+          '休息一下也可以，我在这里。',
+          '今天有新的进展吗？没有也没关系。',
+          '别咕太久，记得回头看一眼承诺过的事。',
+          '需要我把最近的事项捋一捋吗？',
+        ],
+        stateFile: join(data, 'pet-speech.json'),
+      })
+      const speechStateView = (state: SpeechState = speech.state()) => ({
+        config: state.config,
+        lastSpokeAt: state.lastSpokeAt === null ? null : new Date(state.lastSpokeAt).toISOString(),
+        todayCount: state.todayCount,
+        nextAt: new Date(state.nextAt).toISOString(),
+        suppressed: state.suppressed,
+      })
+      powerMonitor.on('lock-screen', () => speech.setSuppressed('locked'))
+      powerMonitor.on('unlock-screen', () => speech.setSuppressed('none'))
+      const speechTimer = setInterval(() => {
+        const line = speech.tick()
+        if (line) bubble.speak(line)
+      }, 30_000)
+      speechTimerRef = speechTimer
+      ipcMain.on('pet:input', (event, payload: unknown) => {
+        // Only the pet window's main frame may drive pass-through or zoom.
+        const sender = petBrowserWindow?.webContents
+        if (
+          !sender ||
+          event.sender !== sender ||
+          event.senderFrame !== sender.mainFrame ||
+          !isTrustedPage(event.senderFrame?.url ?? '', petPageURL)
+        )
+          return
+        const input = payload as { type?: unknown; hit?: unknown; delta?: unknown }
+        if (input.type === 'hover' && typeof input.hit === 'boolean')
+          petWindow.setMousePassthrough(!input.hit)
+        else if (input.type === 'zoom' && typeof input.delta === 'number')
+          petWindow.setScale(petWindow.scale() + input.delta)
+      })
+      ipcMain.handle('pet:runtime:model', async (event) => {
+        // Only the pet window's main frame may ask for the current model.
+        const sender = petBrowserWindow?.webContents
+        if (
+          !sender ||
+          event.sender !== sender ||
+          event.senderFrame !== sender.mainFrame ||
+          !isTrustedPage(event.senderFrame?.url ?? '', petPageURL)
+        )
+          return null
+        const reply = await petWorker!.request('list')
+        if (!reply.ok) return null
+        const snapshot = reply.data as {
+          currentModelId: string | null
+          models: { id: string; entry: string }[]
+        }
+        const current = snapshot.models.find(
+          (model) => model.id === snapshot.currentModelId,
+        )
+        return current ? { id: current.id, entry: current.entry } : null
+      })
+      const petFlow = createPetImportFlow({
+        pickDirectory: async () => {
+          const result = await dialog.showOpenDialog(window!, {
+            title: '选择包含 .model3.json 的模型目录',
+            properties: ['openDirectory'],
+          })
+          // The Electron result always carries filePaths, but stay defensive:
+          // anything malformed counts as cancelling, never as a chosen path.
+          return result.canceled ||
+            !Array.isArray(result.filePaths) ||
+            result.filePaths.length !== 1
+            ? null
+            : result.filePaths[0]!
+        },
+        worker: petWorker,
+      })
       app.once('before-quit', () => {
         clearInterval(pluginTimer)
         plugins.cancel()
@@ -167,6 +375,52 @@ else {
               request.method === 'credentials.remove'
             )
               return credentials(request)
+            if (request.method === 'pet.state') {
+              const reply = await petFlow.state()
+              if (reply.ok) reply.data.display = petWindow.displaying()
+              return reply
+            }
+            if (request.method === 'pet.show') {
+              const shown = await petWindow.show()
+              return shown.ok
+                ? { ok: true as const, data: { display: true } }
+                : { ok: false as const, error: 'UNKNOWN_MODEL' as const }
+            }
+            if (request.method === 'pet.hide') {
+              petWindow.hide()
+              return { ok: true as const, data: { display: false } }
+            }
+            if (request.method === 'pet.speechConfig')
+              return { ok: true as const, data: speechStateView() }
+            if (request.method === 'pet.setSpeechConfig') {
+              try {
+                const state = speech.configure({
+                  ...(request.enabled !== undefined ? { enabled: request.enabled } : {}),
+                  ...(request.paused !== undefined ? { paused: request.paused } : {}),
+                  ...(request.quietStart !== undefined ? { quietStart: request.quietStart } : {}),
+                  ...(request.quietEnd !== undefined ? { quietEnd: request.quietEnd } : {}),
+                  ...(request.minMinutes !== undefined ? { minMinutes: request.minMinutes } : {}),
+                  ...(request.maxMinutes !== undefined ? { maxMinutes: request.maxMinutes } : {}),
+                  ...(request.dailyCap !== undefined ? { dailyCap: request.dailyCap } : {}),
+                })
+                return { ok: true as const, data: speechStateView(state) }
+              } catch {
+                return { ok: false as const, error: 'INVALID_REQUEST' as const }
+              }
+            }
+            if (request.method === 'pet.previewSpeech') {
+              // The bubble belongs next to a visible pet.
+              if (!petWindow.displaying())
+                return { ok: true as const, data: { shown: false } }
+              bubble.speak('要不要看看今天还在跟进的事？')
+              return { ok: true as const, data: { shown: bubble.displaying() !== null } }
+            }
+            if (request.method === 'pet.openImportDialog')
+              return petFlow.openImportDialog()
+            if (request.method === 'pet.importChosen')
+              return petFlow.importChosen(request.entry)
+            if (request.method === 'pet.select')
+              return petFlow.select(request.modelId)
             if (!core) return { ok: false, error: 'CORE_UNAVAILABLE' }
             if (request.method === 'exports.save') {
               if (!window || savingExport)
@@ -262,6 +516,10 @@ else {
   })
   app.on('before-quit', () => {
     quitting = true
+    clearInterval(speechTimerRef)
+    bubbleControllerRef?.dispose()
+    petWindowControllerRef?.dispose()
+    petWorker?.stop()
     core?.stop()
   })
   app.on('will-quit', () => tray.destroy())

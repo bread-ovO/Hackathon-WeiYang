@@ -1,5 +1,3 @@
-import { petRequestSchemas } from './pet'
-export * from './pet'
 import {
   pluginsRequestSchema,
   type PluginTrialInput,
@@ -25,6 +23,8 @@ import {
   type ExportReceipt,
 } from './export'
 export * from './export'
+import { petRequestSchemas, type PetState, type PetChooseReply, type PetImportReply, type PetSpeechState } from './pet'
+export * from './pet'
 import {
   sourcesRequestSchema,
   importFileRequestSchema,
@@ -172,6 +172,9 @@ export type HostRequest =
           | 'pet.select'
           | 'pet.show'
           | 'pet.hide'
+          | 'pet.speechConfig'
+          | 'pet.setSpeechConfig'
+          | 'pet.previewSpeech'
       }
     >
   | ImportFileRequest
@@ -217,7 +220,16 @@ export function parseHostRequest(value: unknown): HostRequest {
     request.method === 'plugins.activate' ||
     request.method === 'plugins.disable' ||
     request.method === 'plugins.uninstall' ||
-    request.method === 'plugins.sync'
+    request.method === 'plugins.sync' ||
+    request.method === 'pet.state' ||
+    request.method === 'pet.openImportDialog' ||
+    request.method === 'pet.importChosen' ||
+    request.method === 'pet.select' ||
+    request.method === 'pet.show' ||
+    request.method === 'pet.hide' ||
+    request.method === 'pet.speechConfig' ||
+    request.method === 'pet.setSpeechConfig' ||
+    request.method === 'pet.previewSpeech'
   )
     throw new Error('INVALID_REQUEST')
   return request
@@ -307,5 +319,21 @@ export interface DesktopBridge {
         'method'
       >,
     ): Promise<CoreReply<WorkspaceSnapshot>>
+  }
+  pet: {
+    state(): Promise<CoreReply<PetState>>
+    openImportDialog(): Promise<CoreReply<PetChooseReply>>
+    importChosen(entry: string): Promise<CoreReply<PetImportReply>>
+    select(modelId: string): Promise<CoreReply<PetState>>
+    show(): Promise<CoreReply<{ display: boolean }>>
+    hide(): Promise<CoreReply<{ display: boolean }>>
+    speechConfig(): Promise<CoreReply<PetSpeechState>>
+    setSpeechConfig(
+      patch: Omit<
+        Extract<CoreRequest, { method: 'pet.setSpeechConfig' }>,
+        'method'
+      >,
+    ): Promise<CoreReply<PetSpeechState>>
+    previewSpeech(): Promise<CoreReply<{ shown: boolean }>>
   }
 }
