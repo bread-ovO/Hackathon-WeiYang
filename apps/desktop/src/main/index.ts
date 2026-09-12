@@ -132,6 +132,7 @@ else {
       const petDesktop = createPetDesktopController({
         worker: petWorker,
         flow: pets,
+        stateFile: join(data, 'pet-window.json'),
         ...(devURL ? { devURL } : {}),
         modelRoot: join(data, 'pet-models'),
         runtimeRoot: join(data, 'pet-runtime'),
@@ -199,6 +200,10 @@ else {
           () => window?.webContents ?? null,
           pageURL,
           async (request) => {
+            if (request.method === 'pet.configure')
+              return petDesktop.configure(request.patch)
+            if (request.method === 'pet.resetPosition')
+              return petDesktop.resetPosition()
             if (request.method === 'pet.state') return petDesktop.state()
             if (request.method === 'pet.show') return petDesktop.show()
             if (request.method === 'pet.hide') return petDesktop.hide()

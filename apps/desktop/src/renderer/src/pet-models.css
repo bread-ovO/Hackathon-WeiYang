@@ -223,3 +223,29 @@
   line-height: 1.5;
   color: var(--text-color-kumo-subtle);
 }
+
+.pet-models-preferences {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+.pet-models-preferences label {
+  font-size: 12px;
+}
+.pet-models-preferences select {
+  min-height: 32px;
+  padding: 4px 8px;
+  border: 1px solid var(--color-kumo-line);
+  border-radius: 8px;
+  background: var(--color-kumo-base);
+  color: var(--text-color-kumo-default);
+  font: inherit;
+}
+.pet-models-preferences p {
+  flex-basis: 100%;
+  color: var(--text-color-kumo-subtle);
+  font-size: 12px;
+  line-height: 1.5;
+}

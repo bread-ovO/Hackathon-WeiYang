@@ -2,6 +2,10 @@ import { contextBridge, ipcRenderer } from 'electron'
 contextBridge.exposeInMainWorld(
   'petInput',
   Object.freeze({
+    hitTest: (input: { interactive: boolean }) =>
+      ipcRenderer.invoke('memo-pet:hitTest', input),
+    drag: (input: { phase: 'start' | 'move' | 'end' }) =>
+      ipcRenderer.invoke('memo-pet:drag', input),
     state: () => ipcRenderer.invoke('memo-pet:state'),
     report: (input: {
       modelId: string

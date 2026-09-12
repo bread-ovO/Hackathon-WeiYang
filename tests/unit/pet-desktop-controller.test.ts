@@ -178,6 +178,32 @@ describe('isolated pet desktop host', () => {
     expect(read(event)).toEqual({
       model: { id, entry: 'a.model3.json' },
       visible: true,
+      preferences: { scale: 1, alwaysOnTop: false, clickThrough: true },
+    })
+    const hit = mock.handlers.get('memo-pet:hitTest')!,
+      drag = mock.handlers.get('memo-pet:drag')!
+    expect(() => hit(event, { interactive: 'yes' })).toThrow()
+    expect(() => hit(event, { interactive: true, x: 100 })).toThrow()
+    expect(() => drag(event, { phase: ['start'] })).toThrow()
+    expect(() => drag(event, { phase: 'move', x: 100 })).toThrow()
+    expect(() =>
+      hit({ sender: {}, senderFrame: {} }, { interactive: true }),
+    ).toThrow()
+    expect(await host.configure({ scale: NaN })).toMatchObject({
+      ok: false,
+      error: 'INVALID_REQUEST',
+    })
+    expect(
+      await host.configure({
+        scale: 2,
+        alwaysOnTop: true,
+        clickThrough: false,
+      }),
+    ).toMatchObject({
+      ok: true,
+      data: {
+        preferences: { scale: 2, alwaysOnTop: true, clickThrough: false },
+      },
     })
     const report = mock.handlers.get('memo-pet:report')!
     expect(() =>

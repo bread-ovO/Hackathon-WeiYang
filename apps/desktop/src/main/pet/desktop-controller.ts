@@ -169,6 +169,7 @@ export function createPetDesktopController(deps: PetDesktopDeps) {
       return true
     },
     platform: {
+      cursorPosition: () => screen.getCursorScreenPoint(),
       usableArea: (bounds) => {
         const all = screen.getAllDisplays()
         const match =
@@ -257,6 +258,7 @@ export function createPetDesktopController(deps: PetDesktopDeps) {
     return {
       model: descriptor ? { id: descriptor.id, entry: descriptor.entry } : null,
       visible: windows.displaying(),
+      preferences: windows.preferences(),
     }
   })
   ipcMain.handle(
@@ -284,6 +286,38 @@ export function createPetDesktopController(deps: PetDesktopDeps) {
       }
     },
   )
+  for (const method of ['hitTest', 'drag'] as const)
+    ipcMain.handle(
+      `memo-pet:${method}`,
+      (event, input: unknown, ...args: unknown[]) => {
+        if (
+          args.length ||
+          !authorized(event) ||
+          !windows.displaying() ||
+          !input ||
+          typeof input !== 'object' ||
+          Array.isArray(input)
+        )
+          throw new Error('INVALID_PET_INPUT')
+        const value = input as Record<string, unknown>
+        if (method === 'hitTest') {
+          if (
+            Object.keys(value).length !== 1 ||
+            typeof value.interactive !== 'boolean'
+          )
+            throw new Error('INVALID_PET_INPUT')
+          windows.hitTest(value.interactive)
+        } else {
+          if (
+            Object.keys(value).length !== 1 ||
+            typeof value.phase !== 'string' ||
+            !['start', 'move', 'end'].includes(value.phase)
+          )
+            throw new Error('INVALID_PET_INPUT')
+          windows.drag(value.phase as 'start' | 'move' | 'end')
+        }
+      },
+    )
   async function state(): Promise<CoreReply<PetState>> {
     if (disposed) return { ok: false, error: 'PET_UNAVAILABLE' }
     const value = await deps.flow.state()
@@ -293,6 +327,7 @@ export function createPetDesktopController(deps: PetDesktopDeps) {
       data: {
         ...value.data,
         display: windows.displaying(),
+        preferences: windows.preferences(),
         runtimeReady: await runtime.status(),
         renderStatus,
         ...(renderError ? { renderError } : {}),
@@ -308,6 +343,39 @@ export function createPetDesktopController(deps: PetDesktopDeps) {
   }
   return {
     state,
+    async configure(patch: {
+      scale?: number
+      alwaysOnTop?: boolean
+      clickThrough?: boolean
+    }): Promise<CoreReply<PetState>> {
+      if (
+        disposed ||
+        !patch ||
+        typeof patch !== 'object' ||
+        Array.isArray(patch) ||
+        !Object.keys(patch).length ||
+        Object.keys(patch).some(
+          (k) => !['scale', 'alwaysOnTop', 'clickThrough'].includes(k),
+        ) ||
+        ('scale' in patch &&
+          (!Number.isFinite(patch.scale) ||
+            patch.scale! < 0.5 ||
+            patch.scale! > 2)) ||
+        ('alwaysOnTop' in patch && typeof patch.alwaysOnTop !== 'boolean') ||
+        ('clickThrough' in patch && typeof patch.clickThrough !== 'boolean')
+      )
+        return { ok: false, error: 'INVALID_REQUEST' }
+      if (patch.scale !== undefined) windows.setScale(patch.scale)
+      if (patch.alwaysOnTop !== undefined)
+        windows.setAlwaysOnTop(patch.alwaysOnTop)
+      if (patch.clickThrough !== undefined)
+        windows.setMousePassthrough(patch.clickThrough)
+      return state()
+    },
+    async resetPosition() {
+      windows.resetPosition()
+      return state()
+    },
     async show(): Promise<CoreReply<PetState>> {
       if (installing || disposed) return { ok: false, error: 'PET_UNAVAILABLE' }
       if (showing) return showing
@@ -372,6 +440,8 @@ export function createPetDesktopController(deps: PetDesktopDeps) {
       windows.dispose()
       ipcMain.removeHandler('memo-pet:state')
       ipcMain.removeHandler('memo-pet:report')
+      ipcMain.removeHandler('memo-pet:hitTest')
+      ipcMain.removeHandler('memo-pet:drag')
       isolated.protocol.unhandle('memo-pet')
       isolated.webRequest.onBeforeRequest(null)
     },

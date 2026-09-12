@@ -1,3 +1,8 @@
+import {
+  createAlphaHitMap,
+  HIT_MAP_SIZE,
+  HIT_MAP_INTERVAL_MS,
+} from './pet-hit-test'
 /** Production renderer: only host-controlled memo-pet resources, never model scripts. */
 export interface RuntimeModel {
   id: string
@@ -21,6 +26,7 @@ export class PetRenderError extends Error {
 export interface Live2DSession {
   mode: 'live2d' | 'live2d-idle'
   frame(now: number): void
+  hitTest(x: number, y: number, width: number, height: number): boolean
   pause(): void
   resize(): void
   dispose(): void
@@ -285,6 +291,7 @@ export async function bootLive2D(
     failure = 'WEBGL_UNAVAILABLE'
     const gl = canvas.getContext('webgl2', {
       premultipliedAlpha: true,
+      antialias: false,
       alpha: true,
     })
     if (!gl) throw new Error('WebGL2 required')
@@ -429,6 +436,83 @@ export async function bootLive2D(
       { length: parameterCount },
       (_, i) => i,
     ).filter((i) => eyeIds.includes(model.getParameterId(i)))
+    const hitMap = createAlphaHitMap()
+    release.push(() => hitMap.clear())
+    const hitTexture = gl.createTexture(),
+      hitBuffer = gl.createFramebuffer()
+    if (!hitTexture || !hitBuffer) {
+      if (hitTexture) gl.deleteTexture(hitTexture)
+      if (hitBuffer) gl.deleteFramebuffer(hitBuffer)
+      throw new PetRenderError('RENDER_FAILED')
+    }
+    release.push(
+      () => gl.deleteTexture(hitTexture),
+      () => gl.deleteFramebuffer(hitBuffer),
+    )
+    gl.bindTexture(gl.TEXTURE_2D, hitTexture)
+    gl.texImage2D(
+      gl.TEXTURE_2D,
+      0,
+      gl.RGBA8,
+      HIT_MAP_SIZE,
+      HIT_MAP_SIZE,
+      0,
+      gl.RGBA,
+      gl.UNSIGNED_BYTE,
+      null,
+    )
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
+    gl.bindFramebuffer(gl.FRAMEBUFFER, hitBuffer)
+    gl.framebufferTexture2D(
+      gl.FRAMEBUFFER,
+      gl.COLOR_ATTACHMENT0,
+      gl.TEXTURE_2D,
+      hitTexture,
+      0,
+    )
+    if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE)
+      throw new PetRenderError('RENDER_FAILED')
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null)
+    const hitPixels = new Uint8Array(HIT_MAP_SIZE * HIT_MAP_SIZE * 4)
+    let lastHitRead = -Infinity
+    const updateHitMap = () => {
+      const now = performance.now()
+      if (now - lastHitRead < HIT_MAP_INTERVAL_MS) return
+      lastHitRead = now
+      const scissorEnabled = gl.isEnabled(gl.SCISSOR_TEST)
+      try {
+        gl.disable(gl.SCISSOR_TEST)
+        gl.bindFramebuffer(gl.READ_FRAMEBUFFER, null)
+        gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, hitBuffer)
+        gl.blitFramebuffer(
+          0,
+          0,
+          canvas.width,
+          canvas.height,
+          0,
+          0,
+          HIT_MAP_SIZE,
+          HIT_MAP_SIZE,
+          gl.COLOR_BUFFER_BIT,
+          gl.NEAREST,
+        )
+        gl.bindFramebuffer(gl.READ_FRAMEBUFFER, hitBuffer)
+        gl.readPixels(
+          0,
+          0,
+          HIT_MAP_SIZE,
+          HIT_MAP_SIZE,
+          gl.RGBA,
+          gl.UNSIGNED_BYTE,
+          hitPixels,
+        )
+        hitMap.update(hitPixels)
+      } finally {
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null)
+        if (scissorEnabled) gl.enable(gl.SCISSOR_TEST)
+      }
+    }
     const draw = () => {
       resize()
       model.update()
@@ -438,6 +522,7 @@ export async function bootLive2D(
       gl.clear(gl.COLOR_BUFFER_BIT)
       renderer.setRenderState(null, [0, 0, canvas.width, canvas.height])
       renderer.drawModel(shaders)
+      updateHitMap()
       if (gl.isContextLost() || gl.getError() !== gl.NO_ERROR)
         throw new PetRenderError('RENDER_FAILED')
     }
@@ -476,6 +561,8 @@ export async function bootLive2D(
     check(signal)
     return {
       mode: manager ? 'live2d' : 'live2d-idle',
+      hitTest: (x, y, width, height) =>
+        !disposed && hitMap.hit(x, y, width, height),
       resize,
       pause() {
         lastTime = undefined

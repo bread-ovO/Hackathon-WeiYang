@@ -1,4 +1,14 @@
-import { readFileSync, writeFileSync, existsSync } from 'node:fs'
+import { randomUUID } from 'node:crypto'
+import { dirname } from 'node:path'
+import {
+  readFileSync,
+  writeFileSync,
+  existsSync,
+  lstatSync,
+  renameSync,
+  mkdirSync,
+  rmSync,
+} from 'node:fs'
 
 /** Window surface the controller needs; mirrors the BrowserWindow subset. */
 export interface PetWindowLike {
@@ -33,12 +43,15 @@ export interface PetWindowPlatform {
     width: number
     height: number
   }): { x: number; y: number; width: number; height: number }
+  cursorPosition?(): { x: number; y: number }
   onDisplayChanged(listener: () => void): () => void
 }
 export interface PetWindowPersistState {
   x: number
   y: number
   scale: number
+  alwaysOnTop?: boolean
+  clickThrough?: boolean
 }
 export interface PetWindowDeps {
   platform: PetWindowPlatform
@@ -83,10 +96,14 @@ export function createPetWindowController(deps: PetWindowDeps) {
     deps.loadState ??
     (() => {
       try {
-        if (deps.stateFile && existsSync(deps.stateFile))
+        if (deps.stateFile && existsSync(deps.stateFile)) {
+          const stat = lstatSync(deps.stateFile)
+          if (!stat.isFile() || stat.isSymbolicLink() || stat.size > 4096)
+            return null
           return JSON.parse(
             readFileSync(deps.stateFile, 'utf8'),
           ) as PetWindowPersistState
+        }
       } catch {
         /* corrupt state falls back to defaults */
       }
@@ -96,7 +113,19 @@ export function createPetWindowController(deps: PetWindowDeps) {
     deps.saveState ??
     ((state: PetWindowPersistState) => {
       try {
-        if (deps.stateFile) writeFileSync(deps.stateFile, JSON.stringify(state))
+        if (deps.stateFile) {
+          mkdirSync(dirname(deps.stateFile), { recursive: true, mode: 0o700 })
+          const temporary = deps.stateFile + '.' + randomUUID() + '.tmp'
+          try {
+            writeFileSync(temporary, JSON.stringify(state), {
+              flag: 'wx',
+              mode: 0o600,
+            })
+            renameSync(temporary, deps.stateFile)
+          } finally {
+            rmSync(temporary, { force: true })
+          }
+        }
       } catch {
         /* persistence is best-effort; placement is not critical data */
       }
@@ -107,9 +136,17 @@ export function createPetWindowController(deps: PetWindowDeps) {
     if (
       loaded &&
       [loaded.x, loaded.y, loaded.scale].every(Number.isFinite) &&
-      loaded.scale > 0
+      loaded.scale > 0 &&
+      Math.abs(loaded.x) <= 10000000 &&
+      Math.abs(loaded.y) <= 10000000
     )
-      state = { x: loaded.x, y: loaded.y, scale: clampScale(loaded.scale) }
+      state = {
+        x: loaded.x,
+        y: loaded.y,
+        scale: clampScale(loaded.scale),
+        alwaysOnTop: loaded.alwaysOnTop === true,
+        clickThrough: loaded.clickThrough !== false,
+      }
   } catch {
     /* Invalid saved placement falls back to defaults. */
   }
@@ -117,16 +154,26 @@ export function createPetWindowController(deps: PetWindowDeps) {
   let display = false
   let disposed = false
   let generation = 0
-  let ignoreMouse = false
-  let alwaysOnTop = false
+  let alwaysOnTop = state.alwaysOnTop === true
+  let clickThrough = state.clickThrough !== false
+  let interactive = false
+  let drag: { x: number; y: number; cursorX: number; cursorY: number } | null =
+    null
+  const applyMouse = () => {
+    if (window && !window.isDestroyed())
+      window.setIgnoreMouseEvents(clickThrough && !interactive && !drag, {
+        forward: true,
+      })
+  }
   const persist = () => {
     try {
-      saveState({ ...state })
+      saveState({ ...state, alwaysOnTop, clickThrough })
     } catch {
       /* Best effort. */
     }
   }
-  const applyBounds = () => {
+  let applyingBounds = false
+  const applyBounds = (save = true) => {
     if (!window || window.isDestroyed()) return
     const desired = {
       x: state.x,
@@ -148,12 +195,19 @@ export function createPetWindowController(deps: PetWindowDeps) {
     }
     const { x, y } = clampIntoArea(bounds, area)
     state = { ...state, x, y }
-    window.setBounds({ ...bounds, x, y })
-    persist()
+    applyingBounds = true
+    try {
+      window.setBounds({ ...bounds, x, y })
+    } finally {
+      applyingBounds = false
+    }
+    if (save) persist()
   }
   function rendererGone() {
     generation++
     display = false
+    drag = null
+    interactive = false
     const old = window
     window = null
     if (old && !old.isDestroyed()) old.destroy()
@@ -208,8 +262,11 @@ export function createPetWindowController(deps: PetWindowDeps) {
       }
       const created = createIfAbsent()
       applyBounds()
-      created.setIgnoreMouseEvents(ignoreMouse, { forward: true })
+      applyMouse()
       created.showInactive()
+      // macOS can reposition an initially hidden window as it is shown.
+      // Restore the controlled placement after the native show transition.
+      applyBounds()
       display = true
       return { ok: true }
     } catch {
@@ -222,6 +279,8 @@ export function createPetWindowController(deps: PetWindowDeps) {
   function hide() {
     generation++
     display = false
+    drag = null
+    interactive = false
     if (window && !window.isDestroyed()) window.hide()
   }
   return {
@@ -241,9 +300,19 @@ export function createPetWindowController(deps: PetWindowDeps) {
       return state.scale
     },
     rememberPosition(): void {
-      if (disposed || !window || window.isDestroyed()) return
+      // Native resize/move callbacks can expose intermediate geometry during setBounds.
+      // Initial placement must also win over platform-created default bounds.
+      if (
+        disposed ||
+        applyingBounds ||
+        !display ||
+        !window ||
+        window.isDestroyed()
+      )
+        return
       const bounds = window.getBounds()
       if (![bounds.x, bounds.y].every(Number.isFinite)) return
+      if (state.x === bounds.x && state.y === bounds.y) return
       state = { ...state, x: bounds.x, y: bounds.y }
       applyBounds()
     },
@@ -251,12 +320,55 @@ export function createPetWindowController(deps: PetWindowDeps) {
       if (disposed) return
       alwaysOnTop = enabled === true
       if (window && !window.isDestroyed()) window.setAlwaysOnTop(alwaysOnTop)
+      persist()
     },
     setMousePassthrough(enabled: boolean): void {
       if (disposed) return
-      ignoreMouse = enabled === true
-      if (window && !window.isDestroyed())
-        window.setIgnoreMouseEvents(ignoreMouse, { forward: true })
+      clickThrough = enabled === true
+      applyMouse()
+      persist()
+    },
+    preferences() {
+      return { scale: state.scale, alwaysOnTop, clickThrough }
+    },
+    hitTest(value: boolean) {
+      if (disposed) return
+      interactive = value
+      applyMouse()
+    },
+    drag(phase: 'start' | 'move' | 'end') {
+      if (disposed || !window || window.isDestroyed() || !display) return
+      if (phase === 'end') {
+        drag = null
+        applyMouse()
+        persist()
+        return
+      }
+      const point = deps.platform.cursorPosition?.()
+      if (!point || ![point.x, point.y].every(Number.isFinite)) return
+      if (phase === 'start') {
+        if (!interactive) return
+        drag = { x: state.x, y: state.y, cursorX: point.x, cursorY: point.y }
+        applyMouse()
+      } else if (drag) {
+        state = {
+          ...state,
+          x: drag.x + point.x - drag.cursorX,
+          y: drag.y + point.y - drag.cursorY,
+        }
+        applyBounds(false)
+      }
+    },
+    resetPosition() {
+      if (disposed) return
+      const area = deps.platform.usableArea()
+      state = {
+        ...state,
+        x: area.x + area.width - petSize.width * state.scale - 24,
+        y: area.y + area.height - petSize.height * state.scale - 24,
+      }
+      applyBounds()
+      persist()
     },
     dispose(): void {
       if (disposed) return
