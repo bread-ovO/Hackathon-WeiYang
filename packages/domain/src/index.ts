@@ -58,3 +58,5 @@ export function withinNotificationCooldown(lastSentAt: string|null, now: string,
 export function canRetryNotification(attempts: number, maxAttempts = 3): boolean { return Number.isInteger(attempts) && attempts >= 0 && attempts < maxAttempts }
 
 export function cleanupTargets(projectId: string): string[] { if (!projectId.trim()) throw new Error('INVALID_PROJECT_ID'); return [`events:${projectId}`,`tasks:${projectId}`,`index:${projectId}`,`outbox:${projectId}`] }
+
+export function cloudInferenceAllowed(enabled: boolean, scope: string[]): boolean { return enabled && scope.length > 0 }
