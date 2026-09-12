@@ -1,3 +1,4 @@
+export * from './pet'
 import {
   pluginsRequestSchema,
   type PluginTrialInput,
@@ -242,6 +243,12 @@ export type CoreReply<T = Health> =
         | 'PLUGIN_UNAVAILABLE'
         | 'PLUGIN_CONFLICT'
         | 'PLUGIN_TRIAL_FAILED'
+        | 'PET_UNAVAILABLE'
+        | 'IMPORT_SESSION_INVALID'
+        | 'SOURCE_CHANGED'
+        | 'INVALID_STORE'
+        | 'UNKNOWN_MODEL'
+        | 'STORAGE_LIMIT'
     }
 export interface DesktopBridge {
   health(): Promise<CoreReply>
