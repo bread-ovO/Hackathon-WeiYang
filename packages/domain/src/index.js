@@ -36,3 +36,4 @@ export function cleanupTargets(projectId){if(!projectId.trim())throw new Error('
 export function cloudInferenceAllowed(enabled,scope){return enabled&&scope.length>0;}
 export function shouldRollback(failures,threshold=3){return Number.isInteger(failures)&&failures>=threshold;}
 export function canUpgrade(current,next){return Boolean(current&&next&&current!==next);}
+export function canAnswerWithCitation(citations){return citations.length>0&&citations.every(c=>c.trim().length>0);}

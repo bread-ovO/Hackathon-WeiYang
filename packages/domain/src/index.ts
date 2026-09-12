@@ -64,3 +64,5 @@ export function cloudInferenceAllowed(enabled: boolean, scope: string[]): boolea
 export function shouldRollback(failures: number, threshold = 3): boolean { return Number.isInteger(failures) && failures >= threshold }
 
 export function canUpgrade(current: string, next: string): boolean { return Boolean(current && next && current !== next) }
+
+export function canAnswerWithCitation(citations: string[]): boolean { return citations.length > 0 && citations.every(c => c.trim().length > 0) }
