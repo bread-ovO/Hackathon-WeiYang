@@ -16,6 +16,8 @@ export function createSourceHandler(store: ReturnType<typeof openStore>) {
         sourceInstanceId: id,
         ...(grant.cursor ? { cursor: JSON.parse(grant.cursor) } : {}),
       })
+      const currentGrant = store.sources.getAuthorized(id)
+      if (currentGrant.grantVersion !== grant.grantVersion) throw new Error('SOURCE_REVOKED')
       store.sources.receiveBatch(
         id,
         grant.grantVersion,
