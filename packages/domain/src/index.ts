@@ -84,3 +84,5 @@ export function canResumeFile(previous: { dev: number; ino: number }, current: {
 export function editTaskTitle(task: Task, title: string): Task { if (!title.trim()) throw new Error('INVALID_TASK_TITLE'); return {...task,title:title.trim(),version:task.version+1} }
 
 export function toggleInclusion(included: boolean): boolean { return !included }
+
+export function hasMinimumGithubScopes(scopes: string[]): boolean { const s=new Set(scopes); return s.has('repo:status') && s.has('pull_requests:read') }
