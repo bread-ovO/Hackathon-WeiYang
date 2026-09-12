@@ -166,6 +166,12 @@ export type HostRequest =
           | 'plugins.disable'
           | 'plugins.uninstall'
           | 'plugins.sync'
+          | 'pet.state'
+          | 'pet.openImportDialog'
+          | 'pet.importChosen'
+          | 'pet.select'
+          | 'pet.show'
+          | 'pet.hide'
       }
     >
   | ImportFileRequest
