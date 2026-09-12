@@ -38,3 +38,4 @@ export function shouldRollback(failures,threshold=3){return Number.isInteger(fai
 export function canUpgrade(current,next){return Boolean(current&&next&&current!==next);}
 export function canAnswerWithCitation(citations){return citations.length>0&&citations.every(c=>c.trim().length>0);}
 export function sourceHealthLabel(status){return status==='active'?'healthy':status==='revoked'?'revoked':'attention';}
+export function filterTasks(tasks,status,includeArchived=false){return tasks.filter(t=>(includeArchived||!t.archivedAt)&&(!status||t.status===status));}

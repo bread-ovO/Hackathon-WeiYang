@@ -68,3 +68,5 @@ export function canUpgrade(current: string, next: string): boolean { return Bool
 export function canAnswerWithCitation(citations: string[]): boolean { return citations.length > 0 && citations.every(c => c.trim().length > 0) }
 
 export function sourceHealthLabel(status: 'active'|'revoked'|'error'): string { return status==='active'?'healthy':status==='revoked'?'revoked':'attention' }
+
+export function filterTasks(tasks: Task[], status?: TaskStatus, includeArchived = false): Task[] { return tasks.filter(t => (includeArchived || !t.archivedAt) && (!status || t.status===status)) }
