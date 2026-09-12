@@ -10,7 +10,12 @@ import {
 import { randomUUID } from 'node:crypto'
 import { readFile, lstat, realpath } from 'node:fs/promises'
 import { join, resolve } from 'node:path'
-import type { CoreReply, PetState } from '@memo/contracts'
+import type {
+  CoreReply,
+  PetState,
+  PetSpeechPatch,
+  PetSpeechState,
+} from '@memo/contracts'
 import type { createPetImportFlow } from './import-flow'
 import type { PetWorkerClient } from './worker-client'
 import { createRuntimeStore, safeResourcePath } from './runtime-store'
@@ -27,6 +32,9 @@ export interface PetDesktopDeps {
   pickRuntimeDirectory(): Promise<string | null>
   devURL?: string
   stateFile?: string
+  speechState?(): PetSpeechState | undefined
+  configureSpeech?(patch: PetSpeechPatch): Promise<boolean>
+  onDisplayChanged?(): void
 }
 const codes = new Set([
   'RUNTIME_MISSING',
@@ -280,10 +288,15 @@ export function createPetDesktopController(deps: PetDesktopDeps) {
             renderStatus = 'error'
             renderError = 'RENDER_FAILED'
             windows.rendererGone()
+            deps.onDisplayChanged?.()
           }
         })
         created.on('closed', () => {
-          if (pet === created) pet = null
+          if (pet === created) {
+            pet = null
+            presentations.clear()
+            deps.onDisplayChanged?.()
+          }
         })
         created.on('moved', () => windows.rememberPosition())
         void created.loadURL(pageURL).catch(() => {
@@ -294,6 +307,7 @@ export function createPetDesktopController(deps: PetDesktopDeps) {
             renderStatus = 'error'
             renderError = 'RENDER_FAILED'
             windows.rendererGone()
+            deps.onDisplayChanged?.()
           }
         })
         return created as unknown as PetWindowLike
@@ -335,6 +349,7 @@ export function createPetDesktopController(deps: PetDesktopDeps) {
       }
       renderStatus = input.status
       renderError = input.code
+      deps.onDisplayChanged?.()
       if (input.status === 'error') {
         // The fixed SDK does not cancel pending shader fetches. Destroy the
         // failing renderer, keeping its safe error code in the settings state.
@@ -436,6 +451,7 @@ export function createPetDesktopController(deps: PetDesktopDeps) {
         preferences: windows.preferences(),
         catalog: structuredClone(catalog),
         presentation: presentations.current(),
+        ...(deps.speechState?.() ? { speech: deps.speechState() } : {}),
         runtimeReady,
         renderStatus,
         ...(renderError ? { renderError } : {}),
@@ -465,10 +481,30 @@ export function createPetDesktopController(deps: PetDesktopDeps) {
     descriptor = null
     windows.rendererGone()
     renderStatus = 'hidden'
+    deps.onDisplayChanged?.()
     renderError = undefined
   }
   return {
     state,
+    automaticDisplay() {
+      return {
+        visible: windows.displaying() && renderStatus === 'ready',
+        busy: !!presentations.current(),
+      }
+    },
+    enqueueAutomatic(text: string) {
+      if (presentations.current() || !enqueue({ kind: 'bubble', text }))
+        return null
+      return presentations.current()!.id
+    },
+    cancelAutomatic(id: string) {
+      presentations.cancel(id)
+    },
+    async configureSpeech(patch: PetSpeechPatch): Promise<CoreReply<PetState>> {
+      if (!deps.configureSpeech || !(await deps.configureSpeech(patch)))
+        return { ok: false, error: 'INVALID_REQUEST' }
+      return state()
+    },
     async play(actionId: string): Promise<CoreReply<PetState>> {
       return enqueue({ kind: 'action', actionId })
         ? snapshotReply()

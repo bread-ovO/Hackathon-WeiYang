@@ -5,6 +5,7 @@ import {
   type PetState,
   type PetChooseReply,
   type PetImportReply,
+  type PetSpeechPatch,
 } from './pet'
 export * from './pet'
 import {
@@ -217,6 +218,7 @@ export function parseHostRequest(value: unknown): HostRequest {
     request.method === 'pet.play' ||
     request.method === 'pet.speak' ||
     request.method === 'pet.dismissBubble' ||
+    request.method === 'pet.configureSpeech' ||
     request.method === 'pet.configure' ||
     request.method === 'pet.resetPosition' ||
     request.method === 'pet.show' ||
@@ -284,6 +286,7 @@ export type CoreReply<T = Health> =
     }
 export interface DesktopBridge {
   pet: {
+    configureSpeech(patch: PetSpeechPatch): Promise<CoreReply<PetState>>
     play(actionId: string): Promise<CoreReply<PetState>>
     speak(input: {
       text: string

@@ -2,6 +2,11 @@ import { contextBridge, ipcRenderer } from 'electron'
 import type { DesktopBridge } from '@memo/contracts'
 const bridge: DesktopBridge = {
   pet: Object.freeze({
+    configureSpeech: (patch) =>
+      ipcRenderer.invoke('memo:request', {
+        method: 'pet.configureSpeech',
+        patch,
+      }),
     play: (actionId) =>
       ipcRenderer.invoke('memo:request', { method: 'pet.play', actionId }),
     speak: (input) =>

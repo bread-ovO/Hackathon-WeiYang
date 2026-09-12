@@ -5,7 +5,47 @@ import type { FromSchema } from 'json-schema-to-ts'
 // PET02 renderer-facing contracts. The renderer never sees absolute paths:
 // directory selection lives in the main process and imports reference a
 // session-scoped entry file name only.
+export const petSpeechPatchSchema = {
+  type: 'object',
+  minProperties: 1,
+  additionalProperties: false,
+  properties: {
+    enabled: { type: 'boolean' },
+    frequency: { enum: ['low', 'normal'] },
+    quietStart: { type: 'integer', minimum: 0, maximum: 1439 },
+    quietEnd: { type: 'integer', minimum: 0, maximum: 1439 },
+    pausedUntil: {
+      anyOf: [
+        { type: 'integer', minimum: 0, maximum: 8640000000000000 },
+        { type: 'null' },
+      ],
+    },
+  },
+} as const
+export type PetSpeechPatch = FromSchema<typeof petSpeechPatchSchema>
+export interface PetSpeechPreferences {
+  enabled: boolean
+  frequency: 'low' | 'normal'
+  quietStart: number
+  quietEnd: number
+  pausedUntil: number | null
+}
+export interface PetSpeechState {
+  preferences: PetSpeechPreferences
+  nextAt: number | null
+  todayCount: number
+  status: 'disabled' | 'paused' | 'quiet' | 'suppressed' | 'waiting' | 'error'
+}
 export const petRequestSchemas = [
+  {
+    type: 'object',
+    properties: {
+      method: { const: 'pet.configureSpeech' },
+      patch: petSpeechPatchSchema,
+    },
+    required: ['method', 'patch'],
+    additionalProperties: false,
+  },
   {
     type: 'object',
     properties: {
@@ -163,6 +203,7 @@ export interface PetPreferences {
   clickThrough: boolean
 }
 export interface PetState {
+  speech?: PetSpeechState
   catalog?: PetActionCatalog
   presentation?: PetPresentation | null
   preferences?: PetPreferences

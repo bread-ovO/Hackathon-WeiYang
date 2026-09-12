@@ -102,8 +102,10 @@ const id = 'a'.repeat(64)
 function create(
   stateReader?: () => Promise<any>,
   mutations: { select?: () => Promise<any>; remove?: () => Promise<any> } = {},
+  onDisplayChanged?: () => void,
 ) {
   return createPetDesktopController({
+    onDisplayChanged,
     worker: { request: mock.model } as any,
     flow: {
       state:
@@ -404,5 +406,20 @@ it('a late worker read cannot overwrite a committed model snapshot', async () =>
     data: { currentModelId: id, models: [], display: false },
   })
   expect(await pending).toMatchObject({ ok: true, data: next })
+  host.dispose()
+})
+
+it('notifies speech supervision immediately when the renderer crashes', async () => {
+  const changed = vi.fn(),
+    host = create(undefined, {}, changed)
+  await host.show()
+  const win = mock.windows[0]
+  const handler = win.webContents.on.mock.calls.find(
+    (call: any[]) => call[0] === 'render-process-gone',
+  )[1]
+  changed.mockClear()
+  handler()
+  expect(changed).toHaveBeenCalled()
+  expect(host.automaticDisplay().visible).toBe(false)
   host.dispose()
 })

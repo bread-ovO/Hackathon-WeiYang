@@ -6,10 +6,10 @@
   "description": "BUGU 不咕 · 工作事项与桌面陪伴助手",
   "author": "Project contributors",
   "scripts": {
-    "dev": "electron-vite dev",
-    "build": "electron-vite build",
+    "dev": "node ../../scripts/build-pet-native.mjs && electron-vite dev",
+    "build": "node ../../scripts/build-pet-native.mjs && electron-vite build",
     "rebuild:native": "electron-builder install-app-deps",
-    "package:dir": "electron-vite build && electron-builder --dir"
+    "package:dir": "node ../../scripts/build-pet-native.mjs && electron-vite build && electron-builder --dir"
   },
   "dependencies": {
     "@cloudflare/kumo": "2.13.2",
@@ -40,7 +40,8 @@
     ],
     "asar": true,
     "asarUnpack": [
-      "**/*.node"
+      "**/*.node",
+      "out/native/**"
     ],
     "mac": {
       "category": "public.app-category.productivity",
