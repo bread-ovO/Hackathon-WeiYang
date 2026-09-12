@@ -423,3 +423,49 @@ it('notifies speech supervision immediately when the renderer crashes', async ()
   expect(host.automaticDisplay().visible).toBe(false)
   host.dispose()
 })
+
+it('recovery pauses automatic delivery, clears stale presentation and can become ready again', async () => {
+  const host = create()
+  await host.show()
+  const win = mock.windows[0],
+    event = { sender: win.webContents, senderFrame: win.webContents.mainFrame }
+  const report = mock.handlers.get('memo-pet:report')!
+  report(event, { modelId: id, status: 'ready' })
+  expect((await host.speak({ text: 'recover me' })).ok).toBe(true)
+  report(event, { modelId: id, status: 'recovering' })
+  expect(await host.state()).toMatchObject({
+    ok: true,
+    data: { display: true, renderStatus: 'loading', presentation: null },
+  })
+  expect(host.automaticDisplay().visible).toBe(false)
+  expect((await host.speak({ text: 'not during recovery' })).ok).toBe(false)
+  report(event, { modelId: id, status: 'ready' })
+  expect(host.automaticDisplay().visible).toBe(true)
+  expect((await host.speak({ text: 'after recovery' })).ok).toBe(true)
+  host.dispose()
+})
+it('a renderer that never completes recovery is destroyed on a bounded host deadline', async () => {
+  const host = create()
+  await host.show()
+  const win = mock.windows[0]
+  vi.useFakeTimers()
+  try {
+    mock.handlers.get('memo-pet:report')!(
+      { sender: win.webContents, senderFrame: win.webContents.mainFrame },
+      { modelId: id, status: 'recovering' },
+    )
+    await vi.advanceTimersByTimeAsync(10000)
+    expect(win.dead).toBe(true)
+    expect(await host.state()).toMatchObject({
+      ok: true,
+      data: {
+        renderStatus: 'error',
+        renderError: 'RENDER_FAILED',
+        display: false,
+      },
+    })
+  } finally {
+    host.dispose()
+    vi.useRealTimers()
+  }
+})
