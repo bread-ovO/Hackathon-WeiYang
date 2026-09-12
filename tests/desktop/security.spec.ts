@@ -109,7 +109,14 @@ test('real IPC rejects foreign windows and malformed requests; source text stays
     expect(await page.evaluate(() => Object.keys(window.memo.plugins))).toEqual(
       ['list', 'inspect', 'trial', 'activate', 'disable', 'uninstall', 'sync'],
     )
-    expect(await page.evaluate(() => Object.keys(window.memo.pet))).toEqual(['state', 'openImportDialog', 'cancelImport', 'importChosen', 'select', 'remove'])
+    expect(await page.evaluate(() => Object.keys(window.memo.pet))).toEqual([
+      'state',
+      'openImportDialog',
+      'cancelImport',
+      'importChosen',
+      'select',
+      'remove',
+    ])
     // Privileged test harness only: inject a temporary probe, never ship raw IPC in production preload.
     const preload = join(data, 'probe.cjs')
     await writeFile(
@@ -144,7 +151,14 @@ test('real IPC rejects foreign windows and malformed requests; source text stays
       [{ method: 'pet.hide' }],
       [{ method: 'pet.openImportDialog', directory: '/private' }],
       [{ method: 'pet.importChosen', entry: 'x.model3.json' }],
-      [{ method: 'pet.importChosen', sessionId: '00000000-0000-0000-0000-000000000000', entry: 'x.model3.json', directory: '/private' }],
+      [
+        {
+          method: 'pet.importChosen',
+          sessionId: '00000000-0000-0000-0000-000000000000',
+          entry: 'x.model3.json',
+          directory: '/private',
+        },
+      ],
       [{ method: 'pet.select', modelId: 'x'.repeat(64) }],
       [{ method: 'pet.remove', modelId: null }],
       [{ method: 'health', unexpected: true }],

@@ -265,6 +265,7 @@ export type CoreReply<T = Health> =
         | 'PLUGIN_CONFLICT'
         | 'PLUGIN_TRIAL_FAILED'
         | 'PET_UNAVAILABLE'
+        | 'PET_OUTCOME_UNKNOWN'
         | 'IMPORT_SESSION_INVALID'
         | 'SOURCE_CHANGED'
         | 'INVALID_STORE'

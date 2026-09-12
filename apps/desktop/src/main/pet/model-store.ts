@@ -37,7 +37,8 @@ export class ModelStoreError extends Error {
       | 'source-changed'
       | 'invalid-store'
       | 'unknown-model'
-      | 'storage-limit',
+      | 'storage-limit'
+      | 'outcome-unknown',
     message: string,
   ) {
     super(message)
@@ -178,13 +179,18 @@ export class ModelStore {
       } catch (error) {
         // A publish with no registry commit is an orphan; next recovery removes it too.
         if (published) {
-          const persisted = await this.readState()
-          if (!persisted.models.some((model) => model.id === id))
-            await rm(destination, { recursive: true, force: true })
+          try {
+            const persisted = await this.readState()
+            if (!persisted.models.some((model) => model.id === id))
+              await rm(destination, { recursive: true, force: true })
+          } catch {
+            // Cleanup/reconciliation must not replace the original failure.
+            // Unknown publication remains for the next recovery pass.
+          }
         }
         throw error
       } finally {
-        await rm(stage, { recursive: true, force: true })
+        await rm(stage, { recursive: true, force: true }).catch(() => undefined)
       }
     })
   }
@@ -212,8 +218,12 @@ export class ModelStore {
       }
       // Commit logical deletion before removing bytes; interrupted cleanup leaves only an orphan.
       await this.writeState(next)
-      await rm(path.join(this.root, id), { recursive: true, force: true })
-      await syncDirectory(this.root)
+      // Logical deletion is committed. Cleanup failure leaves an orphan, not
+      // a failed deletion or a promise that the previous selection survived.
+      try {
+        await rm(path.join(this.root, id), { recursive: true, force: true })
+        await syncDirectory(this.root)
+      } catch { /* recover retries orphan cleanup without resurrecting the model. */ }
       return clone(next)
     })
   }
@@ -289,6 +299,7 @@ export class ModelStore {
     if (bytes.length > registryLimit)
       throw new ModelStoreError('storage-limit', '模型注册表超过容量限制。')
     const temporary = path.join(this.root, `.registry-${randomUUID()}`)
+    let committed = false
     try {
       const file = await open(temporary, 'wx', 0o600)
       try {
@@ -298,9 +309,18 @@ export class ModelStore {
         await file.close()
       }
       await rename(temporary, path.join(this.root, 'registry.json'))
+      committed = true
       await syncDirectory(this.root)
+    } catch (error) {
+      if (committed)
+        throw new ModelStoreError('outcome-unknown', '提交结果需要重新读取确认。')
+      throw error
     } finally {
-      await rm(temporary, { force: true })
+      try { await rm(temporary, { force: true }) } catch {
+        if (committed)
+          throw new ModelStoreError('outcome-unknown', '提交结果需要重新读取确认。')
+        // Preserve the pre-commit failure; recovery will remove a leftover temp.
+      }
     }
   }
 
@@ -331,12 +351,12 @@ export class ModelStore {
     )
       await this.writeState(next)
     const registered = new Set(healthy.map((model) => model.id))
-    for (const name of await readdir(this.root)) {
+    for (const name of await readdir(this.root).catch(() => [] as string[])) {
       if (
         /^\.(?:staging|registry)-[a-f0-9-]{36}$/u.test(name) ||
         (idPattern.test(name) && !registered.has(name))
       ) {
-        await rm(path.join(this.root, name), { recursive: true, force: true })
+        await rm(path.join(this.root, name), { recursive: true, force: true }).catch(() => undefined)
       }
     }
     return next

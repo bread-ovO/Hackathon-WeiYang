@@ -82,7 +82,35 @@ export function PetModels() {
         return
       }
       if (reply.ok) await apply(reply.data, current)
-      else {
+      else if (reply.error === 'PET_OUTCOME_UNKNOWN') {
+        setMessage('操作结果需要确认，正在重新读取模型库。')
+        setChoice(null)
+        setEntry('')
+        setRemoving(null)
+        session.current = null
+        await api()
+          .cancelImport()
+          .catch(() => {})
+        if (!current()) return
+        try {
+          const refreshed = await api().state()
+          if (!current()) return
+          if (refreshed.ok) {
+            setData(refreshed.data)
+            setLoaded(true)
+            setMessage('已重新读取模型库，请以当前模型列表和选择为准。')
+          } else {
+            setMessage(
+              '操作结果仍未确认，请重启应用后刷新模型库；请勿重复提交上次操作。',
+            )
+          }
+        } catch {
+          if (current())
+            setMessage(
+              '操作结果仍未确认，请重启应用后刷新模型库；请勿重复提交上次操作。',
+            )
+        }
+      } else {
         setMessage(errorMessage(reply.error))
         if (/SESSION|EXPIRED/.test(reply.error)) {
           setChoice(null)

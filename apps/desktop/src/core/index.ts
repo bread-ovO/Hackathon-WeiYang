@@ -48,10 +48,7 @@ parentPort.on('message', async ({ data }) => {
                   request.method === 'sources.sync' ||
                   request.method === 'sources.revoke'
                 ? await sources(request)
-                : handleWorkspace(
-                    store,
-                    request as Parameters<typeof handleWorkspace>[1],
-                  ),
+                : handleWorkspace(store, request),
     }
   } catch (error) {
     const code = error instanceof Error ? error.message : ''

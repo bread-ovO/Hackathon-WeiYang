@@ -70,6 +70,110 @@ afterEach(async () => {
 })
 
 describe('controlled model store', () => {
+  it.each(['select', 'remove'] as const)('%s pre-commit failure preserves current selection and resources', async operation => {
+    const first = await imported()
+    await store.select(first.id)
+    await fs.writeFile(path.join(source, 'pet.moc3'), 'MOC3\x02\0\0\0')
+    const second = await imported()
+    const original = fs.rename
+    vi.spyOn(fs, 'rename').mockImplementation(async (...args) => {
+      if (String(args[0]).includes('.registry-')) throw new Error('pre-commit-failure')
+      return original(...args)
+    })
+    await expect(operation === 'select' ? store.select(second.id) : store.remove(first.id)).rejects.toThrow('pre-commit-failure')
+    vi.restoreAllMocks()
+    const recovered = await new ModelStore(storeRoot).list()
+    expect(recovered.currentModelId).toBe(first.id)
+    expect(recovered.models).toHaveLength(2)
+    expect((await fs.stat(path.join(storeRoot, first.id))).isDirectory()).toBe(true)
+  })
+  it.each(['select', 'remove'] as const)('%s reports outcome-unknown after registry rename when directory sync fails', async operation => {
+    if (process.platform === 'win32') return // Directory fsync is not used on Windows.
+    const first = await imported()
+    await store.select(first.id)
+    const original = fs.open
+    vi.spyOn(fs, 'open').mockImplementation(async (...args) => {
+      if (String(args[0]) === storeRoot && args[1] === 'r') throw new Error('post-commit-sync-failure')
+      return original(...args)
+    })
+    await expect(operation === 'select' ? store.select(null) : store.remove(first.id)).rejects.toMatchObject({ code: 'outcome-unknown' })
+    vi.restoreAllMocks()
+    const recovered = await new ModelStore(storeRoot).list()
+    expect(recovered.currentModelId).toBeNull()
+    expect(recovered.models).toHaveLength(operation === 'select' ? 1 : 0)
+  })
+  it('import with uncertain registry durability retains published assets and previous selection', async () => {
+    if (process.platform === 'win32') return
+    const first = await imported()
+    await store.select(first.id)
+    await fs.writeFile(path.join(source, 'pet.moc3'), 'MOC3\x02\0\0\0')
+    let committed = false
+    const originalRename = fs.rename, originalOpen = fs.open
+    vi.spyOn(fs, 'rename').mockImplementation(async (...args) => {
+      const result = await originalRename(...args)
+      if (String(args[0]).includes('.registry-')) committed = true
+      return result
+    })
+    vi.spyOn(fs, 'open').mockImplementation(async (...args) => {
+      if (committed && String(args[0]) === storeRoot && args[1] === 'r') throw new Error('post-commit-sync-failure')
+      return originalOpen(...args)
+    })
+    await expect(store.importModel(source, entry)).rejects.toMatchObject({ code: 'outcome-unknown' })
+    vi.restoreAllMocks()
+    const recovered = await new ModelStore(storeRoot).list()
+    expect(recovered.currentModelId).toBe(first.id)
+    expect(recovered.models).toHaveLength(2)
+    for (const model of recovered.models) expect((await fs.stat(path.join(storeRoot, model.id))).isDirectory()).toBe(true)
+  })
+  it('logical removal succeeds despite cleanup failure and recovery retries the orphan', async () => {
+    const first = await imported()
+    await store.select(first.id)
+    const original = fs.rm
+    vi.spyOn(fs, 'rm').mockImplementation(async (...args) => {
+      if (String(args[0]) === path.join(storeRoot, first.id)) throw new Error('cleanup-denied')
+      return original(...args)
+    })
+    expect(await store.remove(first.id)).toEqual({ currentModelId: null, models: [] })
+    expect((await fs.stat(path.join(storeRoot, first.id))).isDirectory()).toBe(true)
+    expect(await new ModelStore(storeRoot).list()).toEqual({ currentModelId: null, models: [] })
+    vi.restoreAllMocks()
+    await new ModelStore(storeRoot).list()
+    await expect(fs.stat(path.join(storeRoot, first.id))).rejects.toMatchObject({ code: 'ENOENT' })
+  })
+  it('registry temporary cleanup failure after commit reports unknown and does not roll back', async () => {
+    const first = await imported()
+    const original = fs.rm
+    vi.spyOn(fs, 'rm').mockImplementation(async (...args) => {
+      if (String(args[0]).includes('.registry-')) throw new Error('cleanup-denied')
+      return original(...args)
+    })
+    await expect(store.select(first.id)).rejects.toMatchObject({ code: 'outcome-unknown' })
+    expect((await store.list()).currentModelId).toBe(first.id)
+  })
+  it('staging cleanup failure cannot override a successful import', async () => {
+    const original = fs.rm
+    vi.spyOn(fs, 'rm').mockImplementation(async (...args) => {
+      if (String(args[0]).includes('.staging-')) throw new Error('cleanup-denied')
+      return original(...args)
+    })
+    const result = await store.importModel(source, entry)
+    expect(result.status).toBe('imported')
+    expect((await store.list()).models).toHaveLength(1)
+  })
+  it('cleanup errors cannot mask the original pre-commit import failure', async () => {
+    const originalOpen = fs.open, originalRm = fs.rm
+    vi.spyOn(fs, 'open').mockImplementation(async (...args) => {
+      if (String(args[0]).includes('.staging-') && args[1] === 'wx') throw new Error('original-copy-failure')
+      return originalOpen(...args)
+    })
+    vi.spyOn(fs, 'rm').mockImplementation(async (...args) => {
+      if (String(args[0]).includes('.staging-')) throw new Error('secondary-cleanup-failure')
+      return originalRm(...args)
+    })
+    await expect(store.importModel(source, entry)).rejects.toThrow('original-copy-failure')
+    expect((await store.list()).models).toHaveLength(0)
+  })
+
   it('copies verified bytes, persists registration and explicit selection across restart', async () => {
     const model = await imported()
     expect(model.id).toMatch(/^[a-f0-9]{64}$/u)

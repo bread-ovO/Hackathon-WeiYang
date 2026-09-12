@@ -135,6 +135,10 @@ describe('pet worker process boundary', () => {
   })
 })
 describe('pet wire schema', () => {
+  it('preserves the fixed outcome-unknown error without claiming rollback', () => {
+    expect(validReply({ ok: false, error: 'outcome-unknown' }, 'import')).toBe(true)
+    expect(validReply({ ok: false, error: 'outcome-unknown', path: '/private' }, 'import')).toBe(false)
+  })
   it('rejects extra privilege fields and unknown methods', () => {
     expect(validRequest({ id: 'id', method: 'list', path: '/private' })).toBe(
       false,

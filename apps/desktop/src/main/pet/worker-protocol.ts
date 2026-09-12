@@ -23,6 +23,7 @@ export const workerErrors = [
   'source-changed',
   'invalid-store',
   'unknown-model',
+  'outcome-unknown',
   'storage-limit',
 ]
 const issueCodes = [

@@ -1,9 +1,9 @@
 import type { CoreReply, PetChooseReply, PetImportReply, PetState, PetModel } from '@memo/contracts'
 import { type DiscoveredEntries, ImportSession, safeEntry } from './import-session'
 import type { PetWorkerClient } from './worker-client'
-const petErrorCodes=['PET_UNAVAILABLE','IMPORT_SESSION_INVALID','SOURCE_CHANGED','INVALID_STORE','UNKNOWN_MODEL','STORAGE_LIMIT'] as const
+const petErrorCodes=['PET_UNAVAILABLE','PET_OUTCOME_UNKNOWN','IMPORT_SESSION_INVALID','SOURCE_CHANGED','INVALID_STORE','UNKNOWN_MODEL','STORAGE_LIMIT'] as const
 type PetErrorCode=(typeof petErrorCodes)[number]
-const kebabCodeMap:Record<string,PetErrorCode>={'source-changed':'SOURCE_CHANGED','invalid-store':'INVALID_STORE','unknown-model':'UNKNOWN_MODEL','storage-limit':'STORAGE_LIMIT'}
+const kebabCodeMap:Record<string,PetErrorCode>={'outcome-unknown':'PET_OUTCOME_UNKNOWN','source-changed':'SOURCE_CHANGED','invalid-store':'INVALID_STORE','unknown-model':'UNKNOWN_MODEL','storage-limit':'STORAGE_LIMIT'}
 const petErrorCode=(code:string):PetErrorCode=>kebabCodeMap[code]??((petErrorCodes as readonly string[]).includes(code)?code as PetErrorCode:'PET_UNAVAILABLE')
 export interface ImportFlowDeps {
   pickDirectory():Promise<string|null>
