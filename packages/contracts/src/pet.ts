@@ -44,6 +44,33 @@ export const petRequestSchemas = [
     required: ['method'],
     additionalProperties: false,
   },
+  {
+    type: 'object',
+    properties: { method: { const: 'pet.speechConfig' } },
+    required: ['method'],
+    additionalProperties: false,
+  },
+  {
+    type: 'object',
+    properties: {
+      method: { const: 'pet.setSpeechConfig' },
+      enabled: { type: 'boolean' },
+      paused: { type: 'boolean' },
+      quietStart: { type: 'string', pattern: '^([01]?\\d|2[0-3]):[0-5]\\d$' },
+      quietEnd: { type: 'string', pattern: '^([01]?\\d|2[0-3]):[0-5]\\d$' },
+      minMinutes: { type: 'number', minimum: 1, maximum: 240 },
+      maxMinutes: { type: 'number', minimum: 1, maximum: 240 },
+      dailyCap: { type: 'number', minimum: 1, maximum: 24 },
+    },
+    required: ['method'],
+    additionalProperties: false,
+  },
+  {
+    type: 'object',
+    properties: { method: { const: 'pet.previewSpeech' } },
+    required: ['method'],
+    additionalProperties: false,
+  },
 ] as const
 
 export interface PetModel {
@@ -63,6 +90,22 @@ export type PetChooseReply =
   | { status: 'no-model'; cmo3Found: boolean }
   | { status: 'ready'; entry: string; entries: string[] }
   | { status: 'choose'; entries: string[] }
+export interface PetSpeechConfig {
+  enabled: boolean
+  paused: boolean
+  quietStart: string
+  quietEnd: string
+  minMinutes: number
+  maxMinutes: number
+  dailyCap: number
+}
+export interface PetSpeechState {
+  config: PetSpeechConfig
+  lastSpokeAt: string | null
+  todayCount: number
+  nextAt: string
+  suppressed: 'none' | 'locked'
+}
 export interface PetModelIssue {
   code: string
   resource: string

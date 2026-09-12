@@ -6,7 +6,7 @@ import {
   type ExportReceipt,
 } from './export'
 export * from './export'
-import { petRequestSchemas, type PetState, type PetChooseReply, type PetImportReply } from './pet'
+import { petRequestSchemas, type PetState, type PetChooseReply, type PetImportReply, type PetSpeechState } from './pet'
 export * from './pet'
 import {
   sourcesRequestSchema,
@@ -221,5 +221,13 @@ export interface DesktopBridge {
     select(modelId: string): Promise<CoreReply<PetState>>
     show(): Promise<CoreReply<{ display: boolean }>>
     hide(): Promise<CoreReply<{ display: boolean }>>
+    speechConfig(): Promise<CoreReply<PetSpeechState>>
+    setSpeechConfig(
+      patch: Omit<
+        Extract<CoreRequest, { method: 'pet.setSpeechConfig' }>,
+        'method'
+      >,
+    ): Promise<CoreReply<PetSpeechState>>
+    previewSpeech(): Promise<CoreReply<{ shown: boolean }>>
   }
 }

@@ -20,7 +20,7 @@ import {
   FolderSimple,
   type Icon as PhosphorIcon,
 } from '@phosphor-icons/react'
-import type { DesktopBridge, Health, PetModelIssue, PetState } from '@memo/contracts'
+import type { DesktopBridge, Health, PetModelIssue, PetSpeechState, PetState } from '@memo/contracts'
 import { demoTasks, type Task } from './demo'
 import {
   AppButton,
@@ -97,10 +97,13 @@ function App() {
     [petBusy, setPetBusy] = useState(false),
     [petChoice, setPetChoice] = useState<string[] | null>(null),
     [petMessage, setPetMessage] = useState(''),
-    [petIssues, setPetIssues] = useState<PetModelIssue[] | null>(null)
+    [petIssues, setPetIssues] = useState<PetModelIssue[] | null>(null),
+    [speech, setSpeech] = useState<PetSpeechState | null>(null)
   const searchRef = useRef<HTMLInputElement>(null)
   const refreshPet = async () => {
     // The pet worker starts alongside the app; tolerate a brief not-ready window.
+    const r = await window.memo.pet.speechConfig()
+    if (r.ok) setSpeech(r.data)
     for (let attempt = 0; attempt < 5; attempt++) {
       const reply = await window.memo.pet.state()
       if (reply.ok) {
@@ -173,6 +176,25 @@ function App() {
         setPetState(reply.data)
         setPetMessage('已切换当前模型。')
       } else setPetMessage('切换没有完成。')
+    } finally {
+      setPetBusy(false)
+    }
+  }
+  const patchSpeech = async (patch: Record<string, unknown>) => {
+    setPetBusy(true)
+    try {
+      const reply = await window.memo.pet.setSpeechConfig(patch)
+      if (reply.ok) setSpeech(reply.data)
+      else setPetMessage('设置没有保存，请重试。')
+    } finally {
+      setPetBusy(false)
+    }
+  }
+  const previewSpeech = async () => {
+    setPetBusy(true)
+    try {
+      const reply = await window.memo.pet.previewSpeech()
+      setPetMessage(reply.ok && reply.data.shown ? '气泡已显示在桌宠旁。' : '请先显示桌宠后再试。')
     } finally {
       setPetBusy(false)
     }
@@ -935,6 +957,72 @@ function App() {
                   ))}
                 </ul>
               ) : null}
+            </section>
+            <section className="runtime" aria-label="桌宠说话">
+              <div className="section-heading">
+                <h2>桌宠说话</h2>
+                <span className="muted">
+                  {speech
+                    ? `${speech.config.enabled ? '已开启' : '已关闭'} · 今天 ${speech.todayCount}/${speech.config.dailyCap} 句`
+                    : '读取中'}
+                </span>
+              </div>
+              <p className="muted">
+                偶尔用文字气泡说一句话。默认不播音；静默时段{' '}
+                {speech?.config.quietStart ?? '22:00'}–
+                {speech?.config.quietEnd ?? '09:00'} 内不打扰。
+              </p>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+                <AppButton
+                  disabled={petBusy}
+                  onClick={() => void patchSpeech({ enabled: !(speech?.config.enabled ?? true) })}
+                >
+                  {speech?.config.enabled ? '关闭说话' : '开启说话'}
+                </AppButton>
+                <AppButton
+                  disabled={petBusy}
+                  onClick={() => void patchSpeech({ paused: !(speech?.config.paused ?? false) })}
+                >
+                  {speech?.config.paused ? '恢复' : '暂停'}
+                </AppButton>
+                <AppButton disabled={petBusy} onClick={() => void previewSpeech()}>
+                  试一句话
+                </AppButton>
+                <label className="muted" style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+                  频率
+                  <select
+                    aria-label="说话频率"
+                    value={
+                      speech ? (speech.config.minMinutes <= 20 ? 'high' : speech.config.minMinutes >= 90 ? 'low' : 'normal') : 'normal'
+                    }
+                    onChange={(event) => {
+                      const ranges = { high: [20, 45], normal: [45, 90], low: [90, 150] } as const
+                      const [minMinutes, maxMinutes] = ranges[event.target.value as keyof typeof ranges]!
+                      void patchSpeech({ minMinutes, maxMinutes })
+                    }}
+                  >
+                    <option value="low">低</option>
+                    <option value="normal">标准</option>
+                    <option value="high">高</option>
+                  </select>
+                </label>
+                <label className="muted" style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+                  静默
+                  <input
+                    aria-label="静默开始"
+                    type="time"
+                    value={speech?.config.quietStart ?? '22:00'}
+                    onChange={(event) => void patchSpeech({ quietStart: event.target.value })}
+                  />
+                  –
+                  <input
+                    aria-label="静默结束"
+                    type="time"
+                    value={speech?.config.quietEnd ?? '09:00'}
+                    onChange={(event) => void patchSpeech({ quietEnd: event.target.value })}
+                  />
+                </label>
+              </div>
             </section>
             <div className="connection-note">
               <h3>关于设计预览</h3>

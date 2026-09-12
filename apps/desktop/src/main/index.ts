@@ -10,6 +10,7 @@ import {
   Menu,
   nativeImage,
   dialog,
+  powerMonitor,
 } from 'electron'
 import { join, resolve, sep } from 'node:path'
 import { mkdirSync } from 'node:fs'
@@ -29,6 +30,8 @@ import { createPetImportFlow } from './pet/import-flow'
 import { PetWorkerClient } from './pet/worker-client'
 import { createPetWindowController, type PetWindowLike } from './pet/pet-window'
 import { resolveModelResource } from './pet/model-route'
+import { createSpeechScheduler, type SpeechState } from './pet/speech-scheduler'
+import { createBubbleController } from './pet/bubble-window'
 protocol.registerSchemesAsPrivileged([
   {
     scheme: 'memo',
@@ -39,6 +42,8 @@ let window: BrowserWindow | null = null
 let core: CoreClient | undefined
 let petWorker: PetWorkerClient | undefined
 let petWindowControllerRef: ReturnType<typeof createPetWindowController> | undefined
+let bubbleControllerRef: ReturnType<typeof createBubbleController> | undefined
+let speechTimerRef: ReturnType<typeof setInterval> | undefined
 let quitting = false
 let choosingSource = false
 let savingExport = false
@@ -118,6 +123,7 @@ else {
       )
       petWorker.start()
       const petPageURL = devURL ? `${devURL}/pet.html` : 'memo://app/pet.html'
+      const bubblePageURL = devURL ? `${devURL}/bubble.html` : 'memo://app/bubble.html'
       let petBrowserWindow: BrowserWindow | null = null
       const petWindow = createPetWindowController({
         platform: {
@@ -170,6 +176,73 @@ else {
         stateFile: join(data, 'pet-window.json'),
       })
       petWindowControllerRef = petWindow
+      // PET09/10/11: proactive speech — bubble window, low-frequency
+      // scheduler with injectable clock, lock-screen suppression.
+      let bubbleBrowserWindow: BrowserWindow | null = null
+      const bubble = createBubbleController({
+        createWindow: () => {
+          const created = new BrowserWindow({
+            width: 280,
+            height: 150,
+            transparent: true,
+            frame: false,
+            resizable: false,
+            skipTaskbar: true,
+            focusable: false,
+            show: false,
+            parent: petBrowserWindow ?? undefined,
+            webPreferences: {
+              preload: join(__dirname, '../preload/bubble.js'),
+              sandbox: true,
+              contextIsolation: true,
+              nodeIntegration: false,
+              webSecurity: true,
+            },
+          })
+          created.webContents.setWindowOpenHandler(() => ({ action: 'deny' }))
+          void created.loadURL(bubblePageURL)
+          bubbleBrowserWindow = created
+          return created
+        },
+        usableArea: () => screen.getPrimaryDisplay().workArea,
+        petBounds: () => petBrowserWindow?.getBounds() ?? null,
+      })
+      bubbleControllerRef = bubble
+      ipcMain.on('bubble:close', (event) => {
+        const sender = bubbleBrowserWindow?.webContents
+        if (sender && event.sender === sender) bubble.dismiss()
+      })
+      ipcMain.on('bubble:ready', (event) => {
+        // The first show may race page load; replay the current text.
+        const sender = bubbleBrowserWindow?.webContents
+        if (sender && event.sender === sender) bubble.replay()
+      })
+      const speech = createSpeechScheduler({
+        now: () => Date.now(),
+        presets: [
+          '要不要看看今天还在跟进的事？',
+          '有想跟进但还没开始的事吗？慢慢来。',
+          '休息一下也可以，我在这里。',
+          '今天有新的进展吗？没有也没关系。',
+          '别咕太久，记得回头看一眼承诺过的事。',
+          '需要我把最近的事项捋一捋吗？',
+        ],
+        stateFile: join(data, 'pet-speech.json'),
+      })
+      const speechStateView = (state: SpeechState = speech.state()) => ({
+        config: state.config,
+        lastSpokeAt: state.lastSpokeAt === null ? null : new Date(state.lastSpokeAt).toISOString(),
+        todayCount: state.todayCount,
+        nextAt: new Date(state.nextAt).toISOString(),
+        suppressed: state.suppressed,
+      })
+      powerMonitor.on('lock-screen', () => speech.setSuppressed('locked'))
+      powerMonitor.on('unlock-screen', () => speech.setSuppressed('none'))
+      const speechTimer = setInterval(() => {
+        const line = speech.tick()
+        if (line) bubble.speak(line)
+      }, 30_000)
+      speechTimerRef = speechTimer
       ipcMain.on('pet:input', (event, payload: unknown) => {
         // Only the pet window's main frame may drive pass-through or zoom.
         const sender = petBrowserWindow?.webContents
@@ -243,6 +316,31 @@ else {
             if (request.method === 'pet.hide') {
               petWindow.hide()
               return { ok: true as const, data: { display: false } }
+            }
+            if (request.method === 'pet.speechConfig')
+              return { ok: true as const, data: speechStateView() }
+            if (request.method === 'pet.setSpeechConfig') {
+              try {
+                const state = speech.configure({
+                  ...(request.enabled !== undefined ? { enabled: request.enabled } : {}),
+                  ...(request.paused !== undefined ? { paused: request.paused } : {}),
+                  ...(request.quietStart !== undefined ? { quietStart: request.quietStart } : {}),
+                  ...(request.quietEnd !== undefined ? { quietEnd: request.quietEnd } : {}),
+                  ...(request.minMinutes !== undefined ? { minMinutes: request.minMinutes } : {}),
+                  ...(request.maxMinutes !== undefined ? { maxMinutes: request.maxMinutes } : {}),
+                  ...(request.dailyCap !== undefined ? { dailyCap: request.dailyCap } : {}),
+                })
+                return { ok: true as const, data: speechStateView(state) }
+              } catch {
+                return { ok: false as const, error: 'INVALID_REQUEST' as const }
+              }
+            }
+            if (request.method === 'pet.previewSpeech') {
+              // The bubble belongs next to a visible pet.
+              if (!petWindow.displaying())
+                return { ok: true as const, data: { shown: false } }
+              bubble.speak('要不要看看今天还在跟进的事？')
+              return { ok: true as const, data: { shown: bubble.displaying() !== null } }
             }
             if (request.method === 'pet.openImportDialog')
               return petFlow.openImportDialog()
@@ -345,6 +443,8 @@ else {
   })
   app.on('before-quit', () => {
     quitting = true
+    clearInterval(speechTimerRef)
+    bubbleControllerRef?.dispose()
     petWindowControllerRef?.dispose()
     petWorker?.stop()
     core?.stop()

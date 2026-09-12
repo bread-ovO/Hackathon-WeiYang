@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <title>BUGU 气泡</title>
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'; frame-src 'none'"
+    />
+    <style>
+      html,
+      body {
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        background: transparent;
+        overflow: hidden;
+        user-select: none;
+      }
+      .bubble {
+        box-sizing: border-box;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        padding: 12px 14px;
+        border-radius: 14px;
+        background: #fffdf9;
+        border: 1px solid #f0c9b2;
+        box-shadow: 0 8px 24px rgba(59, 36, 23, 0.16);
+        font: 14px/1.55 system-ui, sans-serif;
+        color: #3b2417;
+      }
+      .text {
+        flex: 1;
+        overflow-y: auto;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+      .row {
+        display: flex;
+        justify-content: flex-end;
+      }
+      button {
+        border: 0;
+        border-radius: 8px;
+        padding: 4px 12px;
+        background: #e15a24;
+        color: #fff;
+        font-size: 12px;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="bubble" role="status">
+      <div class="text" id="text"></div>
+      <div class="row"><button id="close">知道了</button></div>
+    </div>
+    <script type="module" src="/src/bubble-main.ts"></script>
+  </body>
+</html>
