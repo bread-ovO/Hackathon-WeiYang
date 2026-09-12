@@ -1,3 +1,4 @@
+import { CredentialsPanel } from './credentials-panel'
 import { SourceImport } from './source-import'
 import { RealWorkspace } from './real-workspace'
 import React, { useEffect, useRef, useState } from 'react'
@@ -743,9 +744,10 @@ function App() {
                 </dd>
               </dl>
               <p className="muted">
-                当前为开发版本，数据库尚未加密，仅用于测试。未配置模型或应用凭据。
+                当前为开发版本，事项数据库尚未加密；凭据使用独立的系统加密存储。
               </p>
             </section>
+            <CredentialsPanel />
             <div className="connection-note">
               <h3>关于设计预览</h3>
               <p>

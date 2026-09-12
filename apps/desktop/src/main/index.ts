@@ -14,6 +14,7 @@ import { join, resolve, sep } from 'node:path'
 import { mkdirSync } from 'node:fs'
 import { pathToFileURL } from 'node:url'
 import { CoreClient } from './core-client'
+import { createCredentialsHandler } from './credentials'
 import { saveExportFile } from './export-file'
 import type { ExportBundle } from '@memo/storage'
 import { isTrustedPage } from './security'
@@ -96,12 +97,22 @@ else {
         join(data, 'memo.sqlite'),
       )
       core.start()
+      const credentials = createCredentialsHandler(
+        join(data, 'credentials'),
+        () => window,
+      )
       ipcMain.handle(
         'memo:request',
         createRequestHandler(
           () => window?.webContents ?? null,
           pageURL,
           async (request) => {
+            if (
+              request.method === 'credentials.list' ||
+              request.method === 'credentials.importFile' ||
+              request.method === 'credentials.remove'
+            )
+              return credentials(request)
             if (!core) return { ok: false, error: 'CORE_UNAVAILABLE' }
             if (request.method === 'exports.save') {
               if (!window || savingExport)

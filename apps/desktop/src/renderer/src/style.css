@@ -1124,3 +1124,16 @@ dd {
 .export-note, .export-description { font-size: 12px; line-height: 1.6; color: var(--text-color-kumo-subtle); margin: 0; }
 .export-result { font-size: 14px; overflow-wrap: anywhere; }
 .export-actions { justify-content: flex-end; margin-top: 4px; }
+
+.credential-panel { margin-top: 16px; padding: 16px; border: 1px solid var(--line); border-radius: 12px; }
+.credential-panel h2 { font-size: 16px; font-weight: 600; margin: 0; }
+.credential-note, .credential-row p { font-size: 12px; line-height: 1.6; color: var(--muted); margin: 8px 0; overflow-wrap: anywhere; }
+.credential-status { font-size: 12px; margin: 8px 0; }
+.credential-form { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-end; margin: 12px 0; }
+.credential-form label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; flex: 1 1 160px; min-width: 0; }
+.credential-form .app-input { width: 100%; }
+.credential-form select { background: var(--color-kumo-base); border: 1px solid var(--line); border-radius: 8px; padding: 4px 8px; height: 32px; }
+.credential-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 12px 0; border-top: 1px solid var(--line); }
+.credential-row > div:first-child { min-width: 0; overflow-wrap: anywhere; }
+.credential-row strong { font-size: 14px; font-weight: 500; }
+.credential-row-actions { display: flex; gap: 4px; flex-shrink: 0; }

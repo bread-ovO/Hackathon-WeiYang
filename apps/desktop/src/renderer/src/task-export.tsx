@@ -43,17 +43,19 @@ export function TaskExport({
         )
       else
         setMessage(
-          {
-            EXPORT_LIMIT_EXCEEDED:
-              '导出内容超过容量限制，请选择单条事项后重试。',
-            EXPORT_INVALID_DATA: '记录或引用不完整，未生成文件。',
-            EXPORT_WRITE_FAILED: '无法保存到所选位置，请选择其他位置重试。',
-            NOT_FOUND: '项目或事项已变化，请关闭后刷新。',
-            CORE_UNAVAILABLE: '本地核心暂不可用，请稍后重试。',
-            INVALID_REQUEST: '导出范围无效，请重新选择。',
-            INTERNAL_ERROR: '导出未成功，请重试。',
-            VERSION_CONFLICT: '记录已变化，请重试。',
-          }[reply.error],
+          (
+            {
+              EXPORT_LIMIT_EXCEEDED:
+                '导出内容超过容量限制，请选择单条事项后重试。',
+              EXPORT_INVALID_DATA: '记录或引用不完整，未生成文件。',
+              EXPORT_WRITE_FAILED: '无法保存到所选位置，请选择其他位置重试。',
+              NOT_FOUND: '项目或事项已变化，请关闭后刷新。',
+              CORE_UNAVAILABLE: '本地核心暂不可用，请稍后重试。',
+              INVALID_REQUEST: '导出范围无效，请重新选择。',
+              INTERNAL_ERROR: '导出未成功，请重试。',
+              VERSION_CONFLICT: '记录已变化，请重试。',
+            } as Record<string, string>
+          )[reply.error] ?? '操作未成功，请重试。',
         )
     } catch {
       setMessage('导出未成功，请重试。')
