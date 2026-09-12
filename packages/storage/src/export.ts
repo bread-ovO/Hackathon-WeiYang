@@ -1,3 +1,4 @@
+import { createRetractions, type RetractionProof } from './retractions'
 import type Database from 'better-sqlite3'
 import type { StoredTask } from './task-model'
 
@@ -9,7 +10,7 @@ export interface ExportScope {
 }
 export interface ExportBundle {
   selection: { mode: 'project' } | { mode: 'tasks'; taskIds: string[] }
-  schemaVersion: 2
+  schemaVersion: 3
   exportedAt: string
   project: { id: string; name: string }
   sourceBodiesIncluded: boolean
@@ -30,6 +31,8 @@ export interface ExportBundle {
     validity: 'unknown' | 'valid' | 'invalid'
     reason: string
     currentCriterion: boolean
+    referenceStatus: 'available' | 'invalidated'
+    retraction: RetractionProof | null
   }[]
   decisions: {
     id: number
@@ -64,6 +67,14 @@ export interface ExportBundle {
     quoteStart: number
     quoteEnd: number
     quote?: string
+    referenceStatus: 'available' | 'invalidated'
+    retraction: RetractionProof | null
+  }[]
+  retractionImpacts: {
+    eventId: number
+    kind: 'processing' | 'manual'
+    evidenceId: string
+    priorValidity: string
   }[]
   revisions: {
     taskId: string
@@ -81,6 +92,9 @@ export interface ExportBundle {
     receivedAt: string
     role: 'user' | 'assistant' | 'tool' | 'system'
     sourceStatus: 'active' | 'revoked' | 'unmanaged'
+    operation: 'upsert' | 'retract'
+    eventStatus: 'present' | 'retracted'
+    retraction: RetractionProof | null
     text?: string
   }[]
 }
@@ -285,7 +299,7 @@ export function createExports(db: Database.Database) {
       if (scope.taskIds && tasks.length !== scope.taskIds.length)
         throw new Error('EXPORT_TASK_NOT_IN_PROJECT')
       const bundle: ExportBundle = {
-        schemaVersion: 2,
+        schemaVersion: 3,
         selection: scope.taskIds
           ? { mode: 'tasks', taskIds: [...scope.taskIds].sort() }
           : { mode: 'project' },
@@ -298,6 +312,7 @@ export function createExports(db: Database.Database) {
         decisions: [],
         ruleDecisions: [],
         candidateEvidence: [],
+        retractionImpacts: [],
         revisions: [],
         manualOverrides: [],
         events: [],
@@ -311,6 +326,16 @@ export function createExports(db: Database.Database) {
         num(v, 1)
         refs.add(v)
         return v
+      }
+      const retractions = createRetractions(db)
+      const retractionFor = (eventId: number): RetractionProof | null => {
+        try {
+          const proof = retractions.forEvent(scope.projectId, eventId)
+          if (proof) addRef(proof.eventId)
+          return proof
+        } catch {
+          return fail()
+        }
       }
       bundle.criteriaSets = rows(
         `SELECT task_id AS taskId,version FROM criterion_sets WHERE task_id IN (${selected}) ORDER BY task_id,version`,
@@ -378,8 +403,12 @@ export function createExports(db: Database.Database) {
             )
           )
             fail()
+          const retraction = retractionFor(r.eventId as number)
+          if (retraction && r.validity !== 'invalid') fail()
           return {
             ...r,
+            referenceStatus: retraction ? 'invalidated' : 'available',
+            retraction,
             currentCriterion:
               taskMap.get(r.taskId)!.criteriaVersion === r.criterionVersion,
           } as ExportBundle['evidence'][number]
@@ -439,6 +468,8 @@ export function createExports(db: Database.Database) {
             'plan_change',
             'candidate_limit',
             'source_revision_requires_review',
+            'source_retracted',
+            'source_object_retracted',
           ])
           one(r.policyVersion, ['explicit-commitment-v1'])
           str(r.createdAt, 32)
@@ -467,7 +498,7 @@ export function createExports(db: Database.Database) {
           .map((d) => JSON.stringify([d.taskId, d.eventId])),
       )
       bundle.candidateEvidence = rows(
-        `SELECT p.id,p.project_id AS projectId,p.task_id AS taskId,p.event_id AS eventId,p.quote_start AS quoteStart,p.quote_end AS quoteEnd,p.quote,e.content
+        `SELECT p.id,p.project_id AS projectId,p.task_id AS taskId,p.event_id AS eventId,p.quote_start AS quoteStart,p.quote_end AS quoteEnd,p.quote,p.reference_status AS referenceStatus,p.invalidated_by_event_id AS invalidatedBy,e.content
          FROM processing_evidence p LEFT JOIN source_events e ON e.id=p.event_id WHERE p.task_id IN (${selected}) ORDER BY p.id`,
         ids,
         (r) => {
@@ -486,10 +517,18 @@ export function createExports(db: Database.Database) {
             r.content.slice(r.quoteStart, r.quoteEnd) !== r.quote
           )
             fail()
+          const retraction = retractionFor(r.eventId as number)
+          if (
+            r.referenceStatus !== (retraction ? 'invalidated' : 'available') ||
+            r.invalidatedBy !== (retraction?.eventId ?? null)
+          )
+            fail()
           return {
             id: r.id,
             taskId: r.taskId,
             eventId: r.eventId,
+            referenceStatus: r.referenceStatus,
+            retraction,
             quoteStart: r.quoteStart,
             quoteEnd: r.quoteEnd,
             ...(scope.includeSourceText ? { quote: r.quote } : {}),
@@ -602,11 +641,57 @@ export function createExports(db: Database.Database) {
           return r as ExportBundle['manualOverrides'][number]
         },
       )
+      // Include the structural retraction fact even while background processing is paused.
+      for (const eventId of refs) retractionFor(eventId)
+      bundle.retractionImpacts = rows(
+        `SELECT i.retraction_event_id AS eventId,i.kind,i.evidence_id AS evidenceId,i.prior_validity AS priorValidity
+         FROM retraction_impacts i WHERE i.project_id=? AND (
+           (i.kind='processing' AND EXISTS(SELECT 1 FROM processing_evidence p WHERE CAST(p.id AS TEXT)=i.evidence_id AND p.task_id IN (${selected}))) OR
+           (i.kind='manual' AND EXISTS(SELECT 1 FROM evidence_links e WHERE e.id=i.evidence_id AND e.task_id IN (${selected}))))
+         ORDER BY i.retraction_event_id,i.kind,i.evidence_id`,
+        [scope.projectId, ...ids, ...ids],
+        (r) => {
+          addRef(r.eventId)
+          one(r.kind, ['processing', 'manual'])
+          str(r.evidenceId)
+          one(
+            r.priorValidity,
+            r.kind === 'processing'
+              ? ['available', 'invalidated']
+              : ['unknown', 'valid', 'invalid'],
+          )
+          const linked =
+            r.kind === 'processing'
+              ? bundle.candidateEvidence.find(
+                  (e) => String(e.id) === r.evidenceId,
+                )
+              : bundle.evidence.find((e) => e.id === r.evidenceId)
+          if (!linked || linked.retraction?.eventId !== r.eventId) fail()
+          return r as ExportBundle['retractionImpacts'][number]
+        },
+      )
+      for (const [kind, links] of [
+        ['processing', bundle.candidateEvidence],
+        ['manual', bundle.evidence],
+      ] as const) {
+        for (const link of links) {
+          if (
+            link.retraction &&
+            !bundle.retractionImpacts.some(
+              (impact) =>
+                impact.kind === kind &&
+                impact.evidenceId === String(link.id) &&
+                impact.eventId === link.retraction!.eventId,
+            )
+          )
+            fail()
+        }
+      }
       // Query only linked events; inspect each row incrementally before allocating the full bundle.
       for (const eventId of [...refs].sort((a, b) => a - b)) {
         const r = db
           .prepare(
-            `SELECT e.id,e.source_id AS sourceInstanceId,e.external_id AS externalId,e.revision,e.occurred_at AS occurredAt,e.received_at AS receivedAt,e.role,
+            `SELECT e.id,e.source_id AS sourceInstanceId,e.external_id AS externalId,e.revision,e.occurred_at AS occurredAt,e.received_at AS receivedAt,e.role,e.operation,
         CASE WHEN g.source_id IS NOT NULL THEN CASE WHEN g.revoked=1 THEN 'revoked' ELSE 'active' END WHEN h.source_instance_id IS NOT NULL THEN CASE WHEN b.source_instance_id=e.source_id AND b.enabled=1 AND b.uninstalled=0 THEN 'active' ELSE 'revoked' END ELSE 'unmanaged' END AS sourceStatus${scope.includeSourceText ? ',e.content AS text' : ''}
         FROM source_events e LEFT JOIN source_grants g ON g.source_id=e.source_id LEFT JOIN plugin_source_history h ON h.source_instance_id=e.source_id LEFT JOIN plugin_bindings b ON b.id=h.plugin_id JOIN event_projects p ON p.event_id=e.id AND p.project_id=? WHERE e.id=?`,
           )
@@ -622,6 +707,10 @@ export function createExports(db: Database.Database) {
         ])
           str(r[key])
         one(r.role, ['user', 'assistant', 'tool', 'system'])
+        one(r.operation, ['upsert', 'retract'])
+        const retraction = retractionFor(eventId)
+        r.eventStatus = retraction ? 'retracted' : 'present'
+        r.retraction = retraction
         if (scope.includeSourceText) str(r.text)
         account(r)
         bundle.events.push(r as ExportBundle['events'][number])

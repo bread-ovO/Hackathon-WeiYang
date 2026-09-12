@@ -79,7 +79,17 @@ export const sourceEventSchema = {
     occurredAt: { type: 'string', format: 'date-time' },
     role: { enum: ['user', 'assistant', 'tool', 'system'] },
     text: { type: 'string', maxLength: 65536 },
+    operation: { enum: ['upsert', 'retract'] },
   },
+  allOf: [
+    {
+      if: {
+        required: ['operation'],
+        properties: { operation: { const: 'retract' } },
+      },
+      then: { properties: { text: { const: '' } } },
+    },
+  ],
 } as const
 export type SourceEvent = FromSchema<typeof sourceEventSchema>
 const ajv = new Ajv({ allErrors: true })

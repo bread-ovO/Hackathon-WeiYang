@@ -70,7 +70,7 @@ try {
       includeSourceText: true,
     }
     const full = rules.exports.build(ruleScope)
-    assert.equal(full.schemaVersion, 2)
+    assert.equal(full.schemaVersion, 3)
     assert.equal(full.decisions.length, 0)
     assert.equal(full.ruleDecisions.length, 2)
     assert.deepEqual(
@@ -216,7 +216,7 @@ try {
   store.sources.revoke(source.id)
   const scope = { projectId: 'p', includeSourceText: false }
   const exported = store.exports.build(scope)
-  assert.equal(exported.schemaVersion, 2)
+  assert.equal(exported.schemaVersion, 3)
   assert.deepEqual(exported.selection, { mode: 'project' })
   assert.deepEqual(
     store.exports.build({ ...scope, taskIds: ['t'] }).selection,

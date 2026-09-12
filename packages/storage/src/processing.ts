@@ -14,6 +14,7 @@ import {
   type JobLease,
   type JobErrorCode,
 } from './jobs'
+import { createRetractions } from './retractions'
 import { createTaskModel } from './task-model'
 import { createCandidateSearch, projectionTerms } from './search'
 export interface ProcessingContext {
@@ -74,7 +75,7 @@ export function createProcessing(db: Database.Database) {
   function context(eventId: number): ProcessingContext | null {
     const row = db
       .prepare(
-        'SELECT source_id,external_id,revision,occurred_at,role,content FROM source_events WHERE id=?',
+        'SELECT source_id,external_id,revision,occurred_at,role,content,operation FROM source_events WHERE id=?',
       )
       .get(eventId) as
       | {
@@ -84,6 +85,7 @@ export function createProcessing(db: Database.Database) {
           occurred_at: string
           role: string
           content: string
+          operation: 'upsert' | 'retract'
         }
       | undefined
     if (!row) return null
@@ -121,6 +123,9 @@ export function createProcessing(db: Database.Database) {
         occurredAt: row.occurred_at,
         role: row.role,
         text: row.content,
+        ...(row.operation === 'retract'
+          ? { operation: 'retract' as const }
+          : {}),
       }),
     }
   }
@@ -190,8 +195,30 @@ export function createProcessing(db: Database.Database) {
           actual.event.sourceInstanceId,
           actual.event.externalId,
         ) as { id: string }[]
+      const retraction = createRetractions(db).forEvent(
+        actual.projectId,
+        actual.eventId,
+      )
+      if (retraction) {
+        const linked = db
+          .prepare(
+            `SELECT DISTINCT v.task_id AS id FROM (SELECT task_id,project_id,event_id FROM processing_evidence UNION ALL SELECT task_id,project_id,event_id FROM evidence_links) v JOIN source_events e ON e.id=v.event_id WHERE v.project_id=? AND e.source_id=? AND e.external_id=?`,
+          )
+          .all(
+            actual.projectId,
+            actual.event.sourceInstanceId,
+            actual.event.externalId,
+          ) as { id: string }[]
+        for (const row of linked)
+          if (!origin.some((item) => item.id === row.id)) origin.push(row)
+      }
+      const reason = retraction
+        ? 'source_retracted'
+        : origin.length
+          ? 'source_revision_requires_review'
+          : proposal.reason
       const outcome =
-        origin.length || proposal.outcome === 'needs_review'
+        retraction || origin.length || proposal.outcome === 'needs_review'
           ? 'review_required'
           : proposal.outcome === 'candidates'
             ? 'created'
@@ -251,7 +278,7 @@ export function createProcessing(db: Database.Database) {
         actual.grant.version,
         proposal.version,
         outcome,
-        origin.length ? 'source_revision_requires_review' : proposal.reason,
+        reason,
         JSON.stringify(proposal),
         JSON.stringify(ids),
         time,
@@ -259,14 +286,7 @@ export function createProcessing(db: Database.Database) {
       for (const id of ids)
         db.prepare(
           "INSERT INTO processing_decisions(project_id,task_id,event_id,actor,outcome,reason,created_at) VALUES(?,?,?,'rule',?,?,?)",
-        ).run(
-          actual.projectId,
-          id,
-          actual.eventId,
-          outcome,
-          origin.length ? 'source_revision_requires_review' : proposal.reason,
-          time,
-        )
+        ).run(actual.projectId, id, actual.eventId, outcome, reason, time)
       if (!jobs.complete(lease, now)) throw Error('PROCESSING_LEASE_LOST')
       return { outcome, taskIds: ids }
     },
@@ -399,7 +419,7 @@ export function createProcessing(db: Database.Database) {
       if (!tasks.get(projectId, taskId)) throw Error('TASK_NOT_IN_PROJECT')
       const rows = db
         .prepare(
-          `SELECT v.event_id AS eventId,e.source_id AS sourceInstanceId,e.external_id AS externalId,e.revision,v.quote_start AS quoteStart,v.quote_end AS quoteEnd,v.quote,r.reason,r.created_at AS createdAt,r.rule_version AS policyVersion,'rule' AS actor,r.outcome,
+          `SELECT v.event_id AS eventId,e.source_id AS sourceInstanceId,e.external_id AS externalId,e.revision,v.quote_start AS quoteStart,v.quote_end AS quoteEnd,v.quote,v.reference_status AS storedReferenceStatus,v.invalidated_by_event_id AS storedInvalidatedBy,r.reason,r.created_at AS createdAt,r.rule_version AS policyVersion,'rule' AS actor,r.outcome,
       CASE WHEN EXISTS(SELECT 1 FROM source_grants g WHERE g.source_id=e.source_id AND g.revoked=1) THEN 'revoked'
        WHEN EXISTS(SELECT 1 FROM source_grants g WHERE g.source_id=e.source_id AND g.revoked=0) THEN 'active'
        WHEN EXISTS(SELECT 1 FROM plugin_bindings p WHERE p.source_instance_id=e.source_id AND p.uninstalled=1) THEN 'uninstalled'
@@ -407,8 +427,8 @@ export function createProcessing(db: Database.Database) {
        WHEN EXISTS(SELECT 1 FROM plugin_bindings p WHERE p.source_instance_id=e.source_id AND p.enabled=1 AND p.uninstalled=0) THEN 'active'
        WHEN EXISTS(SELECT 1 FROM plugin_source_history h WHERE h.source_instance_id=e.source_id) THEN 'uninstalled' ELSE 'unknown' END AS sourceStatus,
       CASE WHEN EXISTS(SELECT 1 FROM source_events later JOIN event_projects ep ON ep.event_id=later.id WHERE ep.project_id=v.project_id AND later.source_id=e.source_id AND later.external_id=e.external_id AND later.revision<>e.revision AND later.id>e.id) THEN 'review_required' ELSE 'current' END AS revisionStatus
-      FROM (SELECT project_id,task_id,event_id,quote_start,quote_end,quote FROM processing_evidence
-       UNION ALL SELECT d.project_id,d.task_id,d.event_id,0,0,substr(e.content,1,1024) FROM processing_decisions d JOIN source_events e ON e.id=d.event_id WHERE d.outcome='review_required') v JOIN source_events e ON e.id=v.event_id JOIN processing_results r ON r.event_id=v.event_id WHERE v.project_id=? AND v.task_id=? ORDER BY CASE WHEN r.outcome='created' THEN 0 ELSE 1 END,v.event_id DESC LIMIT 100`,
+      FROM (SELECT project_id,task_id,event_id,quote_start,quote_end,quote,reference_status,invalidated_by_event_id FROM processing_evidence
+       UNION ALL SELECT d.project_id,d.task_id,d.event_id,0,0,substr(e.content,1,1024),NULL,NULL FROM processing_decisions d JOIN source_events e ON e.id=d.event_id WHERE d.outcome='review_required') v JOIN source_events e ON e.id=v.event_id JOIN processing_results r ON r.event_id=v.event_id WHERE v.project_id=? AND v.task_id=? ORDER BY CASE WHEN r.outcome='created' THEN 0 ELSE 1 END,v.event_id DESC LIMIT 100`,
         )
         .all(projectId, taskId) as {
         eventId: number
@@ -418,6 +438,8 @@ export function createProcessing(db: Database.Database) {
         quoteStart: number
         quoteEnd: number
         quote: string
+        storedReferenceStatus: 'available' | 'invalidated' | null
+        storedInvalidatedBy: number | null
         reason: string
         createdAt: string
         policyVersion: string
@@ -426,16 +448,39 @@ export function createProcessing(db: Database.Database) {
         sourceStatus: 'active' | 'revoked' | 'uninstalled' | 'unknown'
         revisionStatus: 'current' | 'review_required'
       }[]
-      return rows.map((row) =>
-        row.outcome === 'review_required'
+      return rows.map((original) => {
+        const retraction = createRetractions(db).forEvent(
+          projectId,
+          original.eventId,
+        )
+        const { storedReferenceStatus, storedInvalidatedBy, ...publicFields } =
+          original
+        if (
+          original.outcome === 'created' &&
+          (storedReferenceStatus !==
+            (retraction ? 'invalidated' : 'available') ||
+            storedInvalidatedBy !== (retraction?.eventId ?? null))
+        )
+          throw Error('INVALID_RETRACTION_DATA')
+        const row = {
+          ...publicFields,
+          eventStatus: retraction
+            ? ('retracted' as const)
+            : ('present' as const),
+          referenceStatus: retraction
+            ? ('invalidated' as const)
+            : ('available' as const),
+          retraction,
+        }
+        return row.outcome === 'review_required'
           ? {
               ...row,
               quoteKind: 'revision_excerpt' as const,
               quoteEnd: row.quote.length,
               revisionStatus: 'review_required' as const,
             }
-          : { ...row, quoteKind: 'exact' as const },
-      )
+          : { ...row, quoteKind: 'exact' as const }
+      })
     },
   }
 }

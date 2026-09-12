@@ -266,6 +266,14 @@ export function createHttpJsonReader(input: HttpJsonReaderInput) {
                     ? manifest.mapping.role.constant
                     : pointer(record, manifest.mapping.role.pointer),
                 text: pointer(record, manifest.mapping.text.pointer),
+                ...(manifest.mapping.operation
+                  ? {
+                      operation: pointer(
+                        record,
+                        manifest.mapping.operation.pointer,
+                      ),
+                    }
+                  : {}),
               })
             } catch {
               throw new HttpJsonError('INVALID_SOURCE_EVENT')

@@ -187,6 +187,51 @@ describe('Feishu normalized page boundary', () => {
       'FEISHU_ABORTED',
     )
   })
+  it('does not infer retraction from empty content or a literal deletion message', async () => {
+    for (const content of ['', '该消息已撤回']) {
+      const adapter = new FeishuHistoryAdapter('s', async () => ({
+        items: [{ ...message, content, deleted: false }],
+        hasMore: false,
+      }))
+      const result = await adapter.pull('', signal())
+      expect(result.events[0]!.operation).toBeUndefined()
+    }
+  })
+  it('keeps equal-update-time upsert and deletion distinct with deterministic replay revisions', async () => {
+    const revisions: string[] = []
+    for (const deleted of [false, true, true]) {
+      const response = body()
+      response.data.items[0]!.deleted = deleted
+      const adapter = new FeishuHistoryAdapter('s', fetchBody(response))
+      const event = (await adapter.pull('', signal())).events[0]!
+      revisions.push(event.revision)
+      expect(event.operation).toBe(deleted ? 'retract' : undefined)
+    }
+    expect(revisions).toEqual([
+      '1615380573412',
+      '1615380573412:retract',
+      '1615380573412:retract',
+    ])
+  })
+  it('bounds long opaque deletion revisions without truncating distinct identities', async () => {
+    const revisions: string[] = []
+    for (const revision of [
+      'x'.repeat(128),
+      'x'.repeat(127) + 'y',
+      'x'.repeat(128),
+    ]) {
+      const adapter = new FeishuHistoryAdapter('s', async () => ({
+        items: [{ ...message, revision, deleted: true }],
+        hasMore: false,
+      }))
+      revisions.push((await adapter.pull('', signal())).events[0]!.revision)
+    }
+    expect(revisions[0]).toBe(revisions[2])
+    expect(revisions[0]).not.toBe(revisions[1])
+    expect(
+      revisions.every((r) => r.length <= 128 && r.endsWith(':retract')),
+    ).toBe(true)
+  })
   it('keeps revoked content empty without emitting completion or evidence commands', async () => {
     const adapter = new FeishuHistoryAdapter('s', async () => ({
       items: [{ ...message, deleted: true, revision: 'v2' }],
@@ -197,10 +242,11 @@ describe('Feishu normalized page boundary', () => {
       schemaVersion: 1,
       sourceInstanceId: 's',
       externalId: 'm',
-      revision: 'v2',
+      revision: 'v2:retract',
       occurredAt: '2021-03-10T12:49:33.411Z',
       role: 'user',
       text: '',
+      operation: 'retract',
     })
   })
 })

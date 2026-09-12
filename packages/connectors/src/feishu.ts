@@ -230,7 +230,17 @@ export function createFeishuMessagesFetcher(
     }
   }
 }
-/** An empty deletion revision preserves ingestion history, not evidence invalidation. */
+/** Keep legacy upsert revisions unchanged. A visible deletion is a distinct
+ * immutable fact even when the provider does not advance update_time. */
+async function retractRevision(base: string): Promise<string> {
+  if (base.length <= 120) return `${base}:retract`
+  const digest = await crypto.subtle.digest(
+    'SHA-256',
+    new TextEncoder().encode(JSON.stringify(base)),
+  )
+  return `sha256:${Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('')}:retract`
+}
+/** Only the provider's explicit deleted flag creates a retraction event. */
 export class FeishuHistoryAdapter implements SourceAdapter {
   readonly kind = 'feishu.im'
   private readonly transitions = new Map<string, string>()
@@ -268,40 +278,46 @@ export class FeishuHistoryAdapter implements SourceAdapter {
     }
     if (!this.transitions.has(cursor) && this.transitions.size >= 10000)
       throw new Error('INVALID_PAGE_CURSOR')
-    const events = items.map((raw): SourceEvent => {
-      const message = object(raw),
-        type = own(message, 'senderType'),
-        deleted = own(message, 'deleted')
-      if (
-        !['user', 'app', 'bot', 'anonymous', 'unknown'].includes(type as string)
-      )
-        invalid()
-      if (deleted !== undefined && typeof deleted !== 'boolean') invalid()
-      const occurredAt = timestamp(own(message, 'createTime'))
-      const revision = own(message, 'revision')
-      const content = text(own(message, 'content'), 65536, true)
-      const event: SourceEvent = {
-        schemaVersion: 1,
-        sourceInstanceId: this.sourceInstanceId,
-        externalId: identifier(own(message, 'messageId'), 256),
-        revision:
-          revision === undefined
-            ? deleted
-              ? 'deleted'
-              : occurredAt
-            : identifier(revision, 128),
-        occurredAt,
-        role:
-          type === 'user'
-            ? 'user'
-            : type === 'app' || type === 'bot'
-              ? 'assistant'
-              : 'tool',
-        text: deleted ? '' : content,
-      }
-      if (!validateSourceEvent(event)) invalid()
-      return event
-    })
+    const events = await Promise.all(
+      items.map(async (raw): Promise<SourceEvent> => {
+        const message = object(raw),
+          type = own(message, 'senderType'),
+          deleted = own(message, 'deleted')
+        if (
+          !['user', 'app', 'bot', 'anonymous', 'unknown'].includes(
+            type as string,
+          )
+        )
+          invalid()
+        if (deleted !== undefined && typeof deleted !== 'boolean') invalid()
+        const occurredAt = timestamp(own(message, 'createTime'))
+        const revision = own(message, 'revision')
+        const content = text(own(message, 'content'), 65536, true)
+        const event: SourceEvent = {
+          schemaVersion: 1,
+          sourceInstanceId: this.sourceInstanceId,
+          externalId: identifier(own(message, 'messageId'), 256),
+          revision: deleted
+            ? await retractRevision(
+                revision === undefined ? 'deleted' : identifier(revision, 128),
+              )
+            : revision === undefined
+              ? occurredAt
+              : identifier(revision, 128),
+          occurredAt,
+          role:
+            type === 'user'
+              ? 'user'
+              : type === 'app' || type === 'bot'
+                ? 'assistant'
+                : 'tool',
+          text: deleted ? '' : content,
+          ...(deleted ? { operation: 'retract' as const } : {}),
+        }
+        if (!validateSourceEvent(event)) invalid()
+        return event
+      }),
+    )
     checkCancelled(signal)
     this.transitions.set(cursor, next)
     if (!next) this.transitions.clear()

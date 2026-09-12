@@ -157,6 +157,14 @@ export interface WorkspaceSnapshot {
   activeCount: number
 }
 export interface CandidateProvenance {
+  eventStatus: 'present' | 'retracted'
+  referenceStatus: 'available' | 'invalidated'
+  retraction: null | {
+    eventId: number
+    occurredAt: string
+    receivedAt: string
+    reasonCode: 'explicit_source_retraction'
+  }
   quoteKind: 'exact' | 'revision_excerpt'
   policyVersion: string
   actor: 'rule'

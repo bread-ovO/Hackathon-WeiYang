@@ -226,7 +226,7 @@ try {
   store.close()
   const reopen = openStore(path)
   assert.equal(reopen.plugins.list().length, 2)
-  assert.equal(reopen.health().schemaVersion, 9)
+  assert.equal(reopen.health().schemaVersion, 10)
   reopen.close()
   console.log(
     'Plugin installation integration passed: activate/upgrade rollback, grants, cursor CAS, transactional import, secrets rejection and uninstall/reinstall generations',

@@ -310,3 +310,61 @@ describe('bounded authorized JSONL reader', () => {
     }
   })
 })
+
+describe('explicit JSONL retraction mapping', () => {
+  it('resumes an existing built-in mapping cursor and reads only the appended tombstone', async () => {
+    await fs.writeFile(file, line(event()))
+    const prior = await readLocalJsonl(input())
+    expect(BUILTIN_JSONL_MANIFEST.mapping).not.toHaveProperty('operation')
+    await fs.appendFile(
+      file,
+      line({ ...event(), revision: '2', operation: 'retract', content: '' }),
+    )
+    const next = await readLocalJsonl({ ...input(), cursor: prior.cursor })
+    expect(next.events).toHaveLength(1)
+    expect(next.events[0]).toMatchObject({
+      externalId: 'event-1',
+      revision: '2',
+      operation: 'retract',
+      text: '',
+    })
+    expect(next.cursor.mappingSha256).toBe(prior.cursor.mappingSha256)
+  })
+  it.each([true, 'delete', null])(
+    'rejects malformed built-in operation %j',
+    async (operation) => {
+      await fs.writeFile(file, line({ ...event(), operation, content: '' }))
+      await expect(readLocalJsonl(input())).rejects.toMatchObject({
+        code: 'INVALID_SOURCE_EVENT',
+      })
+    },
+  )
+  it('requires a configured selector for custom manifests, never implicitly copies deleted/operation', async () => {
+    await fs.writeFile(
+      file,
+      line({ ...event(), operation: 'retract', content: '' }),
+    )
+    const old = await readLocalJsonl({
+      ...input(),
+      manifest: BUILTIN_JSONL_MANIFEST,
+    })
+    expect(old.events[0]!.operation).toBeUndefined()
+    const mapped = await readLocalJsonl({
+      ...input(),
+      manifest: {
+        ...BUILTIN_JSONL_MANIFEST,
+        mapping: {
+          ...BUILTIN_JSONL_MANIFEST.mapping,
+          operation: { pointer: '/operation' },
+        },
+      },
+    })
+    expect(mapped.events[0]!.operation).toBe('retract')
+  })
+  it('rejects a declared retract carrying content', async () => {
+    await fs.writeFile(file, line({ ...event(), operation: 'retract' }))
+    await expect(readLocalJsonl(input())).rejects.toMatchObject({
+      code: 'INVALID_SOURCE_EVENT',
+    })
+  })
+})

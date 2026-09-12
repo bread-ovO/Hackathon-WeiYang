@@ -67,6 +67,7 @@ const properties = {
       externalId: pointer,
       revision: pointer,
       occurredAt: pointer,
+      operation: pointer,
       text: pointer,
       role: {
         oneOf: [

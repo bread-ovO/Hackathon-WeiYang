@@ -99,6 +99,7 @@ function mapRecord(
   record: unknown,
   manifest: SourceManifest,
   sourceInstanceId: string,
+  builtin: boolean,
 ): SourceEvent {
   if (!ownObject(record)) throw new LocalJsonlError('INVALID_JSONL')
   const mapped: Record<string, unknown> = { schemaVersion: 1, sourceInstanceId }
@@ -108,6 +109,11 @@ function mapRecord(
         ? selectPointer(record, selector.pointer)
         : selector.constant
   }
+  // Built-in v1 records gain an optional explicit operation without changing the
+  // legacy mapping fingerprint: old append-only cursors remain valid. Custom
+  // manifests require an explicit selector and never inherit this capability.
+  if (builtin && Object.hasOwn(record, 'operation'))
+    mapped.operation = record.operation
   try {
     return parseSourceEvent(mapped)
   } catch {
@@ -258,7 +264,12 @@ export async function readLocalJsonl(
       } catch {
         throw new LocalJsonlError('INVALID_JSONL')
       }
-      const event = mapRecord(record, manifest, input.sourceInstanceId)
+      const event = mapRecord(
+        record,
+        manifest,
+        input.sourceInstanceId,
+        input.manifest == null,
+      )
       // Match receiveBatch's UTF-16 string-length budget. Leave this complete line
       // unconfirmed when it belongs in the next batch. One valid event is <= 65536.
       if (batchTextLength + event.text.length > 4 * 1024 * 1024) break
