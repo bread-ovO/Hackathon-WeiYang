@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto'
 import {
   createFeishuMessagesFetcher,
   FeishuHistoryAdapter,
@@ -38,6 +39,10 @@ export function createProviderSourceReader(
     throw new Error('PROVIDER_INVALID_CONFIG')
   const domain = config.kind === 'github' ? 'api.github.com' : 'open.feishu.cn'
   const http = deps.transport ?? createSourceHttpTransport()
+  // Bind cached pages to the credential that produced them; retain only hashes.
+  const cacheScopes = new Map<string, string>()
+  let stagedScope: { url: string; fingerprint: string } | undefined
+  let busy = false
   const transport: SourceHttpTransport = async (request) => {
     if (
       request.allowedDomain !== domain ||
@@ -50,7 +55,23 @@ export function createProviderSourceReader(
       purpose: 'source',
     })
     if (request.signal.aborted) throw new Error('PROVIDER_CANCELLED')
-    return http({ ...request, bearerToken: token })
+    const fingerprint = createHash('sha256').update(token).digest('hex')
+    const sameScope = cacheScopes.get(request.url) === fingerprint
+    const headers = { ...request.headers }
+    if (!sameScope)
+      for (const name of Object.keys(headers))
+        if (['if-none-match', 'if-modified-since'].includes(name.toLowerCase()))
+          delete headers[name]
+    const response = await http({ ...request, headers, bearerToken: token })
+    if (request.signal.aborted) throw new Error('PROVIDER_CANCELLED')
+    if (response.status === 304 && !sameScope)
+      throw new Error('PROVIDER_SCOPE_MISMATCH')
+    if (response.status === 200) {
+      // The adapter may replace its page cache before final event validation.
+      cacheScopes.delete(request.url)
+      stagedScope = { url: request.url, fingerprint }
+    }
+    return response
   }
   let pull: SourceAdapter['pull']
   if (config.kind === 'github')
@@ -73,13 +94,30 @@ export function createProviderSourceReader(
   return {
     kind: config.kind === 'github' ? 'github.pr' : 'feishu.im',
     pull: async (cursor, signal) => {
-      const result = await pull(cursor, signal)
-      if (signal.aborted) throw new Error('PROVIDER_CANCELLED')
-      return {
-        events: result.events.map((event) =>
+      if (busy) throw new Error('PROVIDER_BUSY')
+      busy = true
+      stagedScope = undefined
+      try {
+        const result = await pull(cursor, signal)
+        if (signal.aborted) throw new Error('PROVIDER_CANCELLED')
+        const events = result.events.map((event) =>
           parseSourceEvent({ ...event, sourceInstanceId: config.id }),
-        ),
-        nextCursor: result.nextCursor,
+        )
+        // Commit only after the adapter accepted the response and updated its page cache.
+        if (stagedScope) {
+          const { url, fingerprint } = stagedScope as {
+            url: string
+            fingerprint: string
+          }
+          cacheScopes.delete(url)
+          if (cacheScopes.size >= 32)
+            cacheScopes.delete(cacheScopes.keys().next().value!)
+          cacheScopes.set(url, fingerprint)
+        }
+        return { events, nextCursor: result.nextCursor }
+      } finally {
+        stagedScope = undefined
+        busy = false
       }
     },
   }

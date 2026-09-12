@@ -1,3 +1,6 @@
+import Ajv from 'ajv'
+import type { FromSchema } from 'json-schema-to-ts'
+
 // PET02 renderer-facing contracts. The renderer never sees absolute paths:
 // directory selection lives in the main process and imports reference a
 // session-scoped entry file name only.
@@ -45,6 +48,16 @@ export const petRequestSchemas = [
     additionalProperties: false,
   },
 ] as const
+
+// Standalone planning/module contract only. These methods are deliberately not
+// part of CoreRequest/HostRequest until main dispatch and typed preload are wired.
+const petRequestSchema = { oneOf: petRequestSchemas } as const
+export type PetRequest = FromSchema<typeof petRequestSchema>
+const validatePetRequest = new Ajv({ strict: true }).compile<PetRequest>(petRequestSchema)
+export function parsePetRequest(value: unknown): PetRequest {
+  if (!validatePetRequest(value)) throw new Error('INVALID_PET_REQUEST')
+  return structuredClone(value)
+}
 
 export interface PetModel {
   id: string

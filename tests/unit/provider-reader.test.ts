@@ -26,7 +26,7 @@ describe('host provider credential binding', () => {
     const readCredential = vi
       .fn()
       .mockResolvedValueOnce('fictional-one')
-      .mockResolvedValueOnce('fictional-two')
+      .mockResolvedValueOnce('fictional-one')
     const transport = vi
       .fn()
       .mockResolvedValueOnce({
@@ -58,12 +58,121 @@ describe('host provider credential binding', () => {
     ])
     expect(transport.mock.calls.map(([x]) => x.bearerToken)).toEqual([
       'fictional-one',
-      'fictional-two',
+      'fictional-one',
     ])
     expect(transport.mock.calls[1]![0].headers['If-None-Match']).toBe('"v1"')
     expect(JSON.stringify(first)).not.toMatch(
       /fictional-one|fictional-two|host-managed/,
     )
+  })
+  it('isolates cached pages across token rotation, unexpected 304 and retry', async () => {
+    let token = 'token-a'
+    const transport = vi
+      .fn()
+      .mockResolvedValueOnce({
+        status: 200,
+        headers: { etag: '"v1"' },
+        body: [pr],
+      })
+      .mockResolvedValueOnce({ status: 304, headers: {}, body: null })
+      .mockResolvedValueOnce({
+        status: 200,
+        headers: { etag: '"bad"' },
+        body: [{ bad: true }],
+      })
+      .mockResolvedValueOnce({ status: 304, headers: {}, body: null })
+      .mockResolvedValueOnce({
+        status: 200,
+        headers: { etag: '"v2"' },
+        body: [{ ...pr, title: 'New authorization' }],
+      })
+      .mockResolvedValueOnce({ status: 304, headers: {}, body: null })
+    const reader = createProviderSourceReader(
+      {
+        id: 's',
+        credentialId: 'vault',
+        kind: 'github',
+        owner: 'org',
+        repo: 'project',
+      },
+      { readCredential: async () => token, transport },
+    )
+    await reader.pull('', new AbortController().signal)
+    token = 'token-b'
+    for (let i = 0; i < 3; i++)
+      await expect(
+        reader.pull('', new AbortController().signal),
+      ).rejects.toThrow()
+    const fresh = await reader.pull('', new AbortController().signal)
+    expect(fresh.events[0]!.text).toContain('New authorization')
+    expect(await reader.pull('', new AbortController().signal)).toEqual(fresh)
+    for (const call of transport.mock.calls.slice(1, 5))
+      expect(call[0].headers['If-None-Match']).toBeUndefined()
+    expect(transport.mock.calls[5]![0].headers['If-None-Match']).toBe('"v2"')
+    expect(JSON.stringify(fresh)).not.toMatch(/token-a|token-b/)
+  })
+  it('does not authorize an old second-page cache when the first page rotates', async () => {
+    let token = 'token-a'
+    const transport = vi.fn().mockImplementation(async () => ({
+      status: 200,
+      headers: { etag: '"version"' },
+      body: [pr],
+    }))
+    const reader = createProviderSourceReader(
+      {
+        id: 's',
+        credentialId: 'vault',
+        kind: 'github',
+        owner: 'org',
+        repo: 'project',
+      },
+      { readCredential: async () => token, transport },
+    )
+    await reader.pull('', new AbortController().signal)
+    await reader.pull('2', new AbortController().signal)
+    token = 'token-b'
+    await reader.pull('', new AbortController().signal)
+    transport.mockResolvedValueOnce({ status: 304, headers: {}, body: null })
+    await expect(
+      reader.pull('2', new AbortController().signal),
+    ).rejects.toThrow()
+    expect(transport.mock.calls[3]![0].headers['If-None-Match']).toBeUndefined()
+  })
+  it('requires a full response after invalid rotated content even when token rolls back', async () => {
+    let token = 'token-a'
+    const transport = vi
+      .fn()
+      .mockResolvedValueOnce({
+        status: 200,
+        headers: { etag: '"a"' },
+        body: [pr],
+      })
+      .mockResolvedValueOnce({
+        status: 200,
+        headers: { etag: '"b"' },
+        body: [{}],
+      })
+      .mockResolvedValueOnce({ status: 304, headers: {}, body: null })
+    const reader = createProviderSourceReader(
+      {
+        id: 's',
+        credentialId: 'v',
+        kind: 'github',
+        owner: 'org',
+        repo: 'project',
+      },
+      { readCredential: async () => token, transport },
+    )
+    await reader.pull('', new AbortController().signal)
+    token = 'token-b'
+    await expect(
+      reader.pull('', new AbortController().signal),
+    ).rejects.toThrow()
+    token = 'token-a'
+    await expect(
+      reader.pull('', new AbortController().signal),
+    ).rejects.toThrow()
+    expect(transport.mock.calls[2]![0].headers['If-None-Match']).toBeUndefined()
   })
   it('does not reuse cached credential after vault removal', async () => {
     const readCredential = vi
@@ -113,26 +222,24 @@ describe('host provider credential binding', () => {
   })
   it('binds Feishu conversation and source scope before reading', async () => {
     const readCredential = vi.fn().mockResolvedValue('fictional-token')
-    const transport = vi
-      .fn()
-      .mockResolvedValue({
-        status: 200,
-        headers: {},
-        body: {
-          code: 0,
-          data: {
-            items: [
-              {
-                message_id: 'm1',
-                create_time: '1789257600000',
-                sender: { sender_type: 'user' },
-                body: { content: '{"text":"Fictional message"}' },
-              },
-            ],
-            has_more: false,
-          },
+    const transport = vi.fn().mockResolvedValue({
+      status: 200,
+      headers: {},
+      body: {
+        code: 0,
+        data: {
+          items: [
+            {
+              message_id: 'm1',
+              create_time: '1789257600000',
+              sender: { sender_type: 'user' },
+              body: { content: '{"text":"Fictional message"}' },
+            },
+          ],
+          has_more: false,
         },
-      })
+      },
+    })
     const reader = createProviderSourceReader(
       {
         id: 'source-feishu',

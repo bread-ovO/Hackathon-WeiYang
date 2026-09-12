@@ -1,10 +1,11 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { mkdtemp, mkdir, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { findModelEntries, ImportSession } from '../../apps/desktop/src/main/pet/import-session'
 import { createPetImportFlow } from '../../apps/desktop/src/main/pet/import-flow'
-import { parseCoreRequest } from '@memo/contracts'
+import { parseCoreRequest, parseHostRequest, parsePetRequest } from '@memo/contracts'
+import { createRequestHandler } from '../../apps/desktop/src/main/request-handler'
 
 let root: string
 const setup = async () => {
@@ -195,23 +196,47 @@ describe('pet import flow', () => {
   })
 })
 
-describe('pet request schema boundary', () => {
-  it('accepts well-formed pet requests', () => {
-    expect(parseCoreRequest({ method: 'pet.state' })).toEqual({ method: 'pet.state' })
-    expect(parseCoreRequest({ method: 'pet.importChosen', entry: 'pet.model3.json' })).toEqual({
-      method: 'pet.importChosen',
-      entry: 'pet.model3.json',
-    })
-    expect(parseCoreRequest({ method: 'pet.select', modelId: 'a'.repeat(64) })).toEqual({
-      method: 'pet.select',
-      modelId: 'a'.repeat(64),
-    })
+// These declarations are not yet registered in the public CoreRequest union or
+// preload bridge. Validate their planned shape independently of live IPC access.
+const validPetRequests = [
+  { method: 'pet.state' },
+  { method: 'pet.openImportDialog' },
+  { method: 'pet.importChosen', entry: 'pet.model3.json' },
+  { method: 'pet.select', modelId: 'a'.repeat(64) },
+  { method: 'pet.show' },
+  { method: 'pet.hide' },
+]
+
+describe('independent pet request declarations', () => {
+  it.each(validPetRequests)('accepts the declared shape of $method', (request) => {
+    expect(parsePetRequest(request)).toEqual(request)
   })
-  it('rejects unknown methods, extra properties and malformed fields', () => {
-    expect(() => parseCoreRequest({ method: 'pet.remove' })).toThrow()
-    expect(() => parseCoreRequest({ method: 'pet.state', directory: '/etc' })).toThrow()
-    expect(() => parseCoreRequest({ method: 'pet.importChosen' })).toThrow()
-    expect(() => parseCoreRequest({ method: 'pet.importChosen', entry: '' })).toThrow()
-    expect(() => parseCoreRequest({ method: 'pet.select', modelId: 'short' })).toThrow()
+  it.each([
+    { method: 'pet.remove' },
+    { method: 'pet.state', directory: '/etc' },
+    { method: 'pet.importChosen' },
+    { method: 'pet.importChosen', entry: '' },
+    { method: 'pet.importChosen', entry: 'x'.repeat(513) },
+    { method: 'pet.select', modelId: 'short' },
+    { method: 'pet.show', path: '/models' },
+    { method: 'pet.hide', enabled: true },
+  ])('rejects invalid standalone declaration %#', (request) => {
+    expect(() => parsePetRequest(request)).toThrow('INVALID_PET_REQUEST')
+  })
+})
+
+describe('public IPC keeps unintegrated pet methods unavailable', () => {
+  it.each(validPetRequests)('rejects $method even from the trusted renderer', async (request) => {
+    expect(() => parseCoreRequest(request)).toThrow()
+    expect(() => parseHostRequest(request)).toThrow()
+    const frame = { url: 'memo://app/index.html' }
+    const renderer = { mainFrame: frame, isDestroyed: () => false }
+    const dispatch = vi.fn().mockResolvedValue({ ok: true, data: {} })
+    const handler = createRequestHandler(() => renderer, frame.url, dispatch)
+    expect(await handler({ sender: renderer, senderFrame: frame }, request)).toEqual({
+      ok: false,
+      error: 'INVALID_REQUEST',
+    })
+    expect(dispatch).not.toHaveBeenCalled()
   })
 })
