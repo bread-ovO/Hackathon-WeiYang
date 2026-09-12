@@ -1,17 +1,17 @@
 import {describe,it,expect} from 'vitest'
 import {createCloseToTrayGuard,createTrayController,type TrayHost,type TrayPlatform,type TrayTemplateItem} from '../../apps/desktop/src/main/tray'
 interface FakeTray { tooltip:string; menu:TrayTemplateItem[]|undefined; click:()=>void; destroyCount:number }
-function makePlatform(){
+function makePlatform(failCreate=false){
  const tray:FakeTray={tooltip:'',menu:undefined,click:()=>{},destroyCount:0}
  const images:string[]=[]
  const platform:TrayPlatform={
   createImage:dataUrl=>{images.push(dataUrl);return {dataUrl}},
-  createTray:()=>({
+  createTray:()=>{if(failCreate)throw new Error('no system tray');return {
    setToolTip:tip=>{tray.tooltip=tip},
    setContextMenu:menu=>{tray.menu=menu as TrayTemplateItem[]},
    on:(event,listener)=>{if(event==='click')tray.click=listener},
    destroy:()=>{tray.destroyCount++},
-  }),
+  }},
   buildFromTemplate:template=>template,
  }
  return {tray,images,platform}
@@ -49,28 +49,40 @@ describe('tray controller',()=>{
   tray.menu!.find(item=>item.label==='退出 BUGU 不咕')!.click!()
   expect(calls).toEqual(['quit'])
  })
- it('destroys the tray exactly once',()=>{
+ it('degrades instead of failing when the platform has no tray',()=>{
+  const {platform}=makePlatform(true)
+  const {host}=makeHost()
+  const controller=createTrayController(host,platform)
+  expect(controller.active).toBe(false)
+  expect(()=>controller.destroy()).not.toThrow()
+ })
+ it('reports inactive after destroy and destroys the icon exactly once',()=>{
   const {tray,platform}=makePlatform()
   const {host}=makeHost()
   const controller=createTrayController(host,platform)
-  expect(tray.destroyCount).toBe(0)
+  expect(controller.active).toBe(true)
   controller.destroy();controller.destroy()
   expect(tray.destroyCount).toBe(1)
+  expect(controller.active).toBe(false)
  })
 })
 describe('close-to-tray guard',()=>{
- it('blocks window close and hides to tray while running',()=>{
+ it('blocks window close and hides while the tray owns the lifecycle',()=>{
   const {calls,host}=makeHost()
   let prevented=0
-  createCloseToTrayGuard(()=>false,host)({preventDefault:()=>{prevented++}})
+  createCloseToTrayGuard(()=>true,host.hideToTray)({preventDefault:()=>{prevented++}})
   expect(prevented).toBe(1)
   expect(calls).toEqual(['hide'])
  })
- it('lets the window close during quit',()=>{
+ it('evaluates the predicate per event: quitting or dead tray closes normally',()=>{
   const {calls,host}=makeHost()
+  let allowed=true
+  const guard=createCloseToTrayGuard(()=>allowed,host.hideToTray)
   let prevented=0
-  createCloseToTrayGuard(()=>true,host)({preventDefault:()=>{prevented++}})
-  expect(prevented).toBe(0)
-  expect(calls).toEqual([])
+  const event={preventDefault:()=>{prevented++}}
+  allowed=false;guard(event)
+  allowed=true;guard(event)
+  expect(prevented).toBe(1)
+  expect(calls).toEqual(['hide'])
  })
 })
