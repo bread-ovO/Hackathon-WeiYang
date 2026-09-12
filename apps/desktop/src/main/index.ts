@@ -1,3 +1,6 @@
+import { createPetSpeechService } from './pet/speech-service'
+import { createPetSpeechStore } from './pet/speech-store'
+import { createPetSpeechEnvironment } from './pet/speech-environment'
 import { createPetDesktopController } from './pet/desktop-controller'
 import { PetWorkerClient } from './pet/worker-client'
 import { createPetImportFlow } from './pet/import-flow'
@@ -129,7 +132,23 @@ else {
           return choice.canceled ? null : (choice.filePaths[0] ?? null)
         },
       })
+      let speech: ReturnType<typeof createPetSpeechService> | undefined
+      const environment = createPetSpeechEnvironment({
+        helperPath: join(
+          __dirname.replace('app.asar', 'app.asar.unpacked'),
+          '../native/pet-speech-environment',
+        ),
+        onChange: () => {
+          void speech?.wake()
+        },
+      })
       const petDesktop = createPetDesktopController({
+        speechState: () => speech?.snapshot(),
+        configureSpeech: (patch) =>
+          speech?.configure(patch) ?? Promise.resolve(false),
+        onDisplayChanged: () => {
+          void speech?.wake()
+        },
         worker: petWorker,
         flow: pets,
         stateFile: join(data, 'pet-window.json'),
@@ -147,7 +166,17 @@ else {
           return choice.canceled ? null : (choice.filePaths[0] ?? null)
         },
       })
+      speech = createPetSpeechService({
+        store: createPetSpeechStore(join(data, 'pet-speech.json')),
+        environment: () => environment.read(),
+        monitor: (enabled) => environment.setEnabled(enabled),
+        display: () => petDesktop.automaticDisplay(),
+        deliver: (text) => petDesktop.enqueueAutomatic(text),
+        cancel: (id) => petDesktop.cancelAutomatic(id),
+      })
       app.once('before-quit', () => {
+        speech?.dispose()
+        environment.dispose()
         petDesktop.dispose()
         petWorker.stop()
       })
@@ -200,6 +229,8 @@ else {
           () => window?.webContents ?? null,
           pageURL,
           async (request) => {
+            if (request.method === 'pet.configureSpeech')
+              return petDesktop.configureSpeech(request.patch)
             if (request.method === 'pet.play')
               return petDesktop.play(request.actionId)
             if (request.method === 'pet.speak')

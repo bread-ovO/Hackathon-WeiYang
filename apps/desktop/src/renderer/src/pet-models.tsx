@@ -9,6 +9,7 @@ import type {
 import { FolderOpen, Cube, Check } from '@phosphor-icons/react'
 import { AppButton } from './ui'
 import './pet-models.css'
+import { PetSpeechSettings } from './pet-speech-settings'
 
 type Choice = Extract<PetChooseReply, { status: 'ready' | 'choose' }>
 const initial: PetState = { currentModelId: null, display: false, models: [] }
@@ -386,6 +387,16 @@ export function PetModels() {
           拖动角色调整位置。透明区域可点击下方应用；始终可以从这里隐藏桌宠。
         </p>
       </div>
+      <PetSpeechSettings
+        state={data.speech}
+        busy={busy}
+        onConfigure={(patch) =>
+          perform(
+            () => api().configureSpeech(patch),
+            (value) => setData(value),
+          )
+        }
+      />
       {data.display && data.renderStatus === 'ready' && (
         <div className="pet-models-presentation" aria-label="桌宠动作与气泡">
           <label htmlFor="pet-action">表情与动作</label>
@@ -461,7 +472,7 @@ export function PetModels() {
               关闭当前气泡
             </AppButton>
             <span className="pet-models-presentation-note">
-              手动预览，自动话语尚未启用。
+              手动预览，不受自动话语开关影响。
             </span>
           </div>
         </div>

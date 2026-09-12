@@ -64,6 +64,9 @@ export function createPresentationQueue() {
       items.shift()
       return true
     },
+    cancel(id: string) {
+      items = items.filter((item) => item.id !== id)
+    },
     dismissBubble() {
       if (items[0]?.kind === 'bubble') items.shift()
     },

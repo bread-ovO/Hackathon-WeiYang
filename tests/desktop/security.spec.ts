@@ -110,6 +110,7 @@ test('real IPC rejects foreign windows and malformed requests; source text stays
       ['list', 'inspect', 'trial', 'activate', 'disable', 'uninstall', 'sync'],
     )
     expect(await page.evaluate(() => Object.keys(window.memo.pet))).toEqual([
+      'configureSpeech',
       'play',
       'speak',
       'dismissBubble',
@@ -155,6 +156,16 @@ test('real IPC rejects foreign windows and malformed requests; source text stays
       [],
       [null],
       [{ method: 'readFile', path: '/private' }],
+      [
+        {
+          method: 'pet.configureSpeech',
+          patch: { enabled: true, secret: 'forged' },
+        },
+      ],
+      [{ method: 'pet.configureSpeech', patch: { quietStart: 1440 } }],
+      [{ method: 'pet.configureSpeech', patch: { pausedUntil: 1.5 } }],
+      [{ method: 'pet.configureSpeech', patch: { enabled: 'true' } }],
+      [{ method: 'pet.configureSpeech', patch: {} }],
       [{ method: 'pet.show', path: '/private' }],
       [{ method: 'pet.execute' }],
       [{ method: 'pet.openImportDialog', directory: '/private' }],
@@ -485,6 +496,7 @@ test('real IPC rejects foreign windows and malformed requests; source text stays
         ),
       ).toEqual({ ok: false, error: 'INVALID_REQUEST' })
     for (const request of [
+      { method: 'pet.configureSpeech', patch: { enabled: true } },
       { method: 'plugins.list' },
       { method: 'plugins.inspect' },
       { method: 'plugins.trial', inspectionId: 'i', projectId: 'p' },

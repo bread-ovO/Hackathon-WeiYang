@@ -90,3 +90,6 @@ export function hasMinimumGithubScopes(scopes: string[]): boolean { const s=new 
 export function pullRequestEventKey(repo: string, number: number, updatedAt: string): string { return `${repo}#${number}@${updatedAt}` }
 
 export function withinDiskQuota(usedBytes: number, incomingBytes: number, limitBytes: number): boolean { return usedBytes>=0&&incomingBytes>=0&&limitBytes>=0&&usedBytes+incomingBytes<=limitBytes }
+
+export { PET_SPEECH_DEFAULTS, PET_SPEECH_LINES, PET_SPEECH_DAILY_LIMIT, PET_SPEECH_RECENT_LIMIT, PET_SPEECH_RESUME_GAP_MS, createPetSpeechState, parsePetSpeechState, configurePetSpeech, tickPetSpeech, isPetSpeechQuiet } from './pet-speech'
+export type { PetSpeechSettings, PetSpeechState, PetSpeechClock, PetSpeechEnvironment, PetSpeechDecision, PetSpeechReason } from './pet-speech'

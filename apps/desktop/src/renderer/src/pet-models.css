@@ -282,3 +282,83 @@
   font-size: 12px;
   color: var(--text-color-kumo-subtle);
 }
+
+.pet-speech-settings {
+  margin-top: 16px;
+  padding: 12px;
+  border: 1px solid var(--color-kumo-line);
+  border-radius: 8px;
+}
+.pet-speech-heading,
+.pet-speech-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.pet-speech-heading h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+.pet-speech-heading p,
+.pet-speech-footer p,
+.pet-speech-note {
+  color: var(--text-color-kumo-subtle);
+  font-size: 12px;
+  line-height: 1.5;
+}
+.pet-speech-heading p {
+  margin-top: 4px;
+}
+.pet-speech-fields {
+  display: grid;
+  grid-template-columns: 80px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px 12px;
+  margin-top: 12px;
+}
+.pet-speech-fields label {
+  font-size: 14px;
+}
+.pet-speech-fields select,
+.pet-speech-fields input {
+  min-height: 32px;
+  box-sizing: border-box;
+  padding: 4px 8px;
+  color: var(--text-color-kumo-default);
+  background: var(--color-kumo-base);
+  border: 1px solid var(--color-kumo-line);
+  border-radius: 4px;
+  font: inherit;
+  font-size: 14px;
+  min-width: 0;
+}
+.pet-speech-fields select {
+  width: 100%;
+  max-width: 280px;
+}
+.pet-speech-note {
+  grid-column: 2;
+}
+.pet-speech-time-range {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.pet-speech-time-range input {
+  width: 112px;
+}
+.pet-speech-footer {
+  margin-top: 12px;
+}
+@media (max-width: 640px) {
+  .pet-speech-fields {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .pet-speech-note {
+    grid-column: 1;
+  }
+}
