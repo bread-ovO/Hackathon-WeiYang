@@ -31,3 +31,6 @@ export function linkCrossSourceCandidates(ids: string[]): string[][] { const gro
 export function resolveCandidateLinks(groups: string[][]): { linked: string[][]; uncertain: string[][] } { return { linked: groups.filter(g => g.length === 1), uncertain: groups.filter(g => g.length > 1) } }
 
 export function validateSuggestion(value: unknown): value is { title: string; confidence: number } { if (!value || typeof value !== 'object') return false; const v=value as Record<string,unknown>; return typeof v.title==='string' && v.title.trim().length>0 && typeof v.confidence==='number' && v.confidence>=0 && v.confidence<=1 }
+
+export type ModelOutcome = { kind: 'success'; value: unknown } | { kind: 'failed'; code: string } | { kind: 'cancelled' }
+export function classifyModelError(error: unknown, cancelled = false): ModelOutcome { if (cancelled || (error instanceof Error && error.name === 'AbortError')) return { kind:'cancelled' }; return { kind:'failed', code:error instanceof Error ? error.message : 'MODEL_UNKNOWN_ERROR' } }
