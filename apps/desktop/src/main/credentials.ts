@@ -16,17 +16,21 @@ export function encryptionAvailable(): boolean {
       ))
   )
 }
-/** Only this host service can import/decrypt credentials; renderer receives references. */
-export function createCredentialsHandler(
-  root: string,
-  getWindow: () => BrowserWindow | null,
-) {
-  const vault = createCredentialVault(root, {
+export function createSystemCredentialVault(root: string) {
+  return createCredentialVault(root, {
     isAvailable: encryptionAvailable,
     encrypt: (text: string) => safeStorage.encryptString(text),
     decrypt: (bytes: Uint8Array) =>
       safeStorage.decryptString(Buffer.from(bytes)),
   })
+}
+/** Only this host service can import/decrypt credentials; renderer receives references. */
+export function createCredentialsHandler(
+  root: string,
+  getWindow: () => BrowserWindow | null,
+  sharedVault?: ReturnType<typeof createSystemCredentialVault>,
+) {
+  const vault = sharedVault ?? createSystemCredentialVault(root)
   let choosing = false
   const snapshot = async (): Promise<CredentialsSnapshot> => ({
     credentials: await vault.list(),

@@ -14,7 +14,11 @@ import { join, resolve, sep } from 'node:path'
 import { mkdirSync } from 'node:fs'
 import { pathToFileURL } from 'node:url'
 import { CoreClient } from './core-client'
-import { createCredentialsHandler } from './credentials'
+import { createPluginRuntime } from './plugin-runtime'
+import {
+  createCredentialsHandler,
+  createSystemCredentialVault,
+} from './credentials'
 import { saveExportFile } from './export-file'
 import type { ExportBundle } from '@memo/storage'
 import { isTrustedPage } from './security'
@@ -97,9 +101,48 @@ else {
         join(data, 'memo.sqlite'),
       )
       core.start()
+      const vault = createSystemCredentialVault(join(data, 'credentials'))
+      const plugins = createPluginRuntime({
+        request: (request) =>
+          core
+            ? core.request(request)
+            : Promise.resolve({ ok: false, error: 'CORE_UNAVAILABLE' }),
+        readCredential: (id, scope) => vault.read(id, scope),
+        choose: async (kind) => {
+          if (!window) throw new Error('PLUGIN_UNAVAILABLE')
+          const result = await dialog.showOpenDialog(
+            window,
+            kind === 'manifest'
+              ? {
+                  title: '选择声明式插件 JSON',
+                  properties: ['openFile'],
+                  filters: [{ name: '插件 JSON', extensions: ['json'] }],
+                }
+              : { title: '选择插件授权目录', properties: ['openDirectory'] },
+          )
+          return result.canceled ? null : (result.filePaths[0] ?? null)
+        },
+      })
+      let ticking = false
+      const pluginTimer = setInterval(() => {
+        if (ticking) return
+        ticking = true
+        void plugins
+          .tick()
+          .catch(() => {})
+          .finally(() => {
+            ticking = false
+          })
+      }, 30_000)
+      pluginTimer.unref()
+      app.once('before-quit', () => {
+        clearInterval(pluginTimer)
+        plugins.cancel()
+      })
       const credentials = createCredentialsHandler(
         join(data, 'credentials'),
         () => window,
+        vault,
       )
       ipcMain.handle(
         'memo:request',
@@ -107,6 +150,17 @@ else {
           () => window?.webContents ?? null,
           pageURL,
           async (request) => {
+            if (
+              request.method === 'plugins.list' ||
+              request.method === 'plugins.inspect' ||
+              request.method === 'plugins.trial' ||
+              request.method === 'plugins.activate' ||
+              request.method === 'plugins.disable' ||
+              request.method === 'plugins.uninstall' ||
+              request.method === 'plugins.sync'
+            )
+              return plugins.handle(request)
+            if (request.method === 'credentials.remove') plugins.cancel()
             if (
               request.method === 'credentials.list' ||
               request.method === 'credentials.importFile' ||

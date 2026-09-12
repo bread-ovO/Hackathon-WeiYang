@@ -3,7 +3,7 @@ import { createRequire } from 'node:module'
 import { spawnSync } from 'node:child_process'
 import { resolve } from 'node:path'
 const require = createRequire(resolve('apps/desktop/package.json'))
-for (const name of ['storage-integration', 'job-queue-integration', 'search-integration', 'task-model-integration', 'source-import-integration', 'export-integration']) {
+for (const name of ['storage-integration', 'job-queue-integration', 'search-integration', 'task-model-integration', 'source-import-integration', 'export-integration', 'plugin-install-integration']) {
   const output = `apps/desktop/out/${name}.cjs`
   await build({
     entryPoints: [`tests/${name}.ts`],

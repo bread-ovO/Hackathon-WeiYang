@@ -231,10 +231,10 @@ try {
   store.close()
   // v4 existing unmanaged source data stays intact and is never silently authorized.
   const prior = new Database(path)
-  prior.exec('DROP TABLE source_grants;PRAGMA user_version=4;')
+  prior.exec('DROP TABLE plugin_source_history; DROP TABLE plugin_bindings; DROP TABLE source_grants;PRAGMA user_version=4;')
   prior.close()
   store = openStore(path)
-  assert.equal(store.health().schemaVersion, 5)
+  assert.equal(store.health().schemaVersion, 6)
   assert.equal(store.health().eventCount, 3)
   assert.deepEqual(store.sources.list(), [])
   store.close()

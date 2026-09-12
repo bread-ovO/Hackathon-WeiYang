@@ -1,3 +1,4 @@
+import { handlePluginHost } from './plugins'
 import { createSourceHandler } from './sources'
 import { handleWorkspace } from './workspace'
 import { openStore } from '@memo/storage'
@@ -29,16 +30,24 @@ parentPort.on('message', async ({ data }) => {
     reply = {
       ok: true,
       data:
-        request.method === 'exports.build'
-          ? store.exports.build(request)
-          : request.method === 'health'
-            ? store.health()
-            : request.method === 'sources.list' ||
-                request.method === 'sources.importFile' ||
-                request.method === 'sources.sync' ||
-                request.method === 'sources.revoke'
-              ? await sources(request)
-              : handleWorkspace(store, request),
+        request.method === 'pluginHost.list' ||
+        request.method === 'pluginHost.get' ||
+        request.method === 'pluginHost.activate' ||
+        request.method === 'pluginHost.disable' ||
+        request.method === 'pluginHost.uninstall' ||
+        request.method === 'pluginHost.receiveBatch' ||
+        request.method === 'pluginHost.recordError'
+          ? handlePluginHost(store, request)
+          : request.method === 'exports.build'
+            ? store.exports.build(request)
+            : request.method === 'health'
+              ? store.health()
+              : request.method === 'sources.list' ||
+                  request.method === 'sources.importFile' ||
+                  request.method === 'sources.sync' ||
+                  request.method === 'sources.revoke'
+                ? await sources(request)
+                : handleWorkspace(store, request),
     }
   } catch (error) {
     const code = error instanceof Error ? error.message : ''

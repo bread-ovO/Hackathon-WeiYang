@@ -32,7 +32,7 @@ test('packaged renderer connects to isolated SQLite core without exposing Node',
         node: typeof (globalThis as unknown as { require: unknown }).require,
         keys: Object.keys(window.memo),
       })),
-    ).toEqual({ node: 'undefined', keys: ['health', 'credentials', 'exports', 'sources', 'workspace'] })
+    ).toEqual({ node: 'undefined', keys: ['health', 'plugins', 'credentials', 'exports', 'sources', 'workspace'] })
 
     await expect(
       page.getByRole('heading', { name: '基础链路已连通' }),
@@ -48,7 +48,7 @@ test('packaged renderer connects to isolated SQLite core without exposing Node',
     expect(reply.ok).toBe(true)
     if (reply.ok) {
       expect(reply.data.eventCount).toBe(0)
-      expect(reply.data.schemaVersion).toBe(5)
+      expect(reply.data.schemaVersion).toBe(6)
     }
     // Terminate only our named child process and verify a different, healthy core replaces it.
     const oldPid = await app.evaluate(({ app }) => {

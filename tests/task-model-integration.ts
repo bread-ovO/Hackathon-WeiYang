@@ -40,7 +40,7 @@ try {
   store.close()
   // Restore the exact v2 task columns while retaining existing events, jobs and search projections.
   const legacy = new Database(path)
-  legacy.exec(`DROP TABLE source_grants;DROP TABLE task_listing_fts;DROP TABLE notification_outbox;DROP TABLE manual_overrides;DROP TABLE task_revisions;DROP TABLE decisions;DROP TABLE evidence_links;DROP TABLE criteria;DROP TABLE criterion_sets;DROP TABLE event_projects;
+  legacy.exec(`DROP TABLE plugin_source_history; DROP TABLE plugin_bindings; DROP TABLE source_grants;DROP TABLE task_listing_fts;DROP TABLE notification_outbox;DROP TABLE manual_overrides;DROP TABLE task_revisions;DROP TABLE decisions;DROP TABLE evidence_links;DROP TABLE criteria;DROP TABLE criterion_sets;DROP TABLE event_projects;
     DROP TABLE tasks;DROP TABLE projects;
     CREATE TABLE tasks(id TEXT PRIMARY KEY,title TEXT NOT NULL,status TEXT NOT NULL CHECK(status IN ('todo','in_progress','waiting','completed','cancelled')),
       evidence_status TEXT NOT NULL CHECK(evidence_status IN ('unknown','partial','sufficient','conflict')),version INTEGER NOT NULL DEFAULT 1 CHECK(version>0),archived_at TEXT);
@@ -48,7 +48,7 @@ try {
   legacy.close()
   store = openStore(path)
   const tasks = store.tasks
-  assert.equal(store.health().schemaVersion, 5)
+  assert.equal(store.health().schemaVersion, 6)
   assert.equal(store.health().eventCount, 2)
   assert.equal(store.health().jobCount, 2)
   assert.equal(store.cursor('fixture'), 'cursor')
@@ -403,14 +403,14 @@ try {
   // Independently exercise v3 -> v4 with existing manual history and searchable criteria.
   const v3 = new Database(path)
   v3.exec(
-    'DROP TABLE source_grants; DROP TABLE task_listing_fts; ALTER TABLE tasks DROP COLUMN due_at; PRAGMA user_version=3;',
+    'DROP TABLE plugin_source_history; DROP TABLE plugin_bindings; DROP TABLE source_grants; DROP TABLE task_listing_fts; ALTER TABLE tasks DROP COLUMN due_at; PRAGMA user_version=3;',
   )
   const oldDecisions = (
     v3.prepare('SELECT count(*) AS n FROM decisions').get() as { n: number }
   ).n
   v3.close()
   store = openStore(path)
-  assert.equal(store.health().schemaVersion, 5)
+  assert.equal(store.health().schemaVersion, 6)
   assert.equal(store.tasks.get('alpha', 't1')?.dueAt, null)
   assert.equal(store.tasks.getCriteria('alpha', 't1').version, 2)
   assert.equal(store.tasks.listPage({ query: '新标题' }).items[0]?.id, 't1')
