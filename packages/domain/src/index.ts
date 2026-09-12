@@ -66,3 +66,5 @@ export function shouldRollback(failures: number, threshold = 3): boolean { retur
 export function canUpgrade(current: string, next: string): boolean { return Boolean(current && next && current !== next) }
 
 export function canAnswerWithCitation(citations: string[]): boolean { return citations.length > 0 && citations.every(c => c.trim().length > 0) }
+
+export function sourceHealthLabel(status: 'active'|'revoked'|'error'): string { return status==='active'?'healthy':status==='revoked'?'revoked':'attention' }
