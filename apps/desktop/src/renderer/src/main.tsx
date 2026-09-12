@@ -1,3 +1,4 @@
+import { PluginManager } from './plugin-manager'
 import { CredentialsPanel } from './credentials-panel'
 import { SourceImport } from './source-import'
 import { RealWorkspace } from './real-workspace'
@@ -671,6 +672,7 @@ function App() {
               把工作发生的地方连接起来。你决定读取哪些内容。
             </p>
             <SourceImport />
+            <PluginManager />
             <div className="connection-summary">
               <Icon name="link" />
               <span>可手动导入本地 JSONL 导出</span>

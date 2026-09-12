@@ -80,6 +80,7 @@ test('real IPC rejects foreign windows and malformed requests; source text stays
     ).toBeVisible()
     expect(await page.evaluate(() => Object.keys(window.memo))).toEqual([
       'health',
+      'plugins',
       'credentials',
       'exports',
       'sources',
@@ -104,6 +105,9 @@ test('real IPC rejects foreign windows and malformed requests; source text stays
     expect(
       await page.evaluate(() => Object.keys(window.memo.credentials)),
     ).toEqual(['list', 'importFile', 'remove'])
+    expect(await page.evaluate(() => Object.keys(window.memo.plugins))).toEqual(
+      ['list', 'inspect', 'trial', 'activate', 'disable', 'uninstall', 'sync'],
+    )
     // Privileged test harness only: inject a temporary probe, never ship raw IPC in production preload.
     const preload = join(data, 'probe.cjs')
     await writeFile(
@@ -137,6 +141,56 @@ test('real IPC rejects foreign windows and malformed requests; source text stays
       [{ method: 'health', unexpected: true }],
       [{ method: 'x'.repeat(65537) }],
       [{ method: 'health' }, 'extra'],
+      [{ method: 'pluginHost.list' }],
+      [{ method: 'pluginHost.get', id: 'plugin-1' }],
+      [
+        {
+          method: 'pluginHost.activate',
+          input: {
+            manifest: {},
+            grant: { kind: 'local-jsonl', path: '/private' },
+          },
+        },
+      ],
+      [
+        {
+          method: 'pluginHost.receiveBatch',
+          input: { id: 'plugin-1', events: [] },
+        },
+      ],
+      [{ method: 'plugins.inspect', path: '/private/manifest.json' }],
+      [
+        {
+          method: 'plugins.trial',
+          inspectionId: 'i',
+          projectId: 'p',
+          path: '/private/events.jsonl',
+        },
+      ],
+      [
+        {
+          method: 'plugins.trial',
+          inspectionId: 'i',
+          projectId: 'p',
+          secret: 'forged-secret',
+        },
+      ],
+      [
+        {
+          method: 'plugins.trial',
+          inspectionId: 'i',
+          projectId: 'p',
+          token: 'forged-token',
+        },
+      ],
+      [
+        {
+          method: 'plugins.activate',
+          trialId: 't',
+          projectId: 'other-project',
+        },
+      ],
+      [{ method: 'plugins.activate', trialId: 't', manifest: {} }],
       [{ method: 'workspace.list', extra: true }],
       [{ method: 'workspace.list' }, 'extra'],
       [{ method: 'workspace.createTask', projectId: '', title: 'Task' }],
@@ -399,6 +453,26 @@ test('real IPC rejects foreign windows and malformed requests; source text stays
           request,
         ),
       ).toEqual({ ok: false, error: 'INVALID_REQUEST' })
+    for (const request of [
+      { method: 'plugins.list' },
+      { method: 'plugins.inspect' },
+      { method: 'plugins.trial', inspectionId: 'i', projectId: 'p' },
+      { method: 'plugins.activate', trialId: 't' },
+      { method: 'plugins.disable', id: 'plugin-1' },
+      { method: 'plugins.uninstall', id: 'plugin-1' },
+      { method: 'plugins.sync', id: 'plugin-1' },
+    ])
+      expect(
+        await foreign.evaluate(
+          (request) =>
+            (window as unknown as ProbeWindow).securityProbe.request(request),
+          request,
+        ),
+      ).toEqual({ ok: false, error: 'INVALID_REQUEST' })
+    expect(await page.evaluate(() => window.memo.plugins.list())).toEqual({
+      ok: true,
+      data: { plugins: [] },
+    })
     // Production CSP denies embedding even a same-origin frame.
     await page.evaluate((url) => {
       const frame = document.createElement('iframe')

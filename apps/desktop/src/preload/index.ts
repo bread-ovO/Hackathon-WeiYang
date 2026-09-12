@@ -2,6 +2,24 @@ import { contextBridge, ipcRenderer } from 'electron'
 import type { DesktopBridge } from '@memo/contracts'
 const bridge: DesktopBridge = {
   health: () => ipcRenderer.invoke('memo:request', { method: 'health' }),
+  plugins: Object.freeze({
+    list: () => ipcRenderer.invoke('memo:request', { method: 'plugins.list' }),
+    inspect: () =>
+      ipcRenderer.invoke('memo:request', { method: 'plugins.inspect' }),
+    trial: (input) =>
+      ipcRenderer.invoke('memo:request', { ...input, method: 'plugins.trial' }),
+    activate: (trialId) =>
+      ipcRenderer.invoke('memo:request', {
+        method: 'plugins.activate',
+        trialId,
+      }),
+    disable: (id) =>
+      ipcRenderer.invoke('memo:request', { method: 'plugins.disable', id }),
+    uninstall: (id) =>
+      ipcRenderer.invoke('memo:request', { method: 'plugins.uninstall', id }),
+    sync: (id) =>
+      ipcRenderer.invoke('memo:request', { method: 'plugins.sync', id }),
+  }),
   credentials: Object.freeze({
     list: () =>
       ipcRenderer.invoke('memo:request', { method: 'credentials.list' }),

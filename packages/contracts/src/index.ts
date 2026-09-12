@@ -1,4 +1,15 @@
 import {
+  pluginsRequestSchema,
+  type PluginTrialInput,
+  type PluginSnapshot,
+} from './plugins'
+import {
+  createPluginHostRequestSchema,
+  type PluginHostRequest,
+} from './plugin-host'
+export * from './plugins'
+export * from './plugin-host'
+import {
   credentialRequestSchema,
   type CredentialImportInput,
   type CredentialsSnapshot,
@@ -119,6 +130,7 @@ const coreRequestSchema = {
     sourcesRequestSchema,
     exportSaveRequestSchema,
     credentialRequestSchema,
+    pluginsRequestSchema,
   ],
 } as const
 export type CoreRequest = FromSchema<typeof coreRequestSchema>
@@ -144,10 +156,18 @@ export type HostRequest =
           | 'credentials.list'
           | 'credentials.importFile'
           | 'credentials.remove'
+          | 'plugins.list'
+          | 'plugins.inspect'
+          | 'plugins.trial'
+          | 'plugins.activate'
+          | 'plugins.disable'
+          | 'plugins.uninstall'
+          | 'plugins.sync'
       }
     >
   | ImportFileRequest
   | ExportBuildRequest
+  | PluginHostRequest
 const validateImportFile = ajv.compile<ImportFileRequest>(
   importFileRequestSchema,
 )
@@ -155,7 +175,24 @@ const validateImportFile = ajv.compile<ImportFileRequest>(
 const validateExportBuild = ajv.compile<ExportBuildRequest>(
   exportBuildRequestSchema,
 )
+const validatePluginHost = ajv.compile<PluginHostRequest>(
+  createPluginHostRequestSchema(sourceEventSchema),
+)
 export function parseHostRequest(value: unknown): HostRequest {
+  if (validatePluginHost(value)) {
+    if (value.method === 'pluginHost.activate') {
+      try {
+        if (
+          new TextEncoder().encode(JSON.stringify(value.input.manifest))
+            .byteLength > 65536
+        )
+          throw new Error('INVALID_REQUEST')
+      } catch {
+        throw new Error('INVALID_REQUEST')
+      }
+    }
+    return value
+  }
   if (validateExportBuild(value)) return value
   if (validateImportFile(value)) return value
   const request = parseCoreRequest(value)
@@ -164,7 +201,14 @@ export function parseHostRequest(value: unknown): HostRequest {
     request.method === 'exports.save' ||
     request.method === 'credentials.list' ||
     request.method === 'credentials.importFile' ||
-    request.method === 'credentials.remove'
+    request.method === 'credentials.remove' ||
+    request.method === 'plugins.list' ||
+    request.method === 'plugins.inspect' ||
+    request.method === 'plugins.trial' ||
+    request.method === 'plugins.activate' ||
+    request.method === 'plugins.disable' ||
+    request.method === 'plugins.uninstall' ||
+    request.method === 'plugins.sync'
   )
     throw new Error('INVALID_REQUEST')
   return request
@@ -194,9 +238,22 @@ export type CoreReply<T = Health> =
         | 'VAULT_WRITE_FAILED'
         | 'VAULT_NOT_FOUND'
         | 'VAULT_SCOPE_MISMATCH'
+        | 'PLUGIN_INVALID'
+        | 'PLUGIN_UNAVAILABLE'
+        | 'PLUGIN_CONFLICT'
+        | 'PLUGIN_TRIAL_FAILED'
     }
 export interface DesktopBridge {
   health(): Promise<CoreReply>
+  plugins: {
+    list(): Promise<CoreReply<PluginSnapshot>>
+    inspect(): Promise<CoreReply<PluginSnapshot>>
+    trial(input: PluginTrialInput): Promise<CoreReply<PluginSnapshot>>
+    activate(trialId: string): Promise<CoreReply<PluginSnapshot>>
+    disable(id: string): Promise<CoreReply<PluginSnapshot>>
+    uninstall(id: string): Promise<CoreReply<PluginSnapshot>>
+    sync(id: string): Promise<CoreReply<PluginSnapshot>>
+  }
   credentials: {
     list(): Promise<CoreReply<CredentialsSnapshot>>
     importFile(

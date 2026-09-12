@@ -1137,3 +1137,11 @@ dd {
 .credential-row > div:first-child { min-width: 0; overflow-wrap: anywhere; }
 .credential-row strong { font-size: 14px; font-weight: 500; }
 .credential-row-actions { display: flex; gap: 4px; flex-shrink: 0; }
+
+.plugin-panel{margin-top:16px;padding-top:16px;border-top:1px solid var(--line)}
+.plugin-heading,.plugin-row{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.plugin-heading h2{font-size:16px;margin:0}.plugin-panel p{font-size:12px;color:var(--muted);margin:8px 0;overflow-wrap:anywhere}
+.plugin-preview{padding:16px;margin-top:12px;border:1px solid var(--line);border-radius:12px}
+.plugin-fields{display:flex;gap:12px;flex-wrap:wrap;margin:12px 0}.plugin-fields label{display:flex;flex-direction:column;gap:4px;font-size:12px;min-width:160px}
+.plugin-fields select{border:1px solid var(--line);border-radius:8px;background:var(--color-kumo-base);padding:8px;font-size:14px;max-width:280px}
+.plugin-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px}.plugin-row{padding:12px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}.plugin-row>div{min-width:0}.plugin-row strong{overflow-wrap:anywhere}
