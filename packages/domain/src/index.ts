@@ -29,3 +29,5 @@ export function extractProgressCandidates(text: string): ProgressCandidate[] { r
 export function linkCrossSourceCandidates(ids: string[]): string[][] { const groups = new Map<string,string[]>(); for (const id of ids) { const key=id.trim().toLowerCase(); if (!key) continue; groups.set(key,[...(groups.get(key) ?? []),id]) } return [...groups.values()].filter(g=>g.length>1) }
 
 export function resolveCandidateLinks(groups: string[][]): { linked: string[][]; uncertain: string[][] } { return { linked: groups.filter(g => g.length === 1), uncertain: groups.filter(g => g.length > 1) } }
+
+export function validateSuggestion(value: unknown): value is { title: string; confidence: number } { if (!value || typeof value !== 'object') return false; const v=value as Record<string,unknown>; return typeof v.title==='string' && v.title.trim().length>0 && typeof v.confidence==='number' && v.confidence>=0 && v.confidence<=1 }
