@@ -80,3 +80,5 @@ export function encryptionStorageAvailable(provider: { encrypt?: unknown }|null)
 export function normalizeConversationRole(role: unknown): 'user'|'assistant'|'tool'|'unknown' { return role==='user'||role==='assistant'||role==='tool' ? role : 'unknown' }
 
 export function canResumeFile(previous: { dev: number; ino: number }, current: { dev: number; ino: number }): boolean { return previous.dev===current.dev && previous.ino===current.ino }
+
+export function editTaskTitle(task: Task, title: string): Task { if (!title.trim()) throw new Error('INVALID_TASK_TITLE'); return {...task,title:title.trim(),version:task.version+1} }
