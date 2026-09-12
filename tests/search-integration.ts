@@ -8,28 +8,27 @@ import assert from 'node:assert/strict'
 const folder = mkdtempSync(join(tmpdir(), 'bugu-search-'))
 const path = join(folder, 'search.sqlite')
 try {
-  // Exercise real v1 -> v2 migration with existing event, queue, cursor and task data.
-  let store = openStore(path)
-  store.registerSource('synthetic-source')
-  store.receive(
-    {
-      schemaVersion: 1,
-      sourceInstanceId: 'synthetic-source',
-      externalId: 'e1',
-      revision: '1',
-      occurredAt: '2026-09-13T00:00:00Z',
-      role: 'user',
-      text: 'synthetic',
-    },
-    'cursor1',
-  )
-  store.close()
+  // Build a real v1 database independently of today's openStore migrations.
   const legacy = new Database(path)
-  legacy.exec(`DROP TABLE candidate_search_fts; DROP TABLE candidate_search_documents; PRAGMA user_version=1;
-    INSERT INTO tasks(id,title,status,evidence_status) VALUES('legacy','保留任务','todo','unknown');`)
+  legacy.exec(`
+    CREATE TABLE source_instances(id TEXT PRIMARY KEY,cursor TEXT NOT NULL DEFAULT '');
+    CREATE TABLE source_events(id INTEGER PRIMARY KEY,source_id TEXT NOT NULL REFERENCES source_instances(id),external_id TEXT NOT NULL,
+      revision TEXT NOT NULL,occurred_at TEXT NOT NULL,received_at TEXT NOT NULL,role TEXT NOT NULL CHECK(role IN ('user','assistant','tool','system')),
+      content TEXT NOT NULL,UNIQUE(source_id,external_id,revision));
+    CREATE TABLE jobs(id INTEGER PRIMARY KEY,event_id INTEGER NOT NULL UNIQUE REFERENCES source_events(id),
+      state TEXT NOT NULL DEFAULT 'pending' CHECK(state IN ('pending','running','done','failed')),attempt INTEGER NOT NULL DEFAULT 0,lease_until TEXT,next_run TEXT,error_code TEXT);
+    CREATE INDEX jobs_pending ON jobs(state,next_run);
+    CREATE TABLE tasks(id TEXT PRIMARY KEY,title TEXT NOT NULL,status TEXT NOT NULL CHECK(status IN ('todo','in_progress','waiting','completed','cancelled')),
+      evidence_status TEXT NOT NULL CHECK(evidence_status IN ('unknown','partial','sufficient','conflict')),version INTEGER NOT NULL DEFAULT 1 CHECK(version>0),archived_at TEXT);
+    INSERT INTO source_instances VALUES('synthetic-source','cursor1');
+    INSERT INTO source_events VALUES(1,'synthetic-source','e1','1','2026-09-13T00:00:00Z','2026-09-13T00:00:00Z','user','synthetic');
+    INSERT INTO jobs(event_id) VALUES(1);
+    INSERT INTO tasks(id,title,status,evidence_status) VALUES('legacy','保留任务','todo','unknown');
+    PRAGMA user_version=1;
+  `)
   legacy.close()
-  store = openStore(path)
-  assert.equal(store.health().schemaVersion, 2)
+  let store = openStore(path)
+  assert.equal(store.health().schemaVersion, 3)
   assert.equal(store.health().eventCount, 1)
   assert.equal(store.health().jobCount, 1)
   assert.equal(store.cursor('synthetic-source'), 'cursor1')

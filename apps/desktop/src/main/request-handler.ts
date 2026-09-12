@@ -13,12 +13,12 @@ import {
 export function createRequestHandler(
   getRenderer: () => TrustedRenderer | null,
   pageURL: string,
-  dispatch: (request: CoreRequest) => Promise<CoreReply>,
+  dispatch: (request: CoreRequest) => Promise<CoreReply<unknown>>,
 ) {
   return async (
     event: RequestSender,
     ...args: unknown[]
-  ): Promise<CoreReply> => {
+  ): Promise<CoreReply<unknown>> => {
     if (!isTrustedSender(event, getRenderer(), pageURL) || args.length !== 1) {
       return { ok: false, error: 'INVALID_REQUEST' }
     }

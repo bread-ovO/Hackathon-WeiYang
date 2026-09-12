@@ -1,4 +1,5 @@
 import { constants } from 'node:fs'
+import { createHash } from 'node:crypto'
 import { lstat, open, realpath } from 'node:fs/promises'
 import path from 'node:path'
 import { inflateSync } from 'node:zlib'
@@ -38,6 +39,7 @@ export interface ModelIssue {
   message: string
 }
 export interface ValidatedModelResource {
+  sha256: string
   path: string
   kind: string
   bytes: number
@@ -314,6 +316,7 @@ export async function validateModelDirectory(
     return result
   }
   result.resources.push({
+    sha256: createHash('sha256').update(manifestBytes).digest('hex'),
     path: entry,
     kind: 'manifest',
     bytes: manifestBytes.length,
@@ -370,6 +373,7 @@ export async function validateModelDirectory(
     } else json(bytes, relative)
     if (issuesBefore === result.issues.length)
       result.resources.push({
+        sha256: createHash('sha256').update(bytes).digest('hex'),
         path: relative,
         kind: ref.kind,
         bytes: bytes.length,

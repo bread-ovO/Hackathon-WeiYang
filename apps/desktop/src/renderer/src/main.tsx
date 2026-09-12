@@ -1,3 +1,4 @@
+import { RealWorkspace } from './real-workspace'
 import React, { useEffect, useRef, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import {
@@ -90,6 +91,7 @@ function App() {
     [draft, setDraft] = useState(''),
     [notice, setNotice] = useState('')
   const [undo, setUndo] = useState<Task[] | null>(null)
+  const [realCount, setRealCount] = useState(0)
   const searchRef = useRef<HTMLInputElement>(null)
   useEffect(() => {
     let active = true
@@ -214,7 +216,9 @@ function App() {
             <Icon name="list" />
             跟进
             <span className="nav-count">
-              {demo ? tasks.filter((t) => t.status !== '已完成').length : 0}
+              {demo
+                ? tasks.filter((t) => t.status !== '已完成').length
+                : realCount}
             </span>
           </AppButton>
           <AppButton
@@ -253,7 +257,7 @@ function App() {
         <div className="sidebar-foot">
           <div className="preview-label">
             <span className="tiny-dot" />
-            设计预览
+            {demo ? '设计预览' : '本地工作区'}
           </div>
           <AppButton
             className={page === '设置' ? 'nav-item active' : 'nav-item'}
@@ -305,7 +309,9 @@ function App() {
             </AppButton>
           </div>
         </header>
-        {page === '跟进' ? (
+        {page === '跟进' && !demo ? (
+          <RealWorkspace onCount={setRealCount} />
+        ) : page === '跟进' ? (
           <>
             <div className="page-heading">
               <div>
