@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="720" viewBox="0 0 1100 720">
+<rect width="1100" height="720" fill="#f8fafc"/>
+<text x="40" y="46" font-size="26" font-family="sans-serif" fill="#0f172a">事项处理｜建议经过校验，再形成状态变化</text>
+<text x="40" y="77" font-size="16" font-family="sans-serif" fill="#64748b">模型负责语义理解；核心检查版本、证据引用、人工决定及场景策略</text>
+<rect x="65" y="125" width="270" height="80" rx="14" fill="#e0f2fe" stroke="#94a3b8"/>
+<text x="200.0" y="156" text-anchor="middle" font-size="18" font-family="sans-serif" fill="#0f172a">事件持久接收</text>
+<text x="200.0" y="183" text-anchor="middle" font-size="15" font-family="sans-serif" fill="#475569">去重 + 作业 + 游标，同事务</text>
+<rect x="415" y="125" width="270" height="80" rx="14" fill="#e0f2fe" stroke="#94a3b8"/>
+<text x="550.0" y="156" text-anchor="middle" font-size="18" font-family="sans-serif" fill="#0f172a">理解与候选关联</text>
+<text x="550.0" y="183" text-anchor="middle" font-size="15" font-family="sans-serif" fill="#475569">承诺 / 执行 / 反馈 / 变更</text>
+<polyline points="335,165 415,165" fill="none" stroke="#64748b" stroke-width="2"/>
+<polygon points="407,160 407,170 415,165" fill="#64748b"/>
+<rect x="765" y="125" width="270" height="80" rx="14" fill="#e0f2fe" stroke="#94a3b8"/>
+<text x="900.0" y="156" text-anchor="middle" font-size="18" font-family="sans-serif" fill="#0f172a">条件核验建议</text>
+<text x="900.0" y="183" text-anchor="middle" font-size="15" font-family="sans-serif" fill="#475569">当前条件 + 支持 / 反对证据</text>
+<polyline points="685,165 765,165" fill="none" stroke="#64748b" stroke-width="2"/>
+<polygon points="757,160 757,170 765,165" fill="#64748b"/>
+<polygon points="550,265 735,350 550,435 365,350" fill="#fef3c7" stroke="#d4a43b"/>
+<text x="550" y="342" text-anchor="middle" font-size="19" font-family="sans-serif" fill="#0f172a">满足自动提交条件？</text>
+<text x="550" y="370" text-anchor="middle" font-size="15" font-family="sans-serif" fill="#0f172a">含人工纠正与版本检查</text>
+<polyline points="900,205 900,235 550,235 550,265" fill="none" stroke="#64748b" stroke-width="2"/>
+<polygon points="545,257 555,257 550,265" fill="#64748b"/>
+<rect x="65" y="490" width="350" height="80" rx="14" fill="#dcfce7" stroke="#94a3b8"/>
+<text x="240.0" y="521" text-anchor="middle" font-size="18" font-family="sans-serif" fill="#0f172a">提交自动变更</text>
+<text x="240.0" y="548" text-anchor="middle" font-size="15" font-family="sans-serif" fill="#475569">低风险场景、条件与证据充分</text>
+<rect x="685" y="490" width="350" height="80" rx="14" fill="#fff7ed" stroke="#94a3b8"/>
+<text x="860.0" y="521" text-anchor="middle" font-size="18" font-family="sans-serif" fill="#0f172a">保留进展 / 待确认</text>
+<text x="860.0" y="548" text-anchor="middle" font-size="15" font-family="sans-serif" fill="#475569">不确定、冲突或策略不允许</text>
+<polyline points="365,350 240,350 240,490" fill="none" stroke="#64748b" stroke-width="2"/>
+<polygon points="235,482 245,482 240,490" fill="#64748b"/>
+<text x="270" y="390" text-anchor="middle" font-size="14" font-family="sans-serif" fill="#475569">是</text>
+<polyline points="735,350 860,350 860,490" fill="none" stroke="#64748b" stroke-width="2"/>
+<polygon points="855,482 865,482 860,490" fill="#64748b"/>
+<text x="830" y="390" text-anchor="middle" font-size="14" font-family="sans-serif" fill="#475569">否</text>
+<rect x="370" y="620" width="360" height="70" rx="14" fill="#e0f2fe" stroke="#94a3b8"/>
+<text x="550.0" y="651" text-anchor="middle" font-size="18" font-family="sans-serif" fill="#0f172a">事务记录 → 清单 / 轻提醒</text>
+<text x="550.0" y="678" text-anchor="middle" font-size="15" font-family="sans-serif" fill="#475569">保存决定与依据，用户可纠正</text>
+<polyline points="240,570 240,655 370,655" fill="none" stroke="#64748b" stroke-width="2"/>
+<polygon points="362,650 362,660 370,655" fill="#64748b"/>
+<polyline points="860,570 860,655 730,655" fill="none" stroke="#64748b" stroke-width="2"/>
+<polygon points="738,650 738,660 730,655" fill="#64748b"/>
+</svg>

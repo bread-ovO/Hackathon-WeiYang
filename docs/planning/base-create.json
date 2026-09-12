@@ -1,0 +1,523 @@
+{
+  "ok": true,
+  "identity": "user",
+  "data": {
+    "base": {
+      "base_token": "VHWebJShaa0nhnskizncs3GZnud",
+      "folder_token": "",
+      "name": "多信源 AI 事项助手｜需求拆解与研发跟踪",
+      "time_zone": "Asia/Shanghai",
+      "url": "https://my.feishu.cn/base/VHWebJShaa0nhnskizncs3GZnud"
+    },
+    "created": true,
+    "default_table_deleted": true,
+    "deleted_default_table_id": "tblEws9Kfu7FygKG",
+    "fields": [
+      {
+        "default_value": null,
+        "name": "需求名称",
+        "style": {
+          "type": "plain"
+        },
+        "type": "text"
+      },
+      {
+        "default_value": null,
+        "name": "需求编号",
+        "style": {
+          "type": "plain"
+        },
+        "type": "text"
+      },
+      {
+        "default_value": null,
+        "multiple": false,
+        "name": "所属模块",
+        "options": [
+          {
+            "hue": "Turquoise",
+            "lightness": "Lighter",
+            "name": "产品决策"
+          },
+          {
+            "hue": "Lime",
+            "lightness": "Lighter",
+            "name": "桌面基础"
+          },
+          {
+            "hue": "Blue",
+            "lightness": "Lighter",
+            "name": "数据与作业"
+          },
+          {
+            "hue": "Gray",
+            "lightness": "Lighter",
+            "name": "飞书接入"
+          },
+          {
+            "hue": "Purple",
+            "lightness": "Lighter",
+            "name": "AI 会话接入"
+          },
+          {
+            "hue": "Turquoise",
+            "lightness": "Lighter",
+            "name": "交付接入"
+          },
+          {
+            "hue": "Red",
+            "lightness": "Lighter",
+            "name": "理解与关联"
+          },
+          {
+            "hue": "Lime",
+            "lightness": "Lighter",
+            "name": "条件与状态"
+          },
+          {
+            "hue": "Green",
+            "lightness": "Lighter",
+            "name": "人工纠正"
+          },
+          {
+            "hue": "Green",
+            "lightness": "Lighter",
+            "name": "产品界面"
+          },
+          {
+            "hue": "Gray",
+            "lightness": "Lighter",
+            "name": "提醒"
+          },
+          {
+            "hue": "Turquoise",
+            "lightness": "Lighter",
+            "name": "插件扩展"
+          },
+          {
+            "hue": "Green",
+            "lightness": "Lighter",
+            "name": "数据控制"
+          },
+          {
+            "hue": "Purple",
+            "lightness": "Lighter",
+            "name": "质量与发布"
+          },
+          {
+            "hue": "Yellow",
+            "lightness": "Lighter",
+            "name": "后续能力"
+          }
+        ],
+        "type": "select"
+      },
+      {
+        "default_value": null,
+        "multiple": false,
+        "name": "优先级",
+        "options": [
+          {
+            "hue": "Orange",
+            "lightness": "Lighter",
+            "name": "P0"
+          },
+          {
+            "hue": "Wathet",
+            "lightness": "Lighter",
+            "name": "P1"
+          }
+        ],
+        "type": "select"
+      },
+      {
+        "default_value": null,
+        "multiple": false,
+        "name": "实施阶段",
+        "options": [
+          {
+            "hue": "Wathet",
+            "lightness": "Lighter",
+            "name": "A 接入验证"
+          },
+          {
+            "hue": "Wathet",
+            "lightness": "Lighter",
+            "name": "B 回放闭环"
+          },
+          {
+            "hue": "Turquoise",
+            "lightness": "Lighter",
+            "name": "C 有限自动维护"
+          },
+          {
+            "hue": "Gray",
+            "lightness": "Lighter",
+            "name": "D 扩展试用"
+          },
+          {
+            "hue": "Green",
+            "lightness": "Lighter",
+            "name": "P1 后续"
+          }
+        ],
+        "type": "select"
+      },
+      {
+        "default_value": null,
+        "multiple": false,
+        "name": "状态",
+        "options": [
+          {
+            "hue": "Carmine",
+            "lightness": "Lighter",
+            "name": "待评审"
+          },
+          {
+            "hue": "Carmine",
+            "lightness": "Lighter",
+            "name": "待开发"
+          },
+          {
+            "hue": "Yellow",
+            "lightness": "Lighter",
+            "name": "进行中"
+          },
+          {
+            "hue": "Carmine",
+            "lightness": "Lighter",
+            "name": "待验收"
+          },
+          {
+            "hue": "Blue",
+            "lightness": "Lighter",
+            "name": "已完成"
+          },
+          {
+            "hue": "Yellow",
+            "lightness": "Lighter",
+            "name": "阻塞"
+          },
+          {
+            "hue": "Carmine",
+            "lightness": "Lighter",
+            "name": "暂缓"
+          }
+        ],
+        "type": "select"
+      },
+      {
+        "default_value": null,
+        "name": "需求来源",
+        "style": {
+          "type": "plain"
+        },
+        "type": "text"
+      },
+      {
+        "default_value": null,
+        "name": "需求说明",
+        "style": {
+          "type": "plain"
+        },
+        "type": "text"
+      },
+      {
+        "default_value": null,
+        "name": "验收标准",
+        "style": {
+          "type": "plain"
+        },
+        "type": "text"
+      },
+      {
+        "default_value": null,
+        "name": "前置依赖编号",
+        "style": {
+          "type": "plain"
+        },
+        "type": "text"
+      },
+      {
+        "default_value": null,
+        "multiple": false,
+        "name": "负责人",
+        "type": "user"
+      },
+      {
+        "default_value": null,
+        "name": "备注",
+        "style": {
+          "type": "plain"
+        },
+        "type": "text"
+      }
+    ],
+    "table": {
+      "fields": [
+        {
+          "default_value": null,
+          "name": "需求名称",
+          "style": {
+            "type": "plain"
+          },
+          "type": "text"
+        },
+        {
+          "default_value": null,
+          "name": "需求编号",
+          "style": {
+            "type": "plain"
+          },
+          "type": "text"
+        },
+        {
+          "default_value": null,
+          "multiple": false,
+          "name": "所属模块",
+          "options": [
+            {
+              "hue": "Turquoise",
+              "lightness": "Lighter",
+              "name": "产品决策"
+            },
+            {
+              "hue": "Lime",
+              "lightness": "Lighter",
+              "name": "桌面基础"
+            },
+            {
+              "hue": "Blue",
+              "lightness": "Lighter",
+              "name": "数据与作业"
+            },
+            {
+              "hue": "Gray",
+              "lightness": "Lighter",
+              "name": "飞书接入"
+            },
+            {
+              "hue": "Purple",
+              "lightness": "Lighter",
+              "name": "AI 会话接入"
+            },
+            {
+              "hue": "Turquoise",
+              "lightness": "Lighter",
+              "name": "交付接入"
+            },
+            {
+              "hue": "Red",
+              "lightness": "Lighter",
+              "name": "理解与关联"
+            },
+            {
+              "hue": "Lime",
+              "lightness": "Lighter",
+              "name": "条件与状态"
+            },
+            {
+              "hue": "Green",
+              "lightness": "Lighter",
+              "name": "人工纠正"
+            },
+            {
+              "hue": "Green",
+              "lightness": "Lighter",
+              "name": "产品界面"
+            },
+            {
+              "hue": "Gray",
+              "lightness": "Lighter",
+              "name": "提醒"
+            },
+            {
+              "hue": "Turquoise",
+              "lightness": "Lighter",
+              "name": "插件扩展"
+            },
+            {
+              "hue": "Green",
+              "lightness": "Lighter",
+              "name": "数据控制"
+            },
+            {
+              "hue": "Purple",
+              "lightness": "Lighter",
+              "name": "质量与发布"
+            },
+            {
+              "hue": "Yellow",
+              "lightness": "Lighter",
+              "name": "后续能力"
+            }
+          ],
+          "type": "select"
+        },
+        {
+          "default_value": null,
+          "multiple": false,
+          "name": "优先级",
+          "options": [
+            {
+              "hue": "Orange",
+              "lightness": "Lighter",
+              "name": "P0"
+            },
+            {
+              "hue": "Wathet",
+              "lightness": "Lighter",
+              "name": "P1"
+            }
+          ],
+          "type": "select"
+        },
+        {
+          "default_value": null,
+          "multiple": false,
+          "name": "实施阶段",
+          "options": [
+            {
+              "hue": "Wathet",
+              "lightness": "Lighter",
+              "name": "A 接入验证"
+            },
+            {
+              "hue": "Wathet",
+              "lightness": "Lighter",
+              "name": "B 回放闭环"
+            },
+            {
+              "hue": "Turquoise",
+              "lightness": "Lighter",
+              "name": "C 有限自动维护"
+            },
+            {
+              "hue": "Gray",
+              "lightness": "Lighter",
+              "name": "D 扩展试用"
+            },
+            {
+              "hue": "Green",
+              "lightness": "Lighter",
+              "name": "P1 后续"
+            }
+          ],
+          "type": "select"
+        },
+        {
+          "default_value": null,
+          "multiple": false,
+          "name": "状态",
+          "options": [
+            {
+              "hue": "Carmine",
+              "lightness": "Lighter",
+              "name": "待评审"
+            },
+            {
+              "hue": "Carmine",
+              "lightness": "Lighter",
+              "name": "待开发"
+            },
+            {
+              "hue": "Yellow",
+              "lightness": "Lighter",
+              "name": "进行中"
+            },
+            {
+              "hue": "Carmine",
+              "lightness": "Lighter",
+              "name": "待验收"
+            },
+            {
+              "hue": "Blue",
+              "lightness": "Lighter",
+              "name": "已完成"
+            },
+            {
+              "hue": "Yellow",
+              "lightness": "Lighter",
+              "name": "阻塞"
+            },
+            {
+              "hue": "Carmine",
+              "lightness": "Lighter",
+              "name": "暂缓"
+            }
+          ],
+          "type": "select"
+        },
+        {
+          "default_value": null,
+          "name": "需求来源",
+          "style": {
+            "type": "plain"
+          },
+          "type": "text"
+        },
+        {
+          "default_value": null,
+          "name": "需求说明",
+          "style": {
+            "type": "plain"
+          },
+          "type": "text"
+        },
+        {
+          "default_value": null,
+          "name": "验收标准",
+          "style": {
+            "type": "plain"
+          },
+          "type": "text"
+        },
+        {
+          "default_value": null,
+          "name": "前置依赖编号",
+          "style": {
+            "type": "plain"
+          },
+          "type": "text"
+        },
+        {
+          "default_value": null,
+          "multiple": false,
+          "name": "负责人",
+          "type": "user"
+        },
+        {
+          "default_value": null,
+          "name": "备注",
+          "style": {
+            "type": "plain"
+          },
+          "type": "text"
+        }
+      ],
+      "id": "tblAzOvM7QohTvak",
+      "name": "需求明细",
+      "views": [
+        {
+          "_meta": {
+            "filter": null,
+            "group": [],
+            "sort": [],
+            "visible_fields": "12 fields"
+          },
+          "id": "vewMQqsHua",
+          "name": "表格",
+          "type": "grid"
+        }
+      ]
+    }
+  },
+  "_notice": {
+    "update": {
+      "command": "lark-cli update",
+      "current": "1.0.94",
+      "latest": "1.0.95",
+      "message": "lark-cli 1.0.95 available, current 1.0.94, run: lark-cli update"
+    }
+  }
+}

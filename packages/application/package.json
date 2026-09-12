@@ -1,0 +1,11 @@
+{
+  "name": "@memo/application",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": "./src/index.ts",
+  "dependencies": {
+    "@memo/contracts": "workspace:*",
+    "@memo/domain": "workspace:*"
+  }
+}

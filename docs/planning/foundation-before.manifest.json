@@ -1,0 +1,61 @@
+{
+  "manifest_version": "v1",
+  "format": "ndjson",
+  "base_token": "VHWebJShaa0nhnskizncs3GZnud",
+  "table_id": "tblAzOvM7QohTvak",
+  "rev": 9,
+  "timezone": "Asia/Shanghai",
+  "query_context": {
+    "field_scope": "selected_fields",
+    "record_scope": "all_records"
+  },
+  "requested_limit": 2000,
+  "records_count": 80,
+  "page_count": 1,
+  "has_more": false,
+  "record_file": "/Users/xiangyang/Documents/ChatGPT/多信源智能备忘录/docs/planning/foundation-before.ndjson",
+  "record_file_size_bytes": 7172,
+  "manifest_file": "/Users/xiangyang/Documents/ChatGPT/多信源智能备忘录/docs/planning/foundation-before.manifest.json",
+  "columns": {
+    "record_id": {
+      "physical_type": "string",
+      "stats": {
+        "max_length": 14
+      },
+      "example": "recvuZ6AYhP5jW"
+    },
+    "备注": {
+      "field_id": "fldUIpWbcy",
+      "field_type": "text",
+      "physical_type": "string|null",
+      "stats": {
+        "null_count": 79,
+        "max_length": 18
+      },
+      "example": "建议拆分，未承诺工期；需评审后排期。"
+    },
+    "状态": {
+      "field_id": "fldYsVstmY",
+      "field_type": "select",
+      "physical_type": "array<string>",
+      "stats": {
+        "empty_count": 0,
+        "max_length": 1,
+        "avg_length": 1
+      },
+      "example": [
+        "待评审"
+      ]
+    },
+    "需求编号": {
+      "field_id": "fldUMRcJnv",
+      "field_type": "text",
+      "physical_type": "string|null",
+      "stats": {
+        "null_count": 0,
+        "max_length": 3
+      },
+      "example": "D01"
+    }
+  }
+}

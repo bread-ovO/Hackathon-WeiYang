@@ -1,0 +1,20 @@
+node_modules/
+out/
+dist/
+release/
+coverage/
+test-results/
+playwright-report/
+.DS_Store
+.env
+.env.*
+!.env.example
+*.sqlite
+*.sqlite-*
+*.db
+*.db-*
+draft_*_folder/
+docs/planning/base-auth.png
+
+# Locally built competitor research and isolated test data
+.research/

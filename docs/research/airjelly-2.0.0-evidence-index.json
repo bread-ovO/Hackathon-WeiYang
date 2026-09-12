@@ -1,0 +1,97 @@
+{
+  "scope": "Installed application metadata and static symbol locations only; no user records, credentials or proprietary code included.",
+  "date": "2026-09-12",
+  "app_version": "2.0.0",
+  "bundle_id": "com.airjelly.app",
+  "asar_path": "/Applications/AirJelly.app/Contents/Resources/app.asar",
+  "asar_sha256": "da535a332cda737b39dcef3a26e6b3e8ceaa139ef1feb371a13441a504dbfc76",
+  "analyzed_main_sha256": "37988e93cf1d1374e382fa4c37c199eab85c952e18d4ec67721f82c5b388f302",
+  "asar_main_path": "out/main/index.js",
+  "symbols": [
+    {
+      "symbol": "class ScreenshotProcessor",
+      "line": 39528
+    },
+    {
+      "symbol": "class ScreenMonitorTask",
+      "line": 42218
+    },
+    {
+      "symbol": "class MemoryExtractor",
+      "line": 246388
+    },
+    {
+      "symbol": "class MemoryMerger",
+      "line": 241617
+    },
+    {
+      "symbol": "async function assignEventToTask",
+      "line": 245264
+    },
+    {
+      "symbol": "async function judgeTaskAssignment",
+      "line": 245497
+    },
+    {
+      "symbol": "class ProactiveExtractor",
+      "line": 243950
+    },
+    {
+      "symbol": "class TaskLifecycleTask",
+      "line": 256225
+    },
+    {
+      "symbol": "class SkillManagerService",
+      "line": 247828
+    },
+    {
+      "symbol": "class SkillMarketService",
+      "line": 256617
+    },
+    {
+      "symbol": "class PluginManagerService",
+      "line": 256301
+    },
+    {
+      "symbol": "class AgentHistoryImportService",
+      "line": 267429
+    },
+    {
+      "symbol": "class LLMClient",
+      "line": 35284
+    },
+    {
+      "symbol": "const INACTIVITY_THRESHOLD_MS =",
+      "line": 256224
+    },
+    {
+      "symbol": "async findStaleTasks",
+      "line": 10693
+    },
+    {
+      "symbol": "authLifecycle.onStartup(\"TaskLifecycle\"",
+      "line": 277275
+    },
+    {
+      "symbol": "const taskAssignmentSchema",
+      "line": 241429
+    },
+    {
+      "symbol": "const sourceDefinitions",
+      "line": 267337
+    }
+  ],
+  "minecontext_commit": "171c7a9ea8091e326ddcf0f10718aa1b58c83c65",
+  "ui_observed": [
+    "Settings General: proactive modes and external context switches",
+    "Settings Skills: 5 official skills, user directory and marketplace",
+    "Settings Features: bundled feature toggles",
+    "Recall: source connections and per-agent access"
+  ],
+  "limitations": [
+    "JS Hook MCP not exposed in current callable tools",
+    "No live hooks or network payload interception",
+    "No plugin installation or settings changes",
+    "Static paths do not establish runtime accuracy"
+  ]
+}
