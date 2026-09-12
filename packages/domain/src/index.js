@@ -39,3 +39,4 @@ export function canUpgrade(current,next){return Boolean(current&&next&&current!=
 export function canAnswerWithCitation(citations){return citations.length>0&&citations.every(c=>c.trim().length>0);}
 export function sourceHealthLabel(status){return status==='active'?'healthy':status==='revoked'?'revoked':'attention';}
 export function filterTasks(tasks,status,includeArchived=false){return tasks.filter(t=>(includeArchived||!t.archivedAt)&&(!status||t.status===status));}
+export function sortTimeline(items){return [...items].sort((a,b)=>Date.parse(a.occurredAt)-Date.parse(b.occurredAt));}
