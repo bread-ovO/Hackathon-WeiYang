@@ -140,7 +140,7 @@ describe('controlled model store', () => {
       ),
     ).toBe(false)
   })
-  it('rejects a source symlink introduced after preflight', async () => {
+  it('rejects a source symlink introduced after preflight', async ctx => {
     await fs.writeFile(path.join(temporary, 'outside.moc3'), 'MOC3\x01\0\0\0')
     const original = validation.validateModelDirectory
     vi.spyOn(validation, 'validateModelDirectory').mockImplementation(
@@ -148,10 +148,15 @@ describe('controlled model store', () => {
         const result = await original(...args)
         if (args[0] === source) {
           await fs.rm(path.join(source, 'pet.moc3'))
-          await fs.symlink(
-            path.join(temporary, 'outside.moc3'),
-            path.join(source, 'pet.moc3'),
-          )
+          try {
+            await fs.symlink(
+              path.join(temporary, 'outside.moc3'),
+              path.join(source, 'pet.moc3'),
+            )
+          } catch (error) {
+            if ((error as NodeJS.ErrnoException).code === 'EPERM') return ctx.skip()
+            throw error
+          }
         }
         return result
       },
@@ -237,13 +242,18 @@ describe('controlled model store', () => {
       true,
     )
   })
-  it('rejects root overlap and a symlink used as controlled storage', async () => {
+  it('rejects root overlap and a symlink used as controlled storage', async ctx => {
     await expect(
       new ModelStore(path.join(source, 'store')).importModel(source, entry),
     ).rejects.toMatchObject({ code: 'invalid-store' })
     await fs.mkdir(storeRoot, { mode: 0o700 })
     const link = path.join(temporary, 'linked-store')
-    await fs.symlink(storeRoot, link)
+    try {
+      await fs.symlink(storeRoot, link)
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === 'EPERM') return ctx.skip()
+      throw error
+    }
     await expect(new ModelStore(link).list()).rejects.toMatchObject({
       code: 'invalid-store',
     })

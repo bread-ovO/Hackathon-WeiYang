@@ -1,5 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { mkdtemp, mkdir, rm, symlink, writeFile } from 'node:fs/promises'
+// Windows without Developer Mode denies symlink creation (EPERM); those
+// cases can only run where the OS allows symlinks.
+const symlinkOrSkip = async (ctx: { skip(): void }, target: string, link: string) => {
+  try { await symlink(target, link) } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'EPERM') return ctx.skip()
+    throw error
+  }
+}
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { deflateSync } from 'node:zlib'
@@ -137,32 +145,26 @@ describe('read-only model preflight', () => {
       result.issues.filter((issue) => issue.code === 'unsupported-resource'),
     ).toHaveLength(2)
   })
-  it('rejects symbolic links, including a linked parent directory', async () => {
-    await symlink(root, path.join(root, 'linked'))
+  it('rejects symbolic links, including a linked parent directory', async ctx => {
+    await symlinkOrSkip(ctx, root, path.join(root, 'linked'))
     await saveManifest(manifest({ Textures: ['linked/pet.png'] }))
     expect(
       (await check()).issues.some((issue) => issue.code === 'symlink'),
     ).toBe(true)
-    await symlink(path.join(root, 'pet.png'), path.join(root, 'link.png'))
+    await symlinkOrSkip(ctx, path.join(root, 'pet.png'), path.join(root, 'link.png'))
     await saveManifest(manifest({ Textures: ['link.png'] }))
     expect(
       (await check()).issues.some((issue) => issue.code === 'symlink'),
     ).toBe(true)
   })
-  it('rejects a symlink escaping the selected root', async () => {
+  it('rejects a symlink escaping the selected root', async ctx => {
     await mkdir(path.join(root, 'selected'))
     await writeFile(
       path.join(root, 'selected/pet.model3.json'),
       JSON.stringify(manifest()),
     )
-    await symlink(
-      path.join(root, 'pet.png'),
-      path.join(root, 'selected/pet.png'),
-    )
-    await symlink(
-      path.join(root, 'pet.moc3'),
-      path.join(root, 'selected/pet.moc3'),
-    )
+    await symlinkOrSkip(ctx, path.join(root, 'pet.png'), path.join(root, 'selected/pet.png'))
+    await symlinkOrSkip(ctx, path.join(root, 'pet.moc3'), path.join(root, 'selected/pet.moc3'))
     const result = await validateModelDirectory(
       path.join(root, 'selected'),
       'pet.model3.json',
