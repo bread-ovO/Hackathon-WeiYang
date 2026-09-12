@@ -1,0 +1,5 @@
+[
+  {"input":"明天下午交付","expectedDate":"relative","expectedTime":"afternoon"},
+  {"input":"2026-09-13 完成导入","expectedDate":"2026-09-13","expectedTime":null},
+  {"input":"下周一前确认","expectedDate":"relative","expectedTime":"before"}
+]
