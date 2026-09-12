@@ -15,7 +15,6 @@ import { mkdirSync } from 'node:fs'
 import { pathToFileURL } from 'node:url'
 import { CoreClient } from './core-client'
 import { saveExportFile } from './export-file'
-import type { CoreRequest, CoreReply } from '@memo/contracts'
 import type { ExportBundle } from '@memo/storage'
 import { isTrustedPage } from './security'
 import { createRequestHandler } from './request-handler'
@@ -121,24 +120,19 @@ else {
         },
         worker: petWorker,
       })
-      const petHandler = async (
-        request: CoreRequest,
-      ): Promise<CoreReply<unknown>> => {
-        if (request.method === 'pet.state') return petFlow.state()
-        if (request.method === 'pet.openImportDialog')
-          return petFlow.openImportDialog()
-        if (request.method === 'pet.importChosen')
-          return petFlow.importChosen(request.entry)
-        if (request.method === 'pet.select')
-          return petFlow.select(request.modelId)
-        return { ok: false, error: 'INVALID_REQUEST' }
-      }
       ipcMain.handle(
         'memo:request',
         createRequestHandler(
           () => window?.webContents ?? null,
           pageURL,
           async (request) => {
+            if (request.method === 'pet.state') return petFlow.state()
+            if (request.method === 'pet.openImportDialog')
+              return petFlow.openImportDialog()
+            if (request.method === 'pet.importChosen')
+              return petFlow.importChosen(request.entry)
+            if (request.method === 'pet.select')
+              return petFlow.select(request.modelId)
             if (!core) return { ok: false, error: 'CORE_UNAVAILABLE' }
             if (request.method === 'exports.save') {
               if (!window || savingExport)
@@ -215,7 +209,6 @@ else {
             }
             return core.request(request)
           },
-          petHandler,
         ),
       )
       tray = createTrayController(

@@ -9,14 +9,11 @@ import {
   type TrustedRenderer,
 } from './security'
 
-/** Keep all renderer requests on the same deny-by-default boundary.
- * Methods handled in the main process (pet.*) bypass the core dispatch but
- * pass the identical schema and sender gates. */
+/** Keep all renderer requests on the same deny-by-default boundary. */
 export function createRequestHandler(
   getRenderer: () => TrustedRenderer | null,
   pageURL: string,
   dispatch: (request: CoreRequest) => Promise<CoreReply<unknown>>,
-  local?: (request: CoreRequest) => Promise<CoreReply<unknown>>,
 ) {
   return async (
     event: RequestSender,
@@ -32,8 +29,6 @@ export function createRequestHandler(
       return { ok: false, error: 'INVALID_REQUEST' }
     }
     try {
-      if (local && request.method.startsWith('pet.'))
-        return await local(request)
       return await dispatch(request)
     } catch {
       // Never return exception messages, which may contain paths or credentials.
