@@ -40,3 +40,4 @@ export function canAnswerWithCitation(citations){return citations.length>0&&cita
 export function sourceHealthLabel(status){return status==='active'?'healthy':status==='revoked'?'revoked':'attention';}
 export function filterTasks(tasks,status,includeArchived=false){return tasks.filter(t=>(includeArchived||!t.archivedAt)&&(!status||t.status===status));}
 export function sortTimeline(items){return [...items].sort((a,b)=>Date.parse(a.occurredAt)-Date.parse(b.occurredAt));}
+export function hasPluginPermission(granted,requested){return granted.includes(requested);}
