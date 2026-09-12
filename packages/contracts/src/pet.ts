@@ -7,6 +7,30 @@ import type { FromSchema } from 'json-schema-to-ts'
 export const petRequestSchemas = [
   {
     type: 'object',
+    properties: {
+      method: { const: 'pet.configure' },
+      patch: {
+        type: 'object',
+        properties: {
+          scale: { type: 'number', minimum: 0.5, maximum: 2 },
+          alwaysOnTop: { type: 'boolean' },
+          clickThrough: { type: 'boolean' },
+        },
+        minProperties: 1,
+        additionalProperties: false,
+      },
+    },
+    required: ['method', 'patch'],
+    additionalProperties: false,
+  },
+  {
+    type: 'object',
+    properties: { method: { const: 'pet.resetPosition' } },
+    required: ['method'],
+    additionalProperties: false,
+  },
+  {
+    type: 'object',
     properties: { method: { const: 'pet.show' } },
     required: ['method'],
     additionalProperties: false,
@@ -94,7 +118,13 @@ export interface PetModel {
   importedAt: string
   totalBytes: number
 }
+export interface PetPreferences {
+  scale: number
+  alwaysOnTop: boolean
+  clickThrough: boolean
+}
 export interface PetState {
+  preferences?: PetPreferences
   currentModelId: string | null
   /** Whether the pet window is wanted on screen right now. */
   display: boolean

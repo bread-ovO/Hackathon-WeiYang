@@ -213,6 +213,8 @@ export function parseHostRequest(value: unknown): HostRequest {
   if (validateImportFile(value)) return value
   const request = parseCoreRequest(value)
   if (
+    request.method === 'pet.configure' ||
+    request.method === 'pet.resetPosition' ||
     request.method === 'pet.show' ||
     request.method === 'pet.hide' ||
     request.method === 'pet.installRuntime' ||
@@ -278,6 +280,12 @@ export type CoreReply<T = Health> =
     }
 export interface DesktopBridge {
   pet: {
+    configure(patch: {
+      scale?: number
+      alwaysOnTop?: boolean
+      clickThrough?: boolean
+    }): Promise<CoreReply<PetState>>
+    resetPosition(): Promise<CoreReply<PetState>>
     show(): Promise<CoreReply<PetState>>
     hide(): Promise<CoreReply<PetState>>
     installRuntime(): Promise<CoreReply<PetState>>

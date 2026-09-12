@@ -1,3 +1,6 @@
+import { mkdtempSync, readFileSync, rmSync, readdirSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import {
   clampIntoArea,
@@ -348,4 +351,148 @@ describe('pet lifecycle races and placement validation', () => {
     controller.rendererGone()
     expect(controller.displaying()).toBe(false)
   })
+})
+
+describe('pet pointer interaction and preferences', () => {
+  it('drags using host cursor, clamps and saves settings across recreation', async () => {
+    const harness = makePlatform()
+    let point = { x: 200, y: 200 }
+    harness.platform.cursorPosition = () => point
+    const saved: unknown[] = []
+    const controller = createPetWindowController({
+      platform: harness.platform,
+      hasCurrentModel: async () => true,
+      loadState: () => ({ x: 100, y: 100, scale: 1 }),
+      saveState: (s) => saved.push(s),
+    })
+    await controller.show()
+    const win = harness.windows[0]!
+    expect(controller.preferences()).toEqual({
+      scale: 1,
+      alwaysOnTop: false,
+      clickThrough: true,
+    })
+    expect(win.ignored.at(-1)?.ignore).toBe(true)
+    controller.drag('start')
+    point = { x: 300, y: 300 }
+    controller.drag('move')
+    expect(win.savedBounds.x).toBe(100)
+    controller.hitTest(true)
+    controller.drag('start')
+    point = { x: 340, y: 320 }
+    controller.drag('move')
+    expect(win.savedBounds).toMatchObject({ x: 140, y: 120 })
+    controller.hitTest(false)
+    expect(win.ignored.at(-1)?.ignore).toBe(false)
+    controller.drag('end')
+    expect(win.ignored.at(-1)?.ignore).toBe(true)
+    controller.setAlwaysOnTop(true)
+    controller.setMousePassthrough(false)
+    controller.setScale(1.5)
+    expect(saved.at(-1)).toMatchObject({
+      alwaysOnTop: true,
+      clickThrough: false,
+      scale: 1.5,
+    })
+    controller.rendererGone()
+    await controller.show()
+    expect(harness.windows[1]!.ignored.at(-1)?.ignore).toBe(false)
+    controller.resetPosition()
+    expect(harness.windows[1]!.savedBounds.x).toBeGreaterThanOrEqual(0)
+    controller.dispose()
+  })
+})
+
+it('atomically persists real preferences and restores them in a new controller', async () => {
+  const root = mkdtempSync(join(tmpdir(), 'bugu-pet-position-'))
+  try {
+    const stateFile = join(root, 'position.json'),
+      harness = makePlatform()
+    const first = createPetWindowController({
+      platform: harness.platform,
+      hasCurrentModel: async () => true,
+      stateFile,
+    })
+    await first.show()
+    first.setScale(1.5)
+    first.setAlwaysOnTop(true)
+    first.setMousePassthrough(false)
+    first.dispose()
+    const saved = JSON.parse(readFileSync(stateFile, 'utf8'))
+    expect(saved).toMatchObject({
+      scale: 1.5,
+      alwaysOnTop: true,
+      clickThrough: false,
+    })
+    expect(readdirSync(root)).toEqual(['position.json'])
+    const second = createPetWindowController({
+      platform: makePlatform().platform,
+      hasCurrentModel: async () => true,
+      stateFile,
+    })
+    expect(second.preferences()).toEqual({
+      scale: 1.5,
+      alwaysOnTop: true,
+      clickThrough: false,
+    })
+    second.dispose()
+  } finally {
+    rmSync(root, { recursive: true, force: true })
+  }
+})
+
+it('ignores reentrant native moved events with intermediate resize geometry', async () => {
+  const harness = makePlatform()
+  let controller: ReturnType<typeof createPetWindowController>
+  const create = harness.platform.createWindow
+  harness.platform.createWindow = () => {
+    const win = create() as RecordingWindow,
+      set = win.setBounds.bind(win)
+    win.setBounds = (bounds) => {
+      win.savedBounds = { ...bounds, x: 234 }
+      controller.rememberPosition()
+      set(bounds)
+    }
+    return win
+  }
+  const saved: unknown[] = []
+  controller = createPetWindowController({
+    platform: harness.platform,
+    hasCurrentModel: async () => true,
+    loadState: () => ({ x: 32, y: 78, scale: 1.5 }),
+    saveState: (s) => saved.push(s),
+  })
+  await controller.show()
+  expect(harness.windows[0]!.savedBounds).toMatchObject({ x: 32, y: 78 })
+  controller.setScale(2)
+  expect(harness.windows[0]!.savedBounds).toMatchObject({ x: 32, y: 78 })
+  expect(saved.at(-1)).toMatchObject({ x: 32, y: 78 })
+  controller.dispose()
+})
+
+it('restores saved bounds when native showInactive repositions the window', async () => {
+  const harness = makePlatform(),
+    create = harness.platform.createWindow
+  harness.platform.createWindow = () => {
+    const win = create() as RecordingWindow,
+      show = win.showInactive.bind(win)
+    win.showInactive = () => {
+      show()
+      win.savedBounds = { ...win.savedBounds, x: 234 }
+    }
+    return win
+  }
+  const controller = createPetWindowController({
+    platform: harness.platform,
+    hasCurrentModel: async () => true,
+    loadState: () => ({ x: 32, y: 78, scale: 1.25 }),
+  })
+  await controller.show()
+  expect(harness.windows[0]!.savedBounds).toEqual({
+    x: 32,
+    y: 78,
+    width: 400,
+    height: 525,
+  })
+  controller.dispose()
 })

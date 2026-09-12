@@ -6,7 +6,13 @@ import {
   type RuntimeModel,
 } from './pet-live2d'
 interface PetInput {
-  state(): Promise<{ model: RuntimeModel | null; visible: boolean }>
+  state(): Promise<{
+    model: RuntimeModel | null
+    visible: boolean
+    preferences: { scale: number; alwaysOnTop: boolean; clickThrough: boolean }
+  }>
+  hitTest(input: { interactive: boolean }): Promise<void>
+  drag(input: { phase: 'start' | 'move' | 'end' }): Promise<void>
   report(input: {
     modelId: string
     status: 'ready' | 'error'
@@ -54,9 +60,112 @@ let bootChain: Promise<void> = Promise.resolve(),
   generation = 0,
   lastFrame = 0,
   animation = 0
+let clickThrough = true,
+  dragging = false,
+  activePointer: number | null = null
+let pointer: { x: number; y: number } | null = null,
+  lastInteractive: boolean | undefined
+let lastDragMove = -Infinity
+function sendHit(interactive: boolean) {
+  if (!input || lastInteractive === interactive) return
+  lastInteractive = interactive
+  void input.hitTest({ interactive }).catch(() => {
+    lastInteractive = undefined
+  })
+}
+function modelHit() {
+  if (!pointer || !session || canvas.hidden) return false
+  const rect = canvas.getBoundingClientRect()
+  return session.hitTest(
+    pointer.x - rect.left,
+    pointer.y - rect.top,
+    rect.width,
+    rect.height,
+  )
+}
+function refreshHit() {
+  const rect = message.getBoundingClientRect()
+  const statusHit =
+    !!pointer &&
+    !message.hidden &&
+    pointer.x >= rect.left &&
+    pointer.x < rect.right &&
+    pointer.y >= rect.top &&
+    pointer.y < rect.bottom
+  const interactive =
+    dragging ||
+    (!document.hidden && visible && (!clickThrough || statusHit || modelHit()))
+  canvas.style.cursor = dragging ? 'grabbing' : modelHit() ? 'grab' : 'default'
+  sendHit(interactive)
+}
+function endDrag() {
+  if (!dragging) return
+  dragging = false
+  if (activePointer !== null) {
+    try {
+      canvas.releasePointerCapture(activePointer)
+    } catch {
+      /* pointer already released */
+    }
+  }
+  activePointer = null
+  if (input) void input.drag({ phase: 'end' }).catch(() => {})
+  refreshHit()
+}
+function trackPointer(event: MouseEvent) {
+  pointer = { x: event.clientX, y: event.clientY }
+  if (dragging && input) {
+    if (event.buttons === 0) {
+      endDrag()
+      return
+    }
+    const now = performance.now()
+    if (now - lastDragMove >= 1000 / 30) {
+      lastDragMove = now
+      void input.drag({ phase: 'move' }).catch(endDrag)
+    }
+  }
+  refreshHit()
+}
+// Electron forwards mousemove while ignoring mouse events; pointermove alone
+// cannot reliably restore interaction when the cursor enters opaque pixels.
+// pointerdown.preventDefault suppresses compatibility mousemove during drag.
+// Keep both: pointermove drives captured drags, mousemove restores forwarded hits.
+window.addEventListener('pointermove', trackPointer)
+window.addEventListener('mousemove', trackPointer)
+canvas.addEventListener('pointerdown', (event) => {
+  pointer = { x: event.clientX, y: event.clientY }
+  if (event.button !== 0 || !visible || !modelHit() || !input || dragging)
+    return
+  event.preventDefault()
+  dragging = true
+  activePointer = event.pointerId
+  try {
+    canvas.setPointerCapture(event.pointerId)
+  } catch {
+    /* main also ends on lost button */
+  }
+  refreshHit()
+  void input.drag({ phase: 'start' }).catch(endDrag)
+})
+window.addEventListener('pointerup', endDrag)
+window.addEventListener('pointercancel', endDrag)
+canvas.addEventListener('lostpointercapture', endDrag)
+window.addEventListener('blur', () => {
+  pointer = null
+  endDrag()
+  refreshHit()
+})
+window.addEventListener('mouseout', (event) => {
+  if (event.relatedTarget === null && !dragging) {
+    pointer = null
+    refreshHit()
+  }
+})
 const show = (text: string) => {
   message.textContent = text
   message.hidden = !text
+  refreshHit()
 }
 const report = (
   modelId: string,
@@ -71,6 +180,8 @@ const report = (
     })
 }
 function clear() {
+  endDrag()
+  pointer = null
   controller?.abort()
   controller = undefined
   session?.dispose()
@@ -140,7 +251,12 @@ async function poll() {
           typeof result.model.entry !== 'string'))
     )
       throw new Error('bad state')
+    if (typeof result.preferences?.clickThrough !== 'boolean')
+      throw new Error('bad preferences')
+    clickThrough = result.preferences.clickThrough
     visible = result.visible
+    if (!visible) endDrag()
+    refreshHit()
     if (!visible) session?.pause()
     select(result.model)
   } catch {
@@ -173,6 +289,7 @@ function render(now: number) {
       if (diagnostics.modelId) report(diagnostics.modelId, 'error', code)
     }
   } else if (!visible || document.hidden) session?.pause()
+  refreshHit()
   animation = requestAnimationFrame(render)
 }
 const resize = () => {
@@ -192,6 +309,11 @@ const resize = () => {
 window.addEventListener('resize', resize)
 document.addEventListener('visibilitychange', () => {
   session?.pause()
+  if (document.hidden) {
+    pointer = null
+    endDrag()
+    refreshHit()
+  }
   if (!document.hidden) void poll()
 })
 const timer = setInterval(() => void poll(), 1000)

@@ -311,6 +311,72 @@ export function PetModels() {
           </AppButton>
         </div>
       </div>
+      <div className="pet-models-preferences" aria-label="桌宠窗口偏好">
+        <label htmlFor="pet-scale">角色大小</label>
+        <select
+          id="pet-scale"
+          disabled={busy}
+          value={data.preferences?.scale ?? 1}
+          onChange={(event) =>
+            void perform(
+              () => api().configure({ scale: Number(event.target.value) }),
+              (value) => setData(value),
+            )
+          }
+        >
+          {[0.5, 0.75, 1, 1.25, 1.5, 2].map((scale) => (
+            <option key={scale} value={scale}>
+              {Math.round(scale * 100)}%
+            </option>
+          ))}
+        </select>
+        <AppButton
+          disabled={busy}
+          aria-pressed={data.preferences?.alwaysOnTop ?? false}
+          onClick={() =>
+            void perform(
+              () =>
+                api().configure({
+                  alwaysOnTop: !data.preferences?.alwaysOnTop,
+                }),
+              (value) => setData(value),
+            )
+          }
+        >
+          {data.preferences?.alwaysOnTop ? '取消置顶' : '置顶显示'}
+        </AppButton>
+        <AppButton
+          disabled={busy}
+          aria-pressed={data.preferences?.clickThrough ?? true}
+          onClick={() =>
+            void perform(
+              () =>
+                api().configure({
+                  clickThrough: !(data.preferences?.clickThrough ?? true),
+                }),
+              (value) => setData(value),
+            )
+          }
+        >
+          {(data.preferences?.clickThrough ?? true)
+            ? '关闭透明区穿透'
+            : '开启透明区穿透'}
+        </AppButton>
+        <AppButton
+          disabled={busy}
+          onClick={() =>
+            void perform(
+              () => api().resetPosition(),
+              (value) => setData(value),
+            )
+          }
+        >
+          找回桌宠
+        </AppButton>
+        <p>
+          拖动角色调整位置。透明区域可点击下方应用；始终可以从这里隐藏桌宠。
+        </p>
+      </div>
       {(data.display || data.renderStatus === 'error') && (
         <p className="pet-models-message" role="status">
           {data.renderStatus === 'ready'
