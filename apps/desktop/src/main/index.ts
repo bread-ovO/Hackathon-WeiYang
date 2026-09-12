@@ -1,3 +1,4 @@
+import { createPetDesktopController } from './pet/desktop-controller'
 import { PetWorkerClient } from './pet/worker-client'
 import { createPetImportFlow } from './pet/import-flow'
 import {
@@ -32,6 +33,15 @@ import {
   type TrayController,
 } from './tray'
 protocol.registerSchemesAsPrivileged([
+  {
+    scheme: 'memo-pet',
+    privileges: {
+      standard: true,
+      secure: true,
+      supportFetchAPI: true,
+      corsEnabled: true,
+    },
+  },
   {
     scheme: 'memo',
     privileges: { standard: true, secure: true, supportFetchAPI: true },
@@ -119,7 +129,27 @@ else {
           return choice.canceled ? null : (choice.filePaths[0] ?? null)
         },
       })
-      app.once('before-quit', () => petWorker.stop())
+      const petDesktop = createPetDesktopController({
+        worker: petWorker,
+        flow: pets,
+        ...(devURL ? { devURL } : {}),
+        modelRoot: join(data, 'pet-models'),
+        runtimeRoot: join(data, 'pet-runtime'),
+        rendererRoot,
+        preloadPath: join(__dirname, '../preload/pet.js'),
+        pickRuntimeDirectory: async () => {
+          if (!window) return null
+          const choice = await dialog.showOpenDialog(window, {
+            title: '选择 Live2D 运行库目录',
+            properties: ['openDirectory'],
+          })
+          return choice.canceled ? null : (choice.filePaths[0] ?? null)
+        },
+      })
+      app.once('before-quit', () => {
+        petDesktop.dispose()
+        petWorker.stop()
+      })
       const vault = createSystemCredentialVault(join(data, 'credentials'))
       const plugins = createPluginRuntime({
         request: (request) =>
@@ -169,7 +199,11 @@ else {
           () => window?.webContents ?? null,
           pageURL,
           async (request) => {
-            if (request.method === 'pet.state') return pets.state()
+            if (request.method === 'pet.state') return petDesktop.state()
+            if (request.method === 'pet.show') return petDesktop.show()
+            if (request.method === 'pet.hide') return petDesktop.hide()
+            if (request.method === 'pet.installRuntime')
+              return petDesktop.installRuntime()
             if (request.method === 'pet.openImportDialog')
               return pets.openImportDialog()
             if (request.method === 'pet.cancelImport')
@@ -177,9 +211,9 @@ else {
             if (request.method === 'pet.importChosen')
               return pets.importChosen(request.sessionId, request.entry)
             if (request.method === 'pet.select')
-              return pets.select(request.modelId)
+              return petDesktop.select(request.modelId)
             if (request.method === 'pet.remove')
-              return pets.remove(request.modelId)
+              return petDesktop.remove(request.modelId)
             if (
               request.method === 'plugins.list' ||
               request.method === 'plugins.inspect' ||

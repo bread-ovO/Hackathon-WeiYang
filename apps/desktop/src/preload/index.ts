@@ -2,6 +2,10 @@ import { contextBridge, ipcRenderer } from 'electron'
 import type { DesktopBridge } from '@memo/contracts'
 const bridge: DesktopBridge = {
   pet: Object.freeze({
+    show: () => ipcRenderer.invoke('memo:request', { method: 'pet.show' }),
+    hide: () => ipcRenderer.invoke('memo:request', { method: 'pet.hide' }),
+    installRuntime: () =>
+      ipcRenderer.invoke('memo:request', { method: 'pet.installRuntime' }),
     state: () => ipcRenderer.invoke('memo:request', { method: 'pet.state' }),
     openImportDialog: () =>
       ipcRenderer.invoke('memo:request', { method: 'pet.openImportDialog' }),

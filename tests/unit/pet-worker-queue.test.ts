@@ -14,7 +14,9 @@ vi.mock('../../apps/desktop/src/main/pet/model-store', () => ({
     select = operations.select
   },
   ModelStoreError: class extends Error {
-    code = 'invalid-store'
+    constructor(readonly code: string) {
+      super(code)
+    }
   },
 }))
 vi.mock('../../apps/desktop/src/main/pet/import-session', () => ({
@@ -86,6 +88,51 @@ it('serializes discovery/import/removal and bounds worker-side queue independent
       id: 'bad',
       reply: { ok: false, error: 'INVALID_REQUEST' },
     })
+
+    const model = {
+      id: 'a'.repeat(64),
+      entry: 'm.model3.json',
+      importedAt: '2026-09-13T00:00:00.000Z',
+      totalBytes: 2,
+      resources: [
+        {
+          path: 'm.model3.json',
+          kind: 'manifest',
+          bytes: 2,
+          sha256: 'c'.repeat(64),
+        },
+      ],
+    }
+    operations.list.mockResolvedValue({
+      currentModelId: model.id,
+      models: [model, { ...model, id: 'b'.repeat(64) }],
+    })
+    receive({
+      data: {
+        id: 'render-current',
+        method: 'renderModel',
+        params: { modelId: model.id },
+      },
+    })
+    receive({
+      data: {
+        id: 'render-other',
+        method: 'renderModel',
+        params: { modelId: 'b'.repeat(64) },
+      },
+    })
+    await vi.waitFor(() =>
+      expect(postMessage).toHaveBeenCalledWith({
+        id: 'render-current',
+        reply: { ok: true, data: { model } },
+      }),
+    )
+    await vi.waitFor(() =>
+      expect(postMessage).toHaveBeenCalledWith({
+        id: 'render-other',
+        reply: { ok: false, error: 'unknown-model' },
+      }),
+    )
   } finally {
     if (oldArg === undefined) delete process.argv[2]
     else process.argv[2] = oldArg

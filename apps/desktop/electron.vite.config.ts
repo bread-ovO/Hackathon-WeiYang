@@ -33,10 +33,24 @@ export default defineConfig({
   },
   preload: {
     build: {
-      rollupOptions: { output: { format: 'cjs', entryFileNames: 'index.js' } },
+      rollupOptions: {
+        input: {
+          index: resolve(__dirname, 'src/preload/index.ts'),
+          pet: resolve(__dirname, 'src/preload/pet.ts'),
+        },
+        output: { format: 'cjs', entryFileNames: '[name].js' },
+      },
     },
   },
   renderer: {
+    build: {
+      rollupOptions: {
+        input: {
+          index: resolve(__dirname, 'src/renderer/index.html'),
+          pet: resolve(__dirname, 'src/renderer/pet.html'),
+        },
+      },
+    },
     resolve: { alias },
     server: { host: '127.0.0.1', port: 5173, strictPort: true },
     plugins: [
@@ -48,10 +62,19 @@ export default defineConfig({
           handler(html, context) {
             // React Refresh injects an inline preamble in development only.
             return context.server
-              ? html.replace(
-                  "script-src 'self';",
-                  "script-src 'self' 'unsafe-inline';",
-                )
+              ? html
+                  .replace(
+                    "script-src 'self';",
+                    "script-src 'self' 'unsafe-inline';",
+                  )
+                  .replace(
+                    "script-src 'self' memo-pet://app;",
+                    "script-src 'self' memo-pet://app 'unsafe-inline';",
+                  )
+                  .replace(
+                    "connect-src 'self' memo-pet://app;",
+                    "connect-src 'self' memo-pet://app ws://127.0.0.1:5173 ws://localhost:5173;",
+                  )
               : html.replace(
                   "connect-src 'self' ws://localhost:* ws://127.0.0.1:*;",
                   "connect-src 'self';",

@@ -135,9 +135,76 @@ describe('pet worker process boundary', () => {
   })
 })
 describe('pet wire schema', () => {
+  it('validates render descriptors without exposing them through management replies', () => {
+    const resource = {
+      path: 'm.model3.json',
+      kind: 'manifest',
+      bytes: 2,
+      sha256: 'a'.repeat(64),
+    }
+    const model = {
+      id: 'b'.repeat(64),
+      entry: 'm.model3.json',
+      importedAt: '2026-09-13T00:00:00.000Z',
+      totalBytes: 2,
+      resources: [resource],
+    }
+    expect(
+      validRequest({
+        id: 'r',
+        method: 'renderModel',
+        params: { modelId: model.id },
+      }),
+    ).toBe(true)
+    expect(
+      validRequest({
+        id: 'r',
+        method: 'renderModel',
+        params: { modelId: null },
+      }),
+    ).toBe(false)
+    expect(
+      validRequest({
+        id: 'r',
+        method: 'renderModel',
+        params: { modelId: model.id, path: '/private' },
+      }),
+    ).toBe(false)
+    expect(validReply({ ok: true, data: { model } }, 'renderModel')).toBe(true)
+    for (const changed of [
+      { ...model, resources: [resource, resource] },
+      { ...model, totalBytes: 3 },
+      { ...model, resources: [{ ...resource, path: 'other.json' }] },
+      { ...model, resources: [{ ...resource, path: '../private' }] },
+      { ...model, resources: [{ ...resource, path: '/private' }] },
+      { ...model, resources: [{ ...resource, sha256: 'bad' }] },
+      {
+        ...model,
+        resources: [{ ...resource, bytes: Number.MAX_SAFE_INTEGER }],
+      },
+      { ...model, resources: [{ ...resource, secret: 'value' }] },
+    ])
+      expect(
+        validReply({ ok: true, data: { model: changed } }, 'renderModel'),
+      ).toBe(false)
+    expect(
+      validReply(
+        { ok: true, data: { currentModelId: model.id, models: [model] } },
+        'list',
+      ),
+    ).toBe(false)
+  })
+
   it('preserves the fixed outcome-unknown error without claiming rollback', () => {
-    expect(validReply({ ok: false, error: 'outcome-unknown' }, 'import')).toBe(true)
-    expect(validReply({ ok: false, error: 'outcome-unknown', path: '/private' }, 'import')).toBe(false)
+    expect(validReply({ ok: false, error: 'outcome-unknown' }, 'import')).toBe(
+      true,
+    )
+    expect(
+      validReply(
+        { ok: false, error: 'outcome-unknown', path: '/private' },
+        'import',
+      ),
+    ).toBe(false)
   })
   it('rejects extra privilege fields and unknown methods', () => {
     expect(validRequest({ id: 'id', method: 'list', path: '/private' })).toBe(

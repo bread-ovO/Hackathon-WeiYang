@@ -110,6 +110,9 @@ test('real IPC rejects foreign windows and malformed requests; source text stays
       ['list', 'inspect', 'trial', 'activate', 'disable', 'uninstall', 'sync'],
     )
     expect(await page.evaluate(() => Object.keys(window.memo.pet))).toEqual([
+      'show',
+      'hide',
+      'installRuntime',
       'state',
       'openImportDialog',
       'cancelImport',
@@ -147,8 +150,8 @@ test('real IPC rejects foreign windows and malformed requests; source text stays
       [],
       [null],
       [{ method: 'readFile', path: '/private' }],
-      [{ method: 'pet.show' }],
-      [{ method: 'pet.hide' }],
+      [{ method: 'pet.show', path: '/private' }],
+      [{ method: 'pet.execute' }],
       [{ method: 'pet.openImportDialog', directory: '/private' }],
       [{ method: 'pet.importChosen', entry: 'x.model3.json' }],
       [

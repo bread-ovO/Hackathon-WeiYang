@@ -4,23 +4,36 @@ import { readFileSync, writeFileSync, existsSync } from 'node:fs'
 export interface PetWindowLike {
   isVisible(): boolean
   isDestroyed(): boolean
-  show(): void
+  showInactive(): void
   hide(): void
   destroy(): void
   focus(): void
   setIgnoreMouseEvents(ignore: boolean, options?: { forward: boolean }): void
   setAlwaysOnTop(flag: boolean): void
   getBounds(): { x: number; y: number; width: number; height: number }
-  setBounds(bounds: { x: number; y: number; width: number; height: number }): void
-  on(event: 'close', listener: (event: { preventDefault(): void }) => void): void
+  setBounds(bounds: {
+    x: number
+    y: number
+    width: number
+    height: number
+  }): void
+  on(
+    event: 'close',
+    listener: (event: { preventDefault(): void }) => void,
+  ): void
   on(event: 'render-process-gone', listener: () => void): void
   on(event: 'closed', listener: () => void): void
 }
 export interface PetWindowPlatform {
   createWindow(): PetWindowLike
   /** Visible display bounds used to keep the pet reachable. */
-  usableArea(): { x: number; y: number; width: number; height: number }
-  onDisplayChanged(listener: () => void): void
+  usableArea(bounds?: {
+    x: number
+    y: number
+    width: number
+    height: number
+  }): { x: number; y: number; width: number; height: number }
+  onDisplayChanged(listener: () => void): () => void
 }
 export interface PetWindowPersistState {
   x: number
@@ -62,106 +75,194 @@ export function clampIntoArea(
   }
 }
 
-/** PET05/07/08 window lifecycle: show/hide, persisted placement, bounded
- * scaling, display-loss recovery, click-through toggling and crash isolation.
+/** Window lifecycle primitives; full dragging and hit-testing UI are separate.
+ * Placement, display-loss recovery and crash isolation are host controlled.
  * All Electron surface is injected, so the state machine is unit-testable. */
 export function createPetWindowController(deps: PetWindowDeps) {
-  const loadState = deps.loadState ?? (() => {
-    try {
-      if (deps.stateFile && existsSync(deps.stateFile))
-        return JSON.parse(readFileSync(deps.stateFile, 'utf8')) as PetWindowPersistState
-    } catch { /* corrupt state falls back to defaults */ }
-    return null
-  })
+  const loadState =
+    deps.loadState ??
+    (() => {
+      try {
+        if (deps.stateFile && existsSync(deps.stateFile))
+          return JSON.parse(
+            readFileSync(deps.stateFile, 'utf8'),
+          ) as PetWindowPersistState
+      } catch {
+        /* corrupt state falls back to defaults */
+      }
+      return null
+    })
   const saveState =
     deps.saveState ??
     ((state: PetWindowPersistState) => {
       try {
         if (deps.stateFile) writeFileSync(deps.stateFile, JSON.stringify(state))
-      } catch { /* persistence is best-effort; placement is not critical data */ }
+      } catch {
+        /* persistence is best-effort; placement is not critical data */
+      }
     })
-  let state: PetWindowPersistState = loadState() ?? defaultState()
-  state.scale = clampScale(state.scale)
+  let state = defaultState()
+  try {
+    const loaded = loadState()
+    if (
+      loaded &&
+      [loaded.x, loaded.y, loaded.scale].every(Number.isFinite) &&
+      loaded.scale > 0
+    )
+      state = { x: loaded.x, y: loaded.y, scale: clampScale(loaded.scale) }
+  } catch {
+    /* Invalid saved placement falls back to defaults. */
+  }
   let window: PetWindowLike | null = null
   let display = false
+  let disposed = false
+  let generation = 0
   let ignoreMouse = false
-
+  let alwaysOnTop = false
+  const persist = () => {
+    try {
+      saveState({ ...state })
+    } catch {
+      /* Best effort. */
+    }
+  }
   const applyBounds = () => {
-    if (!window) return
-    const width = Math.round(petSize.width * state.scale)
-    const height = Math.round(petSize.height * state.scale)
-    const { x, y } = clampIntoArea({ ...state, width, height }, deps.platform.usableArea())
+    if (!window || window.isDestroyed()) return
+    const desired = {
+      x: state.x,
+      y: state.y,
+      width: Math.round(petSize.width * state.scale),
+      height: Math.round(petSize.height * state.scale),
+    }
+    const area = deps.platform.usableArea(desired)
+    if (
+      ![area.x, area.y, area.width, area.height].every(Number.isFinite) ||
+      area.width < 1 ||
+      area.height < 1
+    )
+      throw new Error('PET_INVALID_DISPLAY')
+    const bounds = {
+      ...desired,
+      width: Math.min(desired.width, Math.floor(area.width)),
+      height: Math.min(desired.height, Math.floor(area.height)),
+    }
+    const { x, y } = clampIntoArea(bounds, area)
     state = { ...state, x, y }
-    window.setBounds({ x, y, width, height })
+    window.setBounds({ ...bounds, x, y })
+    persist()
+  }
+  function rendererGone() {
+    generation++
+    display = false
+    const old = window
+    window = null
+    if (old && !old.isDestroyed()) old.destroy()
   }
   const createIfAbsent = () => {
-    if (window) return
+    if (window && !window.isDestroyed()) return window
     const created = deps.platform.createWindow()
-    created.on('close', event => {
-      // The pet never closes on its own; hide instead (main window owns exit).
+    window = created
+    created.on('close', (event) => {
+      if (disposed || window !== created) return
       event.preventDefault()
       hide()
     })
     created.on('render-process-gone', () => {
-      // Crash containment: drop the window, keep the app and display intent off.
-      if (!created.isDestroyed()) created.destroy()
-      if (window === created) window = null
-      display = false
+      if (window === created) rendererGone()
     })
     created.on('closed', () => {
-      if (window === created) window = null
+      if (window === created) {
+        window = null
+        display = false
+        generation++
+      }
     })
-    window = created
-    applyBounds()
-    created.setAlwaysOnTop(true)
+    created.setAlwaysOnTop(alwaysOnTop)
+    return created
   }
-  deps.platform.onDisplayChanged(() => {
-    // A removed monitor must not strand the pet; pull it back on next layout.
-    if (window && !window.isDestroyed()) applyBounds()
-  })
-
-  async function show(): Promise<{ ok: true } | { ok: false; reason: 'no-model' }> {
-    if (!(await deps.hasCurrentModel())) {
-      display = false
-      return { ok: false, reason: 'no-model' }
+  const unsubscribe = deps.platform.onDisplayChanged(() => {
+    if (disposed) return
+    if (window && !window.isDestroyed()) {
+      const bounds = window.getBounds()
+      if ([bounds.x, bounds.y].every(Number.isFinite))
+        state = { ...state, x: bounds.x, y: bounds.y }
+      applyBounds()
     }
-    display = true
-    createIfAbsent()
-    applyBounds()
-    window!.show()
-    window!.setIgnoreMouseEvents(ignoreMouse, { forward: true })
-    return { ok: true }
+  })
+  async function show(): Promise<
+    | { ok: true }
+    | {
+        ok: false
+        reason: 'no-model' | 'cancelled' | 'disposed' | 'unavailable'
+      }
+  > {
+    if (disposed) return { ok: false, reason: 'disposed' }
+    const requested = ++generation
+    try {
+      const hasModel = await deps.hasCurrentModel()
+      if (disposed || requested !== generation)
+        return { ok: false, reason: 'cancelled' }
+      if (!hasModel) {
+        hide()
+        return { ok: false, reason: 'no-model' }
+      }
+      const created = createIfAbsent()
+      applyBounds()
+      created.setIgnoreMouseEvents(ignoreMouse, { forward: true })
+      created.showInactive()
+      display = true
+      return { ok: true }
+    } catch {
+      if (requested !== generation || disposed)
+        return { ok: false, reason: 'cancelled' }
+      rendererGone()
+      return { ok: false, reason: 'unavailable' }
+    }
   }
   function hide() {
+    generation++
     display = false
     if (window && !window.isDestroyed()) window.hide()
   }
   return {
     show,
     hide,
+    rendererGone,
     displaying(): boolean {
-      return display
+      return display && !!window && !window.isDestroyed() && window.isVisible()
     },
-    /** PET07: bounded zoom, placement preserved. */
     setScale(next: number): void {
+      if (disposed || !Number.isFinite(next)) return
       state = { ...state, scale: clampScale(next) }
-      saveState(state)
-      if (window && !window.isDestroyed() && display) applyBounds()
+      applyBounds()
+      persist()
     },
     scale(): number {
       return state.scale
     },
-    /** PET08: transparent-area pass-through toggle from the renderer. */
-    setMousePassthrough(enabled: boolean): void {
-      ignoreMouse = enabled
-      if (window && !window.isDestroyed())
-        window.setIgnoreMouseEvents(enabled, { forward: true })
+    rememberPosition(): void {
+      if (disposed || !window || window.isDestroyed()) return
+      const bounds = window.getBounds()
+      if (![bounds.x, bounds.y].every(Number.isFinite)) return
+      state = { ...state, x: bounds.x, y: bounds.y }
+      applyBounds()
     },
-    /** Never leave a window behind app teardown. */
+    setAlwaysOnTop(enabled: boolean): void {
+      if (disposed) return
+      alwaysOnTop = enabled === true
+      if (window && !window.isDestroyed()) window.setAlwaysOnTop(alwaysOnTop)
+    },
+    setMousePassthrough(enabled: boolean): void {
+      if (disposed) return
+      ignoreMouse = enabled === true
+      if (window && !window.isDestroyed())
+        window.setIgnoreMouseEvents(ignoreMouse, { forward: true })
+    },
     dispose(): void {
-      display = false
-      if (window && !window.isDestroyed()) window.destroy()
-      window = null
+      if (disposed) return
+      disposed = true
+      unsubscribe()
+      rendererGone()
     },
   }
 }

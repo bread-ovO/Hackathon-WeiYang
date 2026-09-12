@@ -1,155 +1,217 @@
-// PET05 placeholder surface + PET06 Live2D pipeline. Diagnostics land on
-// window.__petRender so e2e can assert the honest mode (never fake success).
-import { bootLive2D, type Live2DSession, type RuntimeModel } from './pet-live2d'
-
-const canvas2d = document.getElementById('stage-2d') as HTMLCanvasElement
-const canvasGL = document.getElementById('stage-gl') as HTMLCanvasElement
-const ctx = canvas2d.getContext('2d')!
-const input = (window as unknown as {
-  petInput?: {
-    hover: (hit: boolean) => void
-    zoom: (delta: number) => void
-    model?: () => Promise<RuntimeModel | null>
-  }
-}).petInput
-
-const diagnostics = (window.__petRender = {
-  mode: 'booting' as 'booting' | 'live2d' | 'breathing-only' | 'placeholder',
-  error: null as string | null,
-  frames: 0,
-})
+import {
+  bootLive2D,
+  PetRenderError,
+  type Live2DSession,
+  type PetRenderErrorCode,
+  type RuntimeModel,
+} from './pet-live2d'
+interface PetInput {
+  state(): Promise<{ model: RuntimeModel | null; visible: boolean }>
+  report(input: {
+    modelId: string
+    status: 'ready' | 'error'
+    code?: PetRenderErrorCode
+  }): Promise<void> | void
+}
 declare global {
   interface Window {
+    petInput?: PetInput
     __petRender?: {
-      mode: 'booting' | 'live2d' | 'breathing-only' | 'placeholder'
-      error: string | null
+      mode: 'empty' | 'loading' | 'live2d' | 'live2d-idle' | 'error'
+      error: PetRenderErrorCode | null
       frames: number
+      modelId: string | null
     }
   }
 }
-// One canvas per context kind; exactly one is displayed at a time.
-const showCanvas = (which: '2d' | 'gl') => {
-  canvas2d.style.display = which === '2d' ? 'block' : 'none'
-  canvasGL.style.display = which === 'gl' ? 'block' : 'none'
-}
-const resize = (canvas: HTMLCanvasElement) => {
-  canvas.width = Math.round(canvas.clientWidth * devicePixelRatio)
-  canvas.height = Math.round(canvas.clientHeight * devicePixelRatio)
-}
-window.addEventListener('resize', () => {
-  resize(canvas2d)
-  if (session) resize(canvasGL)
+const canvas = document.getElementById('stage-gl') as HTMLCanvasElement
+const message = document.getElementById('pet-status') as HTMLDivElement
+const input = window.petInput
+const diagnostics = (window.__petRender = {
+  mode: 'empty' as 'empty' | 'loading' | 'live2d' | 'live2d-idle' | 'error',
+  error: null as PetRenderErrorCode | null,
+  frames: 0,
+  modelId: null as string | null,
 })
-
-let session: Live2DSession | null = null
-let placeholderFrame = 0
-const drawPlaceholder = () => {
-  resize(canvas2d)
-  const { width, height } = canvas2d
-  ctx.clearRect(0, 0, width, height)
-  const breathe = 1 + Math.sin(placeholderFrame / 40) * 0.02
-  const r = Math.min(width, height) * 0.34 * breathe
-  const cx = width / 2
-  const cy = height * 0.58
-  const gradient = ctx.createRadialGradient(cx, cy - r * 0.3, r * 0.2, cx, cy, r * 1.2)
-  gradient.addColorStop(0, '#f2926d')
-  gradient.addColorStop(1, '#e15a24')
-  ctx.fillStyle = gradient
-  ctx.beginPath()
-  ctx.arc(cx, cy, r, 0, Math.PI * 2)
-  ctx.fill()
-  ctx.fillStyle = '#3b2417'
-  const eye = r * 0.09
-  const blink = Math.sin(placeholderFrame / 26) > 0.96 ? eye * 0.15 : eye
-  for (const side of [-1, 1]) {
-    ctx.beginPath()
-    ctx.ellipse(cx + side * r * 0.34, cy - r * 0.18, eye, blink, 0, 0, Math.PI * 2)
-    ctx.fill()
-  }
-  ctx.strokeStyle = '#3b2417'
-  ctx.lineWidth = Math.max(2, r * 0.045)
-  ctx.beginPath()
-  ctx.arc(cx, cy + r * 0.12, r * 0.22, 0.15 * Math.PI, 0.85 * Math.PI)
-  ctx.stroke()
-  placeholderFrame++
+const errors: Record<PetRenderErrorCode, string> = {
+  RUNTIME_MISSING: 'Live2D 运行环境尚未就绪',
+  MODEL_LOAD_FAILED: '无法读取所选模型',
+  MOC3_INVALID: '模型不兼容当前 Live2D 版本',
+  WEBGL_UNAVAILABLE: '当前设备无法启动 WebGL2',
+  TEXTURE_INVALID: '模型纹理无法加载',
+  MOTION_INVALID: '模型待机动作无法播放',
+  PHYSICS_INVALID: '模型物理配置无法加载',
+  SHADER_TIMEOUT: '模型着色器未能完成加载',
+  RENDER_FAILED: '模型渲染已停止，请重新选择模型',
 }
-
-const boot = async () => {
-  const model = input?.model ? await input.model() : null
-  if (!model) {
-    diagnostics.mode = 'placeholder'
-    showCanvas('2d')
-    return
-  }
+let session: Live2DSession | null = null,
+  controller: AbortController | undefined,
+  key: string | null = null,
+  visible = false,
+  stopped = false,
+  polling = false
+let bootChain: Promise<void> = Promise.resolve(),
+  generation = 0,
+  lastFrame = 0,
+  animation = 0
+const show = (text: string) => {
+  message.textContent = text
+  message.hidden = !text
+}
+const report = (
+  modelId: string,
+  status: 'ready' | 'error',
+  code?: PetRenderErrorCode,
+) => {
+  if (!input) return
+  void Promise.resolve()
+    .then(() => input.report({ modelId, status, ...(code ? { code } : {}) }))
+    .catch(() => {
+      /* host may have changed the selected model */
+    })
+}
+function clear() {
+  controller?.abort()
+  controller = undefined
+  session?.dispose()
+  session = null
+  canvas.hidden = true
+  show('')
+  diagnostics.mode = 'empty'
+  diagnostics.error = null
+  diagnostics.frames = 0
+  diagnostics.modelId = null
+}
+function select(model: RuntimeModel | null) {
+  const selected = model ? { id: model.id, entry: model.entry } : null
+  const next = selected ? `${selected.id}/${selected.entry}` : null
+  if (next === key) return
+  key = next
+  const ticket = ++generation
+  clear()
+  if (!selected) return
+  diagnostics.mode = 'loading'
+  diagnostics.modelId = selected.id
+  show('正在加载模型…')
+  const abort = new AbortController()
+  controller = abort
+  // Serialize global Cubism cleanup before new initialization; polling remains
+  // independent so a model change can abort an in-flight resource load.
+  bootChain = bootChain
+    .catch(() => undefined)
+    .then(async () => {
+      if (stopped || ticket !== generation || abort.signal.aborted) return
+      try {
+        canvas.hidden = false
+        const created = await bootLive2D(canvas, selected, abort.signal)
+        if (stopped || ticket !== generation || abort.signal.aborted) {
+          created.dispose()
+          return
+        }
+        session = created
+        diagnostics.mode = created.mode
+        diagnostics.error = null
+        show('')
+        report(selected.id, 'ready')
+      } catch (error) {
+        if (stopped || ticket !== generation || abort.signal.aborted) return
+        const code =
+          error instanceof PetRenderError ? error.code : 'RENDER_FAILED'
+        diagnostics.mode = 'error'
+        diagnostics.error = code
+        canvas.hidden = true
+        show(errors[code])
+        report(selected.id, 'error', code)
+      }
+    })
+}
+async function poll() {
+  if (stopped || polling || !input) return
+  polling = true
   try {
-    resize(canvasGL)
-    session = await bootLive2D(canvasGL, model)
-    diagnostics.mode = session.mode
-    showCanvas('gl')
-  } catch (error) {
-    // Honest degradation: an unrenderable model keeps the placeholder.
-    session = null
-    diagnostics.mode = 'placeholder'
-    diagnostics.error = error instanceof Error ? error.message : String(error)
-    showCanvas('2d')
-  }
-}
-void boot()
-
-const render = (now: number) => {
-  if (session) session.frame(now)
-  else drawPlaceholder()
-  diagnostics.frames++
-  requestAnimationFrame(render)
-}
-requestAnimationFrame(render)
-
-// PET06: a changed current model must release GPU state and reboot; a
-// lightweight poll keeps this renderer-side without extra push IPC.
-let lastModelId: string | null = null
-const syncModel = async () => {
-  if (!input?.model) return
-  try {
-    const model = await input.model()
-    const id = model ? model.id : null
-    if (id !== lastModelId) {
-      lastModelId = id
-      session?.dispose()
-      session = null
-      diagnostics.mode = 'booting'
-      diagnostics.error = null
-      await boot()
-    }
+    const result = await input.state()
+    if (stopped) return
+    if (
+      !result ||
+      typeof result.visible !== 'boolean' ||
+      (result.model !== null &&
+        (!result.model ||
+          typeof result.model.id !== 'string' ||
+          typeof result.model.entry !== 'string'))
+    )
+      throw new Error('bad state')
+    visible = result.visible
+    if (!visible) session?.pause()
+    select(result.model)
   } catch {
-    /* transient worker hiccup keeps the current session */
+    if (stopped) return
+    visible = false
+    generation++
+    key = null
+    clear()
+    show('暂时无法读取桌宠状态')
+  } finally {
+    polling = false
   }
 }
-setInterval(() => void syncModel(), 5000)
-
-const alpha2dAt = (x: number, y: number) => {
-  const data = ctx.getImageData(
-    Math.round(x * devicePixelRatio),
-    Math.round(y * devicePixelRatio),
-    1,
-    1,
-  ).data
-  return data[3]! > 8
+function render(now: number) {
+  if (stopped) return
+  if (visible && !document.hidden && session && now - lastFrame >= 1000 / 30) {
+    lastFrame = now
+    try {
+      session.frame(now)
+      diagnostics.frames++
+    } catch (error) {
+      session.dispose()
+      session = null
+      const code =
+        error instanceof PetRenderError ? error.code : 'RENDER_FAILED'
+      diagnostics.mode = 'error'
+      diagnostics.error = code
+      canvas.hidden = true
+      show(errors[code])
+      if (diagnostics.modelId) report(diagnostics.modelId, 'error', code)
+    }
+  } else if (!visible || document.hidden) session?.pause()
+  animation = requestAnimationFrame(render)
 }
-const alphaAt = (x: number, y: number) =>
-  session ? session.alphaAt(x, y) > 8 : alpha2dAt(x, y)
-let hovering = true
-document.addEventListener('mousemove', (event) => {
-  // Forwarded events keep arriving even while the window ignores the mouse.
-  const hit = alphaAt(event.clientX, event.clientY)
-  if (hit !== hovering) {
-    hovering = hit
-    input?.hover(hit)
+const resize = () => {
+  try {
+    session?.resize()
+  } catch {
+    session?.dispose()
+    session = null
+    diagnostics.mode = 'error'
+    diagnostics.error = 'RENDER_FAILED'
+    canvas.hidden = true
+    show(errors.RENDER_FAILED)
+    if (diagnostics.modelId)
+      report(diagnostics.modelId, 'error', 'RENDER_FAILED')
   }
+}
+window.addEventListener('resize', resize)
+document.addEventListener('visibilitychange', () => {
+  session?.pause()
+  if (!document.hidden) void poll()
 })
-document.addEventListener(
-  'wheel',
-  (event) => {
-    input?.zoom(event.deltaY > 0 ? -0.1 : 0.1)
+const timer = setInterval(() => void poll(), 1000)
+window.addEventListener(
+  'pagehide',
+  () => {
+    stopped = true
+    generation++
+    clearInterval(timer)
+    cancelAnimationFrame(animation)
+    window.removeEventListener('resize', resize)
+    clear()
   },
-  { passive: true },
+  { once: true },
 )
+if (!input) {
+  diagnostics.mode = 'error'
+  diagnostics.error = 'RUNTIME_MISSING'
+  show('桌宠窗口连接未就绪')
+} else {
+  void poll()
+  animation = requestAnimationFrame(render)
+}

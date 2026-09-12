@@ -213,6 +213,9 @@ export function parseHostRequest(value: unknown): HostRequest {
   if (validateImportFile(value)) return value
   const request = parseCoreRequest(value)
   if (
+    request.method === 'pet.show' ||
+    request.method === 'pet.hide' ||
+    request.method === 'pet.installRuntime' ||
     request.method === 'pet.state' ||
     request.method === 'pet.openImportDialog' ||
     request.method === 'pet.cancelImport' ||
@@ -265,6 +268,7 @@ export type CoreReply<T = Health> =
         | 'PLUGIN_CONFLICT'
         | 'PLUGIN_TRIAL_FAILED'
         | 'PET_UNAVAILABLE'
+        | 'PET_RUNTIME_INVALID'
         | 'PET_OUTCOME_UNKNOWN'
         | 'IMPORT_SESSION_INVALID'
         | 'SOURCE_CHANGED'
@@ -274,6 +278,9 @@ export type CoreReply<T = Health> =
     }
 export interface DesktopBridge {
   pet: {
+    show(): Promise<CoreReply<PetState>>
+    hide(): Promise<CoreReply<PetState>>
+    installRuntime(): Promise<CoreReply<PetState>>
     state(): Promise<CoreReply<PetState>>
     openImportDialog(): Promise<CoreReply<PetChooseReply>>
     cancelImport(): Promise<CoreReply<{ status: 'cancelled' }>>

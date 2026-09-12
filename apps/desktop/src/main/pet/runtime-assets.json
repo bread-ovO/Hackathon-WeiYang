@@ -1,0 +1,119 @@
+{
+  "version": "cubism-web-5-r.5",
+  "files": [
+    {
+      "path": "core.js",
+      "bytes": 228042,
+      "sha256": "8741f739779b5d5210872bd3d7d99f0f1e56e6c87409e7d26d6bb4b80aa1ef47",
+      "source": "CubismSdkForWeb-5-r.5/Core/live2dcubismcore.min.js"
+    },
+    {
+      "path": "framework.js",
+      "bytes": 175869,
+      "sha256": "fc7f5eb2be8396fd940186c098c08d9c354b0ae27ce9fc01f03d205a107d603a",
+      "source": "dist/live2dcubismframework.min.js"
+    },
+    {
+      "path": "licenses/core.md",
+      "bytes": 520,
+      "sha256": "b81e37048010ef1d336106151201a0323c3309cae44aecdedf57831fe88fa991",
+      "source": "CubismSdkForWeb-5-r.5/Core/LICENSE.md"
+    },
+    {
+      "path": "licenses/framework.md",
+      "bytes": 2234,
+      "sha256": "7ed849bff1e6499aa7cd882e47d246ddbbe06817c1e84cb974df949488302614",
+      "source": "CubismSdkForWeb-5-r.5/Framework/LICENSE.md"
+    },
+    {
+      "path": "licenses/sdk.md",
+      "bytes": 3042,
+      "sha256": "787a7d1454240865420b96ea9a20ab5e1a5ec3c1abced2e308288c2de8aac991",
+      "source": "CubismSdkForWeb-5-r.5/LICENSE.md"
+    },
+    {
+      "path": "licenses/redistributable.txt",
+      "bytes": 205,
+      "sha256": "d16c123688299e1e69a7f5ebc01b3bd75a8d408c024002a7d35b2aae94003f8c",
+      "source": "CubismSdkForWeb-5-r.5/Core/RedistributableFiles.txt"
+    },
+    {
+      "path": "shaders/fragshadersrcalphablend.frag",
+      "bytes": 2189,
+      "sha256": "855b247f02042a808a41e282ee4d7de7cc4533abeb5032b4ab8fe84f7dec107f",
+      "source": "CubismSdkForWeb-5-r.5/Framework/Shaders/WebGL/fragshadersrcalphablend.frag"
+    },
+    {
+      "path": "shaders/fragshadersrccolorblend.frag",
+      "bytes": 7525,
+      "sha256": "01d4bf6a14b4a738976e9a538767a21da0defa8816f3845a7df08a7713327538",
+      "source": "CubismSdkForWeb-5-r.5/Framework/Shaders/WebGL/fragshadersrccolorblend.frag"
+    },
+    {
+      "path": "shaders/fragshadersrccopy.frag",
+      "bytes": 429,
+      "sha256": "15c67a4ec3adda4c849aff2a8319a3f6aceef8a84d5e5e1f3fb7fd9cd681193c",
+      "source": "CubismSdkForWeb-5-r.5/Framework/Shaders/WebGL/fragshadersrccopy.frag"
+    },
+    {
+      "path": "shaders/fragshadersrcmaskinvertedpremultipliedalpha.frag",
+      "bytes": 1051,
+      "sha256": "1005cff8113de587cf1c0e295288d04d85f0f4ebc223684c8340e017fd8fc788",
+      "source": "CubismSdkForWeb-5-r.5/Framework/Shaders/WebGL/fragshadersrcmaskinvertedpremultipliedalpha.frag"
+    },
+    {
+      "path": "shaders/fragshadersrcmaskpremultipliedalpha.frag",
+      "bytes": 1043,
+      "sha256": "f84ff615393d26ea6ab7c28747803db6472524c92567c0ad01e8225fbab36a3b",
+      "source": "CubismSdkForWeb-5-r.5/Framework/Shaders/WebGL/fragshadersrcmaskpremultipliedalpha.frag"
+    },
+    {
+      "path": "shaders/fragshadersrcpremultipliedalpha.frag",
+      "bytes": 747,
+      "sha256": "c93abe215357cc782a25fc4ef20f5fe1f34e2cc193ee23d763b56b81fae5fce1",
+      "source": "CubismSdkForWeb-5-r.5/Framework/Shaders/WebGL/fragshadersrcpremultipliedalpha.frag"
+    },
+    {
+      "path": "shaders/fragshadersrcpremultipliedalphablend.frag",
+      "bytes": 2038,
+      "sha256": "2155076275199a2946959838391dfb856e9d1db91b6ca3abd19ed70d4ff27e15",
+      "source": "CubismSdkForWeb-5-r.5/Framework/Shaders/WebGL/fragshadersrcpremultipliedalphablend.frag"
+    },
+    {
+      "path": "shaders/fragshadersrcsetupmask.frag",
+      "bytes": 736,
+      "sha256": "3cccc0b68a56cfbf4bd4841b0a759431dd159812c38dc280981ba633fa0afe7a",
+      "source": "CubismSdkForWeb-5-r.5/Framework/Shaders/WebGL/fragshadersrcsetupmask.frag"
+    },
+    {
+      "path": "shaders/vertshadersrc.vert",
+      "bytes": 465,
+      "sha256": "291ed3f35f71f1e71e6df33fb055f009a8a9b36ee664f74f24f6cefef0c4029b",
+      "source": "CubismSdkForWeb-5-r.5/Framework/Shaders/WebGL/vertshadersrc.vert"
+    },
+    {
+      "path": "shaders/vertshadersrcblend.vert",
+      "bytes": 738,
+      "sha256": "2589837bd7a6a550a1c3af41b4fa776011e6e71f2531320fa39afcb83b209bf4",
+      "source": "CubismSdkForWeb-5-r.5/Framework/Shaders/WebGL/vertshadersrcblend.vert"
+    },
+    {
+      "path": "shaders/vertshadersrccopy.vert",
+      "bytes": 392,
+      "sha256": "b7bc4ba7517f405af4812ac47d99bc2b633c99f463c1224029556b00e8dff3cf",
+      "source": "CubismSdkForWeb-5-r.5/Framework/Shaders/WebGL/vertshadersrccopy.vert"
+    },
+    {
+      "path": "shaders/vertshadersrcmasked.vert",
+      "bytes": 559,
+      "sha256": "6704a9df2e6d3ee5176c72fca4ba59358ba4827a07054b1e0a72a3c574e281fd",
+      "source": "CubismSdkForWeb-5-r.5/Framework/Shaders/WebGL/vertshadersrcmasked.vert"
+    },
+    {
+      "path": "shaders/vertshadersrcsetupmask.vert",
+      "bytes": 536,
+      "sha256": "649aad2f6c0af55a7a4adcf33dbf78937ef9d77ed6ba917fd716176adce25afe",
+      "source": "CubismSdkForWeb-5-r.5/Framework/Shaders/WebGL/vertshadersrcsetupmask.vert"
+    }
+  ]
+}

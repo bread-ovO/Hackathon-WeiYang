@@ -50,3 +50,10 @@ pnpm exec playwright test tests/desktop/pet/pet-verify.spec.ts
 结果 JSON 作为 Playwright 附件 `sdk-verification.json` 保存；截图为 `test-results/pet01-strict.png` 与 `pet01-wasm.png`，含样例署名。无 SDK 资产的 CI 显式跳过两项；本机实际安装固定测试资产后两项均通过。结构化运行摘录见同目录 `PET01_macOS运行证据_2026-09-13.json`。
 
 Framework 适用 Live2D Open Software License，Core 与 Haru 有各自协议；具体发布分类尚待确认。完整清单、固定哈希与官方来源见 [Live2D 许可与发布边界](Live2D许可与发布边界_2026-09-13.md)。SDK 与模型不进仓库、不随本批应用产物发布。
+
+
+### 本地 runtime 安装包输出
+
+执行 `node scripts/fetch-pet-sdk.mjs` 后，脚本还会生成 `.pet-sdk/runtime/`。该目录只包含仓库 `apps/desktop/src/main/pet/runtime-assets.json` 固定的 Core、Framework、着色器及许可文件；按每项 `source` 读取 SDK 构建产物，核对字节数和 SHA-256，再复制到该项 `path`。任何固定摘要不匹配都会中止，不会自动更新 pin，也不信任 SDK 目录自带的摘要清单。
+
+在 BUGU 的原生 runtime 目录选择器中选择 `.pet-sdk/runtime/`。样例模型不包含在这个目录中，需通过模型导入单独选择。这个步骤只生成本机开发验证安装包，不授予再分发许可；`.pet-sdk/` 继续保持 Git 忽略，发布前仍需审查 Live2D 许可条件。

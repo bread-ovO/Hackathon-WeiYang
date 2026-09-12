@@ -14,6 +14,8 @@ import {
   renameSync,
   rmSync,
   mkdtempSync,
+  lstatSync,
+  realpathSync,
 } from 'node:fs'
 import { execFileSync } from 'node:child_process'
 import { createRequire } from 'node:module'
@@ -180,3 +182,58 @@ console.log(
 console.log(
   'next: pnpm exec playwright test tests/desktop/pet/pet-verify.spec.ts',
 )
+
+// Package only repository-pinned runtime files. Never accept hashes from the selected SDK.
+const pins = JSON.parse(
+  readFileSync(
+    join(root, 'apps/desktop/src/main/pet/runtime-assets.json'),
+    'utf8',
+  ),
+)
+const runtimeStage = mkdtempSync(join(target, '.runtime-package-'))
+try {
+  const incoming = join(runtimeStage, 'runtime')
+  mkdirSync(incoming)
+  for (const pin of pins.files) {
+    const source = resolve(target, pin.source)
+    let component = source
+    while (true) {
+      if (lstatSync(component).isSymbolicLink())
+        throw new Error('runtime source symlink rejected')
+      const parent = dirname(component)
+      if (parent === component) break
+      component = parent
+    }
+    if (
+      !lstatSync(source).isFile() ||
+      realpathSync(source) !== source ||
+      lstatSync(source).size !== pin.bytes
+    )
+      throw new Error(`runtime pin size mismatch: ${pin.path}`)
+    const bytes = readFileSync(source)
+    if (
+      bytes.length !== pin.bytes ||
+      createHash('sha256').update(bytes).digest('hex') !== pin.sha256
+    )
+      throw new Error(`runtime pin hash mismatch: ${pin.path}`)
+    const destination = join(incoming, pin.path)
+    mkdirSync(dirname(destination), { recursive: true })
+    writeFileSync(destination, bytes, { flag: 'wx', mode: 0o600 })
+    if (sha256(destination) !== pin.sha256)
+      throw new Error(`runtime copy mismatch: ${pin.path}`)
+  }
+  const destination = join(target, 'runtime')
+  const backup = join(runtimeStage, 'prior')
+  if (existsSync(destination)) renameSync(destination, backup)
+  try {
+    renameSync(incoming, destination)
+  } catch (error) {
+    if (existsSync(backup)) renameSync(backup, destination)
+    throw error
+  }
+  console.log(
+    `runtime package written to .pet-sdk/runtime (${pins.files.length} pinned files); select this directory in BUGU`,
+  )
+} finally {
+  rmSync(runtimeStage, { recursive: true, force: true })
+}
