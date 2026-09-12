@@ -32,6 +32,18 @@ export const petRequestSchemas = [
     required: ['method', 'modelId'],
     additionalProperties: false,
   },
+  {
+    type: 'object',
+    properties: { method: { const: 'pet.show' } },
+    required: ['method'],
+    additionalProperties: false,
+  },
+  {
+    type: 'object',
+    properties: { method: { const: 'pet.hide' } },
+    required: ['method'],
+    additionalProperties: false,
+  },
 ] as const
 
 export interface PetModel {
@@ -42,6 +54,8 @@ export interface PetModel {
 }
 export interface PetState {
   currentModelId: string | null
+  /** Whether the pet window is wanted on screen right now. */
+  display: boolean
   models: PetModel[]
 }
 export type PetChooseReply =

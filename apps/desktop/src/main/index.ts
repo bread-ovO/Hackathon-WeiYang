@@ -4,6 +4,7 @@ import {
   ipcMain,
   protocol,
   net,
+  screen,
   session,
   Tray,
   Menu,
@@ -26,6 +27,7 @@ import {
 } from './tray'
 import { createPetImportFlow } from './pet/import-flow'
 import { PetWorkerClient } from './pet/worker-client'
+import { createPetWindowController, type PetWindowLike } from './pet/pet-window'
 protocol.registerSchemesAsPrivileged([
   {
     scheme: 'memo',
@@ -35,6 +37,7 @@ protocol.registerSchemesAsPrivileged([
 let window: BrowserWindow | null = null
 let core: CoreClient | undefined
 let petWorker: PetWorkerClient | undefined
+let petWindowControllerRef: ReturnType<typeof createPetWindowController> | undefined
 let quitting = false
 let choosingSource = false
 let savingExport = false
@@ -104,6 +107,75 @@ else {
         join(data, 'pet-models'),
       )
       petWorker.start()
+      const petPageURL = devURL ? `${devURL}/pet.html` : 'memo://app/pet.html'
+      let petBrowserWindow: BrowserWindow | null = null
+      const petWindow = createPetWindowController({
+        platform: {
+          createWindow: (): PetWindowLike => {
+            const created = new BrowserWindow({
+              width: 320,
+              height: 420,
+              transparent: true,
+              frame: false,
+              resizable: false,
+              skipTaskbar: true,
+              hasShadow: false,
+              show: false,
+              webPreferences: {
+                preload: join(__dirname, '../preload/pet.js'),
+                sandbox: true,
+                contextIsolation: true,
+                nodeIntegration: false,
+                webSecurity: true,
+              },
+            })
+            // Same deny posture as the main window; no window.open, no
+            // navigation away from the pet page, no webviews.
+            created.webContents.setWindowOpenHandler(() => ({ action: 'deny' }))
+            created.webContents.on('will-navigate', (event, url) => {
+              if (!isTrustedPage(url, petPageURL)) event.preventDefault()
+            })
+            created.webContents.on('will-attach-webview', (event) =>
+              event.preventDefault(),
+            )
+            void created.loadURL(petPageURL)
+            petBrowserWindow = created
+            // BrowserWindow satisfies the structural surface; event listener
+            // variance needs this single adapter cast.
+            return created as unknown as PetWindowLike
+          },
+          usableArea: () => screen.getPrimaryDisplay().workArea,
+          onDisplayChanged: (listener) => {
+            screen.on('display-removed', listener)
+            screen.on('display-metrics-changed', listener)
+          },
+        },
+        hasCurrentModel: async () => {
+          const reply = await petWorker!.request('list')
+          return reply.ok
+            ? (reply.data as { currentModelId: string | null })
+                .currentModelId !== null
+            : false
+        },
+        stateFile: join(data, 'pet-window.json'),
+      })
+      petWindowControllerRef = petWindow
+      ipcMain.on('pet:input', (event, payload: unknown) => {
+        // Only the pet window's main frame may drive pass-through or zoom.
+        const sender = petBrowserWindow?.webContents
+        if (
+          !sender ||
+          event.sender !== sender ||
+          event.senderFrame !== sender.mainFrame ||
+          !isTrustedPage(event.senderFrame?.url ?? '', petPageURL)
+        )
+          return
+        const input = payload as { type?: unknown; hit?: unknown; delta?: unknown }
+        if (input.type === 'hover' && typeof input.hit === 'boolean')
+          petWindow.setMousePassthrough(!input.hit)
+        else if (input.type === 'zoom' && typeof input.delta === 'number')
+          petWindow.setScale(petWindow.scale() + input.delta)
+      })
       const petFlow = createPetImportFlow({
         pickDirectory: async () => {
           const result = await dialog.showOpenDialog(window!, {
@@ -126,7 +198,21 @@ else {
           () => window?.webContents ?? null,
           pageURL,
           async (request) => {
-            if (request.method === 'pet.state') return petFlow.state()
+            if (request.method === 'pet.state') {
+              const reply = await petFlow.state()
+              if (reply.ok) reply.data.display = petWindow.displaying()
+              return reply
+            }
+            if (request.method === 'pet.show') {
+              const shown = await petWindow.show()
+              return shown.ok
+                ? { ok: true as const, data: { display: true } }
+                : { ok: false as const, error: 'UNKNOWN_MODEL' as const }
+            }
+            if (request.method === 'pet.hide') {
+              petWindow.hide()
+              return { ok: true as const, data: { display: false } }
+            }
             if (request.method === 'pet.openImportDialog')
               return petFlow.openImportDialog()
             if (request.method === 'pet.importChosen')
@@ -228,6 +314,7 @@ else {
   })
   app.on('before-quit', () => {
     quitting = true
+    petWindowControllerRef?.dispose()
     petWorker?.stop()
     core?.stop()
   })

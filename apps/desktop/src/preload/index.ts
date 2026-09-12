@@ -61,6 +61,8 @@ const bridge: DesktopBridge = {
       ipcRenderer.invoke('memo:request', { method: 'pet.importChosen', entry }),
     select: (modelId: string) =>
       ipcRenderer.invoke('memo:request', { method: 'pet.select', modelId }),
+    show: () => ipcRenderer.invoke('memo:request', { method: 'pet.show' }),
+    hide: () => ipcRenderer.invoke('memo:request', { method: 'pet.hide' }),
   }),
 }
 contextBridge.exposeInMainWorld('memo', Object.freeze(bridge))

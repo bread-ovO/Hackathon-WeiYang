@@ -35,6 +35,8 @@ const slimState = (snapshot: {
   models: { id: string; entry: string; importedAt: string; totalBytes: number; resources?: unknown[] }[]
 }): PetState => ({
   currentModelId: snapshot.currentModelId,
+  // The main process owns display intent and overlays the live value.
+  display: false,
   models: snapshot.models.map((model) => ({
     id: model.id,
     entry: model.entry,

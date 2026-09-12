@@ -219,5 +219,7 @@ export interface DesktopBridge {
     openImportDialog(): Promise<CoreReply<PetChooseReply>>
     importChosen(entry: string): Promise<CoreReply<PetImportReply>>
     select(modelId: string): Promise<CoreReply<PetState>>
+    show(): Promise<CoreReply<{ display: boolean }>>
+    hide(): Promise<CoreReply<{ display: boolean }>>
   }
 }

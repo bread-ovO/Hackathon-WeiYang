@@ -177,6 +177,22 @@ function App() {
       setPetBusy(false)
     }
   }
+  const togglePetDisplay = async (want: boolean) => {
+    setPetBusy(true)
+    try {
+      const reply = want
+        ? await window.memo.pet.show()
+        : await window.memo.pet.hide()
+      if (reply.ok) {
+        setPetState((prev) => prev && { ...prev, display: want })
+        if (want) setPetMessage('桌宠已显示在桌面上。')
+      } else if (reply.error === 'UNKNOWN_MODEL')
+        setPetMessage('请先把一个模型设为当前，再显示桌宠。')
+      else setPetMessage('桌宠暂时无法显示。')
+    } finally {
+      setPetBusy(false)
+    }
+  }
   useEffect(() => {
     if (page === '设置') void refreshPet()
   }, [page])
@@ -881,6 +897,18 @@ function App() {
                 <AppButton disabled={petBusy} onClick={() => void startPetImport()}>
                   导入模型目录
                 </AppButton>
+                {petState?.display ? (
+                  <AppButton disabled={petBusy} onClick={() => void togglePetDisplay(false)}>
+                    隐藏桌宠
+                  </AppButton>
+                ) : (
+                  <AppButton
+                    disabled={petBusy || !petState?.currentModelId}
+                    onClick={() => void togglePetDisplay(true)}
+                  >
+                    显示桌宠
+                  </AppButton>
+                )}
                 {petBusy ? <span className="muted">处理中…</span> : null}
               </div>
               {petMessage ? (
