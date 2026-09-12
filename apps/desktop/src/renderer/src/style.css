@@ -1091,3 +1091,11 @@ dd {
 .toast > svg {
   color: var(--text-color-kumo-success);
 }
+
+.real-create { padding: 0 16px 12px; display: flex; flex-wrap: wrap; gap: 8px; }
+.real-create form, .real-editor form { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.real-create select, .real-editor select { background: var(--color-kumo-base, white); border: 1px solid var(--color-kumo-line, #ddd); border-radius: 8px; padding: 8px; max-width: 200px; }
+.real-message { margin: 0; padding: 8px 16px; }
+.real-editor { padding: 16px; display: flex; flex-direction: column; gap: 16px; }
+.real-editor h2 { font-size: 20px; overflow-wrap: anywhere; }
+.real-editor label { display: flex; align-items: center; gap: 8px; }

@@ -80,7 +80,11 @@ test('real IPC rejects foreign windows and malformed requests; source text stays
     ).toBeVisible()
     expect(await page.evaluate(() => Object.keys(window.memo))).toEqual([
       'health',
+      'workspace',
     ])
+    expect(
+      await page.evaluate(() => Object.keys(window.memo.workspace)),
+    ).toEqual(['list', 'createProject', 'createTask', 'updateTask'])
     // Privileged test harness only: inject a temporary probe, never ship raw IPC in production preload.
     const preload = join(data, 'probe.cjs')
     await writeFile(
@@ -98,6 +102,15 @@ test('real IPC rejects foreign windows and malformed requests; source text stays
         ),
       )
       .toBe('object')
+    const update = {
+      method: 'workspace.updateTask',
+      projectId: 'project-1',
+      id: 'task-1',
+      expectedVersion: 1,
+      expectedCriteriaVersion: 1,
+      expectedManualVersion: 0,
+      patch: { status: 'completed' },
+    }
     for (const args of [
       [],
       [null],
@@ -105,6 +118,27 @@ test('real IPC rejects foreign windows and malformed requests; source text stays
       [{ method: 'health', unexpected: true }],
       [{ method: 'x'.repeat(65537) }],
       [{ method: 'health' }, 'extra'],
+      [{ method: 'workspace.list', extra: true }],
+      [{ method: 'workspace.list' }, 'extra'],
+      [{ method: 'workspace.createTask', projectId: '', title: 'Task' }],
+      [
+        {
+          method: 'workspace.createTask',
+          projectId: 'x'.repeat(257),
+          title: 'Task',
+        },
+      ],
+      [{ method: 'workspace.createTask', projectId: null, title: 'Task' }],
+      [{ ...update, actorId: 'other-user' }],
+      [{ ...update, patch: { actor: 'model', status: 'completed' } }],
+      [{ ...update, patch: { evidenceStatus: 'sufficient' } }],
+      [{ ...update, patch: { projectId: 'other-project' } }],
+      [{ ...update, expectedVersion: 0 }],
+      [{ ...update, expectedCriteriaVersion: -1 }],
+      [{ ...update, expectedManualVersion: -1 }],
+      [{ ...update, expectedVersion: 1.5 }],
+      [{ ...update, expectedVersion: '1' }],
+      [{ ...update, expectedVersion: Number.MAX_SAFE_INTEGER + 1 }],
     ]) {
       expect(
         await page.evaluate(
@@ -126,6 +160,19 @@ test('real IPC rejects foreign windows and malformed requests; source text stays
         ),
       )
       .toBe(true)
+    // A syntactically valid unknown project must not create an orphaned task.
+    const missingProject = await page.evaluate(() =>
+      (window as unknown as ProbeWindow).securityProbe.request({
+        method: 'workspace.createTask',
+        projectId: 'nonexistent-project',
+        title: 'Never persisted',
+      }),
+    )
+    expect(missingProject.ok).toBe(false)
+    expect(await page.evaluate(() => window.memo.workspace.list())).toEqual({
+      ok: true,
+      data: { projects: [], tasks: [] },
+    })
     // Identical URL in another actual WebContents must still fail identity validation.
     const foreignReady = app.waitForEvent('window')
     await app.evaluate(async ({ BrowserWindow }, url) => {
@@ -147,6 +194,25 @@ test('real IPC rejects foreign windows and malformed requests; source text stays
         }),
       ),
     ).toEqual({ ok: false, error: 'INVALID_REQUEST' })
+    expect(
+      await foreign.evaluate(() =>
+        (window as unknown as ProbeWindow).securityProbe.request({
+          method: 'workspace.list',
+        }),
+      ),
+    ).toEqual({ ok: false, error: 'INVALID_REQUEST' })
+    expect(
+      await foreign.evaluate(() =>
+        (window as unknown as ProbeWindow).securityProbe.request({
+          method: 'workspace.createProject',
+          name: 'Unauthorized project',
+        }),
+      ),
+    ).toEqual({ ok: false, error: 'INVALID_REQUEST' })
+    expect(await page.evaluate(() => window.memo.workspace.list())).toEqual({
+      ok: true,
+      data: { projects: [], tasks: [] },
+    })
     // Production CSP denies embedding even a same-origin frame.
     await page.evaluate((url) => {
       const frame = document.createElement('iframe')

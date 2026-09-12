@@ -12,3 +12,6 @@ export function archiveTask(task: Task, at: string): Task {
 export function assertExpectedVersion(current:number, expected:number): void {
   if (current !== expected) throw new Error('VERSION_CONFLICT')
 }
+
+export { normalizeIdentity, parseContextTimestamp, normalizeEventTime, comparePlanUpdates } from './context'
+export type { ContextIdentity, NormalizedIdentity, ContextTimestamp, EventTimeInput, NormalizedEventTime, PlanUpdate, PlanUpdateDecision } from './context'
