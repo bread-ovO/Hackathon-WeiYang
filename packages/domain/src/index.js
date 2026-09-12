@@ -26,3 +26,4 @@ export function transitionTask(task,next){if(task.status==='completed'&&next!=='
 export function canAutoComplete(risk,evidence){return risk==='low'&&evidence==='sufficient';}
 export function acceptRevision(current,incoming){return Number.isInteger(incoming)&&incoming>current;}
 export function reevaluateAfterRetraction(status,retracted){return retracted&&status==='sufficient'?'partial':status;}
+export function mergeTaskIds(primary,duplicates){if(!primary.trim()||duplicates.some(id=>!id.trim()||id===primary))throw new Error('INVALID_TASK_MERGE');return {primary,duplicates:[...new Set(duplicates)]};}
