@@ -70,6 +70,11 @@ describe('FeishuHistoryAdapter', () => {
     expect(calls).toEqual(['', 'sink:p2', 'p2', 'sink:'])
   })
 
+  it('rejects a page marked as having more data without a cursor', async () => {
+    const poller = new SourcePoller(async () => ({ items: [], hasMore: true }), async () => 0, 0, 0, 1)
+    await expect(poller.run('', new AbortController().signal)).rejects.toThrow('INVALID_PAGE_CURSOR')
+  })
+
   it('returns the current cursor when aborted', async () => {
     const controller = new AbortController()
     const poller = new SourcePoller(async () => { controller.abort(); return { items: [], pageToken: 'later', hasMore: true } }, async () => 0, 0)
