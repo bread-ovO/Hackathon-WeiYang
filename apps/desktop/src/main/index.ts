@@ -28,6 +28,7 @@ import {
 import { createPetImportFlow } from './pet/import-flow'
 import { PetWorkerClient } from './pet/worker-client'
 import { createPetWindowController, type PetWindowLike } from './pet/pet-window'
+import { resolveModelResource } from './pet/model-route'
 protocol.registerSchemesAsPrivileged([
   {
     scheme: 'memo',
@@ -77,10 +78,19 @@ else {
     .whenReady()
     .then(async () => {
       const rendererRoot = resolve(__dirname, '../renderer')
+      const petStoreRoot = join(app.getPath('userData'), 'pet-models')
       protocol.handle('memo', (request) => {
         const url = new URL(request.url)
         if (url.hostname !== 'app')
           return new Response('Forbidden', { status: 403 })
+        // PET06: controlled model assets are mapped by id only; the handler
+        // never accepts renderer-supplied filesystem paths.
+        const modelResource = resolveModelResource(
+          decodeURIComponent(url.pathname),
+          petStoreRoot,
+        )
+        if (modelResource)
+          return net.fetch(pathToFileURL(modelResource).toString())
         let path: string
         try {
           path = resolve(rendererRoot, '.' + decodeURIComponent(url.pathname))
@@ -175,6 +185,27 @@ else {
           petWindow.setMousePassthrough(!input.hit)
         else if (input.type === 'zoom' && typeof input.delta === 'number')
           petWindow.setScale(petWindow.scale() + input.delta)
+      })
+      ipcMain.handle('pet:runtime:model', async (event) => {
+        // Only the pet window's main frame may ask for the current model.
+        const sender = petBrowserWindow?.webContents
+        if (
+          !sender ||
+          event.sender !== sender ||
+          event.senderFrame !== sender.mainFrame ||
+          !isTrustedPage(event.senderFrame?.url ?? '', petPageURL)
+        )
+          return null
+        const reply = await petWorker!.request('list')
+        if (!reply.ok) return null
+        const snapshot = reply.data as {
+          currentModelId: string | null
+          models: { id: string; entry: string }[]
+        }
+        const current = snapshot.models.find(
+          (model) => model.id === snapshot.currentModelId,
+        )
+        return current ? { id: current.id, entry: current.entry } : null
       })
       const petFlow = createPetImportFlow({
         pickDirectory: async () => {
