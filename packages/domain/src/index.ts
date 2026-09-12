@@ -36,3 +36,5 @@ export type ModelOutcome = { kind: 'success'; value: unknown } | { kind: 'failed
 export function classifyModelError(error: unknown, cancelled = false): ModelOutcome { if (cancelled || (error instanceof Error && error.name === 'AbortError')) return { kind:'cancelled' }; return { kind:'failed', code:error instanceof Error ? error.message : 'MODEL_UNKNOWN_ERROR' } }
 
 export function validateEvidence(e: { sourceId?: string; quote?: string }): 'sufficient' | 'unknown' { return e.sourceId?.trim() && e.quote?.trim() ? 'sufficient' : 'unknown' }
+
+export function transitionTask(task: Task, next: TaskStatus): Task { if (task.status==='completed' && next!=='completed') throw new Error('INVALID_STATUS_TRANSITION'); return {...task,status:next,version:task.version+1} }
