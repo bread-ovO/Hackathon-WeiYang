@@ -53,5 +53,14 @@ const bridge: DesktopBridge = {
         method: 'workspace.updateTask',
       }),
   }),
+  pet: Object.freeze({
+    state: () => ipcRenderer.invoke('memo:request', { method: 'pet.state' }),
+    openImportDialog: () =>
+      ipcRenderer.invoke('memo:request', { method: 'pet.openImportDialog' }),
+    importChosen: (entry: string) =>
+      ipcRenderer.invoke('memo:request', { method: 'pet.importChosen', entry }),
+    select: (modelId: string) =>
+      ipcRenderer.invoke('memo:request', { method: 'pet.select', modelId }),
+  }),
 }
 contextBridge.exposeInMainWorld('memo', Object.freeze(bridge))

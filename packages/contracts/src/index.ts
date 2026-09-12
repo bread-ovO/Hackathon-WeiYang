@@ -6,6 +6,8 @@ import {
   type ExportReceipt,
 } from './export'
 export * from './export'
+import { petRequestSchemas, type PetState, type PetChooseReply, type PetImportReply } from './pet'
+export * from './pet'
 import {
   sourcesRequestSchema,
   importFileRequestSchema,
@@ -109,6 +111,7 @@ export const healthRequestSchema = {
 const coreRequestSchema = {
   oneOf: [
     healthRequestSchema,
+    ...petRequestSchemas,
     workspaceRequestSchema,
     sourcesRequestSchema,
     exportSaveRequestSchema,
@@ -169,6 +172,13 @@ export type CoreReply<T = Health> =
         | 'EXPORT_LIMIT_EXCEEDED'
         | 'EXPORT_INVALID_DATA'
         | 'EXPORT_WRITE_FAILED'
+        // Pet methods run in the main process / pet worker, never in core.
+        | 'PET_UNAVAILABLE'
+        | 'IMPORT_SESSION_INVALID'
+        | 'SOURCE_CHANGED'
+        | 'INVALID_STORE'
+        | 'UNKNOWN_MODEL'
+        | 'STORAGE_LIMIT'
     }
 export interface DesktopBridge {
   health(): Promise<CoreReply>
@@ -203,5 +213,11 @@ export interface DesktopBridge {
         'method'
       >,
     ): Promise<CoreReply<WorkspaceSnapshot>>
+  }
+  pet: {
+    state(): Promise<CoreReply<PetState>>
+    openImportDialog(): Promise<CoreReply<PetChooseReply>>
+    importChosen(entry: string): Promise<CoreReply<PetImportReply>>
+    select(modelId: string): Promise<CoreReply<PetState>>
   }
 }

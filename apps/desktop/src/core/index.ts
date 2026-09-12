@@ -1,7 +1,7 @@
 import { createSourceHandler } from './sources'
 import { handleWorkspace } from './workspace'
 import { openStore } from '@memo/storage'
-import { parseHostRequest, type CoreReply } from '@memo/contracts'
+import { parseHostRequest, type CoreReply, type CoreRequest } from '@memo/contracts'
 const parentPort = (
   process as unknown as {
     parentPort: {
@@ -25,7 +25,14 @@ parentPort.on('message', async ({ data }) => {
     return
   let reply: CoreReply<unknown>
   try {
-    const request = parseHostRequest(data.request)
+    const parsed = parseHostRequest(data.request)
+    // Pet requests are main-process owned; the core never dispatches them.
+    const notPet = (
+      request: CoreRequest,
+    ): request is Exclude<CoreRequest, { method: `pet.${string}` }> =>
+      !request.method.startsWith('pet.')
+    if (!notPet(parsed)) throw new Error('INVALID_REQUEST')
+    const request = parsed
     reply = {
       ok: true,
       data:

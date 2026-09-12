@@ -24,6 +24,8 @@ import {
   electronTrayPlatform,
   type TrayController,
 } from './tray'
+import { createPetImportFlow } from './pet/import-flow'
+import { PetWorkerClient } from './pet/worker-client'
 protocol.registerSchemesAsPrivileged([
   {
     scheme: 'memo',
@@ -32,6 +34,7 @@ protocol.registerSchemesAsPrivileged([
 ])
 let window: BrowserWindow | null = null
 let core: CoreClient | undefined
+let petWorker: PetWorkerClient | undefined
 let quitting = false
 let choosingSource = false
 let savingExport = false
@@ -96,6 +99,39 @@ else {
         join(data, 'memo.sqlite'),
       )
       core.start()
+      petWorker = new PetWorkerClient(
+        join(__dirname, 'pet-worker.js'),
+        join(data, 'pet-models'),
+      )
+      petWorker.start()
+      const petFlow = createPetImportFlow({
+        pickDirectory: async () => {
+          const result = await dialog.showOpenDialog(window!, {
+            title: '选择包含 .model3.json 的模型目录',
+            properties: ['openDirectory'],
+          })
+          // The Electron result always carries filePaths, but stay defensive:
+          // anything malformed counts as cancelling, never as a chosen path.
+          return result.canceled ||
+            !Array.isArray(result.filePaths) ||
+            result.filePaths.length !== 1
+            ? null
+            : result.filePaths[0]!
+        },
+        worker: petWorker,
+      })
+      const petHandler = async (
+        request: CoreRequest,
+      ): Promise<CoreReply<unknown>> => {
+        if (request.method === 'pet.state') return petFlow.state()
+        if (request.method === 'pet.openImportDialog')
+          return petFlow.openImportDialog()
+        if (request.method === 'pet.importChosen')
+          return petFlow.importChosen(request.entry)
+        if (request.method === 'pet.select')
+          return petFlow.select(request.modelId)
+        return { ok: false, error: 'INVALID_REQUEST' }
+      }
       ipcMain.handle(
         'memo:request',
         createRequestHandler(
@@ -178,6 +214,7 @@ else {
             }
             return core.request(request)
           },
+          petHandler,
         ),
       )
       tray = createTrayController(
@@ -197,6 +234,7 @@ else {
   })
   app.on('before-quit', () => {
     quitting = true
+    petWorker?.stop()
     core?.stop()
   })
   app.on('will-quit', () => tray.destroy())

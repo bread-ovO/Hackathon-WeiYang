@@ -20,7 +20,7 @@ import {
   FolderSimple,
   type Icon as PhosphorIcon,
 } from '@phosphor-icons/react'
-import type { DesktopBridge, Health } from '@memo/contracts'
+import type { DesktopBridge, Health, PetModelIssue, PetState } from '@memo/contracts'
 import { demoTasks, type Task } from './demo'
 import {
   AppButton,
@@ -93,7 +93,93 @@ function App() {
     [notice, setNotice] = useState('')
   const [undo, setUndo] = useState<Task[] | null>(null)
   const [realCount, setRealCount] = useState(0)
+  const [petState, setPetState] = useState<PetState | null>(null),
+    [petBusy, setPetBusy] = useState(false),
+    [petChoice, setPetChoice] = useState<string[] | null>(null),
+    [petMessage, setPetMessage] = useState(''),
+    [petIssues, setPetIssues] = useState<PetModelIssue[] | null>(null)
   const searchRef = useRef<HTMLInputElement>(null)
+  const refreshPet = async () => {
+    // The pet worker starts alongside the app; tolerate a brief not-ready window.
+    for (let attempt = 0; attempt < 5; attempt++) {
+      const reply = await window.memo.pet.state()
+      if (reply.ok) {
+        setPetState(reply.data)
+        return
+      }
+      if (reply.error !== 'PET_UNAVAILABLE') return
+      await new Promise((r) => setTimeout(r, 300))
+    }
+  }
+  const finishImport = async (entry: string) => {
+    setPetChoice(null)
+    setPetBusy(true)
+    try {
+      const reply = await window.memo.pet.importChosen(entry)
+      if (!reply.ok) {
+        setPetMessage('导入没有完成，请重新选择目录。')
+        return
+      }
+      const result = reply.data
+      if (result.status === 'invalid') {
+        setPetIssues(result.issues)
+        setPetMessage('模型未通过校验，没有导入。')
+        return
+      }
+      setPetMessage(
+        result.status === 'duplicate'
+          ? '这个模型已经导入过，未重复复制。'
+          : '模型已导入，可在列表中设为当前。',
+      )
+      await refreshPet()
+    } finally {
+      setPetBusy(false)
+    }
+  }
+  const startPetImport = async () => {
+    setPetIssues(null)
+    setPetMessage('')
+    setPetBusy(true)
+    try {
+      const reply = await window.memo.pet.openImportDialog()
+      if (!reply.ok) {
+        setPetMessage('暂时无法打开目录选择。')
+        return
+      }
+      const choice = reply.data
+      if (choice.status === 'cancelled') return
+      if (choice.status === 'no-model') {
+        setPetMessage(
+          choice.cmo3Found
+            ? '目录里没有 .model3.json；.cmo3 是编辑工程文件，请先在 Cubism Editor 导出运行时模型。'
+            : '目录里没有找到 .model3.json 模型入口。',
+        )
+        return
+      }
+      if (choice.status === 'ready') {
+        await finishImport(choice.entry)
+        return
+      }
+      setPetChoice(choice.entries)
+    } finally {
+      setPetBusy(false)
+    }
+  }
+  const selectPetModel = async (modelId: string) => {
+    setPetBusy(true)
+    try {
+      const reply = await window.memo.pet.select(modelId)
+      if (reply.ok) {
+        setPetState(reply.data)
+        setPetMessage('已切换当前模型。')
+      } else setPetMessage('切换没有完成。')
+    } finally {
+      setPetBusy(false)
+    }
+  }
+  useEffect(() => {
+    if (page === '设置') void refreshPet()
+  }, [page])
   useEffect(() => {
     let active = true
     const refresh = async () => {
@@ -746,6 +832,82 @@ function App() {
                 当前为开发版本，数据库尚未加密，仅用于测试。未配置模型或应用凭据。
               </p>
             </section>
+            <section className="runtime" aria-label="桌宠模型">
+              <div className="section-heading">
+                <h2>桌宠模型</h2>
+                <span className="muted">
+                  {petState
+                    ? petState.currentModelId
+                      ? `已选 ${petState.models.length} 个模型`
+                      : `已导入 ${petState.models.length} 个模型，未选择`
+                    : '读取中'}
+                </span>
+              </div>
+              <p className="muted">
+                选择包含 .model3.json 的模型目录导入。首版不支持 .cmo3
+                工程文件；导入只复制校验通过的运行时资源。
+              </p>
+              {petState?.models.length ? (
+                <ul style={{ listStyle: 'none', padding: 0, margin: '12px 0' }}>
+                  {petState.models.map((model) => (
+                    <li
+                      key={model.id}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 8,
+                        padding: '6px 0',
+                      }}
+                    >
+                      <span style={{ flex: 1 }}>
+                        {model.entry}
+                        {model.id === petState.currentModelId ? (
+                          <span className="muted"> · 当前</span>
+                        ) : null}
+                      </span>
+                      {model.id !== petState.currentModelId && (
+                        <AppButton
+                          disabled={petBusy}
+                          onClick={() => void selectPetModel(model.id)}
+                        >
+                          设为当前
+                        </AppButton>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <AppButton disabled={petBusy} onClick={() => void startPetImport()}>
+                  导入模型目录
+                </AppButton>
+                {petBusy ? <span className="muted">处理中…</span> : null}
+              </div>
+              {petMessage ? (
+                <p className="muted" role="status">
+                  {petMessage}
+                </p>
+              ) : null}
+              {petIssues ? (
+                <ul
+                  style={{
+                    listStyle: 'none',
+                    padding: 0,
+                    maxHeight: 160,
+                    overflow: 'auto',
+                  }}
+                  aria-label="校验问题清单"
+                >
+                  {petIssues.map((issue, index) => (
+                    <li key={`${issue.code}-${issue.resource}-${index}`}>
+                      <span className="muted">
+                        {issue.resource} — {issue.message}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+            </section>
             <div className="connection-note">
               <h3>关于设计预览</h3>
               <p>
@@ -826,6 +988,22 @@ function App() {
             </AppButton>
           </div>
         </form>
+      </AppDialog>
+      <AppDialog open={petChoice !== null} onOpenChange={(open) => !open && setPetChoice(null)}>
+        <DialogTitle>选择要导入的模型</DialogTitle>
+        <DialogDescription className="muted">
+          这个目录里有多个 .model3.json，请选择一个导入。
+        </DialogDescription>
+        <div style={{ display: 'grid', gap: 8 }}>
+          {(petChoice ?? []).map((entry) => (
+            <AppButton key={entry} onClick={() => void finishImport(entry)}>
+              {entry}
+            </AppButton>
+          ))}
+          <AppButton className="secondary" onClick={() => setPetChoice(null)}>
+            取消
+          </AppButton>
+        </div>
       </AppDialog>
     </div>
   )
