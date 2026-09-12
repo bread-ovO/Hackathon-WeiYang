@@ -1,3 +1,6 @@
+import { createEventReceiver } from './receive'
+import { createEventContexts, migrateEventContexts } from './event-context'
+export type { StoredEventContext } from './event-context'
 import Database from 'better-sqlite3'
 import { createPlugins, migratePlugins } from './plugins'
 export type { HostPlugin, SafePlugin, PluginGrant, PluginActivation } from './plugins'
@@ -22,7 +25,7 @@ export function openStore(path:string) {
     db.pragma('foreign_keys = ON'); db.pragma('journal_mode = WAL')
     db.pragma('synchronous = FULL'); db.pragma('busy_timeout = 3000')
     const version = db.pragma('user_version', {simple:true}) as number
-    if (version > 6) throw new Error('DATABASE_TOO_NEW')
+    if (version > 7) throw new Error('DATABASE_TOO_NEW')
     if (version < 1) db.transaction(() => {
       db.exec(`
         CREATE TABLE source_instances (id TEXT PRIMARY KEY, cursor TEXT NOT NULL DEFAULT '');
@@ -48,17 +51,11 @@ export function openStore(path:string) {
     if (version < 4) migrateTaskEditing(db)
     if (version < 5) migrateSources(db)
     if (version < 6) migratePlugins(db)
-    const receive = db.transaction((event:SourceEvent, cursor:string) => {
-      // Do not implicitly authorize/register arbitrary source IDs during ingestion.
-      if (!db.prepare('SELECT id FROM source_instances WHERE id = ?').get(event.sourceInstanceId)) throw new Error('UNKNOWN_SOURCE')
-      const result = db.prepare(`INSERT INTO source_events
-        (source_id,external_id,revision,occurred_at,received_at,role,content) VALUES (?,?,?,?,?,?,?)
-        ON CONFLICT(source_id,external_id,revision) DO NOTHING`).run(event.sourceInstanceId,event.externalId,event.revision,event.occurredAt,new Date().toISOString(),event.role,event.text)
-      if (result.changes) db.prepare('INSERT INTO jobs(event_id) VALUES (?)').run(result.lastInsertRowid)
-      db.prepare('UPDATE source_instances SET cursor = ? WHERE id = ?').run(cursor,event.sourceInstanceId)
-      return {inserted:result.changes === 1}
-    })
+    if (version < 7) migrateEventContexts(db)
+    const contexts = createEventContexts(db)
+    const receive = createEventReceiver(db, contexts.record)
     return {
+      contexts: { get: contexts.get },
       plugins: createPlugins(db,receive),
       exports: createExports(db),
       sources: createSources(db,receive),

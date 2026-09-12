@@ -30,6 +30,7 @@ function slimState(value:unknown):PetState {
 export function createPetImportFlow({pickDirectory,worker,findEntries,now}:ImportFlowDeps){
   const session=new ImportSession(now)
   let busy=false,generation=0
+  let stateReading:Promise<CoreReply<PetState>>|null=null
   async function guarded<T>(operation:()=>Promise<CoreReply<T>>):Promise<CoreReply<T>>{
     if(busy)return {ok:false,error:'PET_UNAVAILABLE'}
     busy=true
@@ -82,10 +83,18 @@ export function createPetImportFlow({pickDirectory,worker,findEntries,now}:Impor
       })
     },
     state():Promise<CoreReply<PetState>>{
-      return guarded(async()=>{
-        const reply=await worker.request('list')
-        return reply.ok?{ok:true,data:slimState(reply.data)}:{ok:false,error:petErrorCode(reply.error)}
-      })
+      // Reads share one pending worker request and never acquire/release the
+      // mutation lock. The worker's bounded promise queue serializes store I/O.
+      if(stateReading)return stateReading
+      stateReading=(async():Promise<CoreReply<PetState>>=>{
+        try {
+          const reply=await worker.request('list')
+          return reply.ok?{ok:true,data:slimState(reply.data)}:{ok:false,error:petErrorCode(reply.error)}
+        } catch(error) {
+          return {ok:false,error:petErrorCode(error&&typeof error==='object'&&'code'in error?String(error.code):'PET_UNAVAILABLE')}
+        }
+      })().finally(()=>{stateReading=null})
+      return stateReading
     },
     select:(modelId:string|null)=>mutate('select',modelId),
     remove:(modelId:string)=>mutate('remove',modelId),

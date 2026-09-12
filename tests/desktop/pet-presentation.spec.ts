@@ -222,7 +222,7 @@ test('Haru plays one-shot motions and expressions, serializes plain-text bubbles
     await pick(app, optional)
     const choice = await main.evaluate(() => window.memo.pet.openImportDialog())
     if (!choice.ok || !('sessionId' in choice.data))
-      throw Error('OPTIONAL_CHOOSE_FAILED')
+      throw Error(`OPTIONAL_CHOOSE_FAILED: ${JSON.stringify(choice)}`)
     const copy = await main.evaluate(
       (id) => window.memo.pet.importChosen(id, 'Haru.model3.json'),
       choice.data.sessionId,
