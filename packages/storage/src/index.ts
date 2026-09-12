@@ -1,5 +1,7 @@
 import Database from 'better-sqlite3'
 import { createJobQueue } from './jobs'
+import { createCandidateSearch, migrateSearch } from './search'
+export type { SearchProjection, CandidateQuery, CandidateHit } from './search'
 export type { Job, JobLease, JobErrorCode } from './jobs'
 export { MAX_JOB_ATTEMPTS, JOB_LEASE_MS } from './jobs'
 import type { SourceEvent, Health } from '@memo/contracts'
@@ -10,7 +12,7 @@ export function openStore(path:string) {
     db.pragma('foreign_keys = ON'); db.pragma('journal_mode = WAL')
     db.pragma('synchronous = FULL'); db.pragma('busy_timeout = 3000')
     const version = db.pragma('user_version', {simple:true}) as number
-    if (version > 1) throw new Error('DATABASE_TOO_NEW')
+    if (version > 2) throw new Error('DATABASE_TOO_NEW')
     if (version < 1) db.transaction(() => {
       db.exec(`
         CREATE TABLE source_instances (id TEXT PRIMARY KEY, cursor TEXT NOT NULL DEFAULT '');
@@ -31,6 +33,7 @@ export function openStore(path:string) {
         PRAGMA user_version = 1;
       `)
     })()
+    if (version < 2) migrateSearch(db)
     const receive = db.transaction((event:SourceEvent, cursor:string) => {
       // Do not implicitly authorize/register arbitrary source IDs during ingestion.
       if (!db.prepare('SELECT id FROM source_instances WHERE id = ?').get(event.sourceInstanceId)) throw new Error('UNKNOWN_SOURCE')
@@ -43,6 +46,7 @@ export function openStore(path:string) {
     })
     return {
       jobs: createJobQueue(db),
+      search: createCandidateSearch(db),
       registerSource(id:string) { db.prepare('INSERT INTO source_instances(id) VALUES (?) ON CONFLICT DO NOTHING').run(id) },
       receive,
       health():Health { return {status:'ready',schemaVersion:db.pragma('user_version',{simple:true}) as number,
