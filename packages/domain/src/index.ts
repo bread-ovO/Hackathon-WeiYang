@@ -88,3 +88,5 @@ export function toggleInclusion(included: boolean): boolean { return !included }
 export function hasMinimumGithubScopes(scopes: string[]): boolean { const s=new Set(scopes); return s.has('repo:status') && s.has('pull_requests:read') }
 
 export function pullRequestEventKey(repo: string, number: number, updatedAt: string): string { return `${repo}#${number}@${updatedAt}` }
+
+export function withinDiskQuota(usedBytes: number, incomingBytes: number, limitBytes: number): boolean { return usedBytes>=0&&incomingBytes>=0&&limitBytes>=0&&usedBytes+incomingBytes<=limitBytes }

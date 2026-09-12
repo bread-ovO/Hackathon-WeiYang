@@ -48,3 +48,4 @@ export function editTaskTitle(task,title){if(!title.trim())throw new Error('INVA
 export function toggleInclusion(included){return !included;}
 export function hasMinimumGithubScopes(scopes){const s=new Set(scopes);return s.has('repo:status')&&s.has('pull_requests:read');}
 export function pullRequestEventKey(repo,number,updatedAt){return `${repo}#${number}@${updatedAt}`;}
+export function withinDiskQuota(used,incoming,limit){return used>=0&&incoming>=0&&limit>=0&&used+incoming<=limit;}
