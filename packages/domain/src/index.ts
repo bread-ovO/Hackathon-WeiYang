@@ -74,3 +74,5 @@ export function filterTasks(tasks: Task[], status?: TaskStatus, includeArchived 
 export function sortTimeline<T extends { occurredAt: string }>(items: T[]): T[] { return [...items].sort((a,b)=>Date.parse(a.occurredAt)-Date.parse(b.occurredAt)) }
 
 export function hasPluginPermission(granted: string[], requested: string): boolean { return granted.includes(requested) }
+
+export function encryptionStorageAvailable(provider: { encrypt?: unknown }|null): boolean { return !!provider && typeof provider.encrypt === 'function' }
