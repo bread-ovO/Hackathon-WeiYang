@@ -1,6 +1,6 @@
 import { utilityProcess, type UtilityProcess } from 'electron'
 import { randomUUID } from 'node:crypto'
-import type { CoreReply, CoreRequest } from '@memo/contracts'
+import type { CoreReply, HostRequest } from '@memo/contracts'
 export class CoreClient {
   private child: UtilityProcess | null = null
   private ready = false
@@ -55,7 +55,7 @@ export class CoreClient {
       }
     })
   }
-  request(request: CoreRequest): Promise<CoreReply<unknown>> {
+  request(request: HostRequest): Promise<CoreReply<unknown>> {
     if (!this.ready || !this.child || this.pending.size >= 32)
       return Promise.resolve({ ok: false, error: 'CORE_UNAVAILABLE' })
     const id = randomUUID()

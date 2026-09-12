@@ -1,4 +1,11 @@
 import {
+  sourcesRequestSchema,
+  importFileRequestSchema,
+  type ImportFileRequest,
+  type SourcesSnapshot,
+} from './sources'
+export * from './sources'
+import {
   workspaceRequestSchema,
   type WorkspaceSnapshot,
   type WorkspaceQuery,
@@ -92,7 +99,7 @@ export const healthRequestSchema = {
   additionalProperties: false,
 } as const
 const coreRequestSchema = {
-  oneOf: [healthRequestSchema, workspaceRequestSchema],
+  oneOf: [healthRequestSchema, workspaceRequestSchema, sourcesRequestSchema],
 } as const
 export type CoreRequest = FromSchema<typeof coreRequestSchema>
 const validateRequest = ajv.compile<CoreRequest>(coreRequestSchema)
@@ -106,6 +113,20 @@ export function parseCoreRequest(value: unknown): CoreRequest {
   )
     throw new Error('INVALID_REQUEST')
   return value
+}
+export type HostRequest =
+  | Exclude<CoreRequest, { method: 'sources.chooseFile' }>
+  | ImportFileRequest
+const validateImportFile = ajv.compile<ImportFileRequest>(
+  importFileRequestSchema,
+)
+/** Internal host validation never grants renderer access to a filesystem path. */
+export function parseHostRequest(value: unknown): HostRequest {
+  if (validateImportFile(value)) return value
+  const request = parseCoreRequest(value)
+  if (request.method === 'sources.chooseFile')
+    throw new Error('INVALID_REQUEST')
+  return request
 }
 export interface Health {
   status: 'ready'
@@ -127,6 +148,12 @@ export type CoreReply<T = Health> =
     }
 export interface DesktopBridge {
   health(): Promise<CoreReply>
+  sources: {
+    list(): Promise<CoreReply<SourcesSnapshot>>
+    chooseFile(projectId: string): Promise<CoreReply<SourcesSnapshot>>
+    sync(id: string): Promise<CoreReply<SourcesSnapshot>>
+    revoke(id: string): Promise<CoreReply<SourcesSnapshot>>
+  }
   workspace: {
     list(query?: WorkspaceQuery): Promise<CoreReply<WorkspaceSnapshot>>
     detail(

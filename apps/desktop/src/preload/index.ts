@@ -2,6 +2,18 @@ import { contextBridge, ipcRenderer } from 'electron'
 import type { DesktopBridge } from '@memo/contracts'
 const bridge: DesktopBridge = {
   health: () => ipcRenderer.invoke('memo:request', { method: 'health' }),
+  sources: Object.freeze({
+    list: () => ipcRenderer.invoke('memo:request', { method: 'sources.list' }),
+    chooseFile: (projectId) =>
+      ipcRenderer.invoke('memo:request', {
+        method: 'sources.chooseFile',
+        projectId,
+      }),
+    sync: (id) =>
+      ipcRenderer.invoke('memo:request', { method: 'sources.sync', id }),
+    revoke: (id) =>
+      ipcRenderer.invoke('memo:request', { method: 'sources.revoke', id }),
+  }),
   workspace: Object.freeze({
     list: (query) =>
       ipcRenderer.invoke('memo:request', {

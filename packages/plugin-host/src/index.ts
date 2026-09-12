@@ -1,2 +1,3 @@
 export * from './manifest'
-// Protocol only. No arbitrary plugin code is loaded or executed by this package.
+export * from './local-jsonl'
+// Declarative readers only; arbitrary plugin code is never loaded or executed.

@@ -1,3 +1,4 @@
+import { SourceImport } from './source-import'
 import { RealWorkspace } from './real-workspace'
 import React, { useEffect, useRef, useState } from 'react'
 import { createRoot } from 'react-dom/client'
@@ -668,10 +669,11 @@ function App() {
             <p className="page-description">
               把工作发生的地方连接起来。你决定读取哪些内容。
             </p>
+            <SourceImport />
             <div className="connection-summary">
               <Icon name="link" />
-              <span>尚无已连接的应用</span>
-              <small>连接能力正在开发中</small>
+              <span>可手动导入本地 JSONL 导出</span>
+              <small>飞书和 GitHub 自动连接仍在开发</small>
             </div>
             <div className="section-heading">
               <h3>可接入方向</h3>
