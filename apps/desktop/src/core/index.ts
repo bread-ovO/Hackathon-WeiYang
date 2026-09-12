@@ -1,6 +1,7 @@
+import { createSourceHandler } from './sources'
 import { handleWorkspace } from './workspace'
 import { openStore } from '@memo/storage'
-import { parseCoreRequest, type CoreReply } from '@memo/contracts'
+import { parseHostRequest, type CoreReply } from '@memo/contracts'
 const parentPort = (
   process as unknown as {
     parentPort: {
@@ -12,7 +13,8 @@ const parentPort = (
 const path = process.argv[2]
 if (!path || !parentPort) throw new Error('CORE_STARTUP_INVALID')
 const store = openStore(path)
-parentPort.on('message', ({ data }) => {
+const sources = createSourceHandler(store)
+parentPort.on('message', async ({ data }) => {
   if (
     !data ||
     typeof data !== 'object' ||
@@ -23,13 +25,18 @@ parentPort.on('message', ({ data }) => {
     return
   let reply: CoreReply<unknown>
   try {
-    const request = parseCoreRequest(data.request)
+    const request = parseHostRequest(data.request)
     reply = {
       ok: true,
       data:
         request.method === 'health'
           ? store.health()
-          : handleWorkspace(store, request),
+          : request.method === 'sources.list' ||
+              request.method === 'sources.importFile' ||
+              request.method === 'sources.sync' ||
+              request.method === 'sources.revoke'
+            ? await sources(request)
+            : handleWorkspace(store, request),
     }
   } catch (error) {
     const code = error instanceof Error ? error.message : ''

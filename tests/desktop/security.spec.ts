@@ -80,6 +80,7 @@ test('real IPC rejects foreign windows and malformed requests; source text stays
     ).toBeVisible()
     expect(await page.evaluate(() => Object.keys(window.memo))).toEqual([
       'health',
+      'sources',
       'workspace',
     ])
     expect(
@@ -92,6 +93,9 @@ test('real IPC rejects foreign windows and malformed requests; source text stays
       'createTask',
       'updateTask',
     ])
+    expect(await page.evaluate(() => Object.keys(window.memo.sources))).toEqual(
+      ['list', 'chooseFile', 'sync', 'revoke'],
+    )
     // Privileged test harness only: inject a temporary probe, never ship raw IPC in production preload.
     const preload = join(data, 'probe.cjs')
     await writeFile(
@@ -147,6 +151,23 @@ test('real IPC rejects foreign windows and malformed requests; source text stays
       [{ ...update, expectedVersion: '1' }],
       [{ ...update, expectedVersion: Number.MAX_SAFE_INTEGER + 1 }],
       [{ method: 'workspace.list', query: { limit: 101 } }],
+      [
+        {
+          method: 'sources.importFile',
+          projectId: 'p',
+          path: '/tmp/forged.jsonl',
+        },
+      ],
+      [
+        {
+          method: 'sources.chooseFile',
+          projectId: 'p',
+          path: '/tmp/forged.jsonl',
+        },
+      ],
+      [{ method: 'sources.list', cursor: 'forged' }],
+      [{ method: 'sources.sync', id: 's', path: '/tmp/forged.jsonl' }],
+      [{ method: 'sources.revoke', id: 's', grantVersion: 99 }],
       [
         {
           method: 'workspace.detail',
@@ -273,6 +294,23 @@ test('real IPC rejects foreign windows and malformed requests; source text stays
           request,
         ),
       ).toEqual({ ok: false, error: 'INVALID_REQUEST' })
+    for (const request of [
+      { method: 'sources.list' },
+      { method: 'sources.chooseFile', projectId: 'p' },
+      { method: 'sources.sync', id: 's' },
+      { method: 'sources.revoke', id: 's' },
+    ])
+      expect(
+        await foreign.evaluate(
+          (request) =>
+            (window as unknown as ProbeWindow).securityProbe.request(request),
+          request,
+        ),
+      ).toEqual({ ok: false, error: 'INVALID_REQUEST' })
+    expect(await page.evaluate(() => window.memo.sources.list())).toEqual({
+      ok: true,
+      data: { sources: [] },
+    })
     // Production CSP denies embedding even a same-origin frame.
     await page.evaluate((url) => {
       const frame = document.createElement('iframe')
