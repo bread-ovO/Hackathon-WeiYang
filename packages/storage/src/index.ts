@@ -1,4 +1,7 @@
 import Database from 'better-sqlite3'
+import { createJobQueue } from './jobs'
+export type { Job, JobLease, JobErrorCode } from './jobs'
+export { MAX_JOB_ATTEMPTS, JOB_LEASE_MS } from './jobs'
 import type { SourceEvent, Health } from '@memo/contracts'
 
 export function openStore(path:string) {
@@ -39,6 +42,7 @@ export function openStore(path:string) {
       return {inserted:result.changes === 1}
     })
     return {
+      jobs: createJobQueue(db),
       registerSource(id:string) { db.prepare('INSERT INTO source_instances(id) VALUES (?) ON CONFLICT DO NOTHING').run(id) },
       receive,
       health():Health { return {status:'ready',schemaVersion:db.pragma('user_version',{simple:true}) as number,
