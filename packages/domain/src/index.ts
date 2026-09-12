@@ -76,3 +76,5 @@ export function sortTimeline<T extends { occurredAt: string }>(items: T[]): T[] 
 export function hasPluginPermission(granted: string[], requested: string): boolean { return granted.includes(requested) }
 
 export function encryptionStorageAvailable(provider: { encrypt?: unknown }|null): boolean { return !!provider && typeof provider.encrypt === 'function' }
+
+export function normalizeConversationRole(role: unknown): 'user'|'assistant'|'tool'|'unknown' { return role==='user'||role==='assistant'||role==='tool' ? role : 'unknown' }

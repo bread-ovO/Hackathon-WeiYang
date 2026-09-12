@@ -42,3 +42,4 @@ export function filterTasks(tasks,status,includeArchived=false){return tasks.fil
 export function sortTimeline(items){return [...items].sort((a,b)=>Date.parse(a.occurredAt)-Date.parse(b.occurredAt));}
 export function hasPluginPermission(granted,requested){return granted.includes(requested);}
 export function encryptionStorageAvailable(provider){return !!provider&&typeof provider.encrypt==='function';}
+export function normalizeConversationRole(role){return role==='user'||role==='assistant'||role==='tool'?role:'unknown';}
