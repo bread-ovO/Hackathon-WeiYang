@@ -43,3 +43,4 @@ export function sortTimeline(items){return [...items].sort((a,b)=>Date.parse(a.o
 export function hasPluginPermission(granted,requested){return granted.includes(requested);}
 export function encryptionStorageAvailable(provider){return !!provider&&typeof provider.encrypt==='function';}
 export function normalizeConversationRole(role){return role==='user'||role==='assistant'||role==='tool'?role:'unknown';}
+export function canResumeFile(previous,current){return previous.dev===current.dev&&previous.ino===current.ino;}

@@ -78,3 +78,5 @@ export function hasPluginPermission(granted: string[], requested: string): boole
 export function encryptionStorageAvailable(provider: { encrypt?: unknown }|null): boolean { return !!provider && typeof provider.encrypt === 'function' }
 
 export function normalizeConversationRole(role: unknown): 'user'|'assistant'|'tool'|'unknown' { return role==='user'||role==='assistant'||role==='tool' ? role : 'unknown' }
+
+export function canResumeFile(previous: { dev: number; ino: number }, current: { dev: number; ino: number }): boolean { return previous.dev===current.dev && previous.ino===current.ino }
