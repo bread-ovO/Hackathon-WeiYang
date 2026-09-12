@@ -9,7 +9,7 @@ export interface ExportScope {
 }
 export interface ExportBundle {
   selection: { mode: 'project' } | { mode: 'tasks'; taskIds: string[] }
-  schemaVersion: 1
+  schemaVersion: 2
   exportedAt: string
   project: { id: string; name: string }
   sourceBodiesIncluded: boolean
@@ -45,6 +45,25 @@ export interface ExportBundle {
     inputRefs: number[]
     payload: Json
     supersedes: number | null
+  }[]
+  /** Rule decisions are distinct from the manual audit trail. Added in schema v2. */
+  ruleDecisions: {
+    id: number
+    taskId: string
+    eventId: number
+    actor: 'rule'
+    outcome: 'created' | 'review_required'
+    reason: string
+    createdAt: string
+    policyVersion: 'explicit-commitment-v1'
+  }[]
+  candidateEvidence: {
+    id: number
+    taskId: string
+    eventId: number
+    quoteStart: number
+    quoteEnd: number
+    quote?: string
   }[]
   revisions: {
     taskId: string
@@ -266,7 +285,7 @@ export function createExports(db: Database.Database) {
       if (scope.taskIds && tasks.length !== scope.taskIds.length)
         throw new Error('EXPORT_TASK_NOT_IN_PROJECT')
       const bundle: ExportBundle = {
-        schemaVersion: 1,
+        schemaVersion: 2,
         selection: scope.taskIds
           ? { mode: 'tasks', taskIds: [...scope.taskIds].sort() }
           : { mode: 'project' },
@@ -277,6 +296,8 @@ export function createExports(db: Database.Database) {
         criteriaSets: [],
         evidence: [],
         decisions: [],
+        ruleDecisions: [],
+        candidateEvidence: [],
         revisions: [],
         manualOverrides: [],
         events: [],
@@ -395,6 +416,92 @@ export function createExports(db: Database.Database) {
           } as ExportBundle['decisions'][number]
         },
       )
+      bundle.ruleDecisions = rows(
+        `SELECT d.id,d.project_id AS projectId,d.task_id AS taskId,d.event_id AS eventId,d.actor,d.outcome,d.reason,d.created_at AS createdAt,r.rule_version AS policyVersion,r.project_id AS resultProject,r.outcome AS resultOutcome,r.reason AS resultReason
+          FROM processing_decisions d LEFT JOIN processing_results r ON r.event_id=d.event_id
+          WHERE d.task_id IN (${selected}) ORDER BY d.id`,
+        ids,
+        (r) => {
+          num(r.id, 1)
+          str(r.taskId, 256)
+          addRef(r.eventId)
+          if (
+            r.projectId !== scope.projectId ||
+            r.resultProject !== scope.projectId ||
+            r.outcome !== r.resultOutcome ||
+            r.reason !== r.resultReason
+          )
+            fail()
+          one(r.actor, ['rule'])
+          one(r.outcome, ['created', 'review_required'])
+          one(r.reason, [
+            'explicit_commitment',
+            'plan_change',
+            'candidate_limit',
+            'source_revision_requires_review',
+          ])
+          one(r.policyVersion, ['explicit-commitment-v1'])
+          str(r.createdAt, 32)
+          if (
+            !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(
+              r.createdAt,
+            ) ||
+            !Number.isFinite(Date.parse(r.createdAt))
+          )
+            fail()
+          return {
+            id: r.id,
+            taskId: r.taskId,
+            eventId: r.eventId,
+            actor: 'rule',
+            outcome: r.outcome,
+            reason: r.reason,
+            createdAt: r.createdAt,
+            policyVersion: r.policyVersion,
+          } as ExportBundle['ruleDecisions'][number]
+        },
+      )
+      const ruleLinks = new Set(
+        bundle.ruleDecisions
+          .filter((d) => d.outcome === 'created')
+          .map((d) => JSON.stringify([d.taskId, d.eventId])),
+      )
+      bundle.candidateEvidence = rows(
+        `SELECT p.id,p.project_id AS projectId,p.task_id AS taskId,p.event_id AS eventId,p.quote_start AS quoteStart,p.quote_end AS quoteEnd,p.quote,e.content
+         FROM processing_evidence p LEFT JOIN source_events e ON e.id=p.event_id WHERE p.task_id IN (${selected}) ORDER BY p.id`,
+        ids,
+        (r) => {
+          num(r.id, 1)
+          str(r.taskId, 256)
+          addRef(r.eventId)
+          num(r.quoteStart)
+          num(r.quoteEnd, 1)
+          str(r.quote, 65536)
+          str(r.content, 65536)
+          if (
+            r.projectId !== scope.projectId ||
+            !ruleLinks.has(JSON.stringify([r.taskId, r.eventId])) ||
+            r.quoteStart >= r.quoteEnd ||
+            r.quoteEnd > r.content.length ||
+            r.content.slice(r.quoteStart, r.quoteEnd) !== r.quote
+          )
+            fail()
+          return {
+            id: r.id,
+            taskId: r.taskId,
+            eventId: r.eventId,
+            quoteStart: r.quoteStart,
+            quoteEnd: r.quoteEnd,
+            ...(scope.includeSourceText ? { quote: r.quote } : {}),
+          } as ExportBundle['candidateEvidence'][number]
+        },
+      )
+      const citedRuleLinks = new Set(
+        bundle.candidateEvidence.map((e) =>
+          JSON.stringify([e.taskId, e.eventId]),
+        ),
+      )
+      for (const link of ruleLinks) if (!citedRuleLinks.has(link)) fail()
       const decisions = new Map(bundle.decisions.map((d) => [d.id, d]))
       for (const d of bundle.decisions) {
         if (
@@ -454,6 +561,14 @@ export function createExports(db: Database.Database) {
           first.snapshot.projectId === null && first.decisionId === null
         if (!legacyBaseline && first.version !== 1) fail()
         if (
+          !legacyBaseline &&
+          first.snapshot.manualVersion === 0 &&
+          !bundle.ruleDecisions.some(
+            (d) => d.taskId === task.id && d.outcome === 'created',
+          )
+        )
+          fail()
+        if (
           first.version > task.version ||
           history.length !== task.version - first.version + 1
         )
@@ -492,8 +607,8 @@ export function createExports(db: Database.Database) {
         const r = db
           .prepare(
             `SELECT e.id,e.source_id AS sourceInstanceId,e.external_id AS externalId,e.revision,e.occurred_at AS occurredAt,e.received_at AS receivedAt,e.role,
-        CASE WHEN g.source_id IS NULL THEN 'unmanaged' WHEN g.revoked=1 THEN 'revoked' ELSE 'active' END AS sourceStatus${scope.includeSourceText ? ',e.content AS text' : ''}
-        FROM source_events e LEFT JOIN source_grants g ON g.source_id=e.source_id JOIN event_projects p ON p.event_id=e.id AND p.project_id=? WHERE e.id=?`,
+        CASE WHEN g.source_id IS NOT NULL THEN CASE WHEN g.revoked=1 THEN 'revoked' ELSE 'active' END WHEN h.source_instance_id IS NOT NULL THEN CASE WHEN b.source_instance_id=e.source_id AND b.enabled=1 AND b.uninstalled=0 THEN 'active' ELSE 'revoked' END ELSE 'unmanaged' END AS sourceStatus${scope.includeSourceText ? ',e.content AS text' : ''}
+        FROM source_events e LEFT JOIN source_grants g ON g.source_id=e.source_id LEFT JOIN plugin_source_history h ON h.source_instance_id=e.source_id LEFT JOIN plugin_bindings b ON b.id=h.plugin_id JOIN event_projects p ON p.event_id=e.id AND p.project_id=? WHERE e.id=?`,
           )
           .get(scope.projectId, eventId) as Record<string, unknown> | undefined
         if (!r) fail()

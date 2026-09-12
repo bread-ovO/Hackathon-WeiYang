@@ -80,6 +80,7 @@ test('real IPC rejects foreign windows and malformed requests; source text stays
     ).toBeVisible()
     expect(await page.evaluate(() => Object.keys(window.memo))).toEqual([
       'pet',
+      'processing',
       'health',
       'plugins',
       'credentials',
@@ -156,6 +157,9 @@ test('real IPC rejects foreign windows and malformed requests; source text stays
       [],
       [null],
       [{ method: 'readFile', path: '/private' }],
+      [{ method: 'processing.configure', enabled: 'true' }],
+      [{ method: 'processing.configure', enabled: false, projectId: 'forged' }],
+      [{ method: 'processing.commit', proposal: {} }],
       [
         {
           method: 'pet.configureSpeech',
@@ -401,6 +405,21 @@ test('real IPC rejects foreign windows and malformed requests; source text stays
       await foreign.loadURL(url)
     }, url)
     const foreign = await foreignReady
+    expect(
+      await page.evaluate(() => Object.keys(window.memo.processing)),
+    ).toEqual(['status', 'configure'])
+    expect(
+      await foreign.evaluate(() =>
+        (window as unknown as ProbeWindow).securityProbe.request({
+          method: 'processing.configure',
+          enabled: false,
+        }),
+      ),
+    ).toEqual({ ok: false, error: 'INVALID_REQUEST' })
+    const processingStatus = await page.evaluate(() =>
+      window.memo.processing.status(),
+    )
+    expect(processingStatus.ok && processingStatus.data.enabled).toBe(true)
     expect(
       await foreign.evaluate(() =>
         (window as unknown as ProbeWindow).securityProbe.request({

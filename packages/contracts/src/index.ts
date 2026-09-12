@@ -1,3 +1,5 @@
+import { processingRequestSchema, type ProcessingStatus } from './processing'
+export * from './processing'
 export * from './pet-actions'
 import {
   petRequestSchemas,
@@ -136,6 +138,7 @@ export const healthRequestSchema = {
 const coreRequestSchema = {
   oneOf: [
     healthRequestSchema,
+    processingRequestSchema,
     workspaceRequestSchema,
     sourcesRequestSchema,
     exportSaveRequestSchema,
@@ -285,6 +288,10 @@ export type CoreReply<T = Health> =
         | 'STORAGE_LIMIT'
     }
 export interface DesktopBridge {
+  processing: {
+    status(): Promise<CoreReply<ProcessingStatus>>
+    configure(enabled: boolean): Promise<CoreReply<ProcessingStatus>>
+  }
   pet: {
     configureSpeech(patch: PetSpeechPatch): Promise<CoreReply<PetState>>
     play(actionId: string): Promise<CoreReply<PetState>>

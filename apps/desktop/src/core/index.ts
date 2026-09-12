@@ -1,6 +1,7 @@
 import { handlePluginHost } from './plugins'
 import { createSourceHandler } from './sources'
 import { handleWorkspace } from './workspace'
+import { createLocalProcessing } from './processing'
 import { openStore } from '@memo/storage'
 import { parseHostRequest, type CoreReply } from '@memo/contracts'
 const parentPort = (
@@ -15,6 +16,7 @@ const path = process.argv[2]
 if (!path || !parentPort) throw new Error('CORE_STARTUP_INVALID')
 const store = openStore(path)
 const sources = createSourceHandler(store)
+const processing = createLocalProcessing(store)
 parentPort.on('message', async ({ data }) => {
   if (
     !data ||
@@ -31,24 +33,28 @@ parentPort.on('message', async ({ data }) => {
     reply = {
       ok: true,
       data:
-        request.method === 'pluginHost.list' ||
-        request.method === 'pluginHost.get' ||
-        request.method === 'pluginHost.activate' ||
-        request.method === 'pluginHost.disable' ||
-        request.method === 'pluginHost.uninstall' ||
-        request.method === 'pluginHost.receiveBatch' ||
-        request.method === 'pluginHost.recordError'
-          ? handlePluginHost(store, request)
-          : request.method === 'exports.build'
-            ? store.exports.build(request)
-            : request.method === 'health'
-              ? store.health()
-              : request.method === 'sources.list' ||
-                  request.method === 'sources.importFile' ||
-                  request.method === 'sources.sync' ||
-                  request.method === 'sources.revoke'
-                ? await sources(request)
-                : handleWorkspace(store, request),
+        request.method === 'processing.status'
+          ? processing.status()
+          : request.method === 'processing.configure'
+            ? processing.configure(request.enabled)
+            : request.method === 'pluginHost.list' ||
+                request.method === 'pluginHost.get' ||
+                request.method === 'pluginHost.activate' ||
+                request.method === 'pluginHost.disable' ||
+                request.method === 'pluginHost.uninstall' ||
+                request.method === 'pluginHost.receiveBatch' ||
+                request.method === 'pluginHost.recordError'
+              ? handlePluginHost(store, request)
+              : request.method === 'exports.build'
+                ? store.exports.build(request)
+                : request.method === 'health'
+                  ? store.health()
+                  : request.method === 'sources.list' ||
+                      request.method === 'sources.importFile' ||
+                      request.method === 'sources.sync' ||
+                      request.method === 'sources.revoke'
+                    ? await sources(request)
+                    : handleWorkspace(store, request),
     }
   } catch (error) {
     const code = error instanceof Error ? error.message : ''
@@ -71,5 +77,9 @@ parentPort.on('message', async ({ data }) => {
   }
   parentPort.postMessage({ id: data.id, reply })
 })
-process.on('exit', () => store.close())
+process.on('exit', () => {
+  processing.dispose()
+  store.close()
+})
 parentPort.postMessage({ ready: true })
+processing.start()

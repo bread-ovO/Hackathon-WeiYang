@@ -156,7 +156,25 @@ export interface WorkspaceSnapshot {
   totalCount: number
   activeCount: number
 }
+export interface CandidateProvenance {
+  quoteKind: 'exact' | 'revision_excerpt'
+  policyVersion: string
+  actor: 'rule'
+  outcome: 'created' | 'review_required'
+  sourceStatus: 'active' | 'revoked' | 'uninstalled' | 'unknown'
+  revisionStatus: 'current' | 'review_required'
+  eventId: number
+  sourceInstanceId: string
+  externalId: string
+  revision: string
+  quoteStart: number
+  quoteEnd: number
+  quote: string
+  reason: string
+  createdAt: string
+}
 export interface WorkspaceDetail {
+  provenance?: CandidateProvenance[]
   task: WorkspaceTask
   criteria: {
     version: number

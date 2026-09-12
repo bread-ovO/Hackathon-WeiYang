@@ -7,3 +7,6 @@ export function receiveEvent(store:EventStore, input:unknown, cursor:string): { 
   if (cursor.length > 4096) throw new Error('CURSOR_TOO_LARGE')
   return store.receive(parseSourceEvent(input), cursor)
 }
+
+export { prepareEventProcessing } from './event-processing'
+export type { EventProcessingInput, PreparedEventProcessing } from './event-processing'

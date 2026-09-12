@@ -36,6 +36,7 @@ test('packaged renderer connects to isolated SQLite core without exposing Node',
       node: 'undefined',
       keys: [
         'pet',
+        'processing',
         'health',
         'plugins',
         'credentials',
@@ -59,7 +60,7 @@ test('packaged renderer connects to isolated SQLite core without exposing Node',
     expect(reply.ok).toBe(true)
     if (reply.ok) {
       expect(reply.data.eventCount).toBe(0)
-      expect(reply.data.schemaVersion).toBe(7)
+      expect(reply.data.schemaVersion).toBe(8)
     }
     // Terminate only our named child process and verify a different, healthy core replaces it.
     const oldPid = await app.evaluate(({ app }) => {

@@ -106,7 +106,7 @@ export function SourceImport() {
           onClick={() =>
             void run(
               () => window.memo.sources.chooseFile(project),
-              '导出记录已接收；事项识别尚未启用。',
+              '导出记录已接收。本地有限规则会整理候选；若已暂停，请在上方继续整理。',
             )
           }
         >

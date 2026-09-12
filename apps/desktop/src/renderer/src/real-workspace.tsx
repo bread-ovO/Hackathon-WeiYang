@@ -34,6 +34,36 @@ export function RealWorkspace({
   const [selected, setSelected] = useState<string | null>(null)
   const seq = useRef(0),
     mutating = useRef(false)
+  const [newResults, setNewResults] = useState(false)
+  const processed = useRef<number | null>(null)
+  useEffect(() => {
+    let active = true,
+      checking = false
+    const check = async () => {
+      if (checking || document.hidden) return
+      checking = true
+      try {
+        const reply = await window.memo.processing.status()
+        if (!active || !reply.ok) return
+        if (
+          processed.current !== null &&
+          reply.data.processedCount !== processed.current
+        )
+          setNewResults(true)
+        processed.current = reply.data.processedCount
+      } catch {
+        /* list remains usable while the local core reconnects */
+      } finally {
+        checking = false
+      }
+    }
+    void check()
+    const timer = window.setInterval(() => void check(), 5000)
+    return () => {
+      active = false
+      window.clearInterval(timer)
+    }
+  }, [])
   const current = data.tasks.find((t) => t.id === selected)
   const filters = JSON.stringify({
     ...(project ? { projectId: project } : {}),
@@ -289,6 +319,20 @@ export function RealWorkspace({
           {message}
         </p>
       )}
+      {newResults && (
+        <div className="source-import-actions" role="status">
+          <span>有新的整理结果，刷新列表后查看。请先保存正在编辑的内容。</span>
+          <AppButton
+            disabled={saving || busy}
+            onClick={() => {
+              setNewResults(false)
+              void load()
+            }}
+          >
+            刷新整理结果
+          </AppButton>
+        </div>
+      )}
       <div className={`work-body ${current ? 'has-detail' : ''}`}>
         <section className="task-list" aria-label="事项列表">
           <div className="list-caption">
@@ -345,7 +389,8 @@ export function RealWorkspace({
             </AppButton>
           )}
           <div className="list-foot">
-            人工事项保存在本机 · 来源自动采集尚未接入
+            事项保存在本机 ·
+            已支持有限规则候选；飞书/GitHub 专用自动采集与模型语义识别尚未接通
           </div>
         </section>
         {current && (

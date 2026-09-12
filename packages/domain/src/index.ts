@@ -93,3 +93,6 @@ export function withinDiskQuota(usedBytes: number, incomingBytes: number, limitB
 
 export { PET_SPEECH_DEFAULTS, PET_SPEECH_LINES, PET_SPEECH_DAILY_LIMIT, PET_SPEECH_RECENT_LIMIT, PET_SPEECH_RESUME_GAP_MS, createPetSpeechState, parsePetSpeechState, configurePetSpeech, tickPetSpeech, isPetSpeechQuiet } from './pet-speech'
 export type { PetSpeechSettings, PetSpeechState, PetSpeechClock, PetSpeechEnvironment, PetSpeechDecision, PetSpeechReason } from './pet-speech'
+
+export { EXPLICIT_COMMITMENT_VERSION, MAX_EXPLICIT_COMMITMENTS, extractExplicitCommitments } from './commitment'
+export type { ExplicitCommitment, ExplicitCommitmentResult } from './commitment'
