@@ -27,3 +27,4 @@ export function canAutoComplete(risk,evidence){return risk==='low'&&evidence==='
 export function acceptRevision(current,incoming){return Number.isInteger(incoming)&&incoming>current;}
 export function reevaluateAfterRetraction(status,retracted){return retracted&&status==='sufficient'?'partial':status;}
 export function mergeTaskIds(primary,duplicates){if(!primary.trim()||duplicates.some(id=>!id.trim()||id===primary))throw new Error('INVALID_TASK_MERGE');return {primary,duplicates:[...new Set(duplicates)]};}
+export function splitTaskId(parent,children){if(!parent.trim()||children.length<2||children.some(id=>!id.trim()||id===parent))throw new Error('INVALID_TASK_SPLIT');return [...new Set(children)];}
