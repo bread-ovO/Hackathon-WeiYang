@@ -24,7 +24,7 @@ export function parseDeadline(value: string): string | null {
 }
 
 export interface ProgressCandidate { kind: 'progress' | 'change'; text: string }
-export function extractProgressCandidates(text: string): ProgressCandidate[] { return text.split(/\n+/).map(x=>x.trim()).filter(Boolean).flatMap(line => line.includes('完成') ? [{kind:'progress',text:line}] : /更新|变更|改为/.test(line) ? [{kind:'change',text:line}] : []) }
+export function extractProgressCandidates(text: string): ProgressCandidate[] { return text.split(/\n+/).map(x=>x.trim()).filter(Boolean).flatMap<ProgressCandidate>(line => line.includes('完成') ? [{kind:'progress',text:line}] : /更新|变更|改为/.test(line) ? [{kind:'change',text:line}] : []) }
 
 export function linkCrossSourceCandidates(ids: string[]): string[][] { const groups = new Map<string,string[]>(); for (const id of ids) { const key=id.trim().toLowerCase(); if (!key) continue; groups.set(key,[...(groups.get(key) ?? []),id]) } return [...groups.values()].filter(g=>g.length>1) }
 
