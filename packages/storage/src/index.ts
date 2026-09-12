@@ -1,6 +1,6 @@
 import Database from 'better-sqlite3'
-import { createTaskModel, migrateTaskModel } from './task-model'
-export type { StoredTask, StoredTaskStatus, StoredAdmission, ManualActor, TaskExpectation, CriterionInput, EvidenceInput, TaskPatch } from './task-model'
+import { createTaskModel, migrateTaskModel, migrateTaskEditing } from './task-model'
+export type { StoredTask, StoredTaskStatus, StoredAdmission, ManualActor, TaskExpectation, CriterionInput, EvidenceInput, TaskPatch, TaskPageQuery, TaskPage, TaskDecisionSummary } from './task-model'
 import { createJobQueue } from './jobs'
 import { createCandidateSearch, migrateSearch } from './search'
 export type { SearchProjection, CandidateQuery, CandidateHit } from './search'
@@ -14,7 +14,7 @@ export function openStore(path:string) {
     db.pragma('foreign_keys = ON'); db.pragma('journal_mode = WAL')
     db.pragma('synchronous = FULL'); db.pragma('busy_timeout = 3000')
     const version = db.pragma('user_version', {simple:true}) as number
-    if (version > 3) throw new Error('DATABASE_TOO_NEW')
+    if (version > 4) throw new Error('DATABASE_TOO_NEW')
     if (version < 1) db.transaction(() => {
       db.exec(`
         CREATE TABLE source_instances (id TEXT PRIMARY KEY, cursor TEXT NOT NULL DEFAULT '');
@@ -37,6 +37,7 @@ export function openStore(path:string) {
     })()
     if (version < 2) migrateSearch(db)
     if (version < 3) migrateTaskModel(db)
+    if (version < 4) migrateTaskEditing(db)
     const receive = db.transaction((event:SourceEvent, cursor:string) => {
       // Do not implicitly authorize/register arbitrary source IDs during ingestion.
       if (!db.prepare('SELECT id FROM source_instances WHERE id = ?').get(event.sourceInstanceId)) throw new Error('UNKNOWN_SOURCE')

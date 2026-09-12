@@ -1,12 +1,28 @@
 import { randomUUID } from 'node:crypto'
 import type { openStore } from '@memo/storage'
-import type { WorkspaceRequest, WorkspaceSnapshot } from '@memo/contracts'
+import type {
+  WorkspaceRequest,
+  WorkspaceSnapshot,
+  WorkspaceDetail,
+} from '@memo/contracts'
 export function handleWorkspace(
   store: ReturnType<typeof openStore>,
   request: WorkspaceRequest,
-): WorkspaceSnapshot {
+): WorkspaceSnapshot | WorkspaceDetail {
   const by = { actorId: 'local-user', reason: '用户在我的工作区手动操作' }
   switch (request.method) {
+    case 'workspace.detail': {
+      const task = store.tasks.get(request.projectId, request.id)
+      if (!task) throw new Error('TASK_NOT_IN_PROJECT')
+      return {
+        task,
+        criteria: store.tasks.getCriteria(
+          request.projectId,
+          request.id,
+          request.criteriaVersion,
+        ),
+      }
+    }
     case 'workspace.createProject':
       store.tasks.createProject(randomUUID(), request.name)
       break
@@ -34,13 +50,28 @@ export function handleWorkspace(
         by,
       )
       break
+    case 'workspace.replaceCriteria':
+      store.tasks.replaceCriteria(
+        {
+          projectId: request.projectId,
+          taskId: request.id,
+          expectedVersion: request.expectedVersion,
+          expectedCriteriaVersion: request.expectedCriteriaVersion,
+          expectedManualVersion: request.expectedManualVersion,
+        },
+        request.criteria,
+        by,
+      )
+      break
   }
-  const projects = store.tasks.listProjects()
+  const page = store.tasks.listPage(
+    request.method === 'workspace.list' ? request.query : undefined,
+  )
   return {
-    projects,
-    tasks: [
-      ...projects.flatMap((p) => store.tasks.list(p.id)),
-      ...store.tasks.listUnassigned(),
-    ],
+    projects: store.tasks.listProjects(),
+    tasks: page.items,
+    nextCursor: page.nextCursor,
+    totalCount: page.totalCount,
+    activeCount: page.activeCount,
   }
 }

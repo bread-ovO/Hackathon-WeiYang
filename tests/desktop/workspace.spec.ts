@@ -38,7 +38,9 @@ test('manual workspace persists tasks, versions and archive without fabricating 
     await expect(
       page.getByText('证据：尚未核验', { exact: true }),
     ).toBeVisible()
-    const snapshot = await page.evaluate(() => window.memo.workspace.list())
+    const snapshot = await page.evaluate(() =>
+      window.memo.workspace.list({ archive: 'all' }),
+    )
     if (!snapshot.ok) throw new Error('WORKSPACE_UNAVAILABLE')
     const task = snapshot.data.tasks[0]!
     await page.getByLabel('编辑事项标题').fill('已修改标题')
@@ -60,6 +62,41 @@ test('manual workspace persists tasks, versions and archive without fabricating 
         task,
       ),
     ).toEqual({ ok: false, error: 'VERSION_CONFLICT' })
+    await page.getByLabel('截止时间（本机时区）').fill('2026-10-20T17:30')
+    await page
+      .getByRole('button', { name: '保存截止时间', exact: true })
+      .click()
+    await expect
+      .poll(async () => {
+        const r = await page.evaluate(() =>
+          window.memo.workspace.list({ archive: 'all' }),
+        )
+        return r.ok && r.data.tasks[0]?.dueAt !== null
+      })
+      .toBe(true)
+    await page.getByRole('button', { name: '添加条件', exact: true }).click()
+    await page.getByLabel('条件 1', { exact: true }).fill('提交正确仓库的 PR')
+    await page.getByRole('button', { name: '保存条件', exact: true }).click()
+    await expect(page.getByLabel('条件版本')).toHaveValue('1')
+    await expect(page.getByLabel('条件 1', { exact: true })).toHaveValue(
+      '提交正确仓库的 PR',
+    )
+    await page.getByLabel('条件 1', { exact: true }).fill('提交 PR 并反馈链接')
+    await page.getByRole('button', { name: '保存条件', exact: true }).click()
+    await expect(page.getByLabel('条件版本')).toHaveValue('2')
+    await page.getByLabel('条件版本').selectOption('1')
+    await expect(page.getByLabel('条件 1', { exact: true })).toHaveValue(
+      '提交正确仓库的 PR',
+    )
+    await expect(page.getByLabel('条件 1', { exact: true })).toBeDisabled()
+    await page.getByLabel('条件版本').selectOption('2')
+    await expect(page.getByLabel('条件 1', { exact: true })).toHaveValue(
+      '提交 PR 并反馈链接',
+    )
+    await page.screenshot({path:'test-results/criteria-wide.png'})
+    await app.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows()[0]!.setSize(860,700))
+    await page.screenshot({path:'test-results/criteria-narrow.png'})
+    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true)
     await page.getByRole('button', { name: '归档事项', exact: true }).click()
     await expect(page.locator('.task-row')).toHaveCount(0)
     await page.getByRole('button', { name: '已归档', exact: true }).click()
@@ -81,11 +118,38 @@ test('manual workspace persists tasks, versions and archive without fabricating 
     await expect
       .poll(() => page.evaluate(async () => (await window.memo.health()).ok))
       .toBe(true)
-    const after = await page.evaluate(() => window.memo.workspace.list())
+    const after = await page.evaluate(() =>
+      window.memo.workspace.list({ archive: 'all' }),
+    )
     expect(after.ok && after.data.tasks[0]?.title).toBe('已修改标题')
     expect(after.ok && after.data.tasks[0]?.status).toBe('completed')
     expect(after.ok && after.data.tasks[0]?.archivedAt).toBeTruthy()
     expect(after.ok && after.data.tasks[0]?.evidenceStatus).toBe('unknown')
+    const seeded = await page.evaluate(async () => {
+      const snapshot = await window.memo.workspace.list({ archive: 'all' })
+      if (!snapshot.ok) return false
+      const project = snapshot.data.projects[0]!
+      for (let i = 0; i < 51; i++) {
+        const r = await window.memo.workspace.createTask(
+          project.id,
+          `分页事项 ${i}`,
+        )
+        if (!r.ok) return false
+      }
+      return true
+    })
+    expect(seeded).toBe(true)
+    await page.getByRole('button', { name: '我的工作区', exact: true }).click()
+    await expect(page.locator('.task-row')).toHaveCount(50)
+    await page.getByRole('button', { name: '加载更多', exact: true }).click()
+    await expect(page.locator('.task-row')).toHaveCount(51)
+    await expect(
+      page.getByRole('button', { name: '加载更多', exact: true }),
+    ).toHaveCount(0)
+    await page.getByLabel('业务状态筛选').selectOption('completed')
+    await expect(page.locator('.task-row')).toHaveCount(0)
+    await page.getByRole('button', { name: '已归档', exact: true }).click()
+    await expect(page.locator('.task-row')).toHaveCount(1)
   } finally {
     await app.evaluate(({ app }) => app.quit()).catch(() => {})
     await app.close()

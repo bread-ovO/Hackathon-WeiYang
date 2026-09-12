@@ -84,7 +84,14 @@ test('real IPC rejects foreign windows and malformed requests; source text stays
     ])
     expect(
       await page.evaluate(() => Object.keys(window.memo.workspace)),
-    ).toEqual(['list', 'createProject', 'createTask', 'updateTask'])
+    ).toEqual([
+      'list',
+      'detail',
+      'replaceCriteria',
+      'createProject',
+      'createTask',
+      'updateTask',
+    ])
     // Privileged test harness only: inject a temporary probe, never ship raw IPC in production preload.
     const preload = join(data, 'probe.cjs')
     await writeFile(
@@ -139,6 +146,28 @@ test('real IPC rejects foreign windows and malformed requests; source text stays
       [{ ...update, expectedVersion: 1.5 }],
       [{ ...update, expectedVersion: '1' }],
       [{ ...update, expectedVersion: Number.MAX_SAFE_INTEGER + 1 }],
+      [{ method: 'workspace.list', query: { limit: 101 } }],
+      [
+        {
+          method: 'workspace.detail',
+          projectId: 'project-1',
+          id: 'task-1',
+          criteriaVersion: -1,
+        },
+      ],
+      [{ ...update, patch: { dueAt: '2026-02-30T12:00:00Z' } }],
+      [{ ...update, patch: { admission: 'automatic' } }],
+      [
+        {
+          method: 'workspace.replaceCriteria',
+          projectId: 'p',
+          id: 't',
+          expectedVersion: 1,
+          expectedCriteriaVersion: 0,
+          expectedManualVersion: 0,
+          criteria: [{ id: 'a', description: 'x', actorId: 'forged' }],
+        },
+      ],
     ]) {
       expect(
         await page.evaluate(
@@ -171,7 +200,13 @@ test('real IPC rejects foreign windows and malformed requests; source text stays
     expect(missingProject.ok).toBe(false)
     expect(await page.evaluate(() => window.memo.workspace.list())).toEqual({
       ok: true,
-      data: { projects: [], tasks: [] },
+      data: {
+        projects: [],
+        tasks: [],
+        nextCursor: null,
+        totalCount: 0,
+        activeCount: 0,
+      },
     })
     // Identical URL in another actual WebContents must still fail identity validation.
     const foreignReady = app.waitForEvent('window')
@@ -211,8 +246,33 @@ test('real IPC rejects foreign windows and malformed requests; source text stays
     ).toEqual({ ok: false, error: 'INVALID_REQUEST' })
     expect(await page.evaluate(() => window.memo.workspace.list())).toEqual({
       ok: true,
-      data: { projects: [], tasks: [] },
+      data: {
+        projects: [],
+        tasks: [],
+        nextCursor: null,
+        totalCount: 0,
+        activeCount: 0,
+      },
     })
+    for (const request of [
+      { method: 'workspace.detail', projectId: 'p', id: 't' },
+      {
+        method: 'workspace.replaceCriteria',
+        projectId: 'p',
+        id: 't',
+        expectedVersion: 1,
+        expectedCriteriaVersion: 0,
+        expectedManualVersion: 0,
+        criteria: [],
+      },
+    ])
+      expect(
+        await foreign.evaluate(
+          (request) =>
+            (window as unknown as ProbeWindow).securityProbe.request(request),
+          request,
+        ),
+      ).toEqual({ ok: false, error: 'INVALID_REQUEST' })
     // Production CSP denies embedding even a same-origin frame.
     await page.evaluate((url) => {
       const frame = document.createElement('iframe')

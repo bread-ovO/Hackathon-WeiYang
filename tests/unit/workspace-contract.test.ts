@@ -120,3 +120,117 @@ describe('workspace request boundary', () => {
     expect(dispatch).not.toHaveBeenCalled()
   })
 })
+
+describe('workspace filtering, detail and versioned criteria contract', () => {
+  const replace = {
+    ...update,
+    method: 'workspace.replaceCriteria',
+    criteria: [{ id: 'criterion-1', description: '反馈链接' }],
+  }
+  const { patch: _patch, ...criteriaRequest } = replace
+  it('keeps old list calls compatible and accepts bounded queries and scoped detail', () => {
+    for (const request of [
+      { method: 'workspace.list' },
+      {
+        method: 'workspace.list',
+        query: {
+          projectId: null,
+          status: 'waiting',
+          admission: 'accepted',
+          archive: 'all',
+          query: '中文',
+          limit: 100,
+          cursor: 'opaque-cursor',
+        },
+      },
+      {
+        method: 'workspace.detail',
+        projectId: 'project-1',
+        id: 'task-1',
+        criteriaVersion: 0,
+      },
+      criteriaRequest,
+      {
+        ...criteriaRequest,
+        criteria: [{ id: 'a', description: '保留原文', originEventId: 1 }],
+      },
+      { ...criteriaRequest, criteria: [] },
+      { ...update, patch: { dueAt: null, admission: 'accepted' } },
+      { ...update, patch: { dueAt: '2028-02-29T12:34:56.123Z' } },
+    ])
+      expect(parseCoreRequest(request)).toEqual(request)
+  })
+  it.each([
+    { method: 'workspace.list', query: { limit: 101 } },
+    { method: 'workspace.list', query: { limit: 0 } },
+    { method: 'workspace.list', query: { limit: 1.5 } },
+    { method: 'workspace.list', query: { projectId: '' } },
+    { method: 'workspace.list', query: { archive: 'yes' } },
+    { method: 'workspace.list', query: { query: 'x'.repeat(257) } },
+    { method: 'workspace.list', query: { cursor: 'x'.repeat(4097) } },
+    { method: 'workspace.list', query: { sql: 'DELETE FROM tasks' } },
+    { method: 'workspace.detail', id: 'task-1' },
+    {
+      method: 'workspace.detail',
+      projectId: 'project-1',
+      id: 'task-1',
+      criteriaVersion: -1,
+    },
+    {
+      method: 'workspace.detail',
+      projectId: 'project-1',
+      id: 'task-1',
+      criteriaVersion: Number.MAX_SAFE_INTEGER + 1,
+    },
+    { ...criteriaRequest, expectedVersion: 0 },
+    { ...criteriaRequest, actor: 'model' },
+    { ...criteriaRequest, criteria: [{ id: 'a', description: '' }] },
+    {
+      ...criteriaRequest,
+      criteria: [{ id: 'a', description: 'x'.repeat(513) }],
+    },
+    {
+      ...criteriaRequest,
+      criteria: [{ id: 'a', description: 'ok', originEventId: 0 }],
+    },
+    {
+      ...criteriaRequest,
+      criteria: [
+        { id: 'a', description: 'one' },
+        { id: 'a', description: 'two' },
+      ],
+    },
+    {
+      ...criteriaRequest,
+      criteria: Array.from({ length: 33 }, (_, id) => ({
+        id: String(id),
+        description: 'ok',
+      })),
+    },
+    {
+      ...criteriaRequest,
+      criteria: Array.from({ length: 32 }, (_, id) => ({
+        id: String(id),
+        description: 'x'.repeat(512),
+      })),
+    },
+  ])('rejects malformed new operation %#', (request) => {
+    expect(() => parseCoreRequest(request)).toThrow('INVALID_REQUEST')
+  })
+  it.each([
+    '2026-02-29T00:00:00Z',
+    '1900-02-29T00:00:00Z',
+    '2026-04-31T00:00:00Z',
+    '2026-01-01T24:00:00Z',
+    '2026-01-01T00:00:60Z',
+    '0000-01-01T00:00:00Z',
+    '2026-01-01T00:00:00',
+    '2026-01-01T00:00:00+08:00',
+    '2026-01-01T00:00:00.1234Z',
+    'tomorrow',
+  ])('rejects noncanonical or invalid due date %s', (dueAt) => {
+    expect(() => parseCoreRequest({ ...update, patch: { dueAt } })).toThrow(
+      'INVALID_REQUEST',
+    )
+  })
+})

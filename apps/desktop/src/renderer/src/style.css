@@ -1099,3 +1099,10 @@ dd {
 .real-editor { padding: 16px; display: flex; flex-direction: column; gap: 16px; }
 .real-editor h2 { font-size: 20px; overflow-wrap: anywhere; }
 .real-editor label { display: flex; align-items: center; gap: 8px; }
+.real-filters { flex-wrap: wrap; gap: 8px; }
+.real-filters .filters { flex-wrap: wrap; gap: 4px; }
+.real-filters select { border: 1px solid #ddd; border-radius: 8px; padding: 8px; background: white; }
+.criteria-editor { display: flex; flex-direction: column; gap: 8px; }
+.criterion-row, .criterion-actions { display: flex; gap: 8px; align-items: center; }
+.criterion-row .app-input { min-width: 0; flex: 1; }
+.load-more { margin: 12px 16px; }

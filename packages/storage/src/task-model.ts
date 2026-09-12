@@ -1,5 +1,9 @@
 import type Database from 'better-sqlite3'
-import { createCandidateSearch } from './search'
+import {
+  createCandidateSearch,
+  projectionTerms,
+  searchMatchExpression,
+} from './search'
 
 export type StoredTaskStatus =
   | 'todo'
@@ -20,6 +24,7 @@ export interface StoredTask {
   criteriaVersion: number
   manualVersion: number
   archivedAt: string | null
+  dueAt: string | null
 }
 export interface ManualActor {
   actorId: string
@@ -52,9 +57,10 @@ export interface TaskPatch {
   status?: StoredTaskStatus
   admission?: StoredAdmission
   archived?: boolean
+  dueAt?: string | null
 }
 const selectTask = `SELECT id,project_id AS projectId,title,owner,status,evidence_status AS evidenceStatus,
-  admission,version,criteria_version AS criteriaVersion,manual_version AS manualVersion,archived_at AS archivedAt FROM tasks`
+  admission,version,criteria_version AS criteriaVersion,manual_version AS manualVersion,archived_at AS archivedAt,due_at AS dueAt FROM tasks`
 function text(value: unknown, max = 256): asserts value is string {
   if (
     typeof value !== 'string' ||
@@ -75,6 +81,56 @@ function actor(value: ManualActor) {
 function choice(value: unknown, values: readonly string[]) {
   if (typeof value !== 'string' || !values.includes(value))
     throw new Error('INVALID_TASK_INPUT')
+}
+
+export interface TaskPageQuery {
+  projectId?: string | null
+  status?: StoredTaskStatus
+  admission?: StoredAdmission
+  archive?: 'active' | 'archived' | 'all'
+  query?: string
+  limit?: number
+  cursor?: string
+}
+export interface TaskPage {
+  items: StoredTask[]
+  nextCursor: string | null
+  totalCount: number
+  activeCount: number
+}
+export interface TaskDecisionSummary {
+  id: number
+  scope: string
+  actorId: string
+  reason: string
+  createdAt: string
+  taskVersion: number
+  criteriaVersion: number
+}
+function dueDate(value: unknown): string | null {
+  if (value === null) return null
+  if (
+    typeof value !== 'string' ||
+    !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?Z$/.test(value)
+  )
+    throw new Error('INVALID_DUE_DATE')
+  const date = new Date(value)
+  if (!Number.isFinite(date.getTime())) throw new Error('INVALID_DUE_DATE')
+  const normalized = date.toISOString()
+  const padded = value.replace(
+    /(?:\.(\d{1,3}))?Z$/,
+    (_, fraction: string | undefined) => `.${(fraction ?? '').padEnd(3, '0')}Z`,
+  )
+  if (normalized !== padded) throw new Error('INVALID_DUE_DATE')
+  return normalized
+}
+export function migrateTaskEditing(db: Database.Database) {
+  db.transaction(() => {
+    db.exec(`ALTER TABLE tasks ADD COLUMN due_at TEXT CHECK(due_at IS NULL OR (length(due_at)=24 AND strftime('%Y-%m-%dT%H:%M:%fZ',due_at) IS due_at));
+      CREATE VIRTUAL TABLE task_listing_fts USING fts5(terms,tokenize='ascii');
+      PRAGMA user_version=4;`)
+    createTaskModel(db).rebuildSearch()
+  })()
 }
 
 export function migrateTaskModel(db: Database.Database) {
@@ -152,16 +208,31 @@ export function createTaskModel(db: Database.Database) {
       throw new Error('EVENT_NOT_IN_PROJECT')
   }
   function sync(task: StoredTask) {
-    if (task.projectId === null) return
-    if (task.admission === 'ignored' || task.archivedAt !== null) {
-      search.remove(task.projectId, task.id)
-      return
-    }
     const criteria = db
       .prepare(
         'SELECT description FROM criteria WHERE task_id=? AND version=? ORDER BY criterion_id',
       )
       .all(task.id, task.criteriaVersion) as { description: string }[]
+    const body = criteria.map((c) => c.description).join('\n')
+    const row = db
+      .prepare('SELECT rowid AS rowId FROM tasks WHERE id=?')
+      .get(task.id) as { rowId: number }
+    db.prepare('DELETE FROM task_listing_fts WHERE rowid=?').run(row.rowId)
+    db.prepare('INSERT INTO task_listing_fts(rowid,terms) VALUES(?,?)').run(
+      row.rowId,
+      projectionTerms({
+        projectId: task.projectId ?? '',
+        candidateId: task.id,
+        title: task.title,
+        text: body,
+        codeIdentifiers: [],
+      }),
+    )
+    if (task.projectId === null) return
+    if (task.admission === 'ignored' || task.archivedAt !== null) {
+      search.remove(task.projectId, task.id)
+      return
+    }
     search.upsert({
       projectId: task.projectId,
       candidateId: task.id,
@@ -250,6 +321,7 @@ export function createTaskModel(db: Database.Database) {
           title: string
           owner?: string
           admission?: StoredAdmission
+          dueAt?: string | null
         },
         by: ManualActor,
       ) => {
@@ -261,13 +333,14 @@ export function createTaskModel(db: Database.Database) {
         if (input.admission !== undefined)
           choice(input.admission, ['candidate', 'accepted', 'ignored'])
         db.prepare(
-          `INSERT INTO tasks(id,project_id,title,owner,status,evidence_status,manual_version,admission) VALUES(?,?,?,?,'todo','unknown',1,?)`,
+          `INSERT INTO tasks(id,project_id,title,owner,status,evidence_status,manual_version,admission,due_at) VALUES(?,?,?,?,'todo','unknown',1,?,?)`,
         ).run(
           input.id,
           input.projectId,
           input.title,
           input.owner ?? null,
           input.admission ?? 'candidate',
+          input.dueAt === undefined ? null : dueDate(input.dueAt),
         )
         return record(input.id, by, 'create', { title: input.title })
       },
@@ -277,6 +350,161 @@ export function createTaskModel(db: Database.Database) {
       text(taskId)
       const task = read(taskId)
       return task?.projectId === projectId ? task : undefined
+    },
+    listPage: db.transaction((input: TaskPageQuery = {}): TaskPage => {
+      const limit = input.limit ?? 50
+      integer(limit)
+      if (limit > 100) throw new Error('INVALID_TASK_INPUT')
+      const archive = input.archive ?? 'active'
+      choice(archive, ['active', 'archived', 'all'])
+      const where: string[] = []
+      const params: (string | number)[] = []
+      if (input.projectId === null) where.push('project_id IS NULL')
+      else if (input.projectId !== undefined) {
+        text(input.projectId)
+        where.push('project_id=?')
+        params.push(input.projectId)
+      }
+      if (input.status !== undefined) {
+        choice(input.status, [
+          'todo',
+          'in_progress',
+          'waiting',
+          'completed',
+          'cancelled',
+        ])
+        where.push('status=?')
+        params.push(input.status)
+      }
+      if (input.admission !== undefined) {
+        choice(input.admission, ['candidate', 'accepted', 'ignored'])
+        where.push('admission=?')
+        params.push(input.admission)
+      }
+      if (archive !== 'all')
+        where.push(
+          archive === 'active'
+            ? 'archived_at IS NULL'
+            : 'archived_at IS NOT NULL',
+        )
+      if (input.query !== undefined) {
+        const match = searchMatchExpression(input.query)
+        if (input.query.trim()) {
+          if (match === null) where.push('0')
+          else {
+            where.push(
+              'tasks.rowid IN (SELECT rowid FROM task_listing_fts WHERE task_listing_fts MATCH ?)',
+            )
+            params.push(match)
+          }
+        }
+      }
+      const filter = JSON.stringify([
+        input.projectId === undefined ? { all: true } : input.projectId,
+        input.status ?? null,
+        input.admission ?? null,
+        archive,
+        input.query ?? '',
+      ])
+      let after: string | undefined
+      if (input.cursor !== undefined) {
+        try {
+          if (typeof input.cursor !== 'string' || input.cursor.length > 4096)
+            throw new Error()
+          const bytes = Buffer.from(input.cursor, 'base64url')
+          if (bytes.toString('base64url') !== input.cursor) throw new Error()
+          const value = JSON.parse(bytes.toString('utf8')) as {
+            after: unknown
+            filter: unknown
+          }
+          text(value.after)
+          if (value.filter !== filter) throw new Error()
+          after = value.after
+        } catch {
+          throw new Error('INVALID_TASK_CURSOR')
+        }
+      }
+      const condition = where.length ? where.join(' AND ') : '1'
+      const totalCount = (
+        db
+          .prepare(`SELECT count(*) AS count FROM tasks WHERE ${condition}`)
+          .get(...params) as { count: number }
+      ).count
+      const activeCount = (
+        db
+          .prepare(
+            "SELECT count(*) AS count FROM tasks WHERE archived_at IS NULL AND status NOT IN ('completed','cancelled') AND admission!='ignored'",
+          )
+          .get() as { count: number }
+      ).count
+      if (after !== undefined) {
+        where.push('id COLLATE BINARY > ?')
+        params.push(after)
+      }
+      const items = db
+        .prepare(
+          `${selectTask} WHERE ${where.length ? where.join(' AND ') : '1'} ORDER BY id COLLATE BINARY LIMIT ?`,
+        )
+        .all(...params, limit + 1) as StoredTask[]
+      const more = items.length > limit
+      if (more) items.pop()
+      return {
+        items,
+        totalCount,
+        activeCount,
+        nextCursor: more
+          ? Buffer.from(
+              JSON.stringify({ after: items.at(-1)!.id, filter }),
+            ).toString('base64url')
+          : null,
+      }
+    }),
+    getCriteria(
+      projectId: string,
+      taskId: string,
+      version?: number,
+    ): { version: number; items: CriterionInput[] } {
+      text(projectId)
+      text(taskId)
+      const task = read(taskId)
+      if (!task || task.projectId !== projectId)
+        throw new Error('TASK_NOT_IN_PROJECT')
+      const selected = version ?? task.criteriaVersion
+      integer(selected, 0)
+      if (selected > task.criteriaVersion)
+        throw new Error('UNKNOWN_CRITERIA_VERSION')
+      const items = db
+        .prepare(
+          'SELECT criterion_id AS id,description,origin_event_id AS originEventId FROM criteria WHERE task_id=? AND version=? ORDER BY criterion_id',
+        )
+        .all(taskId, selected) as {
+        id: string
+        description: string
+        originEventId: number | null
+      }[]
+      return {
+        version: selected,
+        items: items.map(({ originEventId, ...item }) =>
+          originEventId === null ? item : { ...item, originEventId },
+        ),
+      }
+    },
+    getDecisionHistory(
+      projectId: string,
+      taskId: string,
+      limit = 100,
+    ): TaskDecisionSummary[] {
+      text(projectId)
+      text(taskId)
+      integer(limit)
+      if (limit > 100) throw new Error('INVALID_TASK_INPUT')
+      if (read(taskId)?.projectId !== projectId)
+        throw new Error('TASK_NOT_IN_PROJECT')
+      return db
+        .prepare(
+          'SELECT id,scope,actor_id AS actorId,reason,created_at AS createdAt,task_version AS taskVersion,criteria_version AS criteriaVersion FROM decisions WHERE task_id=? ORDER BY id DESC LIMIT ?',
+        )
+        .all(taskId, limit) as TaskDecisionSummary[]
     },
     list(projectId: string, limit = 100) {
       text(projectId)
@@ -330,9 +558,14 @@ export function createTaskModel(db: Database.Database) {
           !keys.length ||
           keys.some(
             (k) =>
-              !['title', 'owner', 'status', 'admission', 'archived'].includes(
-                k,
-              ),
+              ![
+                'title',
+                'owner',
+                'status',
+                'admission',
+                'archived',
+                'dueAt',
+              ].includes(k),
           )
         )
           throw new Error('INVALID_TASK_INPUT')
@@ -351,7 +584,7 @@ export function createTaskModel(db: Database.Database) {
         if (patch.archived !== undefined && typeof patch.archived !== 'boolean')
           throw new Error('INVALID_TASK_INPUT')
         db.prepare(
-          'UPDATE tasks SET title=?,owner=?,status=?,admission=?,archived_at=? WHERE id=?',
+          'UPDATE tasks SET title=?,owner=?,status=?,admission=?,archived_at=?,due_at=? WHERE id=?',
         ).run(
           patch.title ?? task.title,
           patch.owner === undefined ? task.owner : patch.owner,
@@ -362,6 +595,7 @@ export function createTaskModel(db: Database.Database) {
             : patch.archived
               ? new Date().toISOString()
               : null,
+          patch.dueAt === undefined ? task.dueAt : dueDate(patch.dueAt),
           task.id,
         )
         bump(task.id)
@@ -490,6 +724,7 @@ export function createTaskModel(db: Database.Database) {
       }
     },
     rebuildSearch: db.transaction(() => {
+      db.prepare('DELETE FROM task_listing_fts').run()
       // Clear projections only for authoritative task IDs; retain unrelated explicit projection clients.
       db.prepare(
         'DELETE FROM candidate_search_fts WHERE rowid IN (SELECT d.id FROM candidate_search_documents d JOIN tasks t ON t.id=d.candidate_id)',

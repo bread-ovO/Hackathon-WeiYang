@@ -76,11 +76,16 @@ function terms(text: string, forQuery: boolean): string[] {
   }
   return [...found]
 }
-function projectionTerms(value: SearchProjection) {
+export function projectionTerms(value: SearchProjection) {
   return terms(
     [value.title, value.text, ...value.codeIdentifiers].join(' '),
     false,
   ).join(' ')
+}
+
+export function searchMatchExpression(text: string): string | null {
+  boundedText(text, 256)
+  return terms(text, true).join(' AND ') || null
 }
 
 export function migrateSearch(db: Database.Database) {
