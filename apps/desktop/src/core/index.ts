@@ -27,6 +27,7 @@ parentPort.on('message', async ({ data }) => {
   let reply: CoreReply<unknown>
   try {
     const request = parseHostRequest(data.request)
+    if (request.method.startsWith('pet.')) throw new Error('INVALID_REQUEST')
     reply = {
       ok: true,
       data:
@@ -47,7 +48,10 @@ parentPort.on('message', async ({ data }) => {
                   request.method === 'sources.sync' ||
                   request.method === 'sources.revoke'
                 ? await sources(request)
-                : handleWorkspace(store, request),
+                : handleWorkspace(
+                    store,
+                    request as Parameters<typeof handleWorkspace>[1],
+                  ),
     }
   } catch (error) {
     const code = error instanceof Error ? error.message : ''
