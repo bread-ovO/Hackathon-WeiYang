@@ -1,0 +1,203 @@
+.pet-models {
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px solid var(--color-kumo-line);
+  border-radius: 12px;
+  color: var(--text-color-kumo-default);
+}
+.pet-models h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+.pet-models p {
+  margin: 0;
+}
+.pet-models-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.pet-models-heading p {
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--text-color-kumo-subtle);
+  line-height: 1.5;
+}
+.pet-models-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.pet-models-actions .app-control {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+.pet-models .pet-models-note {
+  margin-top: 12px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text-color-kumo-subtle);
+}
+.pet-models .pet-models-message {
+  margin-top: 12px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.pet-models-import {
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid var(--color-kumo-line);
+  border-radius: 8px;
+  background: var(--color-kumo-tint);
+  display: grid;
+  gap: 8px;
+}
+.pet-models-import label {
+  font-size: 14px;
+  font-weight: 500;
+}
+.pet-models-import select {
+  width: 100%;
+  min-width: 0;
+  min-height: 32px;
+  padding: 4px 8px;
+  border: 1px solid var(--color-kumo-line);
+  border-radius: 8px;
+  background: var(--color-kumo-base);
+  color: var(--text-color-kumo-default);
+  font: inherit;
+}
+.pet-models-import p,
+.pet-models-remove p {
+  font-size: 12px;
+  color: var(--text-color-kumo-subtle);
+  line-height: 1.6;
+}
+.pet-models-import .pet-models-actions {
+  justify-content: flex-end;
+}
+.pet-models-empty {
+  padding: 24px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--text-color-kumo-subtle);
+}
+.pet-models-empty p {
+  font-size: 12px;
+  text-align: center;
+}
+.pet-models-list {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0 0;
+}
+.pet-models-list > li {
+  border-top: 1px solid var(--color-kumo-line);
+  padding: 12px 0;
+}
+.pet-models-list > li:last-child {
+  padding-bottom: 0;
+}
+.pet-models-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.pet-models-row > svg {
+  flex-shrink: 0;
+  color: var(--text-color-kumo-subtle);
+}
+.pet-models-name {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.pet-models-name strong {
+  font-size: 14px;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+.pet-models-name > span {
+  font-size: 12px;
+  color: var(--text-color-kumo-subtle);
+}
+.pet-models-current {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  color: var(--text-color-kumo-info);
+}
+.pet-models-remove {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 8px;
+  background: var(--color-kumo-tint);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.pet-models-issues {
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid var(--color-kumo-line);
+  border-radius: 8px;
+}
+.pet-models-issues h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+.pet-models-issues ul {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 0;
+  display: grid;
+  gap: 8px;
+  max-height: 240px;
+  overflow: auto;
+}
+.pet-models-issues li {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.pet-models-issues strong {
+  font-weight: 500;
+}
+.pet-models-issues li > span {
+  color: var(--text-color-kumo-subtle);
+}
+@media (max-width: 900px) {
+  .pet-models-heading {
+    flex-direction: column;
+  }
+  .pet-models-row {
+    flex-wrap: wrap;
+  }
+  .pet-models-name {
+    min-width: 160px;
+  }
+  .pet-models-row > .pet-models-actions {
+    margin-left: 32px;
+    width: 100%;
+  }
+  .pet-models-remove {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

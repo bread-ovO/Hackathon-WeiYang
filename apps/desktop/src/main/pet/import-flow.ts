@@ -1,93 +1,93 @@
-import type { CoreReply, PetChooseReply, PetImportReply, PetState } from '@memo/contracts'
-
-const petErrorCodes = [
-  'PET_UNAVAILABLE',
-  'IMPORT_SESSION_INVALID',
-  'SOURCE_CHANGED',
-  'INVALID_STORE',
-  'UNKNOWN_MODEL',
-  'STORAGE_LIMIT',
-] as const
-type PetErrorCode = (typeof petErrorCodes)[number]
-// ModelStore throws kebab-case codes ('source-changed'); the wire contract
-// uses the closed UPPER_SNAKE union.
-const kebabCodeMap: Record<string, PetErrorCode> = {
-  'source-changed': 'SOURCE_CHANGED',
-  'invalid-store': 'INVALID_STORE',
-  'unknown-model': 'UNKNOWN_MODEL',
-  'storage-limit': 'STORAGE_LIMIT',
-}
-const petErrorCode = (code: string): PetErrorCode =>
-  kebabCodeMap[code] ??
-  ((petErrorCodes as readonly string[]).includes(code) ? (code as PetErrorCode) : 'PET_UNAVAILABLE')
-import { findModelEntries, type DiscoveredEntries, ImportSession } from './import-session'
+import type { CoreReply, PetChooseReply, PetImportReply, PetState, PetModel } from '@memo/contracts'
+import { type DiscoveredEntries, ImportSession, safeEntry } from './import-session'
 import type { PetWorkerClient } from './worker-client'
-
+const petErrorCodes=['PET_UNAVAILABLE','PET_OUTCOME_UNKNOWN','IMPORT_SESSION_INVALID','SOURCE_CHANGED','INVALID_STORE','UNKNOWN_MODEL','STORAGE_LIMIT'] as const
+type PetErrorCode=(typeof petErrorCodes)[number]
+const kebabCodeMap:Record<string,PetErrorCode>={'outcome-unknown':'PET_OUTCOME_UNKNOWN','source-changed':'SOURCE_CHANGED','invalid-store':'INVALID_STORE','unknown-model':'UNKNOWN_MODEL','storage-limit':'STORAGE_LIMIT'}
+const petErrorCode=(code:string):PetErrorCode=>kebabCodeMap[code]??((petErrorCodes as readonly string[]).includes(code)?code as PetErrorCode:'PET_UNAVAILABLE')
 export interface ImportFlowDeps {
-  /** Opens the native directory picker; null means the user cancelled. */
-  pickDirectory(): Promise<string | null>
-  worker: Pick<PetWorkerClient, 'request'>
-  /** Entry discovery is injectable so the flow is testable without a disk. */
-  findEntries?: (directory: string) => Promise<DiscoveredEntries>
+  pickDirectory():Promise<string|null>
+  worker:Pick<PetWorkerClient,'request'>
+  findEntries?:(directory:string)=>Promise<DiscoveredEntries>
+  now?:()=>number
 }
-const slimState = (snapshot: {
-  currentModelId: string | null
-  models: { id: string; entry: string; importedAt: string; totalBytes: number; resources?: unknown[] }[]
-}): PetState => ({
-  currentModelId: snapshot.currentModelId,
-  // The main process owns display intent and overlays the live value.
-  display: false,
-  models: snapshot.models.map((model) => ({
-    id: model.id,
-    entry: model.entry,
-    importedAt: model.importedAt,
-    totalBytes: model.totalBytes,
-  })),
-})
-
-/** PET02 state machine: native directory choice stays in the main process,
- * the renderer only sees entry names. Cancelling or a failed import leaves
- * the current model untouched (selection stays explicit via pet.select). */
-export function createPetImportFlow({ pickDirectory, worker, findEntries = findModelEntries }: ImportFlowDeps) {
-  const session = new ImportSession()
+function model(value:unknown):PetModel {
+  const item=value as PetModel|undefined
+  if(!item||typeof item.id!=='string'||!/^[a-f0-9]{64}$/.test(item.id)||!safeEntry(item.entry)||typeof item.importedAt!=='string'||!Number.isFinite(Date.parse(item.importedAt))||!Number.isSafeInteger(item.totalBytes)||item.totalBytes<0)throw new Error('PET_UNAVAILABLE')
+  return {id:item.id,entry:item.entry,importedAt:item.importedAt,totalBytes:item.totalBytes}
+}
+function slimState(value:unknown):PetState {
+  const state=value as {currentModelId:string|null;models:unknown[]}|undefined
+  if(!state||!Array.isArray(state.models)||state.models.length>64)throw new Error('PET_UNAVAILABLE')
+  const models=state.models.map(model)
+  if(state.currentModelId!==null&&!models.some(item=>item.id===state.currentModelId))throw new Error('PET_UNAVAILABLE')
+  return {currentModelId:state.currentModelId,display:false,models}
+}
+/** Main owns capabilities; expensive reads/copies/validation all run in the worker.
+ * Cancelling can revoke an unconsumed selection, not undo a dispatched import.
+ * Import does not select a model. Only explicit select mutates display choice.
+ */
+export function createPetImportFlow({pickDirectory,worker,findEntries,now}:ImportFlowDeps){
+  const session=new ImportSession(now)
+  let busy=false,generation=0
+  async function guarded<T>(operation:()=>Promise<CoreReply<T>>):Promise<CoreReply<T>>{
+    if(busy)return {ok:false,error:'PET_UNAVAILABLE'}
+    busy=true
+    try{return await operation()}catch(error){return {ok:false,error:petErrorCode(error&&typeof error==='object'&&'code'in error?String(error.code):'PET_UNAVAILABLE')}}finally{busy=false}
+  }
+  async function mutate(method:'select'|'remove',modelId:string|null):Promise<CoreReply<PetState>>{
+    return guarded(async()=>{
+      if((method==='remove'&&modelId===null)||(modelId!==null&&(typeof modelId!=='string'||!/^[a-f0-9]{64}$/.test(modelId))))return {ok:false,error:'UNKNOWN_MODEL'}
+      session.clear();generation++
+      const reply=await worker.request(method,{modelId})
+      return reply.ok?{ok:true,data:slimState(reply.data)}:{ok:false,error:petErrorCode(reply.error)}
+    })
+  }
   return {
-    async openImportDialog(): Promise<CoreReply<PetChooseReply>> {
-      const directory = await pickDirectory()
-      if (!directory) return { ok: true, data: { status: 'cancelled' } }
-      const discovered = await findEntries(directory)
-      return { ok: true, data: session.choose(directory, discovered) }
+    openImportDialog():Promise<CoreReply<PetChooseReply>>{
+      return guarded<PetChooseReply>(async()=>{
+        session.clear();const ticket=++generation
+        const directory=await pickDirectory()
+        if(ticket!==generation||!directory)return {ok:true,data:{status:'cancelled'}}
+        let discovered:DiscoveredEntries
+        if(findEntries)discovered=await findEntries(directory)
+        else {
+          const reply=await worker.request('discover',{directory})
+          if(!reply.ok)return {ok:false,error:petErrorCode(reply.error)}
+          discovered=reply.data as DiscoveredEntries
+        }
+        if(ticket!==generation)return {ok:true,data:{status:'cancelled'}}
+        return {ok:true,data:session.choose(directory,discovered)}
+      })
     },
-    async importChosen(entry: string): Promise<CoreReply<PetImportReply>> {
-      const directory = session.consume(entry)
-      if (!directory) return { ok: false, error: 'IMPORT_SESSION_INVALID' }
-      const reply = await worker.request('import', { directory, entry })
-      if (!reply.ok) return { ok: false, error: petErrorCode(reply.error) }
-      const result = reply.data as PetImportReply
-      if (result.status === 'invalid')
-        return { ok: true, data: { status: 'invalid', issues: result.issues } }
-      const model = result.model
-      return {
-        ok: true,
-        data: {
-          status: result.status,
-          model: {
-            id: model.id,
-            entry: model.entry,
-            importedAt: model.importedAt,
-            totalBytes: model.totalBytes,
-          },
-        },
-      }
+    async cancelImport():Promise<CoreReply<{status:'cancelled'}>>{
+      generation++;session.clear();return {ok:true,data:{status:'cancelled'}}
     },
-    async state(): Promise<CoreReply<PetState>> {
-      const reply = await worker.request('list')
-      if (!reply.ok) return { ok: false, error: petErrorCode(reply.error) }
-      return { ok: true, data: slimState(reply.data as Parameters<typeof slimState>[0]) }
+    importChosen(sessionId:string,entry:string):Promise<CoreReply<PetImportReply>>{
+      return guarded<PetImportReply>(async()=>{
+        const directory=session.consume(sessionId,entry)
+        if(!directory)return {ok:false,error:'IMPORT_SESSION_INVALID'}
+        const reply=await worker.request('import',{directory,entry})
+        if(!reply.ok)return {ok:false,error:petErrorCode(reply.error)}
+        const result=reply.data as PetImportReply
+        if(result.status==='invalid'){
+          if(!Array.isArray(result.issues)||result.issues.length>256)throw new Error('PET_UNAVAILABLE')
+          return {ok:true,data:{status:'invalid',issues:result.issues.map(issue=>({
+            code:['invalid-root','invalid-path','symlink','missing','not-file','read-failed','limit','invalid-json','invalid-manifest','invalid-resource','unsupported-resource'].includes(issue.code)?issue.code:'invalid-resource',
+            resource:safeEntry(issue.resource)?issue.resource:'',message:'模型资源校验未通过，请检查所选模型文件。',
+          }))}}
+        }
+        if(result.status!=='imported'&&result.status!=='duplicate')throw new Error('PET_UNAVAILABLE')
+        return {ok:true,data:{status:result.status,model:model(result.model)}}
+      })
     },
-    async select(modelId: string): Promise<CoreReply<PetState>> {
-      const reply = await worker.request('select', { modelId })
-      if (!reply.ok) return { ok: false, error: petErrorCode(reply.error) }
-      return { ok: true, data: slimState(reply.data as Parameters<typeof slimState>[0]) }
+    state():Promise<CoreReply<PetState>>{
+      return guarded(async()=>{
+        const reply=await worker.request('list')
+        return reply.ok?{ok:true,data:slimState(reply.data)}:{ok:false,error:petErrorCode(reply.error)}
+      })
     },
+    select:(modelId:string|null)=>mutate('select',modelId),
+    remove:(modelId:string)=>mutate('remove',modelId),
   }
 }

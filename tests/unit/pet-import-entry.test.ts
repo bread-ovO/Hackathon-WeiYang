@@ -1,242 +1,129 @@
-import { describe, expect, it, vi } from 'vitest'
-import { mkdtemp, mkdir, rm, writeFile } from 'node:fs/promises'
+import { describe, expect, it, beforeEach, afterEach, vi } from 'vitest'
+import { mkdtemp, mkdir, realpath, rm, symlink, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
-import { findModelEntries, ImportSession } from '../../apps/desktop/src/main/pet/import-session'
+import { findModelEntries, ImportSession, importSessionTtlMs, discoveryLimits } from '../../apps/desktop/src/main/pet/import-session'
 import { createPetImportFlow } from '../../apps/desktop/src/main/pet/import-flow'
-import { parseCoreRequest, parseHostRequest, parsePetRequest } from '@memo/contracts'
-import { createRequestHandler } from '../../apps/desktop/src/main/request-handler'
-
-let root: string
-const setup = async () => {
-  root = await mkdtemp(path.join(tmpdir(), 'bugu-pet-entry-'))
+import { parseCoreRequest, parseHostRequest } from '@memo/contracts'
+let root:string
+beforeEach(async()=>{root=await realpath(await mkdtemp(path.join(tmpdir(),'bugu-pet-entry-')))})
+afterEach(async()=>{await rm(root,{recursive:true,force:true})})
+describe('worker-only bounded model discovery',()=>{
+  it('finds sorted nested entries and detects editor projects',async()=>{
+    await mkdir(path.join(root,'nested'));await writeFile(path.join(root,'b.model3.json'),'{}');await writeFile(path.join(root,'nested/a.model3.json'),'{}');await writeFile(path.join(root,'project.cmo3'),'x')
+    expect(await findModelEntries(root)).toEqual({entries:['b.model3.json','nested/a.model3.json'],cmo3Found:true})
+  })
+  it('reports depth limit rather than false no-model',async()=>{
+    let directory=root
+    for(let i=0;i<=discoveryLimits.maxDepth;i++){directory=path.join(directory,'nested');await mkdir(directory)}
+    await expect(findModelEntries(root)).rejects.toMatchObject({code:'storage-limit'})
+  })
+  it('bounds directory count independently of depth',async()=>{
+    await Promise.all(Array.from({length:discoveryLimits.maxDirectories},(_,i)=>mkdir(path.join(root,`dir-${i}`))))
+    await expect(findModelEntries(root)).rejects.toMatchObject({code:'storage-limit'})
+  })
+  it('bounds candidate count',async()=>{
+    await Promise.all(Array.from({length:discoveryLimits.maxCandidates+1},(_,i)=>writeFile(path.join(root,`${i}.model3.json`),'{}')))
+    await expect(findModelEntries(root)).rejects.toMatchObject({code:'storage-limit'})
+  })
+  it('bounds total entries even when there are no candidates',async()=>{
+    for(let i=0;i<=discoveryLimits.maxEntries;i++)await writeFile(path.join(root,`${i}.txt`),'')
+    await expect(findModelEntries(root)).rejects.toMatchObject({code:'storage-limit'})
+  })
+  it.skipIf(process.platform==='win32')('skips linked files and directories without listing external entries',async()=>{
+    const outside=await realpath(await mkdtemp(path.join(tmpdir(),'bugu-pet-outside-')))
+    try{
+      await writeFile(path.join(outside,'private.model3.json'),'{}');await symlink(outside,path.join(root,'external'));await symlink(path.join(outside,'private.model3.json'),path.join(root,'linked.model3.json'))
+      expect(await findModelEntries(root)).toEqual({entries:[],cmo3Found:false})
+      await expect(findModelEntries(path.join(root,'external'))).rejects.toMatchObject({code:'source-changed'})
+    }finally{await rm(outside,{recursive:true,force:true})}
+  })
+})
+describe('single-use expiring selection capability',()=>{
+  it('binds token to directory and discovered entry, detaching exposed arrays',()=>{
+    const session=new ImportSession();const first=session.choose('/models/a',{entries:['pet.model3.json'],cmo3Found:false})
+    expect(first.status).toBe('ready');if(first.status==='no-model')throw new Error()
+    first.entries.push('escape.model3.json')
+    expect(session.consume(first.sessionId,'escape.model3.json')).toBeNull()
+    const second=session.choose('/models/b',{entries:['pet.model3.json'],cmo3Found:false});if(second.status==='no-model')throw new Error()
+    expect(second.sessionId).not.toBe(first.sessionId)
+    expect(session.consume(first.sessionId,'pet.model3.json')).toBeNull()
+    expect(session.consume(second.sessionId,'../pet.model3.json')).toBeNull()
+    expect(session.consume(second.sessionId,'pet.model3.json')).toBe('/models/b')
+    expect(session.consume(second.sessionId,'pet.model3.json')).toBeNull()
+  })
+  it.each([importSessionTtlMs,-1])('expires after elapsed or backward time %s',time=>{
+    let clock=0;const session=new ImportSession(()=>clock);const view=session.choose(root,{entries:['pet.model3.json'],cmo3Found:false});if(view.status==='no-model')throw new Error()
+    clock=time;expect(session.consume(view.sessionId,'pet.model3.json')).toBeNull();expect(session.pending()).toBe(false)
+  })
+})
+const importedModel={id:'a'.repeat(64),entry:'pet.model3.json',importedAt:'2026-09-13T00:00:00.000Z',totalBytes:42}
+function fixture(){
+  const picker=vi.fn().mockResolvedValue(root)
+  const worker={request:vi.fn().mockImplementation(async(method:string)=>({ok:true,data:method==='discover'?{entries:['pet.model3.json'],cmo3Found:false}:method==='import'?{status:'imported',model:importedModel}:{currentModelId:null,models:[importedModel]}}))}
+  return {picker,worker,flow:createPetImportFlow({pickDirectory:picker,worker})}
 }
-const teardown = async () => rm(root, { recursive: true, force: true })
-
-describe('model entry discovery', () => {
-  it('finds nested entries, sorts them and ignores other files', async () => {
-    await setup()
-    try {
-      await writeFile(path.join(root, 'b.model3.json'), '{}')
-      await mkdir(path.join(root, 'nested'), { recursive: true })
-      await writeFile(path.join(root, 'nested/a.model3.json'), '{}')
-      await writeFile(path.join(root, 'notes.txt'), 'x')
-      const found = await findModelEntries(root)
-      expect(found.entries).toEqual(['b.model3.json', 'nested/a.model3.json'])
-      expect(found.cmo3Found).toBe(false)
-    } finally {
-      await teardown()
-    }
+async function choose(flow:ReturnType<typeof createPetImportFlow>){const reply=await flow.openImportDialog();if(!reply.ok||!(reply.data.status==='ready'||reply.data.status==='choose'))throw new Error('NO_SELECTION');return reply.data}
+describe('native choice and worker model management flow',()=>{
+  it('discovers via worker and imports without implicit select, burning session',async()=>{
+    const {flow,worker}=fixture();const view=await choose(flow)
+    expect(worker.request).toHaveBeenCalledWith('discover',{directory:root})
+    expect(await flow.importChosen(view.sessionId,'pet.model3.json')).toEqual({ok:true,data:{status:'imported',model:importedModel}})
+    expect(await flow.importChosen(view.sessionId,'pet.model3.json')).toEqual({ok:false,error:'IMPORT_SESSION_INVALID'})
+    expect(worker.request.mock.calls.some(([method])=>method==='select')).toBe(false)
   })
-  it('flags cmo3 editor projects without listing them as entries', async () => {
-    await setup()
-    try {
-      await writeFile(path.join(root, 'project.cmo3'), 'x')
-      await writeFile(path.join(root, 'run.model3.json'), '{}')
-      const found = await findModelEntries(root)
-      expect(found.entries).toEqual(['run.model3.json'])
-      expect(found.cmo3Found).toBe(true)
-    } finally {
-      await teardown()
-    }
+  it('native picker cancellation revokes old selection',async()=>{
+    const {flow,picker}=fixture();const view=await choose(flow);picker.mockResolvedValue(null)
+    expect(await flow.openImportDialog()).toEqual({ok:true,data:{status:'cancelled'}})
+    expect((await flow.importChosen(view.sessionId,'pet.model3.json')).ok).toBe(false)
   })
-  it('stops beyond the depth bound', async () => {
-    await setup()
-    try {
-      let dir = root
-      for (let i = 0; i < 8; i++) {
-        dir = path.join(dir, `d${i}`)
-        await mkdir(dir, { recursive: true })
-      }
-      await writeFile(path.join(dir, 'deep.model3.json'), '{}')
-      expect((await findModelEntries(root)).entries).toEqual([])
-    } finally {
-      await teardown()
-    }
+  it('new pending selection immediately blocks the old capability and other operations',async()=>{
+    const {flow,picker,worker}=fixture();const view=await choose(flow);let resolve!:(value:null)=>void
+    picker.mockImplementation(()=>new Promise(r=>{resolve=r}));const pending=flow.openImportDialog()
+    expect((await flow.importChosen(view.sessionId,'pet.model3.json')).ok).toBe(false)
+    expect((await flow.openImportDialog()).ok).toBe(false)
+    expect((await flow.select(importedModel.id)).ok).toBe(false)
+    resolve(null);await pending
+    expect((await flow.importChosen(view.sessionId,'pet.model3.json')).ok).toBe(false)
+    expect(worker.request.mock.calls.some(([method])=>method==='import'||method==='select')).toBe(false)
   })
-})
-
-describe('import session', () => {
-  it('returns ready for one entry and choose for several', () => {
-    const session = new ImportSession()
-    expect(session.choose('/models/a', { entries: ['pet.model3.json'], cmo3Found: false })).toEqual({
-      status: 'ready',
-      entry: 'pet.model3.json',
-      entries: ['pet.model3.json'],
-    })
-    expect(
-      session.choose('/models/b', { entries: ['a.model3.json', 'b.model3.json'], cmo3Found: false }),
-    ).toEqual({ status: 'choose', entries: ['a.model3.json', 'b.model3.json'] })
+  it('cancel during asynchronous discovery cannot restore a stale session',async()=>{
+    const {flow,worker}=fixture();let resolve!:(value:unknown)=>void
+    worker.request.mockImplementation(()=>new Promise(r=>{resolve=r}));const pending=flow.openImportDialog();await vi.waitFor(()=>expect(worker.request).toHaveBeenCalled())
+    await flow.cancelImport();resolve({ok:true,data:{entries:['pet.model3.json'],cmo3Found:false}})
+    expect(await pending).toEqual({ok:true,data:{status:'cancelled'}})
   })
-  it('consumes exactly once and only for discovered entries', () => {
-    const session = new ImportSession()
-    session.choose('/models/c', { entries: ['pet.model3.json'], cmo3Found: false })
-    expect(session.consume('../escape.model3.json')).toBeNull()
-    expect(session.consume('unknown.model3.json')).toBeNull()
-    expect(session.consume('pet.model3.json')).toBe('/models/c')
-    expect(session.pending()).toBe(false)
-    expect(session.consume('pet.model3.json')).toBeNull()
+  it('blocks overlapping import, selection and removal until worker finishes',async()=>{
+    const {flow,worker}=fixture();const view=await choose(flow);let resolve!:(value:unknown)=>void
+    worker.request.mockImplementation(()=>new Promise(r=>{resolve=r}));const pending=flow.importChosen(view.sessionId,'pet.model3.json')
+    expect((await flow.select(null)).ok).toBe(false);expect((await flow.remove(importedModel.id)).ok).toBe(false)
+    resolve({ok:true,data:{status:'duplicate',model:importedModel}});expect((await pending).ok).toBe(true)
   })
-  it('clears itself when nothing was discovered', () => {
-    const session = new ImportSession()
-    expect(session.choose('/models/d', { entries: [], cmo3Found: true })).toEqual({
-      status: 'no-model',
-      cmo3Found: true,
-    })
-    expect(session.pending()).toBe(false)
+  it('projects invalid resources into safe relative paths and fixed messages',async()=>{
+    const {flow,worker}=fixture();const view=await choose(flow)
+    worker.request.mockResolvedValue({ok:true,data:{status:'invalid',issues:[{code:'invalid-path',resource:'/private/user/model',message:'secret path'},{code:'missing',resource:'textures/pet.png',message:'secret'},{code:'secret payload',resource:'https://evil.test',message:'private'}]}})
+    const reply=await flow.importChosen(view.sessionId,'pet.model3.json')
+    expect(JSON.stringify(reply)).not.toMatch(/private|secret|https:/)
+    expect(reply).toMatchObject({ok:true,data:{issues:[{resource:''},{resource:'textures/pet.png'},{code:'invalid-resource',resource:''}]}})
+  })
+  it('maps worker failures without selecting or exposing details',async()=>{
+    const {flow,worker}=fixture();const view=await choose(flow);worker.request.mockResolvedValue({ok:false,error:'source-changed'})
+    expect(await flow.importChosen(view.sessionId,'pet.model3.json')).toEqual({ok:false,error:'SOURCE_CHANGED'})
+    expect(worker.request.mock.calls.some(([method])=>method==='select')).toBe(false)
+  })
+  it('select supports clearing current and remove returns slim state',async()=>{
+    const {flow,worker}=fixture()
+    expect(await flow.select(null)).toEqual({ok:true,data:{currentModelId:null,display:false,models:[importedModel]}})
+    expect(worker.request).toHaveBeenCalledWith('select',{modelId:null})
+    expect((await flow.remove(importedModel.id)).ok).toBe(true)
+    expect(worker.request).toHaveBeenCalledWith('remove',{modelId:importedModel.id})
   })
 })
-
-const fakeWorker = (behavior: {
-  import?: (directory: string, entry: string) => unknown
-  list?: () => unknown
-  select?: (modelId: string) => unknown
-}) => ({
-  request: async (method: 'list' | 'import' | 'select', params?: Record<string, unknown>) => {
-    if (method === 'import')
-      return { ok: true as const, data: behavior.import!(params!.directory as string, params!.entry as string) }
-    if (method === 'select') return { ok: true as const, data: behavior.select!(params!.modelId as string) }
-    return { ok: true as const, data: behavior.list!() }
-  },
-})
-const importedModel = {
-  id: 'a'.repeat(64),
-  entry: 'pet.model3.json',
-  importedAt: '2026-09-13T00:00:00.000Z',
-  totalBytes: 42,
-  resources: [{ path: 'pet.moc3', kind: 'moc3', bytes: 8, sha256: 'x' }],
-}
-
-describe('pet import flow', () => {
-  it('cancel keeps everything untouched and never calls the worker', async () => {
-    let calls = 0
-    const flow = createPetImportFlow({
-      pickDirectory: async () => null,
-      worker: { request: async () => (calls++, { ok: true as const, data: {} }) },
-    })
-    expect(await flow.openImportDialog()).toEqual({ ok: true, data: { status: 'cancelled' } })
-    expect(calls).toBe(0)
+describe('public model-management contract only',()=>{
+  it.each([{method:'pet.state'},{method:'pet.openImportDialog'},{method:'pet.cancelImport'},{method:'pet.importChosen',sessionId:'11111111-1111-4111-8111-111111111111',entry:'pet.model3.json'},{method:'pet.select',modelId:null},{method:'pet.remove',modelId:'a'.repeat(64)}])('registers $method only at main boundary',request=>{
+    expect(parseCoreRequest(request)).toEqual(request);expect(()=>parseHostRequest(request)).toThrow()
   })
-  it('imports a single discovered entry and burns the session afterwards', async () => {
-    let imported: { directory: string; entry: string } | undefined
-    const flow = createPetImportFlow({
-      pickDirectory: async () => '/models/single',
-      findEntries: async () => ({ entries: ['pet.model3.json'], cmo3Found: false }),
-      worker: fakeWorker({
-        import: (directory, entry) => {
-          imported = { directory, entry }
-          return { status: 'imported', model: importedModel }
-        },
-        list: () => ({ currentModelId: null, models: [importedModel] }),
-      }),
-    })
-    expect(await flow.openImportDialog()).toEqual({
-      ok: true,
-      data: { status: 'ready', entry: 'pet.model3.json', entries: ['pet.model3.json'] },
-    })
-    const reply = await flow.importChosen('pet.model3.json')
-    expect(reply).toEqual({
-      ok: true,
-      data: {
-        status: 'imported',
-        model: {
-          id: 'a'.repeat(64),
-          entry: 'pet.model3.json',
-          importedAt: '2026-09-13T00:00:00.000Z',
-          totalBytes: 42,
-        },
-      },
-    })
-    expect(imported).toEqual({ directory: '/models/single', entry: 'pet.model3.json' })
-    expect(await flow.importChosen('pet.model3.json')).toMatchObject({ ok: false, error: 'IMPORT_SESSION_INVALID' })
-  })
-  it('passes validation issues through and maps worker error codes', async () => {
-    const flow = createPetImportFlow({
-      pickDirectory: async () => '/models/bad',
-      findEntries: async () => ({ entries: ['pet.model3.json'], cmo3Found: false }),
-      worker: fakeWorker({
-        import: () => ({
-          status: 'invalid',
-          issues: [{ code: 'missing', resource: 'pet.png', message: '缺少文件' }],
-        }),
-      }),
-    })
-    await flow.openImportDialog()
-    expect(await flow.importChosen('pet.model3.json')).toEqual({
-      ok: true,
-      data: {
-        status: 'invalid',
-        issues: [{ code: 'missing', resource: 'pet.png', message: '缺少文件' }],
-      },
-    })
-    const failing = createPetImportFlow({
-      pickDirectory: async () => '/models/x',
-      findEntries: async () => ({ entries: ['pet.model3.json'], cmo3Found: false }),
-      worker: {
-        request: async () => ({ ok: false as const, error: 'source-changed' }),
-      },
-    })
-    await failing.openImportDialog()
-    expect(await failing.importChosen('pet.model3.json')).toMatchObject({ ok: false, error: 'SOURCE_CHANGED' })
-  })
-  it('state slims models so resource details never reach the renderer', async () => {
-    const flow = createPetImportFlow({
-      pickDirectory: async () => null,
-      worker: fakeWorker({
-        list: () => ({ currentModelId: 'a'.repeat(64), models: [importedModel] }),
-      }),
-    })
-    const reply = await flow.state()
-    expect(reply.ok && reply.data.models[0]).toEqual({
-      id: 'a'.repeat(64),
-      entry: 'pet.model3.json',
-      importedAt: '2026-09-13T00:00:00.000Z',
-      totalBytes: 42,
-    })
-  })
-})
-
-// These declarations are not yet registered in the public CoreRequest union or
-// preload bridge. Validate their planned shape independently of live IPC access.
-const validPetRequests = [
-  { method: 'pet.state' },
-  { method: 'pet.openImportDialog' },
-  { method: 'pet.importChosen', entry: 'pet.model3.json' },
-  { method: 'pet.select', modelId: 'a'.repeat(64) },
-  { method: 'pet.show' },
-  { method: 'pet.hide' },
-]
-
-describe('independent pet request declarations', () => {
-  it.each(validPetRequests)('accepts the declared shape of $method', (request) => {
-    expect(parsePetRequest(request)).toEqual(request)
-  })
-  it.each([
-    { method: 'pet.remove' },
-    { method: 'pet.state', directory: '/etc' },
-    { method: 'pet.importChosen' },
-    { method: 'pet.importChosen', entry: '' },
-    { method: 'pet.importChosen', entry: 'x'.repeat(513) },
-    { method: 'pet.select', modelId: 'short' },
-    { method: 'pet.show', path: '/models' },
-    { method: 'pet.hide', enabled: true },
-  ])('rejects invalid standalone declaration %#', (request) => {
-    expect(() => parsePetRequest(request)).toThrow('INVALID_PET_REQUEST')
-  })
-})
-
-describe('public IPC keeps unintegrated pet methods unavailable', () => {
-  it.each(validPetRequests)('rejects $method even from the trusted renderer', async (request) => {
-    expect(() => parseCoreRequest(request)).toThrow()
-    expect(() => parseHostRequest(request)).toThrow()
-    const frame = { url: 'memo://app/index.html' }
-    const renderer = { mainFrame: frame, isDestroyed: () => false }
-    const dispatch = vi.fn().mockResolvedValue({ ok: true, data: {} })
-    const handler = createRequestHandler(() => renderer, frame.url, dispatch)
-    expect(await handler({ sender: renderer, senderFrame: frame }, request)).toEqual({
-      ok: false,
-      error: 'INVALID_REQUEST',
-    })
-    expect(dispatch).not.toHaveBeenCalled()
+  it.each(['pet.show','pet.hide'])('keeps unimplemented display method %s rejected',method=>{
+    expect(()=>parseCoreRequest({method})).toThrow();expect(()=>parseHostRequest({method})).toThrow()
   })
 })

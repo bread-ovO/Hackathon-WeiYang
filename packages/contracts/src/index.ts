@@ -1,3 +1,10 @@
+import {
+  petRequestSchemas,
+  type PetRequest,
+  type PetState,
+  type PetChooseReply,
+  type PetImportReply,
+} from './pet'
 export * from './pet'
 import {
   pluginsRequestSchema,
@@ -132,6 +139,7 @@ const coreRequestSchema = {
     exportSaveRequestSchema,
     credentialRequestSchema,
     pluginsRequestSchema,
+    ...petRequestSchemas,
   ],
 } as const
 export type CoreRequest = FromSchema<typeof coreRequestSchema>
@@ -152,6 +160,7 @@ export type HostRequest =
       CoreRequest,
       {
         method:
+          | PetRequest['method']
           | 'sources.chooseFile'
           | 'exports.save'
           | 'credentials.list'
@@ -204,6 +213,12 @@ export function parseHostRequest(value: unknown): HostRequest {
   if (validateImportFile(value)) return value
   const request = parseCoreRequest(value)
   if (
+    request.method === 'pet.state' ||
+    request.method === 'pet.openImportDialog' ||
+    request.method === 'pet.cancelImport' ||
+    request.method === 'pet.importChosen' ||
+    request.method === 'pet.select' ||
+    request.method === 'pet.remove' ||
     request.method === 'sources.chooseFile' ||
     request.method === 'exports.save' ||
     request.method === 'credentials.list' ||
@@ -250,6 +265,7 @@ export type CoreReply<T = Health> =
         | 'PLUGIN_CONFLICT'
         | 'PLUGIN_TRIAL_FAILED'
         | 'PET_UNAVAILABLE'
+        | 'PET_OUTCOME_UNKNOWN'
         | 'IMPORT_SESSION_INVALID'
         | 'SOURCE_CHANGED'
         | 'INVALID_STORE'
@@ -257,6 +273,17 @@ export type CoreReply<T = Health> =
         | 'STORAGE_LIMIT'
     }
 export interface DesktopBridge {
+  pet: {
+    state(): Promise<CoreReply<PetState>>
+    openImportDialog(): Promise<CoreReply<PetChooseReply>>
+    cancelImport(): Promise<CoreReply<{ status: 'cancelled' }>>
+    importChosen(
+      sessionId: string,
+      entry: string,
+    ): Promise<CoreReply<PetImportReply>>
+    select(modelId: string | null): Promise<CoreReply<PetState>>
+    remove(modelId: string): Promise<CoreReply<PetState>>
+  }
   health(): Promise<CoreReply>
   plugins: {
     list(): Promise<CoreReply<PluginSnapshot>>

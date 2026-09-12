@@ -1,3 +1,5 @@
+import { PetWorkerClient } from './pet/worker-client'
+import { createPetImportFlow } from './pet/import-flow'
 import {
   app,
   BrowserWindow,
@@ -101,6 +103,23 @@ else {
         join(data, 'memo.sqlite'),
       )
       core.start()
+      const petWorker = new PetWorkerClient(
+        join(__dirname, 'pet-worker.js'),
+        join(data, 'pet-models'),
+      )
+      petWorker.start()
+      const pets = createPetImportFlow({
+        worker: petWorker,
+        pickDirectory: async () => {
+          if (!window) return null
+          const choice = await dialog.showOpenDialog(window, {
+            title: '选择 Live2D 模型目录',
+            properties: ['openDirectory'],
+          })
+          return choice.canceled ? null : (choice.filePaths[0] ?? null)
+        },
+      })
+      app.once('before-quit', () => petWorker.stop())
       const vault = createSystemCredentialVault(join(data, 'credentials'))
       const plugins = createPluginRuntime({
         request: (request) =>
@@ -150,6 +169,17 @@ else {
           () => window?.webContents ?? null,
           pageURL,
           async (request) => {
+            if (request.method === 'pet.state') return pets.state()
+            if (request.method === 'pet.openImportDialog')
+              return pets.openImportDialog()
+            if (request.method === 'pet.cancelImport')
+              return pets.cancelImport()
+            if (request.method === 'pet.importChosen')
+              return pets.importChosen(request.sessionId, request.entry)
+            if (request.method === 'pet.select')
+              return pets.select(request.modelId)
+            if (request.method === 'pet.remove')
+              return pets.remove(request.modelId)
             if (
               request.method === 'plugins.list' ||
               request.method === 'plugins.inspect' ||
