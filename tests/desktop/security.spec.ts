@@ -85,6 +85,7 @@ test('real IPC rejects foreign windows and malformed requests; source text stays
       'exports',
       'sources',
       'workspace',
+      'pet',
     ])
     expect(
       await page.evaluate(() => Object.keys(window.memo.workspace)),

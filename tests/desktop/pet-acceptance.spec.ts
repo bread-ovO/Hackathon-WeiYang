@@ -91,6 +91,11 @@ test.describe('PET16 pet integration acceptance', () => {
     const app = await launch(data)
     try {
       const page = await app.firstWindow()
+      // Wait for the initial SPA load to commit before probing (a mid-load
+      // evaluate context can be destroyed by the navigation on slower hosts).
+      await expect(
+        page.getByRole('heading', { name: '跟进', exact: true }),
+      ).toBeVisible()
       // Security: the controlled model route refuses escapes even from the
       // trusted renderer.
       expect(
