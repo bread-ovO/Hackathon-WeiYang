@@ -1,4 +1,12 @@
 import {
+  exportSaveRequestSchema,
+  exportBuildRequestSchema,
+  type ExportBuildRequest,
+  type ExportScope,
+  type ExportReceipt,
+} from './export'
+export * from './export'
+import {
   sourcesRequestSchema,
   importFileRequestSchema,
   type ImportFileRequest,
@@ -99,7 +107,12 @@ export const healthRequestSchema = {
   additionalProperties: false,
 } as const
 const coreRequestSchema = {
-  oneOf: [healthRequestSchema, workspaceRequestSchema, sourcesRequestSchema],
+  oneOf: [
+    healthRequestSchema,
+    workspaceRequestSchema,
+    sourcesRequestSchema,
+    exportSaveRequestSchema,
+  ],
 } as const
 export type CoreRequest = FromSchema<typeof coreRequestSchema>
 const validateRequest = ajv.compile<CoreRequest>(coreRequestSchema)
@@ -115,16 +128,24 @@ export function parseCoreRequest(value: unknown): CoreRequest {
   return value
 }
 export type HostRequest =
-  | Exclude<CoreRequest, { method: 'sources.chooseFile' }>
+  | Exclude<CoreRequest, { method: 'sources.chooseFile' | 'exports.save' }>
   | ImportFileRequest
+  | ExportBuildRequest
 const validateImportFile = ajv.compile<ImportFileRequest>(
   importFileRequestSchema,
 )
 /** Internal host validation never grants renderer access to a filesystem path. */
+const validateExportBuild = ajv.compile<ExportBuildRequest>(
+  exportBuildRequestSchema,
+)
 export function parseHostRequest(value: unknown): HostRequest {
+  if (validateExportBuild(value)) return value
   if (validateImportFile(value)) return value
   const request = parseCoreRequest(value)
-  if (request.method === 'sources.chooseFile')
+  if (
+    request.method === 'sources.chooseFile' ||
+    request.method === 'exports.save'
+  )
     throw new Error('INVALID_REQUEST')
   return request
 }
@@ -145,9 +166,13 @@ export type CoreReply<T = Health> =
         | 'INTERNAL_ERROR'
         | 'VERSION_CONFLICT'
         | 'NOT_FOUND'
+        | 'EXPORT_LIMIT_EXCEEDED'
+        | 'EXPORT_INVALID_DATA'
+        | 'EXPORT_WRITE_FAILED'
     }
 export interface DesktopBridge {
   health(): Promise<CoreReply>
+  exports: { save(scope: ExportScope): Promise<CoreReply<ExportReceipt>> }
   sources: {
     list(): Promise<CoreReply<SourcesSnapshot>>
     chooseFile(projectId: string): Promise<CoreReply<SourcesSnapshot>>

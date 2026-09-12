@@ -1113,3 +1113,14 @@ dd {
 .source-import-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .source-import-actions select { padding: 8px; border: 1px solid #ddd; border-radius: 8px; background: white; }
 .source-import-row { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding: 12px 0; border-top: 1px solid #ddd; overflow-wrap: anywhere; }
+
+.workspace-actions, .export-actions { display: flex; gap: 8px; align-items: center; }
+.export-dialog { display: flex; flex-direction: column; gap: 12px; padding: 0; }
+.export-dialog h2 { font-size: 18px; font-weight: 600; margin: 0; }
+.export-dialog label { display: flex; flex-direction: column; gap: 8px; font-size: 14px; }
+.export-dialog select { width: 100%; min-height: 32px; border: 1px solid var(--color-kumo-line); border-radius: 8px; padding: 4px 8px; background: var(--color-kumo-base); }
+.export-dialog .export-checkbox { flex-direction: row; align-items: center; }
+.export-checkbox input { width: 16px; height: 16px; }
+.export-note, .export-description { font-size: 12px; line-height: 1.6; color: var(--text-color-kumo-subtle); margin: 0; }
+.export-result { font-size: 14px; overflow-wrap: anywhere; }
+.export-actions { justify-content: flex-end; margin-top: 4px; }
