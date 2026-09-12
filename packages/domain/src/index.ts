@@ -15,3 +15,10 @@ export function assertExpectedVersion(current:number, expected:number): void {
 
 export { normalizeIdentity, parseContextTimestamp, normalizeEventTime, comparePlanUpdates } from './context'
 export type { ContextIdentity, NormalizedIdentity, ContextTimestamp, EventTimeInput, NormalizedEventTime, PlanUpdate, PlanUpdateDecision } from './context'
+
+/** Parse an ISO date or date-time from trusted model output. */
+export function parseDeadline(value: string): string | null {
+  if (!value || !/^\d{4}-\d{2}-\d{2}(?:T\d{2}:\d{2}(?::\d{2}(?:\.\d{1,3})?)?(?:Z|[+-]\d{2}:?\d{2})?)?$/.test(value)) return null
+  const time = Date.parse(value.length === 10 ? `${value}T00:00:00Z` : value)
+  return Number.isNaN(time) ? null : new Date(time).toISOString()
+}
