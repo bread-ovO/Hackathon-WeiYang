@@ -72,3 +72,5 @@ export function sourceHealthLabel(status: 'active'|'revoked'|'error'): string { 
 export function filterTasks(tasks: Task[], status?: TaskStatus, includeArchived = false): Task[] { return tasks.filter(t => (includeArchived || !t.archivedAt) && (!status || t.status===status)) }
 
 export function sortTimeline<T extends { occurredAt: string }>(items: T[]): T[] { return [...items].sort((a,b)=>Date.parse(a.occurredAt)-Date.parse(b.occurredAt)) }
+
+export function hasPluginPermission(granted: string[], requested: string): boolean { return granted.includes(requested) }
