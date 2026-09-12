@@ -115,6 +115,7 @@ export class SourcePoller {
     while (!signal.aborted) {
       try {
         const page = await this.pullPage(current, signal)
+        if (page.hasMore && !page.pageToken) throw new Error('INVALID_PAGE_CURSOR')
         await this.onPage(page, page.hasMore === false ? '' : page.pageToken ?? '')
         current = page.hasMore === false ? '' : page.pageToken ?? ''
         delay = this.baseDelayMs
