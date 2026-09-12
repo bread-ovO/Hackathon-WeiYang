@@ -201,11 +201,32 @@ try {
     JSON.stringify(store.plugins.list()).includes('vault-reference'),
     false,
   )
+  // HTTP cursors retain up to 128 digest keys: a legitimate nonempty page can
+  // exceed 4 KiB. The shared receiver must honor the plugin's 16 KiB limit.
+  const largeCursor = JSON.stringify({ seen: Array.from({ length: 128 }, (_, i) => i.toString(16).padStart(64, '0')) })
+  assert.ok(largeCursor.length > 4096 && largeCursor.length < 16384)
+  const beforeLarge = store.health()
+  const current = store.plugins.get(installed.id)
+  const batch = (cursor: string, expectedCursor: string, externalId: string) => store.plugins.receiveBatch({
+    id: installed.id, grantVersion: current.grantVersion, cursor, expectedCursor,
+    events: [{ ...event(externalId), sourceInstanceId: current.sourceInstanceId }],
+  })
+  assert.equal(batch(largeCursor, current.cursor, 'large-cursor-page').inserted, 1)
+  assert.equal(store.plugins.get(installed.id).cursor, largeCursor)
+  assert.equal(store.health().eventCount, beforeLarge.eventCount + 1)
+  assert.equal(store.health().jobCount, beforeLarge.jobCount + 1)
+  assert.equal(batch(largeCursor, largeCursor, 'large-cursor-page').inserted, 0)
+  const maximumCursor = 'c'.repeat(16384)
+  assert.equal(batch(maximumCursor, largeCursor, 'maximum-cursor-page').inserted, 1)
+  assert.throws(() => batch('c'.repeat(16385), maximumCursor, 'oversize-cursor-page'), /PLUGIN_INVALID_DATA/)
+  assert.equal(store.plugins.get(installed.id).cursor, maximumCursor)
+  assert.equal(store.health().eventCount, beforeLarge.eventCount + 2)
+  assert.equal(store.health().jobCount, beforeLarge.jobCount + 2)
   raw.close()
   store.close()
   const reopen = openStore(path)
   assert.equal(reopen.plugins.list().length, 2)
-  assert.equal(reopen.health().schemaVersion, 6)
+  assert.equal(reopen.health().schemaVersion, 7)
   reopen.close()
   console.log(
     'Plugin installation integration passed: activate/upgrade rollback, grants, cursor CAS, transactional import, secrets rejection and uninstall/reinstall generations',

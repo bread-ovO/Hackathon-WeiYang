@@ -147,17 +147,15 @@ const importedModel = {
 function fixture() {
   const picker = vi.fn().mockResolvedValue(root)
   const worker = {
-    request: vi
-      .fn()
-      .mockImplementation(async (method: string) => ({
-        ok: true,
-        data:
-          method === 'discover'
-            ? { entries: ['pet.model3.json'], cmo3Found: false }
-            : method === 'import'
-              ? { status: 'imported', model: importedModel }
-              : { currentModelId: null, models: [importedModel] },
-      })),
+    request: vi.fn().mockImplementation(async (method: string) => ({
+      ok: true,
+      data:
+        method === 'discover'
+          ? { entries: ['pet.model3.json'], cmo3Found: false }
+          : method === 'import'
+            ? { status: 'imported', model: importedModel }
+            : { currentModelId: null, models: [importedModel] },
+    })),
   }
   return {
     picker,
@@ -190,6 +188,56 @@ describe('native choice and worker model management flow', () => {
     expect(
       worker.request.mock.calls.some(([method]) => method === 'select'),
     ).toBe(false)
+  })
+  it('coalesces a pending state read without blocking the native picker', async () => {
+    const { flow, worker, picker } = fixture()
+    const original = worker.request.getMockImplementation()!
+    let resolveRead!: (value: unknown) => void
+    worker.request.mockImplementation((method: string) =>
+      method === 'list'
+        ? new Promise((resolve) => {
+            resolveRead = resolve
+          })
+        : original(method),
+    )
+    const first = flow.state()
+    const second = flow.state()
+    expect(first).toBe(second)
+    const choice = await flow.openImportDialog()
+    expect(picker).toHaveBeenCalledTimes(1)
+    expect(choice.ok).toBe(true)
+    expect(
+      worker.request.mock.calls.filter(([method]) => method === 'list'),
+    ).toHaveLength(1)
+    resolveRead({
+      ok: true,
+      data: { currentModelId: null, models: [importedModel] },
+    })
+    expect((await first).ok).toBe(true)
+    expect(await second).toEqual(await first)
+  })
+  it('a completed state read cannot release an active mutation lock', async () => {
+    const { flow, picker } = fixture()
+    let finishPicker!: (value: null) => void
+    picker.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          finishPicker = resolve
+        }),
+    )
+    const pending = flow.openImportDialog()
+    expect((await flow.state()).ok).toBe(true)
+    expect((await flow.openImportDialog()).ok).toBe(false)
+    expect((await flow.select(null)).ok).toBe(false)
+    finishPicker(null)
+    expect(await pending).toEqual({ ok: true, data: { status: 'cancelled' } })
+    expect((await flow.select(null)).ok).toBe(true)
+  })
+  it('failed state reads release only the read slot and retain safe errors', async () => {
+    const { flow, worker } = fixture()
+    worker.request.mockRejectedValueOnce(new Error('/private/source/model'))
+    expect(await flow.state()).toEqual({ ok: false, error: 'PET_UNAVAILABLE' })
+    expect((await flow.state()).ok).toBe(true)
   })
   it('native picker cancellation revokes old selection', async () => {
     const { flow, picker } = fixture()

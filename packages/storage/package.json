@@ -6,6 +6,7 @@
   "exports": "./src/index.ts",
   "dependencies": {
     "better-sqlite3": "13.0.3",
-    "@memo/contracts": "workspace:*"
+    "@memo/contracts": "workspace:*",
+    "@memo/domain": "workspace:*"
   }
 }
