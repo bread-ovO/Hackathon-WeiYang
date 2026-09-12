@@ -60,3 +60,5 @@ export function canRetryNotification(attempts: number, maxAttempts = 3): boolean
 export function cleanupTargets(projectId: string): string[] { if (!projectId.trim()) throw new Error('INVALID_PROJECT_ID'); return [`events:${projectId}`,`tasks:${projectId}`,`index:${projectId}`,`outbox:${projectId}`] }
 
 export function cloudInferenceAllowed(enabled: boolean, scope: string[]): boolean { return enabled && scope.length > 0 }
+
+export function shouldRollback(failures: number, threshold = 3): boolean { return Number.isInteger(failures) && failures >= threshold }
