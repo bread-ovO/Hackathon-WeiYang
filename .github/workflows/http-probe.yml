@@ -28,7 +28,10 @@ jobs:
       - name: Probe public release metadata
         id: probe
         continue-on-error: true
-        run: node scripts/probe-http-source.mjs | tee http-probe.log
+        shell: bash
+        run: |
+          set -o pipefail
+          node scripts/probe-http-source.mjs 2>&1 | tee http-probe.log
       - uses: actions/upload-artifact@v4
         if: always()
         with:
