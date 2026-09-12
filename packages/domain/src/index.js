@@ -31,3 +31,4 @@ export function splitTaskId(parent,children){if(!parent.trim()||children.length<
 export function canRevoke(source,status){return (source==='automatic'||source==='manual')&&status!=='cancelled';}
 export function shouldNotify(enabled,quietHours,due){return enabled&&!quietHours&&due;}
 export function withinNotificationCooldown(last,now,cooldown){return !!last&&Date.parse(now)-Date.parse(last)<cooldown;}
+export function canRetryNotification(attempts,maxAttempts=3){return Number.isInteger(attempts)&&attempts>=0&&attempts<maxAttempts;}
