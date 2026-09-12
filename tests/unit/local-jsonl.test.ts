@@ -239,7 +239,10 @@ describe('bounded authorized JSONL reader', () => {
       manifest.mapping.text.pointer = pointer
       await expect(
         readLocalJsonl({ ...input(), manifest }),
-      ).rejects.toMatchObject({ code: 'INVALID_SOURCE_EVENT' })
+      ).rejects.toMatchObject({
+        code:
+          pointer === '/toString' ? 'INVALID_SOURCE_EVENT' : 'INVALID_MANIFEST',
+      })
     }
   })
   it('rejects file and ancestor symlinks', async (context) => {
