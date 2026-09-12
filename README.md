@@ -72,7 +72,7 @@ pnpm package:dir
 | packages/application | 接收等应用用例及存储接口 |
 | packages/storage | SQLite、迁移与事务实现 |
 | packages/connectors | 信源适配器接口，目前无真实采集 |
-| packages/plugin-host | 版本化 manifest 校验及受控 local-jsonl 读取器；HTTP 运行时未接入 |
+| packages/plugin-host | 版本化 manifest 校验、local-jsonl 与 HTTPS JSON 读取模块；HTTP 安装/授权界面未接入 |
 | packages/model | 模型适配器接口，目前不发出请求 |
 | packages/evals | 按时间回放的评测类型，真实样例待补 |
 
@@ -95,3 +95,5 @@ pnpm package:dir
 第四批[本地 JSONL 导入交付](docs/engineering/本地JSONL导入_2026-09-13.md)：文件格式、容量边界和撤权行为。
 
 真实工作区现支持[事项与证据导出](docs/engineering/事项与证据导出_2026-09-13.md)：按项目或选中事项保存 JSON，保留条件历史、人工决定与证据状态，可选择是否包含引用原文。
+
+第六批新增[HTTPS JSON 来源运行时](docs/engineering/HTTP声明式来源运行时_2026-09-13.md)，支持受限网络请求、分页、取消与统一事件映射；仍需宿主安装和授权集成。

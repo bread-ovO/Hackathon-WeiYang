@@ -1,0 +1,26 @@
+{
+  "id": "github-release-assets",
+  "version": "1.0.0",
+  "schemaVersion": 1,
+  "sourceType": "source",
+  "displayName": "公开发布资源元数据探针",
+  "hostApiRange": { "minInclusive": "1.0.0", "maxExclusive": "2.0.0" },
+  "kind": "http-json",
+  "permissions": { "domains": ["api.github.com"], "directories": [], "credentials": [] },
+  "sampling": { "intervalSeconds": 300, "maxRecordsPerRun": 500 },
+  "transport": {
+    "url": "https://api.github.com/repos/openai/codex/releases/latest",
+    "method": "GET",
+    "recordsPointer": "/assets",
+    "maxResponseBytes": 2097152,
+    "maxPages": 1,
+    "requestsPerMinute": 6
+  },
+  "mapping": {
+    "externalId": { "pointer": "/node_id" },
+    "revision": { "pointer": "/updated_at" },
+    "occurredAt": { "pointer": "/created_at" },
+    "role": { "constant": "tool" },
+    "text": { "pointer": "/name" }
+  }
+}

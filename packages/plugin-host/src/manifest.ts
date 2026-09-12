@@ -266,9 +266,69 @@ export function validateSourceManifest(
     issues.push({ path: at, code, message })
   if (!isHostApiCompatible(value.hostApiRange, hostVersion))
     issue('/hostApiRange', 'version', '宿主 API 版本不兼容或版本区间无效。')
+  const selectors = Object.entries(value.mapping).flatMap(
+    ([field, selector]) =>
+      Object.hasOwn(selector, 'pointer') && 'pointer' in selector
+        ? [{ pointer: selector.pointer, path: `/mapping/${field}/pointer` }]
+        : [],
+  )
+  if (value.kind === 'http-json') {
+    selectors.push({
+      pointer: value.transport.recordsPointer,
+      path: '/transport/recordsPointer',
+    })
+    if (
+      Object.hasOwn(value.transport, 'pagination') &&
+      value.transport.pagination
+    )
+      selectors.push({
+        pointer: value.transport.pagination.cursorPointer,
+        path: '/transport/pagination/cursorPointer',
+      })
+  }
+  for (const selected of selectors) {
+    const segments = selected.pointer
+      .slice(1)
+      .split('/')
+      .map((part) => part.replace(/~1/g, '/').replace(/~0/g, '~'))
+    if (
+      segments.some((part) =>
+        ['__proto__', 'prototype', 'constructor'].includes(part),
+      )
+    )
+      issue(selected.path, 'transport', 'JSON Pointer 不得访问原型相关字段。')
+  }
   if (value.kind === 'http-json') {
     try {
-      const url = new URL(value.transport.url)
+      const raw = value.transport.url
+      const authority = /^https:\/\/([^/?#]+)/i.exec(raw)?.[1]
+      // WHATWG parsing normalizes encoded hosts, backslashes and whitespace. Reject
+      // those spellings before parsing so permission review and requests agree.
+      if (
+        !authority ||
+        /[%@]/.test(authority) ||
+        /[\\\s\u0000-\u001f\u007f?#]/u.test(raw) ||
+        /%(?![0-9a-f]{2})/i.test(raw)
+      )
+        issue(
+          '/transport/url',
+          'transport',
+          'URL 必须使用明确的 HTTPS 域名，禁止歧义编码、反斜杠、空白、查询串和片段。',
+        )
+      const url = new URL(raw)
+      // DNS answers, including public-looking aliases of private addresses, still
+      // require runtime validation; this only rejects known local name forms.
+      if (
+        ['localhost', 'local', 'localdomain', 'home.arpa'].some(
+          (domain) =>
+            url.hostname === domain || url.hostname.endsWith('.' + domain),
+        )
+      )
+        issue(
+          '/transport/url',
+          'permission',
+          '本地网络域名不在 HTTP 插件的公网范围内。',
+        )
       if (
         url.protocol !== 'https:' ||
         url.username ||
@@ -292,13 +352,20 @@ export function validateSourceManifest(
       issue('/transport/url', 'transport', '无效的 HTTPS URL。')
     }
     const declared = value.permissions.credentials[0]?.id
-    if (value.transport.credentialId !== declared)
+    const credentialId = Object.hasOwn(value.transport, 'credentialId')
+      ? value.transport.credentialId
+      : undefined
+    if (credentialId !== declared)
       issue(
         '/transport/credentialId',
         'permission',
         '凭据槽位必须与声明相同；不得携带凭据值。',
       )
-    if (value.transport.maxPages > 1 && !value.transport.pagination)
+    if (
+      value.transport.maxPages > 1 &&
+      (!Object.hasOwn(value.transport, 'pagination') ||
+        !value.transport.pagination)
+    )
       issue(
         '/transport/pagination',
         'transport',
