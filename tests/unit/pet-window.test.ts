@@ -25,7 +25,12 @@ const makeWindow = (): RecordingWindow => {
     hidden: 0,
     destroyed: 0,
     ignored: [] as { ignore: boolean; forward: boolean }[],
-    boundsHistory: [] as { x: number; y: number; width: number; height: number }[],
+    boundsHistory: [] as {
+      x: number
+      y: number
+      width: number
+      height: number
+    }[],
     closeListeners: [] as ((event: { preventDefault(): void }) => void)[],
     crashListeners: [] as (() => void)[],
     visible: false,
@@ -34,11 +39,22 @@ const makeWindow = (): RecordingWindow => {
   } as unknown as RecordingWindow
   win.isVisible = () => win.visible && !win.destroyedFlag
   win.isDestroyed = () => win.destroyedFlag
-  win.show = () => { win.shown++; win.visible = true }
-  win.hide = () => { win.hidden++; win.visible = false }
-  win.destroy = () => { win.destroyed++; win.destroyedFlag = true; win.visible = false }
+  win.showInactive = () => {
+    win.shown++
+    win.visible = true
+  }
+  win.hide = () => {
+    win.hidden++
+    win.visible = false
+  }
+  win.destroy = () => {
+    win.destroyed++
+    win.destroyedFlag = true
+    win.visible = false
+  }
   win.focus = () => {}
-  win.setIgnoreMouseEvents = (ignore, options) => win.ignored.push({ ignore, ...options! })
+  win.setIgnoreMouseEvents = (ignore, options) =>
+    win.ignored.push({ ignore, ...options! })
   win.setAlwaysOnTop = () => {}
   win.getBounds = () => win.savedBounds
   win.setBounds = (bounds) => {
@@ -72,7 +88,12 @@ const makePlatform = (
         return win
       },
       usableArea: () => area,
-      onDisplayChanged: (listener) => displayListeners.push(listener),
+      onDisplayChanged: (listener) => {
+        displayListeners.push(listener)
+        return () => {
+          displayListeners.splice(displayListeners.indexOf(listener), 1)
+        }
+      },
     },
   }
 }
@@ -84,7 +105,10 @@ describe('pet window controller', () => {
       platform,
       hasCurrentModel: async () => false,
     })
-    await expect(controller.show()).resolves.toEqual({ ok: false, reason: 'no-model' })
+    await expect(controller.show()).resolves.toEqual({
+      ok: false,
+      reason: 'no-model',
+    })
     expect(windows).toHaveLength(0)
     expect(controller.displaying()).toBe(false)
   })
@@ -139,7 +163,7 @@ describe('pet window controller', () => {
     const controller = createPetWindowController({
       platform,
       hasCurrentModel: async () => true,
-      saveState: state => saved.push(state),
+      saveState: (state) => saved.push(state),
       loadState: () => ({ x: 100, y: 200, scale: 1.5 }),
     })
     expect(controller.scale()).toBe(1.5)
@@ -194,15 +218,134 @@ describe('pet window controller', () => {
 describe('clampIntoArea', () => {
   const area = { x: 0, y: 0, width: 1000, height: 800 }
   it('keeps already-visible bounds', () => {
-    expect(clampIntoArea({ x: 100, y: 100, width: 320, height: 420 }, area)).toEqual({
+    expect(
+      clampIntoArea({ x: 100, y: 100, width: 320, height: 420 }, area),
+    ).toEqual({
       x: 100,
       y: 100,
     })
   })
   it('pulls strayed bounds back inside', () => {
-    expect(clampIntoArea({ x: 5000, y: -200, width: 320, height: 420 }, area)).toEqual({
+    expect(
+      clampIntoArea({ x: 5000, y: -200, width: 320, height: 420 }, area),
+    ).toEqual({
       x: 680,
       y: 0,
     })
+  })
+})
+
+describe('pet lifecycle races and placement validation', () => {
+  for (const action of ['hide', 'dispose'] as const) {
+    it(`${action} cancels pending model verification without creating a window`, async () => {
+      const harness = makePlatform()
+      let resolve!: (value: boolean) => void
+      const controller = createPetWindowController({
+        platform: harness.platform,
+        hasCurrentModel: () =>
+          new Promise<boolean>((done) => {
+            resolve = done
+          }),
+      })
+      const pending = controller.show()
+      controller[action]()
+      resolve(true)
+      expect(await pending).toEqual({ ok: false, reason: 'cancelled' })
+      expect(harness.windows).toHaveLength(0)
+      if (action === 'dispose') {
+        expect(harness.displayListeners).toHaveLength(0)
+        expect(await controller.show()).toEqual({
+          ok: false,
+          reason: 'disposed',
+        })
+      }
+    })
+  }
+  it('only the newest concurrent show request may create a window', async () => {
+    const harness = makePlatform()
+    const pending: ((value: boolean) => void)[] = []
+    const controller = createPetWindowController({
+      platform: harness.platform,
+      hasCurrentModel: () => new Promise<boolean>((done) => pending.push(done)),
+    })
+    const first = controller.show(),
+      second = controller.show()
+    pending[1]!(true)
+    expect(await second).toEqual({ ok: true })
+    pending[0]!(false)
+    expect(await first).toEqual({ ok: false, reason: 'cancelled' })
+    expect(controller.displaying()).toBe(true)
+    expect(harness.windows).toHaveLength(1)
+  })
+  it('does not focus or force topmost and can restore an externally destroyed window', async () => {
+    const harness = makePlatform()
+    const tops: boolean[] = []
+    const create = harness.platform.createWindow
+    harness.platform.createWindow = () => {
+      const win = create()
+      win.focus = () => {
+        throw new Error('focus forbidden')
+      }
+      win.setAlwaysOnTop = (value) => tops.push(value)
+      return win
+    }
+    const controller = createPetWindowController({
+      platform: harness.platform,
+      hasCurrentModel: async () => true,
+    })
+    expect(harness.windows).toHaveLength(0)
+    await controller.show()
+    expect(tops).toEqual([false])
+    controller.setAlwaysOnTop(true)
+    harness.windows[0]!.destroy()
+    expect(controller.displaying()).toBe(false)
+    await controller.show()
+    expect(harness.windows).toHaveLength(2)
+    expect(tops).toEqual([false, true, true])
+  })
+  it.each([NaN, Infinity, -Infinity])(
+    'rejects invalid saved scale %s and runtime nonfinite sizes',
+    async (scale) => {
+      const harness = makePlatform({
+        x: -300,
+        y: -100,
+        width: 200,
+        height: 180,
+      })
+      const controller = createPetWindowController({
+        platform: harness.platform,
+        hasCurrentModel: async () => true,
+        loadState: () => ({ x: NaN, y: Infinity, scale }),
+      })
+      await controller.show()
+      controller.setScale(scale)
+      expect(controller.scale()).toBe(1)
+      expect(harness.windows[0]!.savedBounds).toEqual({
+        x: -300,
+        y: -100,
+        width: 200,
+        height: 180,
+      })
+    },
+  )
+  it('rejected model checks fail closed and allow later explicit recovery', async () => {
+    const harness = makePlatform()
+    let fail = true
+    const controller = createPetWindowController({
+      platform: harness.platform,
+      hasCurrentModel: async () => {
+        if (fail) throw Error('unavailable')
+        return true
+      },
+    })
+    expect(await controller.show()).toEqual({
+      ok: false,
+      reason: 'unavailable',
+    })
+    expect(harness.windows).toHaveLength(0)
+    fail = false
+    expect(await controller.show()).toEqual({ ok: true })
+    controller.rendererGone()
+    expect(controller.displaying()).toBe(false)
   })
 })

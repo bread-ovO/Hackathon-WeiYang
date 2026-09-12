@@ -18,6 +18,8 @@ function size(bytes: number) {
     : `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 function errorMessage(code: string) {
+  if (code === 'PET_RUNTIME_INVALID')
+    return '运行库未通过检查，请选择完整的受支持运行库目录。'
   if (code === 'PET_UNAVAILABLE')
     return '模型服务暂不可用，请重启应用后刷新模型库；上次操作结果以刷新为准。'
   if (code === 'SOURCE_CHANGED')
@@ -150,6 +152,14 @@ export function PetModels() {
       session.current = null
     }
   }, [])
+  useEffect(() => {
+    if (!data.display || data.renderStatus !== 'loading') return
+    const timer = setInterval(() => {
+      if (locked.current) return
+      void refresh()
+    }, 2000)
+    return () => clearInterval(timer)
+  }, [data.display, data.renderStatus])
   async function choose() {
     if (locked.current) return
     choosing.current = true
@@ -259,8 +269,57 @@ export function PetModels() {
       </div>
       <p className="pet-models-note">
         支持 .model3.json 及其配套资源；不支持 .cmo3
-        编辑工程。当前仅管理模型，桌面显示尚未启用。
+        编辑工程。选择当前模型后，可在桌面显示。
       </p>
+      <div className="pet-models-runtime">
+        <div>
+          <strong>
+            {data.runtimeReady ? '运行库已就绪' : '尚未安装运行库'}
+          </strong>
+          <p>
+            {data.runtimeReady
+              ? '可以显示当前 Live2D 模型。'
+              : '首次使用请选择受支持的 Cubism 5-r.5 运行库目录。'}
+          </p>
+        </div>
+        <div className="pet-models-actions">
+          <AppButton
+            disabled={busy}
+            onClick={() =>
+              void perform(
+                () => api().installRuntime(),
+                (value) => setData(value),
+              )
+            }
+          >
+            选择运行库目录
+          </AppButton>
+          <AppButton
+            className="primary"
+            disabled={
+              busy ||
+              (!data.display && (!data.runtimeReady || !data.currentModelId))
+            }
+            onClick={() =>
+              void perform(
+                () => (data.display ? api().hide() : api().show()),
+                (value) => setData(value),
+              )
+            }
+          >
+            {data.display ? '隐藏桌宠' : '显示桌宠'}
+          </AppButton>
+        </div>
+      </div>
+      {(data.display || data.renderStatus === 'error') && (
+        <p className="pet-models-message" role="status">
+          {data.renderStatus === 'ready'
+            ? '桌宠正在显示。'
+            : data.renderStatus === 'error'
+              ? '模型无法显示，请重新导出模型或检查运行库后重试。'
+              : '正在加载桌宠…'}
+        </p>
+      )}
       {message && (
         <p className="pet-models-message" role="status">
           {message}

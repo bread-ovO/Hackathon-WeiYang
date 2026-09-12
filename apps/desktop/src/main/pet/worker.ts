@@ -50,6 +50,16 @@ parentPort.on('message', ({ data }) => {
         const p = request.params
         let result: unknown
         switch (request.method) {
+          case 'renderModel': {
+            const snapshot = await store.list()
+            result = snapshot.models.find(
+              (model) =>
+                model.id === p!.modelId && model.id === snapshot.currentModelId,
+            )
+            if (!result)
+              throw new ModelStoreError('unknown-model', 'Model unavailable')
+            break
+          }
           case 'list':
             result = await store.list()
             break

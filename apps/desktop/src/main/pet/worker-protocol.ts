@@ -4,6 +4,7 @@ export type PetWorkerMethod =
   | 'import'
   | 'select'
   | 'remove'
+  | 'renderModel'
 export type PetWorkerReply =
   | { ok: true; data: unknown }
   | { ok: false; error: string }
@@ -64,9 +65,7 @@ export function boundedMessage(value: unknown, max = 1024 * 1024): boolean {
     return false
   }
 }
-export function validRequest(
-  v: unknown,
-): v is {
+export function validRequest(v: unknown): v is {
   id: string
   method: PetWorkerMethod
   params?: Record<string, unknown>
@@ -82,7 +81,11 @@ export function validRequest(
   if (v.method === 'list')
     return v.params === undefined || (record(v.params) && keys(v.params, []))
   if (!record(v.params)) return false
-  if (v.method === 'select' || v.method === 'remove')
+  if (
+    v.method === 'select' ||
+    v.method === 'remove' ||
+    v.method === 'renderModel'
+  )
     return (
       keys(v.params, ['modelId']) &&
       (modelId(v.params.modelId) ||
@@ -136,6 +139,51 @@ export function validReply(
   if (reply.ok !== true || !keys(reply, ['ok', 'data']) || !record(reply.data))
     return false
   const d = reply.data
+  if (method === 'renderModel') {
+    if (
+      !keys(d, ['model']) ||
+      !record(d.model) ||
+      !keys(d.model, ['id', 'entry', 'importedAt', 'totalBytes', 'resources'])
+    )
+      return false
+    const { resources, ...model } = d.model
+    if (
+      !Array.isArray(resources) ||
+      new Set(resources.map((r) => (record(r) ? r.path : undefined))).size !==
+        resources.length ||
+      !resources.some((r) => record(r) && r.path === model.entry) ||
+      resources.reduce(
+        (sum, r) =>
+          sum + (record(r) && typeof r.bytes === 'number' ? r.bytes : NaN),
+        0,
+      ) !== model.totalBytes
+    )
+      return false
+    return (
+      validModel(model) &&
+      Array.isArray(resources) &&
+      resources.length > 0 &&
+      resources.length <= 256 &&
+      resources.every(
+        (r) =>
+          record(r) &&
+          keys(r, ['path', 'kind', 'bytes', 'sha256']) &&
+          typeof r.path === 'string' &&
+          r.path.length <= 1024 &&
+          !/[\\:%?#\u0000-\u001f\u007f]/.test(r.path) &&
+          !r.path.startsWith('/') &&
+          r.path.split('/').every((p) => !!p && p !== '.' && p !== '..') &&
+          typeof r.kind === 'string' &&
+          r.kind.length > 0 &&
+          r.kind.length <= 32 &&
+          Number.isSafeInteger(r.bytes) &&
+          Number(r.bytes) > 0 &&
+          Number(r.bytes) <= 32 * 1024 * 1024 &&
+          typeof r.sha256 === 'string' &&
+          /^[a-f0-9]{64}$/.test(r.sha256),
+      )
+    )
+  }
   if (method === 'discover')
     return (
       keys(d, ['entries', 'cmo3Found']) &&
@@ -186,6 +234,7 @@ export function slimWorkerData(
     totalBytes: model.totalBytes,
   })
   const d = data as Record<string, unknown>
+  if (method === 'renderModel') return { model: data }
   if (method === 'discover') return data
   if (method === 'import')
     return d.status === 'invalid'

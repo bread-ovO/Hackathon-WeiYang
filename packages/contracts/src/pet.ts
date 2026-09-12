@@ -7,6 +7,25 @@ import type { FromSchema } from 'json-schema-to-ts'
 export const petRequestSchemas = [
   {
     type: 'object',
+    properties: { method: { const: 'pet.show' } },
+    required: ['method'],
+    additionalProperties: false,
+  },
+  {
+    type: 'object',
+    properties: { method: { const: 'pet.hide' } },
+    required: ['method'],
+    additionalProperties: false,
+  },
+  {
+    type: 'object',
+    properties: { method: { const: 'pet.installRuntime' } },
+    required: ['method'],
+    additionalProperties: false,
+  },
+
+  {
+    type: 'object',
     properties: { method: { const: 'pet.state' } },
     required: ['method'],
     additionalProperties: false,
@@ -79,6 +98,9 @@ export interface PetState {
   currentModelId: string | null
   /** Whether the pet window is wanted on screen right now. */
   display: boolean
+  runtimeReady?: boolean
+  renderStatus?: 'hidden' | 'loading' | 'ready' | 'error'
+  renderError?: string
   models: PetModel[]
 }
 export type PetChooseReply =

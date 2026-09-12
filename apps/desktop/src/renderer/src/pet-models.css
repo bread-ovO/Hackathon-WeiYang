@@ -201,3 +201,25 @@
     flex-direction: column;
   }
 }
+
+.pet-models-runtime {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 8px;
+  background: var(--color-kumo-tint);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.pet-models-runtime strong {
+  font-size: 14px;
+  font-weight: 500;
+}
+.pet-models-runtime p {
+  margin-top: 4px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-color-kumo-subtle);
+}
