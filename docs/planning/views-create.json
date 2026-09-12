@@ -1,0 +1,60 @@
+{
+  "ok": true,
+  "identity": "user",
+  "data": {
+    "views": [
+      {
+        "_meta": {
+          "filter": null,
+          "group": [],
+          "sort": [],
+          "visible_fields": "12 fields"
+        },
+        "id": "vewFATXanv",
+        "name": "按模块查看",
+        "type": "grid"
+      },
+      {
+        "_meta": {
+          "filter": null,
+          "group": [],
+          "sort": [],
+          "visible_fields": "12 fields"
+        },
+        "id": "vewtvIxCfr",
+        "name": "按阶段推进",
+        "type": "grid"
+      },
+      {
+        "_meta": {
+          "filter": null,
+          "group": [],
+          "sort": [],
+          "visible_fields": "12 fields"
+        },
+        "id": "vewzSPpjKm",
+        "name": "P0 首版范围",
+        "type": "grid"
+      },
+      {
+        "_meta": {
+          "filter": null,
+          "group": [],
+          "sort": [],
+          "visible_fields": "12 fields"
+        },
+        "id": "vewJz30hvH",
+        "name": "P1 后续能力",
+        "type": "grid"
+      }
+    ]
+  },
+  "_notice": {
+    "update": {
+      "command": "lark-cli update",
+      "current": "1.0.94",
+      "latest": "1.0.95",
+      "message": "lark-cli 1.0.95 available, current 1.0.94, run: lark-cli update"
+    }
+  }
+}

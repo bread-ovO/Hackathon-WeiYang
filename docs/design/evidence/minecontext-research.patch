@@ -1,0 +1,80 @@
+diff --git a/frontend/src/main/backend.ts b/frontend/src/main/backend.ts
+index fbbdf3a..c89aead 100644
+--- a/frontend/src/main/backend.ts
++++ b/frontend/src/main/backend.ts
+@@ -381,7 +381,7 @@ export async function ensureBackendRunning(mainWindow: BrowserWindow) {
+     }
+ 
+     // Try to reuse already-running backend first (e.g. after abnormal exit or external startup).
+-    const existingBackend = await findRunningBackendPort(1733, 20)
++    const existingBackend = await findRunningBackendPort(18733, 1)
+     if (existingBackend) {
+       backendPort = existingBackend.port
+       setBackendStatus('running')
+@@ -418,7 +418,7 @@ async function startBackendServer(mainWindow: BrowserWindow) {
+ 
+   // First, find an available port
+   try {
+-    backendPort = await findAvailablePort(1733)
++    backendPort = await findAvailablePort(18733)
+     logToBackendFile(`Selected backend port: ${backendPort}`)
+   } catch (error: any) {
+     logToBackendFile(`Failed to find available port: ${error.message}`)
+diff --git a/frontend/src/main/bootstrap.ts b/frontend/src/main/bootstrap.ts
+index 231a594..d76f53b 100644
+--- a/frontend/src/main/bootstrap.ts
++++ b/frontend/src/main/bootstrap.ts
+@@ -8,6 +8,9 @@ import path from 'path'
+ import { initAppDataDir } from './utils/init'
+ import { mainLog } from '@shared/logger/main'
+ 
++// Research profile: isolated from existing data.
++app.setPath('userData', '/tmp/minecontext-design-profile-20260912')
++
+ // Only execute initialization after packaging
+ if (app.isPackaged) {
+   initAppDataDir()
+diff --git a/frontend/src/main/index.ts b/frontend/src/main/index.ts
+index 4d4edb1..60ea58a 100644
+--- a/frontend/src/main/index.ts
++++ b/frontend/src/main/index.ts
+@@ -261,7 +261,7 @@ app.whenReady().then(() => {
+     // Automatically open DevTools in development environment
+ 
+     if (isDev) {
+-      window.webContents.openDevTools()
++      // Research: keep developer tools closed for layout inspection
+       console.log('DevTools opened automatically in development mode')
+     }
+   })
+@@ -278,7 +278,7 @@ app.whenReady().then(() => {
+ 
+   // Start screenshot cleanup scheduled task
+   startScreenshotCleanup()
+-  task.init()
++  // task.init() // Research: do not enumerate/capture user windows
+   latestActivityTask.init()
+ 
+   app.on('activate', function () {
+diff --git a/frontend/src/renderer/src/App.tsx b/frontend/src/renderer/src/App.tsx
+index 6eac1fb..92a76c9 100644
+--- a/frontend/src/renderer/src/App.tsx
++++ b/frontend/src/renderer/src/App.tsx
+@@ -32,7 +32,7 @@ interface BackendStatusInfo {
+ 
+ function AppContent(): React.ReactElement {
+   const [backendStatus, setBackendStatus] = useState<BackendStatus>('starting')
+-  const [showSetting, setShowSettings] = useState<boolean>(true)
++  const [showSetting, setShowSettings] = useState<boolean>(import.meta.env.VITE_RESEARCH_SKIP_SETUP !== '1')
+ 
+   const checkInitialStatus = useMemoizedFn(async () => {
+     try {
+@@ -96,7 +96,7 @@ function AppContent(): React.ReactElement {
+     window.serverPushAPI.getInitCheckData((data) => {
+       const temp = JSON.parse(data)
+       logger.info('Init settings data:', temp)
+-      setShowSettings(!temp.data.components.llm)
++      setShowSettings(import.meta.env.VITE_RESEARCH_SKIP_SETUP === '1' ? false : !temp.data.components.llm)
+     })
+   }, [])
+ 

@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="650" viewBox="0 0 1100 650">
+<rect width="1100" height="650" fill="#f8fafc"/>
+<text x="40" y="46" font-size="26" font-family="sans-serif" fill="#0f172a">插件接入｜先校验和试运行，再启用采集</text>
+<text x="40" y="77" font-size="16" font-family="sans-serif" fill="#64748b">首版开放声明式来源；可信 Skill / Verifier 同样只提供建议</text>
+<rect x="65" y="135" width="260" height="80" rx="14" fill="#e0f2fe" stroke="#94a3b8"/>
+<text x="195.0" y="166" text-anchor="middle" font-size="18" font-family="sans-serif" fill="#0f172a">插件包 / manifest</text>
+<text x="195.0" y="193" text-anchor="middle" font-size="15" font-family="sans-serif" fill="#475569">版本、来源类型、权限声明</text>
+<rect x="420" y="135" width="260" height="80" rx="14" fill="#e0f2fe" stroke="#94a3b8"/>
+<text x="550.0" y="166" text-anchor="middle" font-size="18" font-family="sans-serif" fill="#0f172a">宿主结构校验</text>
+<text x="550.0" y="193" text-anchor="middle" font-size="15" font-family="sans-serif" fill="#475569">Schema、路径、兼容版本</text>
+<rect x="775" y="135" width="260" height="80" rx="14" fill="#fff7ed" stroke="#94a3b8"/>
+<text x="905.0" y="166" text-anchor="middle" font-size="18" font-family="sans-serif" fill="#0f172a">用户限定范围授权</text>
+<text x="905.0" y="193" text-anchor="middle" font-size="15" font-family="sans-serif" fill="#475569">文件、域名与凭据用途</text>
+<polyline points="325,175 420,175" fill="none" stroke="#64748b" stroke-width="2"/>
+<polygon points="412,170 412,180 420,175" fill="#64748b"/>
+<polyline points="680,175 775,175" fill="none" stroke="#64748b" stroke-width="2"/>
+<polygon points="767,170 767,180 775,175" fill="#64748b"/>
+<rect x="775" y="315" width="260" height="80" rx="14" fill="#e0f2fe" stroke="#94a3b8"/>
+<text x="905.0" y="346" text-anchor="middle" font-size="18" font-family="sans-serif" fill="#0f172a">样例试运行</text>
+<text x="905.0" y="373" text-anchor="middle" font-size="15" font-family="sans-serif" fill="#475569">验证事件、分页、修订</text>
+<polyline points="905,215 905,315" fill="none" stroke="#64748b" stroke-width="2"/>
+<polygon points="900,307 910,307 905,315" fill="#64748b"/>
+<polygon points="550,265 695,355 550,445 405,355" fill="#fef3c7" stroke="#d4a43b"/>
+<text x="550" y="350" text-anchor="middle" font-size="20" font-family="sans-serif" fill="#0f172a">校验通过？</text>
+<text x="550" y="377" text-anchor="middle" font-size="15" font-family="sans-serif" fill="#0f172a">权限与输出均符合</text>
+<polyline points="775,355 695,355" fill="none" stroke="#64748b" stroke-width="2"/>
+<polygon points="703,350 703,360 695,355" fill="#64748b"/>
+<rect x="65" y="315" width="260" height="80" rx="14" fill="#dcfce7" stroke="#94a3b8"/>
+<text x="195.0" y="346" text-anchor="middle" font-size="18" font-family="sans-serif" fill="#0f172a">原子安装并启用</text>
+<text x="195.0" y="373" text-anchor="middle" font-size="15" font-family="sans-serif" fill="#475569">宿主代理限定读取</text>
+<polyline points="405,355 325,355" fill="none" stroke="#64748b" stroke-width="2"/>
+<polygon points="333,350 333,360 325,355" fill="#64748b"/>
+<text x="365" y="339" text-anchor="middle" font-size="14" font-family="sans-serif" fill="#475569">是</text>
+<rect x="65" y="520" width="260" height="80" rx="14" fill="#e0f2fe" stroke="#94a3b8"/>
+<text x="195.0" y="551" text-anchor="middle" font-size="18" font-family="sans-serif" fill="#0f172a">标准事件 → 核心流水线</text>
+<text x="195.0" y="578" text-anchor="middle" font-size="15" font-family="sans-serif" fill="#475569">不获得事项写入权限</text>
+<polyline points="195,395 195,520" fill="none" stroke="#64748b" stroke-width="2"/>
+<polygon points="190,512 200,512 195,520" fill="#64748b"/>
+<rect x="420" y="520" width="400" height="80" rx="14" fill="#fff7ed" stroke="#94a3b8"/>
+<text x="620.0" y="551" text-anchor="middle" font-size="18" font-family="sans-serif" fill="#0f172a">拒绝启用 / 展示诊断</text>
+<text x="620.0" y="578" text-anchor="middle" font-size="15" font-family="sans-serif" fill="#475569">运行异常可暂停，升级保留可用版本</text>
+<polyline points="550,445 550,520" fill="none" stroke="#64748b" stroke-width="2"/>
+<polygon points="545,512 555,512 550,520" fill="#64748b"/>
+<text x="577" y="485" text-anchor="middle" font-size="14" font-family="sans-serif" fill="#475569">否</text>
+</svg>

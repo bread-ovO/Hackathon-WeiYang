@@ -1,0 +1,3 @@
+*.csv text eol=lf
+# Preserve upstream patch context lines, including blank context markers.
+*.patch -whitespace

@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="660" viewBox="0 0 1100 660">
+<rect width="1100" height="660" fill="#f8fafc"/>
+<text x="40" y="46" font-size="26" font-family="sans-serif" fill="#0f172a">整体架构｜本地核心，受控连接外部服务</text>
+<text x="40" y="77" font-size="16" font-family="sans-serif" fill="#64748b">实线表示调用或数据流；远端推理仅发送当前用例所需的授权片段</text>
+<rect x="30" y="115" width="780" height="510" rx="22" fill="#eef2ff" stroke="#a5b4fc"/>
+<text x="135" y="145" text-anchor="middle" font-size="17" font-family="sans-serif" fill="#0f172a">用户本机</text>
+<rect x="65" y="180" width="220" height="80" rx="14" fill="#e0f2fe" stroke="#94a3b8"/>
+<text x="175.0" y="211" text-anchor="middle" font-size="18" font-family="sans-serif" fill="#0f172a">来源适配器</text>
+<text x="175.0" y="238" text-anchor="middle" font-size="15" font-family="sans-serif" fill="#475569">含本地 AI 会话读取</text>
+<rect x="65" y="340" width="220" height="80" rx="14" fill="#e0f2fe" stroke="#94a3b8"/>
+<text x="175.0" y="371" text-anchor="middle" font-size="18" font-family="sans-serif" fill="#0f172a">Electron 宿主</text>
+<text x="175.0" y="398" text-anchor="middle" font-size="15" font-family="sans-serif" fill="#475569">授权、凭据、生命周期</text>
+<rect x="345" y="340" width="420" height="80" rx="14" fill="#dbeafe" stroke="#94a3b8"/>
+<text x="555.0" y="371" text-anchor="middle" font-size="18" font-family="sans-serif" fill="#0f172a">应用核心 · utilityProcess</text>
+<text x="555.0" y="398" text-anchor="middle" font-size="15" font-family="sans-serif" fill="#475569">理解 → 关联 → 核验 → 领域提交</text>
+<rect x="345" y="180" width="420" height="80" rx="14" fill="#ffffff" stroke="#94a3b8"/>
+<text x="555.0" y="211" text-anchor="middle" font-size="18" font-family="sans-serif" fill="#0f172a">React UI / preload</text>
+<text x="555.0" y="238" text-anchor="middle" font-size="15" font-family="sans-serif" fill="#475569">受控 IPC · 人工纠正与查询</text>
+<rect x="430" y="500" width="250" height="70" fill="#dcfce7" stroke="#86a78d"/><ellipse cx="555" cy="570" rx="125" ry="18" fill="#dcfce7" stroke="#86a78d"/><ellipse cx="555" cy="500" rx="125" ry="18" fill="#ecfdf5" stroke="#86a78d"/>
+<text x="555" y="538" text-anchor="middle" font-size="18" font-family="sans-serif" fill="#0f172a">SQLite 权威存储</text>
+<text x="555" y="562" text-anchor="middle" font-size="15" font-family="sans-serif" fill="#0f172a">事件 · 事项 · 决定 · 作业</text>
+<rect x="855" y="180" width="215" height="80" rx="14" fill="#fff7ed" stroke="#94a3b8"/>
+<text x="962.5" y="211" text-anchor="middle" font-size="18" font-family="sans-serif" fill="#0f172a">远端来源平台</text>
+<text x="962.5" y="238" text-anchor="middle" font-size="15" font-family="sans-serif" fill="#475569">飞书、GitHub</text>
+<rect x="855" y="340" width="215" height="80" rx="14" fill="#fff7ed" stroke="#94a3b8"/>
+<text x="962.5" y="371" text-anchor="middle" font-size="18" font-family="sans-serif" fill="#0f172a">模型服务</text>
+<text x="962.5" y="398" text-anchor="middle" font-size="15" font-family="sans-serif" fill="#475569">返回结构化建议</text>
+<polyline points="855,220 800,220 800,295 175,295 175,260" fill="none" stroke="#64748b" stroke-width="2"/>
+<polygon points="170,268 180,268 175,260" fill="#64748b"/>
+<polyline points="175,295 175,340" fill="none" stroke="#64748b" stroke-width="2"/>
+<polygon points="170,332 180,332 175,340" fill="#64748b"/>
+<polyline points="285,380 345,380" fill="none" stroke="#64748b" stroke-width="2"/>
+<polygon points="337,375 337,385 345,380" fill="#64748b"/>
+<polyline points="555,260 555,340" fill="none" stroke="#64748b" stroke-width="2"/>
+<polygon points="550,332 560,332 555,340" fill="#64748b"/>
+<text x="615" y="304" text-anchor="middle" font-size="14" font-family="sans-serif" fill="#475569">查询 / 命令</text>
+<polyline points="555,420 555,482" fill="none" stroke="#64748b" stroke-width="2"/>
+<polygon points="550,474 560,474 555,482" fill="#64748b"/>
+<text x="647" y="458" text-anchor="middle" font-size="14" font-family="sans-serif" fill="#475569">事务写入 / 查询</text>
+<polyline points="765,380 855,380" fill="none" stroke="#64748b" stroke-width="2"/>
+<polygon points="847,375 847,385 855,380" fill="#64748b"/>
+<text x="947" y="455" text-anchor="middle" font-size="15" font-family="sans-serif" fill="#9a3412">外部：按授权调用</text>
+<text x="195" y="550" text-anchor="middle" font-size="17" font-family="sans-serif" fill="#0f172a">核心统一管理状态</text>
+<text x="195" y="580" text-anchor="middle" font-size="15" font-family="sans-serif" fill="#475569">插件不直接写数据库</text>
+</svg>
