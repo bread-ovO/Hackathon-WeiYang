@@ -45,3 +45,4 @@ export function encryptionStorageAvailable(provider){return !!provider&&typeof p
 export function normalizeConversationRole(role){return role==='user'||role==='assistant'||role==='tool'?role:'unknown';}
 export function canResumeFile(previous,current){return previous.dev===current.dev&&previous.ino===current.ino;}
 export function editTaskTitle(task,title){if(!title.trim())throw new Error('INVALID_TASK_TITLE');return {...task,title:title.trim(),version:task.version+1};}
+export function toggleInclusion(included){return !included;}
