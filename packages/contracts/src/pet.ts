@@ -21,39 +21,49 @@ export const petRequestSchemas = [
     type: 'object',
     properties: {
       method: { const: 'pet.importChosen' },
+      sessionId: { type: 'string', pattern: '^[a-f0-9-]{36}$' },
       entry: { type: 'string', minLength: 1, maxLength: 512 },
     },
-    required: ['method', 'entry'],
+    required: ['method', 'sessionId', 'entry'],
     additionalProperties: false,
   },
   {
     type: 'object',
     properties: {
       method: { const: 'pet.select' },
-      modelId: { type: 'string', minLength: 64, maxLength: 64 },
+      modelId: {
+        anyOf: [
+          { type: 'string', pattern: '^[a-f0-9]{64}$' },
+          { type: 'null' },
+        ],
+      },
     },
     required: ['method', 'modelId'],
     additionalProperties: false,
   },
   {
     type: 'object',
-    properties: { method: { const: 'pet.show' } },
+    properties: { method: { const: 'pet.cancelImport' } },
     required: ['method'],
     additionalProperties: false,
   },
   {
     type: 'object',
-    properties: { method: { const: 'pet.hide' } },
-    required: ['method'],
+    properties: {
+      method: { const: 'pet.remove' },
+      modelId: { type: 'string', pattern: '^[a-f0-9]{64}$' },
+    },
+    required: ['method', 'modelId'],
     additionalProperties: false,
   },
 ] as const
 
-// Standalone planning/module contract only. These methods are deliberately not
-// part of CoreRequest/HostRequest until main dispatch and typed preload are wired.
+// Model management is main-only. The SQLite worker never accepts these requests.
 const petRequestSchema = { oneOf: petRequestSchemas } as const
 export type PetRequest = FromSchema<typeof petRequestSchema>
-const validatePetRequest = new Ajv({ strict: true }).compile<PetRequest>(petRequestSchema)
+const validatePetRequest = new Ajv({ strict: true }).compile<PetRequest>(
+  petRequestSchema,
+)
 export function parsePetRequest(value: unknown): PetRequest {
   if (!validatePetRequest(value)) throw new Error('INVALID_PET_REQUEST')
   return structuredClone(value)
@@ -74,8 +84,8 @@ export interface PetState {
 export type PetChooseReply =
   | { status: 'cancelled' }
   | { status: 'no-model'; cmo3Found: boolean }
-  | { status: 'ready'; entry: string; entries: string[] }
-  | { status: 'choose'; entries: string[] }
+  | { status: 'ready'; sessionId: string; entry: string; entries: string[] }
+  | { status: 'choose'; sessionId: string; entries: string[] }
 export interface PetModelIssue {
   code: string
   resource: string

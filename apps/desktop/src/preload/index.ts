@@ -1,6 +1,23 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import type { DesktopBridge } from '@memo/contracts'
 const bridge: DesktopBridge = {
+  pet: Object.freeze({
+    state: () => ipcRenderer.invoke('memo:request', { method: 'pet.state' }),
+    openImportDialog: () =>
+      ipcRenderer.invoke('memo:request', { method: 'pet.openImportDialog' }),
+    cancelImport: () =>
+      ipcRenderer.invoke('memo:request', { method: 'pet.cancelImport' }),
+    importChosen: (sessionId, entry) =>
+      ipcRenderer.invoke('memo:request', {
+        method: 'pet.importChosen',
+        sessionId,
+        entry,
+      }),
+    select: (modelId) =>
+      ipcRenderer.invoke('memo:request', { method: 'pet.select', modelId }),
+    remove: (modelId) =>
+      ipcRenderer.invoke('memo:request', { method: 'pet.remove', modelId }),
+  }),
   health: () => ipcRenderer.invoke('memo:request', { method: 'health' }),
   plugins: Object.freeze({
     list: () => ipcRenderer.invoke('memo:request', { method: 'plugins.list' }),

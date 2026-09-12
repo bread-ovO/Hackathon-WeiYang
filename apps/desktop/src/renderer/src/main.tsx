@@ -1,4 +1,5 @@
 import { PluginManager } from './plugin-manager'
+import { PetModels } from './pet-models'
 import { CredentialsPanel } from './credentials-panel'
 import { SourceImport } from './source-import'
 import { RealWorkspace } from './real-workspace'
@@ -750,6 +751,7 @@ function App() {
               </p>
             </section>
             <CredentialsPanel />
+            <PetModels />
             <div className="connection-note">
               <h3>关于设计预览</h3>
               <p>
