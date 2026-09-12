@@ -22,6 +22,9 @@ test('manual workspace persists tasks, versions and archive without fabricating 
   let app = await launch()
   try {
     let page = await app.firstWindow()
+    await expect(
+      page.getByRole('heading', { name: '跟进', exact: true }),
+    ).toBeVisible()
     await expect
       .poll(() => page.evaluate(async () => (await window.memo.health()).ok))
       .toBe(true)
@@ -93,10 +96,16 @@ test('manual workspace persists tasks, versions and archive without fabricating 
     await expect(page.getByLabel('条件 1', { exact: true })).toHaveValue(
       '提交 PR 并反馈链接',
     )
-    await page.screenshot({path:'test-results/criteria-wide.png'})
-    await app.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows()[0]!.setSize(860,700))
-    await page.screenshot({path:'test-results/criteria-narrow.png'})
-    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true)
+    await page.screenshot({ path: 'test-results/criteria-wide.png' })
+    await app.evaluate(({ BrowserWindow }) =>
+      BrowserWindow.getAllWindows()[0]!.setSize(860, 700),
+    )
+    await page.screenshot({ path: 'test-results/criteria-narrow.png' })
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true)
     await page.getByRole('button', { name: '归档事项', exact: true }).click()
     await expect(page.locator('.task-row')).toHaveCount(0)
     await page.getByRole('button', { name: '已归档', exact: true }).click()
@@ -115,6 +124,9 @@ test('manual workspace persists tasks, versions and archive without fabricating 
     await app.close()
     app = await launch()
     page = await app.firstWindow()
+    await expect(
+      page.getByRole('heading', { name: '跟进', exact: true }),
+    ).toBeVisible()
     await expect
       .poll(() => page.evaluate(async () => (await window.memo.health()).ok))
       .toBe(true)
