@@ -14,6 +14,7 @@ import {
   createHttpJsonReader,
   readLocalJsonl,
   requestHttpsJson,
+  HttpTransportError,
   readPluginManifestFile,
   type SourceManifest,
   type HttpTransport,
@@ -65,7 +66,8 @@ export function createPluginRuntime(deps: PluginRuntimeDependencies) {
     choosing = false
   const running = new Map<string, AbortController>(),
     attempts = new Map<string, number[]>(),
-    lastRun = new Map<string, number>()
+    lastRun = new Map<string, number>(),
+    recovery = new Map<string, { attempt: number; next: number }>()
   async function call<T>(request: HostRequest): Promise<T> {
     const reply = await deps.request(request)
     if (!reply.ok) throw new Error(reply.error)
@@ -75,7 +77,23 @@ export function createPluginRuntime(deps: PluginRuntimeDependencies) {
     call<PluginSnapshot['plugins']>({ method: 'pluginHost.list' })
   const snapshot = async (): Promise<PluginSnapshot> =>
     structuredClone({
-      plugins: await list(),
+      plugins: (await list()).map((plugin) => ({
+        ...plugin,
+        runtime: {
+          state:
+            plugin.status !== 'active'
+              ? 'paused'
+              : running.has(plugin.id)
+                ? 'reading'
+                : recovery.has(plugin.id)
+                  ? 'retrying'
+                  : 'waiting',
+          retryAttempt: recovery.get(plugin.id)?.attempt ?? 0,
+          nextRetryAt: recovery.has(plugin.id)
+            ? new Date(recovery.get(plugin.id)!.next).toISOString()
+            : null,
+        },
+      })),
       ...(inspection ? { inspection: inspection.view } : {}),
       ...(trial ? { trial: trial.view } : {}),
     })
@@ -154,10 +172,15 @@ export function createPluginRuntime(deps: PluginRuntimeDependencies) {
     const controller = new AbortController()
     running.set(id, controller)
     let binding: Binding | undefined
+    let intervalMs = 60_000
+    let reading = false
     try {
       binding = await call<Binding>({ method: 'pluginHost.get', id })
       if (binding.status !== 'active') throw new Error('PLUGIN_CONFLICT')
       const manifest = parseSourceManifest(binding.manifest)
+      intervalMs = manifest.sampling.intervalSeconds * 1000
+      const retry = recovery.get(id)
+      if (retry && now() < retry.next) throw new Error('PLUGIN_UNAVAILABLE')
       const previous = lastRun.get(id)
       if (
         previous !== undefined &&
@@ -165,6 +188,7 @@ export function createPluginRuntime(deps: PluginRuntimeDependencies) {
       )
         throw new Error('PLUGIN_UNAVAILABLE')
       lastRun.set(id, now())
+      reading = true
       const batch = await read(
         manifest,
         binding.grant,
@@ -173,6 +197,7 @@ export function createPluginRuntime(deps: PluginRuntimeDependencies) {
         controller.signal,
       )
       if (controller.signal.aborted) throw new Error('PLUGIN_CONFLICT')
+      reading = false
       await call({
         method: 'pluginHost.receiveBatch',
         input: {
@@ -183,7 +208,27 @@ export function createPluginRuntime(deps: PluginRuntimeDependencies) {
           events: batch.events,
         },
       })
+      recovery.delete(id)
     } catch (error) {
+      const transient =
+        reading &&
+        error instanceof HttpTransportError &&
+        ['HTTP_TIMEOUT', 'HTTP_REQUEST_FAILED'].includes(error.code)
+      if (binding && !controller.signal.aborted && transient) {
+        const attempt = (recovery.get(id)?.attempt ?? 0) + 1
+        if (attempt < 3) {
+          recovery.set(id, {
+            attempt,
+            next:
+              now() +
+              Math.min(
+                3_600_000,
+                Math.max(60_000, intervalMs) * 2 ** (attempt - 1),
+              ),
+          })
+          throw new Error('PLUGIN_UNAVAILABLE')
+        }
+      }
       if (
         binding &&
         !controller.signal.aborted &&
@@ -201,6 +246,8 @@ export function createPluginRuntime(deps: PluginRuntimeDependencies) {
   }
   function cancel(id?: string) {
     running.get('$trial')?.abort()
+    if (id) recovery.delete(id)
+    else recovery.clear()
     if (id) running.get(id)?.abort()
     else for (const controller of running.values()) controller.abort()
     // A credential removal or lifecycle action invalidates pending confirmation capabilities.

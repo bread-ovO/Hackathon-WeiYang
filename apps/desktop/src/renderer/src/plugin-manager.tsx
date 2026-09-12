@@ -35,7 +35,21 @@ export function PluginManager() {
       .catch(() => {
         if (mounted.current) setMessage('插件服务暂不可用。')
       })
+    const refresh = setInterval(() => {
+      if (pending.current) return
+      void window.memo.plugins
+        .list()
+        .then((reply) => {
+          if (mounted.current && reply.ok && !pending.current)
+            setData((previous) => ({
+              ...previous,
+              plugins: reply.data.plugins,
+            }))
+        })
+        .catch(() => {})
+    }, 15_000)
     return () => {
+      clearInterval(refresh)
       mounted.current = false
     }
   }, [])
@@ -228,6 +242,21 @@ export function PluginManager() {
                     : '异常暂停'}{' '}
                 · 已收录 {p.eventCount} 条
               </p>
+              <p>
+                最近成功：
+                {p.lastSuccessAt
+                  ? new Date(p.lastSuccessAt).toLocaleString()
+                  : '尚未成功收录'}
+              </p>
+              {p.runtime?.state === 'retrying' && (
+                <p>
+                  网络暂不可用，第 {p.runtime.retryAttempt} 次失败；将在{' '}
+                  {p.runtime.nextRetryAt
+                    ? new Date(p.runtime.nextRetryAt).toLocaleTimeString()
+                    : '稍后'}{' '}
+                  重试。
+                </p>
+              )}
               {p.status !== 'active' && (
                 <p>重新安装并试运行可恢复；历史数据保留。</p>
               )}
