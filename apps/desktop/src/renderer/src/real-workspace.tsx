@@ -8,6 +8,7 @@ import type {
 } from '@memo/contracts'
 import { AppButton, AppInput } from './ui'
 import { TaskEditor, taskLabels } from './task-editor'
+import { TaskExport } from './task-export'
 export function RealWorkspace({
   onCount,
 }: {
@@ -153,13 +154,20 @@ export function RealWorkspace({
           </h1>
           <p>本地事项 · 人工状态与证据充分度分开记录</p>
         </div>
-        <AppButton
-          className="secondary"
-          disabled={saving || busy}
-          onClick={() => void load()}
-        >
-          刷新
-        </AppButton>
+        <div className="workspace-actions">
+          <TaskExport
+            projects={data.projects}
+            selected={current}
+            disabled={saving || busy}
+          />
+          <AppButton
+            className="secondary"
+            disabled={saving || busy}
+            onClick={() => void load()}
+          >
+            刷新
+          </AppButton>
+        </div>
       </div>
       <div className="real-create">
         <form

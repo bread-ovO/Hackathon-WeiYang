@@ -1,4 +1,7 @@
 import Database from 'better-sqlite3'
+import { createExports } from './export'
+export type { ExportBundle, ExportScope } from './export'
+export { EXPORT_MAX_BYTES } from './export'
 import { createSources, migrateSources } from './sources'
 export type { SourceSummary, AuthorizedSource, SourceImportErrorCode } from './sources'
 export { sourceImportErrorCodes } from './sources'
@@ -53,6 +56,7 @@ export function openStore(path:string) {
       return {inserted:result.changes === 1}
     })
     return {
+      exports: createExports(db),
       sources: createSources(db,receive),
       tasks: createTaskModel(db),
       jobs: createJobQueue(db),

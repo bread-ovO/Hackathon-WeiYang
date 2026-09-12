@@ -93,3 +93,5 @@ pnpm package:dir
 第三批[交付说明](docs/engineering/条件编辑与分页_2026-09-13.md)与[插件 manifest 协议](docs/engineering/插件manifest协议_v1.md)。
 
 第四批[本地 JSONL 导入交付](docs/engineering/本地JSONL导入_2026-09-13.md)：文件格式、容量边界和撤权行为。
+
+真实工作区现支持[事项与证据导出](docs/engineering/事项与证据导出_2026-09-13.md)：按项目或选中事项保存 JSON，保留条件历史、人工决定与证据状态，可选择是否包含引用原文。

@@ -2,6 +2,10 @@ import { contextBridge, ipcRenderer } from 'electron'
 import type { DesktopBridge } from '@memo/contracts'
 const bridge: DesktopBridge = {
   health: () => ipcRenderer.invoke('memo:request', { method: 'health' }),
+  exports: Object.freeze({
+    save: (scope) =>
+      ipcRenderer.invoke('memo:request', { ...scope, method: 'exports.save' }),
+  }),
   sources: Object.freeze({
     list: () => ipcRenderer.invoke('memo:request', { method: 'sources.list' }),
     chooseFile: (projectId) =>

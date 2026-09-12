@@ -14,6 +14,8 @@ import { join, resolve, sep } from 'node:path'
 import { mkdirSync } from 'node:fs'
 import { pathToFileURL } from 'node:url'
 import { CoreClient } from './core-client'
+import { saveExportFile } from './export-file'
+import type { ExportBundle } from '@memo/storage'
 import { isTrustedPage } from './security'
 import { createRequestHandler } from './request-handler'
 import {
@@ -32,6 +34,7 @@ let window: BrowserWindow | null = null
 let core: CoreClient | undefined
 let quitting = false
 let choosingSource = false
+let savingExport = false
 // Inactive until the real controller replaces it after app ready; close events
 // before that keep the default quit behavior.
 let tray: TrayController = {
@@ -100,6 +103,51 @@ else {
           pageURL,
           async (request) => {
             if (!core) return { ok: false, error: 'CORE_UNAVAILABLE' }
+            if (request.method === 'exports.save') {
+              if (!window || savingExport)
+                return { ok: false, error: 'CORE_UNAVAILABLE' }
+              savingExport = true
+              try {
+                const selection = await dialog.showSaveDialog(window, {
+                  title: '导出事项与证据',
+                  defaultPath: `BUGU-export-${new Date().toISOString().slice(0, 10)}.json`,
+                  filters: [{ name: 'JSON 导出文件', extensions: ['json'] }],
+                  properties: ['createDirectory', 'showOverwriteConfirmation'],
+                })
+                if (selection.canceled || !selection.filePath)
+                  return { ok: true, data: { cancelled: true } }
+                const reply = await core.request({
+                  ...request,
+                  method: 'exports.build',
+                })
+                if (!reply.ok) return reply
+                const bundle = reply.data as ExportBundle
+                const saved = await saveExportFile(
+                  selection.filePath,
+                  JSON.stringify(bundle, null, 2) + '\n',
+                )
+                return {
+                  ok: true,
+                  data: {
+                    cancelled: false,
+                    taskCount: bundle.tasks.length,
+                    referenceCount: bundle.events.length,
+                    bytes: saved.bytes,
+                  },
+                }
+              } catch (error) {
+                return {
+                  ok: false,
+                  error:
+                    error instanceof Error &&
+                    error.message === 'EXPORT_LIMIT_EXCEEDED'
+                      ? 'EXPORT_LIMIT_EXCEEDED'
+                      : 'EXPORT_WRITE_FAILED',
+                }
+              } finally {
+                savingExport = false
+              }
+            }
             if (request.method === 'sources.chooseFile') {
               if (!window || choosingSource)
                 return { ok: false, error: 'CORE_UNAVAILABLE' }

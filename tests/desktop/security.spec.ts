@@ -80,6 +80,7 @@ test('real IPC rejects foreign windows and malformed requests; source text stays
     ).toBeVisible()
     expect(await page.evaluate(() => Object.keys(window.memo))).toEqual([
       'health',
+      'exports',
       'sources',
       'workspace',
     ])
@@ -95,6 +96,9 @@ test('real IPC rejects foreign windows and malformed requests; source text stays
     ])
     expect(await page.evaluate(() => Object.keys(window.memo.sources))).toEqual(
       ['list', 'chooseFile', 'sync', 'revoke'],
+    )
+    expect(await page.evaluate(() => Object.keys(window.memo.exports))).toEqual(
+      ['save'],
     )
     // Privileged test harness only: inject a temporary probe, never ship raw IPC in production preload.
     const preload = join(data, 'probe.cjs')
@@ -151,6 +155,32 @@ test('real IPC rejects foreign windows and malformed requests; source text stays
       [{ ...update, expectedVersion: '1' }],
       [{ ...update, expectedVersion: Number.MAX_SAFE_INTEGER + 1 }],
       [{ method: 'workspace.list', query: { limit: 101 } }],
+      [{ method: 'exports.build', projectId: 'p', includeSourceText: false }],
+      [
+        {
+          method: 'exports.save',
+          projectId: 'p',
+          includeSourceText: false,
+          path: '/tmp/forged.json',
+        },
+      ],
+      [{ method: 'exports.save', projectId: 'p' }],
+      [
+        {
+          method: 'exports.save',
+          projectId: 'p',
+          includeSourceText: false,
+          taskIds: ['t', 't'],
+        },
+      ],
+      [
+        {
+          method: 'exports.save',
+          projectId: 'p',
+          includeSourceText: false,
+          includeCredentials: true,
+        },
+      ],
       [
         {
           method: 'sources.importFile',
@@ -311,6 +341,15 @@ test('real IPC rejects foreign windows and malformed requests; source text stays
       ok: true,
       data: { sources: [] },
     })
+    expect(
+      await foreign.evaluate(() =>
+        (window as unknown as ProbeWindow).securityProbe.request({
+          method: 'exports.save',
+          projectId: 'p',
+          includeSourceText: false,
+        }),
+      ),
+    ).toEqual({ ok: false, error: 'INVALID_REQUEST' })
     // Production CSP denies embedding even a same-origin frame.
     await page.evaluate((url) => {
       const frame = document.createElement('iframe')
