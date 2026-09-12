@@ -2,9 +2,9 @@ import { app, BrowserWindow, ipcMain, protocol, net, session, Tray, Menu, native
 import { join, resolve, sep } from 'node:path'
 import { mkdirSync } from 'node:fs'
 import { pathToFileURL } from 'node:url'
-import { parseCoreRequest, type CoreReply } from '@memo/contracts'
 import { CoreClient } from './core-client'
 import { isTrustedPage } from './security'
+import { createRequestHandler } from './request-handler'
 import { createCloseToTrayGuard, createTrayController, electronTrayPlatform, type TrayController } from './tray'
 protocol.registerSchemesAsPrivileged([{scheme:'memo',privileges:{standard:true,secure:true,supportFetchAPI:true}}])
 let window:BrowserWindow|null=null
@@ -39,10 +39,11 @@ else {
    session.defaultSession.setPermissionCheckHandler(()=>false)
    const data=app.getPath('userData');mkdirSync(data,{recursive:true})
    core=new CoreClient(join(__dirname,'core.js'),join(data,'memo.sqlite'));core.start()
-   ipcMain.handle('memo:request',async(event,input:unknown):Promise<CoreReply>=>{
-     if (!window || event.sender!==window.webContents || event.senderFrame!==window.webContents.mainFrame || !isTrustedPage(event.senderFrame.url,pageURL)) return {ok:false,error:'INVALID_REQUEST'}
-     try {return await core!.request(parseCoreRequest(input))} catch {return {ok:false,error:'INVALID_REQUEST'}}
-   })
+   ipcMain.handle('memo:request',createRequestHandler(
+     ()=>window?.webContents??null,
+     pageURL,
+     request=>core ? core.request(request) : Promise.resolve({ok:false,error:'CORE_UNAVAILABLE'}),
+   ))
    tray=createTrayController(trayHost,electronTrayPlatform({Tray,Menu,nativeImage}))
    createWindow()
    app.on('activate',()=>trayHost.restoreWindow())
