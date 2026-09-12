@@ -42,7 +42,7 @@ const anchor = Date.UTC(2026, 8, 13, 4, 0) // 12:00 in UTC+8
 describe('speech scheduler (PET10)', () => {
   it('speaks within the configured random window', () => {
     const h = makeScheduler(anchor)
-    h.scheduler.configure({ minMinutes: 45, maxMinutes: 90 })
+    h.scheduler.configure({ minMinutes: 45, maxMinutes: 90, quietStart: '00:00', quietEnd: '00:00' })
     // Before the window opens nothing happens even after many ticks.
     h.advance(44)
     expect(h.scheduler.tick()).toBeNull()
@@ -57,7 +57,7 @@ describe('speech scheduler (PET10)', () => {
   })
   it('never exceeds the daily cap and does not catch up afterwards', () => {
     const h = makeScheduler(anchor)
-    h.scheduler.configure({ minMinutes: 1, maxMinutes: 1, dailyCap: 2 })
+    h.scheduler.configure({ minMinutes: 1, maxMinutes: 1, dailyCap: 2, quietStart: '00:00', quietEnd: '00:00' })
     for (let i = 0; i < 5; i++) {
       h.advance(2)
       h.scheduler.tick()
@@ -78,7 +78,7 @@ describe('speech scheduler (PET10)', () => {
   })
   it('stays silent when disabled, paused or locked', () => {
     const h = makeScheduler(anchor)
-    h.scheduler.configure({ minMinutes: 1, maxMinutes: 1 })
+    h.scheduler.configure({ minMinutes: 1, maxMinutes: 1, quietStart: '00:00', quietEnd: '00:00' })
     h.scheduler.configure({ enabled: false })
     h.advance(2)
     expect(h.scheduler.tick()).toBeNull()
@@ -95,7 +95,7 @@ describe('speech scheduler (PET10)', () => {
   })
   it('does not repeat recent presets and persists cadence state', () => {
     const h = makeScheduler(anchor)
-    h.scheduler.configure({ minMinutes: 1, maxMinutes: 1 })
+    h.scheduler.configure({ minMinutes: 1, maxMinutes: 1, quietStart: '00:00', quietEnd: '00:00' })
     const spoken: string[] = []
     for (let i = 0; i < 4; i++) {
       h.advance(2)
