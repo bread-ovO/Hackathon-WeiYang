@@ -53,6 +53,14 @@ export function TaskExport({
             INVALID_REQUEST: '导出范围无效，请重新选择。',
             INTERNAL_ERROR: '导出未成功，请重试。',
             VERSION_CONFLICT: '记录已变化，请重试。',
+            // Pet-side codes cannot occur in export replies; exhaustive
+            // entries keep a fallback if routing ever changes.
+            PET_UNAVAILABLE: '操作暂不可用，请稍后重试。',
+            IMPORT_SESSION_INVALID: '操作未完成，请重新选择。',
+            SOURCE_CHANGED: '内容已变化，请重试。',
+            INVALID_STORE: '存储状态异常，请重启应用。',
+            UNKNOWN_MODEL: '所选模型不存在或已移除。',
+            STORAGE_LIMIT: '存储空间不足，请先清理不再使用的模型。',
           }[reply.error],
         )
     } catch {
