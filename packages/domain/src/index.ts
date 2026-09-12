@@ -54,3 +54,5 @@ export function canRevoke(source: 'automatic'|'manual', status: TaskStatus): boo
 export function shouldNotify(enabled: boolean, quietHours: boolean, due: boolean): boolean { return enabled && !quietHours && due }
 
 export function withinNotificationCooldown(lastSentAt: string|null, now: string, cooldownMs: number): boolean { return !!lastSentAt && Date.parse(now)-Date.parse(lastSentAt)<cooldownMs }
+
+export function canRetryNotification(attempts: number, maxAttempts = 3): boolean { return Number.isInteger(attempts) && attempts >= 0 && attempts < maxAttempts }
