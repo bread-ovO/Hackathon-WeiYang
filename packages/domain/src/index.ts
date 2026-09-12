@@ -62,3 +62,5 @@ export function cleanupTargets(projectId: string): string[] { if (!projectId.tri
 export function cloudInferenceAllowed(enabled: boolean, scope: string[]): boolean { return enabled && scope.length > 0 }
 
 export function shouldRollback(failures: number, threshold = 3): boolean { return Number.isInteger(failures) && failures >= threshold }
+
+export function canUpgrade(current: string, next: string): boolean { return Boolean(current && next && current !== next) }

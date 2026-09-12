@@ -35,3 +35,4 @@ export function canRetryNotification(attempts,maxAttempts=3){return Number.isInt
 export function cleanupTargets(projectId){if(!projectId.trim())throw new Error('INVALID_PROJECT_ID');return [`events:${projectId}`,`tasks:${projectId}`,`index:${projectId}`,`outbox:${projectId}`];}
 export function cloudInferenceAllowed(enabled,scope){return enabled&&scope.length>0;}
 export function shouldRollback(failures,threshold=3){return Number.isInteger(failures)&&failures>=threshold;}
+export function canUpgrade(current,next){return Boolean(current&&next&&current!==next);}
