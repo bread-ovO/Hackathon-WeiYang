@@ -16,3 +16,4 @@ export function parseDeadline(value) {
   const time = Date.parse(value.length === 10 ? `${value}T00:00:00Z` : value);
   return Number.isNaN(time) ? null : new Date(time).toISOString();
 }
+export function extractProgressCandidates(text) { return text.split(/\n+/).map(x=>x.trim()).filter(Boolean).flatMap(line=>line.includes('完成')?[{kind:'progress',text:line}]:/更新|变更|改为/.test(line)?[{kind:'change',text:line}]:[]); }
