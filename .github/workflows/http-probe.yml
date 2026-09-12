@@ -4,6 +4,8 @@ on:
   pull_request:
     paths:
       - 'packages/plugin-host/**'
+      - 'packages/connectors/**'
+      - 'apps/desktop/src/main/source-http.ts'
       - 'examples/sources/**'
       - 'scripts/probe-http-source.mjs'
       - '.github/workflows/http-probe.yml'
