@@ -30,7 +30,10 @@ const vendored = tracked.filter((file) =>
 const vendorUnexpected = vendored.filter(
   (file) => !vendorAllowList.has(file) && !file.startsWith('apps/desktop/src/renderer/public/live2d/shaders/'),
 )
-const missingRequired = [...vendorAllowList].filter((file) => !tracked.includes(file))
+const missingRequired =
+  vendored.length > 0
+    ? [...vendorAllowList].filter((file) => !tracked.includes(file))
+    : []
 
 const errors = [
   ...offenders.map((file) => `model asset tracked in repo: ${file}`),

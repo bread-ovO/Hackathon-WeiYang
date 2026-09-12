@@ -6,6 +6,7 @@
 //
 //   node scripts/fetch-pet-sdk.mjs
 import { createHash } from 'node:crypto'
+import { cp, mkdir } from 'node:fs/promises'
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { execFileSync } from 'node:child_process'
 import { createRequire } from 'node:module'
@@ -88,5 +89,13 @@ await esbuild.build({
   globalName: 'Live2DCubismFramework',
   outfile: join(target, 'dist/live2dcubismframework.min.js'),
 })
-console.log('framework bundle written to .pet-sdk/dist/live2dcubismframework.min.js')
-console.log('next: pnpm exec playwright test tests/desktop/pet/pet-verify.spec.ts')
+const publicLive2d = join(root, 'apps/desktop/src/renderer/public/live2d')
+await mkdir(publicLive2d, { recursive: true })
+await cp(join(sdkDir, 'Core/live2dcubismcore.min.js'), join(publicLive2d, 'live2dcubismcore.min.js'))
+await cp(join(target, 'dist/live2dcubismframework.min.js'), join(publicLive2d, 'live2dcubismframework.min.js'))
+await cp(join(sdkDir, 'Core/LICENSE.md'), join(publicLive2d, 'CORE-LICENSE.md'))
+await cp(join(sdkDir, 'Core/RedistributableFiles.txt'), join(publicLive2d, 'RedistributableFiles.txt'))
+await cp(join(sdkDir, 'Framework/LICENSE.md'), join(publicLive2d, 'FRAMEWORK-LICENSE.md'))
+await cp(join(sdkDir, 'Framework/Shaders/WebGL'), join(publicLive2d, 'shaders'), { recursive: true })
+console.log('runtime staged into apps/desktop/src/renderer/public/live2d (gitignored, local only)')
+console.log('next: pnpm exec playwright test tests/desktop/pet-verify.spec.ts')

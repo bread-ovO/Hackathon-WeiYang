@@ -21,3 +21,7 @@ docs/planning/base-auth.png
 
 # PET01: official Cubism SDK zip (proprietary Live2D assets), fetched by scripts/fetch-pet-sdk.mjs
 .pet-sdk/
+
+# Live2D runtime is proprietary (Cubism Components); fetched locally by
+# scripts/fetch-pet-sdk.mjs and never committed or shipped.
+apps/desktop/src/renderer/public/live2d/
