@@ -183,13 +183,20 @@ export async function bootLive2D(
     update(): void
   }
   let disposed = false
+  // updateMotion takes a frame DELTA in seconds, not an absolute timestamp;
+  // feeding it absolute time made the idle jump to random points (the
+  // "wildly shaking model" bug). Clamp so throttled frames stay sane.
+  let lastNow: number | null = null
   return {
     mode: motionManager ? 'live2d' : 'breathing-only',
     frame(now) {
       if (disposed) return
+      if (lastNow === null) lastNow = now
+      const deltaSeconds = Math.min(Math.max((now - lastNow) / 1000, 0), 0.1)
+      lastNow = now
       const seconds = now / 1000
       modelParam.setParameterValueById('ParamBreath', (Math.sin(seconds * 1.6) + 1) / 2)
-      motionManager?.updateMotion(cubismModel, seconds)
+      motionManager?.updateMotion(cubismModel, deltaSeconds)
       modelParam.update()
       gl.clearColor(0, 0, 0, 0)
       gl.clear(gl.COLOR_BUFFER_BIT)

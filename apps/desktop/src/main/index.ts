@@ -88,6 +88,7 @@ else {
     .whenReady()
     .then(async () => {
       const rendererRoot = resolve(__dirname, '../renderer')
+      const petStoreRoot = join(app.getPath('userData'), 'pet-models')
       protocol.handle('memo', async (request) => {
         const url = new URL(request.url)
         if (url.hostname !== 'app')
@@ -96,12 +97,13 @@ else {
         // never accepts renderer-supplied filesystem paths.
         const modelResource = resolveModelResource(
           decodeURIComponent(url.pathname),
-          join(app.getPath('userData'), 'pet-models'),
+          petStoreRoot,
         )
         if (modelResource) {
           try {
             return await net.fetch(pathToFileURL(modelResource).toString())
           } catch {
+            // Missing store bytes answer 404; never a thrown fetch.
             return new Response('Not found', { status: 404 })
           }
         }

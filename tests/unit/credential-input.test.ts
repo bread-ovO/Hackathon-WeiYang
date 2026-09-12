@@ -64,10 +64,17 @@ describe('host selected credential token file', () => {
       new Error('VAULT_INVALID_DATA'),
     )
   })
-  it('rejects relative paths, missing files, directories and symlinks', async () => {
+  it('rejects relative paths, missing files, directories and symlinks', async (ctx) => {
     await fs.writeFile(file, 'SYNTHETIC')
     const link = join(folder, 'link.txt')
-    await fs.symlink(file, link)
+    try {
+      await fs.symlink(file, link)
+    } catch (error) {
+      // Windows without Developer Mode denies symlink creation; the symlink
+      // leg can only run where the OS allows it.
+      if ((error as NodeJS.ErrnoException).code === 'EPERM') return ctx.skip()
+      throw error
+    }
     for (const path of ['relative.txt', join(folder, 'missing'), folder, link])
       await expect(readCredentialFile(path)).rejects.toEqual(
         new Error('VAULT_INVALID_DATA'),
