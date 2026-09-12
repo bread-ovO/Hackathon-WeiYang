@@ -23,7 +23,7 @@ async function trial(id:string) {
 beforeEach(async()=>{
   root=await realpath(await mkdtemp(path.join(tmpdir(),'bugu-plugin-runtime-')));file=path.join(root,'manifest.json');time=1000
   choose=vi.fn();readCredential=vi.fn().mockResolvedValue('fictional-token');transport=vi.fn().mockResolvedValue(body())
-  request=vi.fn().mockImplementation(async(req)=>req.method==='pluginHost.list'?{ok:true,data:[]}:{ok:true,data:{}})
+  request=vi.fn().mockImplementation(async(req)=>req.method==='ingestion.status'?{ok:true,data:{paused:false,reason:null}}:req.method==='pluginHost.list'?{ok:true,data:[]}:{ok:true,data:{}})
   runtime=createPluginRuntime({choose,request,readCredential,transport,now:()=>time})
 })
 afterEach(async()=>{await rm(root,{recursive:true,force:true})})
@@ -118,6 +118,7 @@ describe('plugin runtime confirmation and cancellation boundaries',()=>{
     const previous=await reader.read()
     expect(previous.done).toBe(false)
     request.mockImplementation(async(req)=>{
+      if(req.method==='ingestion.status')return {ok:true,data:{paused:false,reason:null}}
       if(req.method==='pluginHost.list')return {ok:true,data:[]}
       if(req.method==='pluginHost.get')return {ok:true,data:{id:manifest.id,status:'active',manifest,grant:{kind:'http-json',domain:'api.example.com',credentialId:'credential-1'},sourceInstanceId:'source-1',projectId:'project-1',grantVersion:1,cursor:JSON.stringify(previous.cursor)}}
       return {ok:true,data:{}}
@@ -130,6 +131,7 @@ describe('plugin runtime confirmation and cancellation boundaries',()=>{
   it('disable prevents late sync batches from being committed',async()=>{
     const manifest=HTTP_JSON_MANIFEST_EXAMPLE
     request.mockImplementation(async(req)=>{
+      if(req.method==='ingestion.status')return {ok:true,data:{paused:false,reason:null}}
       if(req.method==='pluginHost.list')return {ok:true,data:[]}
       if(req.method==='pluginHost.get')return {ok:true,data:{id:manifest.id,status:'active',manifest,grant:{kind:'http-json',domain:'api.example.com',credentialId:'credential-1'},sourceInstanceId:'source-1',projectId:'project-1',grantVersion:1,cursor:''}}
       return {ok:true,data:{}}

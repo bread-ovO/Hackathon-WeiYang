@@ -1,3 +1,7 @@
+import {
+  createIngestionBudget,
+  migrateIngestionBudget,
+} from './ingestion-budget'
 import { createProcessing, migrateProcessing } from './processing'
 export type { ProcessingContext, ProcessingResult } from './processing'
 import { createEventReceiver } from './receive'
@@ -5,15 +9,40 @@ import { createEventContexts, migrateEventContexts } from './event-context'
 export type { StoredEventContext } from './event-context'
 import Database from 'better-sqlite3'
 import { createPlugins, migratePlugins } from './plugins'
-export type { HostPlugin, SafePlugin, PluginGrant, PluginActivation } from './plugins'
+export type {
+  HostPlugin,
+  SafePlugin,
+  PluginGrant,
+  PluginActivation,
+} from './plugins'
 import { createExports } from './export'
 export type { ExportBundle, ExportScope } from './export'
 export { EXPORT_MAX_BYTES } from './export'
 import { createSources, migrateSources } from './sources'
-export type { SourceSummary, AuthorizedSource, SourceImportErrorCode } from './sources'
+export type {
+  SourceSummary,
+  AuthorizedSource,
+  SourceImportErrorCode,
+} from './sources'
 export { sourceImportErrorCodes } from './sources'
-import { createTaskModel, migrateTaskModel, migrateTaskEditing } from './task-model'
-export type { StoredTask, StoredTaskStatus, StoredAdmission, ManualActor, TaskExpectation, CriterionInput, EvidenceInput, TaskPatch, TaskPageQuery, TaskPage, TaskDecisionSummary } from './task-model'
+import {
+  createTaskModel,
+  migrateTaskModel,
+  migrateTaskEditing,
+} from './task-model'
+export type {
+  StoredTask,
+  StoredTaskStatus,
+  StoredAdmission,
+  ManualActor,
+  TaskExpectation,
+  CriterionInput,
+  EvidenceInput,
+  TaskPatch,
+  TaskPageQuery,
+  TaskPage,
+  TaskDecisionSummary,
+} from './task-model'
 import { createJobQueue } from './jobs'
 import { createCandidateSearch, migrateSearch } from './search'
 export type { SearchProjection, CandidateQuery, CandidateHit } from './search'
@@ -21,15 +50,18 @@ export type { Job, JobLease, JobErrorCode } from './jobs'
 export { MAX_JOB_ATTEMPTS, JOB_LEASE_MS } from './jobs'
 import type { SourceEvent, Health } from '@memo/contracts'
 
-export function openStore(path:string) {
+export function openStore(path: string) {
   const db = new Database(path)
   try {
-    db.pragma('foreign_keys = ON'); db.pragma('journal_mode = WAL')
-    db.pragma('synchronous = FULL'); db.pragma('busy_timeout = 3000')
-    const version = db.pragma('user_version', {simple:true}) as number
-    if (version > 8) throw new Error('DATABASE_TOO_NEW')
-    if (version < 1) db.transaction(() => {
-      db.exec(`
+    db.pragma('foreign_keys = ON')
+    db.pragma('journal_mode = WAL')
+    db.pragma('synchronous = FULL')
+    db.pragma('busy_timeout = 3000')
+    const version = db.pragma('user_version', { simple: true }) as number
+    if (version > 9) throw new Error('DATABASE_TOO_NEW')
+    if (version < 1)
+      db.transaction(() => {
+        db.exec(`
         CREATE TABLE source_instances (id TEXT PRIMARY KEY, cursor TEXT NOT NULL DEFAULT '');
         CREATE TABLE source_events (
           id INTEGER PRIMARY KEY, source_id TEXT NOT NULL REFERENCES source_instances(id),
@@ -47,7 +79,7 @@ export function openStore(path:string) {
           version INTEGER NOT NULL DEFAULT 1 CHECK(version > 0), archived_at TEXT);
         PRAGMA user_version = 1;
       `)
-    })()
+      })()
     if (version < 2) migrateSearch(db)
     if (version < 3) migrateTaskModel(db)
     if (version < 4) migrateTaskEditing(db)
@@ -55,28 +87,87 @@ export function openStore(path:string) {
     if (version < 6) migratePlugins(db)
     if (version < 7) migrateEventContexts(db)
     if (version < 8) migrateProcessing(db)
+    if (version < 9) migrateIngestionBudget(db)
+    const ingestion = createIngestionBudget(db)
     const contexts = createEventContexts(db)
-    const receive = createEventReceiver(db, contexts.record)
+    const receive = createEventReceiver(
+      db,
+      contexts.record,
+      ingestion.assertCanReceive,
+    )
+    const sources = createSources(db, receive)
+    const plugins = createPlugins(db, receive)
     return {
+      ingestion,
       processing: createProcessing(db),
       contexts: { get: contexts.get },
-      plugins: createPlugins(db,receive),
+      plugins: {
+        ...plugins,
+        receiveBatch: (...args: Parameters<typeof plugins.receiveBatch>) =>
+          ingestion.withBatch(() => plugins.receiveBatch(...args)),
+      },
       exports: createExports(db),
-      sources: createSources(db,receive),
+      sources: {
+        ...sources,
+        receiveBatch: (...args: Parameters<typeof sources.receiveBatch>) =>
+          ingestion.withBatch(() => sources.receiveBatch(...args)),
+      },
       tasks: createTaskModel(db),
       jobs: createJobQueue(db),
       search: createCandidateSearch(db),
-      registerSource(id:string) { db.prepare('INSERT INTO source_instances(id) VALUES (?) ON CONFLICT DO NOTHING').run(id) },
-      receive(event:SourceEvent,cursor:string) {
-        if(db.prepare('SELECT 1 FROM source_grants WHERE source_id=?').get(event.sourceInstanceId) || db.prepare('SELECT 1 FROM plugin_source_history WHERE source_instance_id=?').get(event.sourceInstanceId))throw new Error('USE_AUTHORIZED_SOURCE_BATCH')
-        return receive(event,cursor)
+      registerSource(id: string) {
+        db.prepare(
+          'INSERT INTO source_instances(id) VALUES (?) ON CONFLICT DO NOTHING',
+        ).run(id)
       },
-      health():Health { return {status:'ready',schemaVersion:db.pragma('user_version',{simple:true}) as number,
-        sqliteVersion:(db.prepare('SELECT sqlite_version() AS version').get() as {version:string}).version,
-        eventCount:(db.prepare('SELECT COUNT(*) AS count FROM source_events').get() as {count:number}).count,
-        jobCount:(db.prepare('SELECT COUNT(*) AS count FROM jobs').get() as {count:number}).count} },
-      cursor(id:string) { return (db.prepare('SELECT cursor FROM source_instances WHERE id=?').get(id) as {cursor:string}|undefined)?.cursor },
-      close() { db.close() }
+      receive(event: SourceEvent, cursor: string) {
+        if (
+          db
+            .prepare('SELECT 1 FROM source_grants WHERE source_id=?')
+            .get(event.sourceInstanceId) ||
+          db
+            .prepare(
+              'SELECT 1 FROM plugin_source_history WHERE source_instance_id=?',
+            )
+            .get(event.sourceInstanceId)
+        )
+          throw new Error('USE_AUTHORIZED_SOURCE_BATCH')
+        return ingestion.withBatch(() => receive(event, cursor))
+      },
+      health(): Health {
+        return {
+          status: 'ready',
+          schemaVersion: db.pragma('user_version', { simple: true }) as number,
+          sqliteVersion: (
+            db.prepare('SELECT sqlite_version() AS version').get() as {
+              version: string
+            }
+          ).version,
+          eventCount: (
+            db.prepare('SELECT COUNT(*) AS count FROM source_events').get() as {
+              count: number
+            }
+          ).count,
+          jobCount: (
+            db.prepare('SELECT COUNT(*) AS count FROM jobs').get() as {
+              count: number
+            }
+          ).count,
+        }
+      },
+      cursor(id: string) {
+        return (
+          db
+            .prepare('SELECT cursor FROM source_instances WHERE id=?')
+            .get(id) as { cursor: string } | undefined
+        )?.cursor
+      },
+      close() {
+        db.close()
+      },
     }
-  } catch (error) { db.close(); throw error }
+  } catch (error) {
+    db.close()
+    throw error
+  }
 }

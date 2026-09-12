@@ -1,3 +1,4 @@
+import { ingestionErrors } from './ingestion-panel'
 import { useEffect, useRef, useState } from 'react'
 import type { CoreReply, SourcesSnapshot } from '@memo/contracts'
 import { AppButton } from './ui'
@@ -67,7 +68,10 @@ export function SourceImport() {
         setData(r.data)
         setMessage(r.data.cancelled ? '已取消，原连接保持不变。' : success)
       } else {
-        setMessage('读取未完成，请查看连接原因；已确认的进度会保留。')
+        setMessage(
+          ingestionErrors[r.error] ??
+            '读取未完成，请查看连接原因；已确认的进度会保留。',
+        )
         await refresh()
       }
     } catch {
