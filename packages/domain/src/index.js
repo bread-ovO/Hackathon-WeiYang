@@ -18,3 +18,4 @@ export function parseDeadline(value) {
 }
 export function extractProgressCandidates(text) { return text.split(/\n+/).map(x=>x.trim()).filter(Boolean).flatMap(line=>line.includes('完成')?[{kind:'progress',text:line}]:/更新|变更|改为/.test(line)?[{kind:'change',text:line}]:[]); }
 export function linkCrossSourceCandidates(ids) { const groups=new Map(); for(const id of ids){const key=id.trim().toLowerCase();if(!key)continue;groups.set(key,[...(groups.get(key)||[]),id]);} return [...groups.values()].filter(g=>g.length>1); }
+export function resolveCandidateLinks(groups) { return {linked:groups.filter(g=>g.length===1),uncertain:groups.filter(g=>g.length>1)}; }
