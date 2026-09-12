@@ -6,6 +6,7 @@ import { parseSourceEvent, type SourceEvent } from '@memo/contracts'
 export function createEventReceiver(
   db: Database.Database,
   onInserted?: (event: SourceEvent, id: number, receivedAt: string) => void,
+  onBeforeInsert?: (event: SourceEvent) => void,
 ): (event: SourceEvent, cursor: string) => { inserted: boolean } {
   const receive = db.transaction((event: SourceEvent, cursor: string) => {
     if (
@@ -35,6 +36,7 @@ export function createEventReceiver(
       )
       return { inserted: false }
     }
+    onBeforeInsert?.(event)
     const receivedAt = new Date().toISOString()
     const result = db
       .prepare(

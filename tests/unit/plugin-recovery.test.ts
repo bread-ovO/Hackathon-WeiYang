@@ -4,7 +4,7 @@ import {
   HTTP_JSON_MANIFEST_EXAMPLE,
   HttpTransportError,
 } from '../../packages/plugin-host/src/index'
-import type { HostRequest } from '@memo/contracts'
+import type { HostRequest, CoreReply } from '@memo/contracts'
 function fixture() {
   let time = 1_000_000
   const manifest = structuredClone(HTTP_JSON_MANIFEST_EXAMPLE)
@@ -27,35 +27,39 @@ function fixture() {
       credentialId: 'credential-1',
     },
   }
-  const request = vi.fn(async (req: HostRequest) => {
-    if (req.method === 'pluginHost.list')
-      return {
-        ok: true as const,
-        data: [
-          {
-            id: binding.id,
-            projectId: 'p',
-            displayName: 'test',
-            version: '1.0.0',
-            digest: binding.digest,
-            status: binding.status,
-            grantVersion: binding.grantVersion,
-            lastSuccessAt: binding.lastSuccessAt,
-            eventCount: binding.eventCount,
-          },
-        ],
+  const request = vi.fn(
+    async (req: HostRequest): Promise<CoreReply<unknown>> => {
+      if (req.method === 'ingestion.status')
+        return { ok: true as const, data: { paused: false, reason: null } }
+      if (req.method === 'pluginHost.list')
+        return {
+          ok: true as const,
+          data: [
+            {
+              id: binding.id,
+              projectId: 'p',
+              displayName: 'test',
+              version: '1.0.0',
+              digest: binding.digest,
+              status: binding.status,
+              grantVersion: binding.grantVersion,
+              lastSuccessAt: binding.lastSuccessAt,
+              eventCount: binding.eventCount,
+            },
+          ],
+        }
+      if (req.method === 'pluginHost.get')
+        return { ok: true as const, data: structuredClone(binding) }
+      if (req.method === 'pluginHost.recordError') binding.status = 'error'
+      if (req.method === 'pluginHost.disable') binding.status = 'disabled'
+      if (req.method === 'pluginHost.receiveBatch') {
+        binding.lastSuccessAt = new Date(time).toISOString()
+        binding.cursor = req.input.cursor
+        binding.eventCount += req.input.events.length
       }
-    if (req.method === 'pluginHost.get')
-      return { ok: true as const, data: structuredClone(binding) }
-    if (req.method === 'pluginHost.recordError') binding.status = 'error'
-    if (req.method === 'pluginHost.disable') binding.status = 'disabled'
-    if (req.method === 'pluginHost.receiveBatch') {
-      binding.lastSuccessAt = new Date(time).toISOString()
-      binding.cursor = req.input.cursor
-      binding.eventCount += req.input.events.length
-    }
-    return { ok: true as const, data: {} }
-  })
+      return { ok: true as const, data: {} }
+    },
+  )
   const transport = vi.fn(async () =>
     Buffer.from(JSON.stringify({ items: [], next_cursor: null })),
   )
@@ -77,6 +81,92 @@ function fixture() {
     now: () => time,
   }
 }
+describe('plugin ingestion backpressure', () => {
+  it.each([
+    'QUEUE_LIMIT',
+    'DATABASE_LIMIT',
+    'DISK_LOW',
+    'PROBE_UNAVAILABLE',
+  ] as const)(
+    'preflights %s without reading, marking unhealthy or advancing cursor',
+    async (suffix) => {
+      const f = fixture(),
+        original = f.request.getMockImplementation()!
+      let blocked = true
+      const reason = {
+        QUEUE_LIMIT: 'queue_limit',
+        DATABASE_LIMIT: 'database_limit',
+        DISK_LOW: 'disk_low',
+        PROBE_UNAVAILABLE: 'probe_unavailable',
+      }[suffix]
+      f.request.mockImplementation(async (req) =>
+        req.method === 'ingestion.status' && blocked
+          ? { ok: true as const, data: { paused: true, reason } }
+          : original(req),
+      )
+      const error = `INGESTION_${suffix}`
+      expect(
+        await f.runtime.handle({ method: 'plugins.sync', id: f.binding.id }),
+      ).toEqual({ ok: false, error })
+      for (let i = 0; i < 5; i++) await f.runtime.tick()
+      expect(f.transport).not.toHaveBeenCalled()
+      expect(
+        f.request.mock.calls.filter(([r]) => r.method === 'ingestion.status'),
+      ).toHaveLength(1)
+      expect(
+        f.request.mock.calls.some(
+          ([r]) => r.method === 'pluginHost.recordError',
+        ),
+      ).toBe(false)
+      expect(f.binding.status).toBe('active')
+      expect(f.binding.cursor).toBe('')
+      blocked = false
+      f.advance(60000)
+      await f.runtime.tick()
+      expect(f.transport).toHaveBeenCalledTimes(1)
+      expect(
+        f.request.mock.calls.find(
+          ([r]) => r.method === 'pluginHost.receiveBatch',
+        )?.[0],
+      ).toMatchObject({ input: { expectedCursor: '' } })
+      expect(f.binding.lastSuccessAt).not.toBeNull()
+    },
+  )
+  it('preserves a batch rejected by a racing quota change and retries its old cursor after recovery', async () => {
+    const f = fixture(),
+      original = f.request.getMockImplementation()!
+    let blocked = true
+    f.request.mockImplementation(async (req) =>
+      req.method === 'pluginHost.receiveBatch' && blocked
+        ? { ok: false as const, error: 'INGESTION_QUEUE_LIMIT' as const }
+        : original(req),
+    )
+    expect(
+      await f.runtime.handle({ method: 'plugins.sync', id: f.binding.id }),
+    ).toEqual({ ok: false, error: 'INGESTION_QUEUE_LIMIT' })
+    expect(f.transport).toHaveBeenCalledTimes(1)
+    expect(f.binding.cursor).toBe('')
+    expect(f.binding.status).toBe('active')
+    await f.runtime.tick()
+    expect(f.transport).toHaveBeenCalledTimes(1)
+    blocked = false
+    f.advance(60000)
+    await f.runtime.tick()
+    expect(f.transport).toHaveBeenCalledTimes(2)
+    expect(
+      f.request.mock.calls
+        .filter(([r]) => r.method === 'pluginHost.receiveBatch')
+        .every(
+          ([r]) =>
+            r.method === 'pluginHost.receiveBatch' &&
+            r.input.expectedCursor === '',
+        ),
+    ).toBe(true)
+    expect(
+      f.request.mock.calls.some(([r]) => r.method === 'pluginHost.recordError'),
+    ).toBe(false)
+  })
+})
 describe('active plugin network recovery', () => {
   it('backs off a transient failure without advancing cursor or last success, then resumes', async () => {
     const f = fixture()

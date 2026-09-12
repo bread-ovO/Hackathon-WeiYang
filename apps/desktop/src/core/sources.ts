@@ -3,6 +3,12 @@ import type { HostRequest, SourcesSnapshot } from '@memo/contracts'
 import { readLocalJsonl, LocalJsonlError } from '@memo/plugin-host'
 import { realpath, lstat } from 'node:fs/promises'
 type SourceRequest = Extract<HostRequest, { method: `sources.${string}` }>
+const pressureCodes = new Set([
+  'INGESTION_QUEUE_LIMIT',
+  'INGESTION_DATABASE_LIMIT',
+  'INGESTION_DISK_LOW',
+  'INGESTION_PROBE_UNAVAILABLE',
+])
 export function createSourceHandler(store: ReturnType<typeof openStore>) {
   const active = new Set<string>()
   async function sync(id: string) {
@@ -11,13 +17,15 @@ export function createSourceHandler(store: ReturnType<typeof openStore>) {
     let grant: ReturnType<typeof store.sources.getAuthorized> | undefined
     try {
       grant = store.sources.getAuthorized(id)
+      store.ingestion.assertCanReceive()
       const batch = await readLocalJsonl({
         path: grant.path,
         sourceInstanceId: id,
         ...(grant.cursor ? { cursor: JSON.parse(grant.cursor) } : {}),
       })
       const currentGrant = store.sources.getAuthorized(id)
-      if (currentGrant.grantVersion !== grant.grantVersion) throw new Error('SOURCE_REVOKED')
+      if (currentGrant.grantVersion !== grant.grantVersion)
+        throw new Error('SOURCE_REVOKED')
       store.sources.receiveBatch(
         id,
         grant.grantVersion,
@@ -26,7 +34,10 @@ export function createSourceHandler(store: ReturnType<typeof openStore>) {
         grant.cursor,
       )
     } catch (error) {
-      if (grant)
+      if (
+        grant &&
+        !(error instanceof Error && pressureCodes.has(error.message))
+      )
         store.sources.recordError(
           id,
           grant.grantVersion,
@@ -45,6 +56,7 @@ export function createSourceHandler(store: ReturnType<typeof openStore>) {
   return async (request: SourceRequest): Promise<SourcesSnapshot> => {
     switch (request.method) {
       case 'sources.importFile': {
+        store.ingestion.assertCanReceive()
         const before = await lstat(request.path)
         if (before.isSymbolicLink() || !before.isFile())
           throw new Error('UNSAFE_SOURCE_PATH')

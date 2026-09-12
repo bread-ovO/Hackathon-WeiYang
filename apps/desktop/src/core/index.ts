@@ -33,46 +33,55 @@ parentPort.on('message', async ({ data }) => {
     reply = {
       ok: true,
       data:
-        request.method === 'processing.status'
-          ? processing.status()
-          : request.method === 'processing.configure'
-            ? processing.configure(request.enabled)
-            : request.method === 'pluginHost.list' ||
-                request.method === 'pluginHost.get' ||
-                request.method === 'pluginHost.activate' ||
-                request.method === 'pluginHost.disable' ||
-                request.method === 'pluginHost.uninstall' ||
-                request.method === 'pluginHost.receiveBatch' ||
-                request.method === 'pluginHost.recordError'
-              ? handlePluginHost(store, request)
-              : request.method === 'exports.build'
-                ? store.exports.build(request)
-                : request.method === 'health'
-                  ? store.health()
-                  : request.method === 'sources.list' ||
-                      request.method === 'sources.importFile' ||
-                      request.method === 'sources.sync' ||
-                      request.method === 'sources.revoke'
-                    ? await sources(request)
-                    : handleWorkspace(store, request),
+        request.method === 'ingestion.status'
+          ? store.ingestion.getStatus()
+          : request.method === 'ingestion.configure'
+            ? store.ingestion.configure(request.patch)
+            : request.method === 'processing.status'
+              ? processing.status()
+              : request.method === 'processing.configure'
+                ? processing.configure(request.enabled)
+                : request.method === 'pluginHost.list' ||
+                    request.method === 'pluginHost.get' ||
+                    request.method === 'pluginHost.activate' ||
+                    request.method === 'pluginHost.disable' ||
+                    request.method === 'pluginHost.uninstall' ||
+                    request.method === 'pluginHost.receiveBatch' ||
+                    request.method === 'pluginHost.recordError'
+                  ? handlePluginHost(store, request)
+                  : request.method === 'exports.build'
+                    ? store.exports.build(request)
+                    : request.method === 'health'
+                      ? store.health()
+                      : request.method === 'sources.list' ||
+                          request.method === 'sources.importFile' ||
+                          request.method === 'sources.sync' ||
+                          request.method === 'sources.revoke'
+                        ? await sources(request)
+                        : handleWorkspace(store, request),
     }
   } catch (error) {
     const code = error instanceof Error ? error.message : ''
     reply = {
       ok: false,
       error:
-        code === 'EXPORT_LIMIT_EXCEEDED'
-          ? 'EXPORT_LIMIT_EXCEEDED'
-          : code === 'EXPORT_CORRUPT_DATA'
-            ? 'EXPORT_INVALID_DATA'
-            : code === 'EXPORT_TASK_NOT_IN_PROJECT' ||
-                code === 'EXPORT_UNKNOWN_PROJECT'
-              ? 'NOT_FOUND'
-              : code === 'VERSION_CONFLICT'
-                ? 'VERSION_CONFLICT'
-                : code === 'TASK_NOT_IN_PROJECT'
-                  ? 'NOT_FOUND'
-                  : 'INVALID_REQUEST',
+        code === 'INGESTION_QUEUE_LIMIT' ||
+        code === 'INGESTION_DATABASE_LIMIT' ||
+        code === 'INGESTION_DISK_LOW' ||
+        code === 'INGESTION_PROBE_UNAVAILABLE'
+          ? code
+          : code === 'EXPORT_LIMIT_EXCEEDED'
+            ? 'EXPORT_LIMIT_EXCEEDED'
+            : code === 'EXPORT_CORRUPT_DATA'
+              ? 'EXPORT_INVALID_DATA'
+              : code === 'EXPORT_TASK_NOT_IN_PROJECT' ||
+                  code === 'EXPORT_UNKNOWN_PROJECT'
+                ? 'NOT_FOUND'
+                : code === 'VERSION_CONFLICT'
+                  ? 'VERSION_CONFLICT'
+                  : code === 'TASK_NOT_IN_PROJECT'
+                    ? 'NOT_FOUND'
+                    : 'INVALID_REQUEST',
     }
   }
   parentPort.postMessage({ id: data.id, reply })

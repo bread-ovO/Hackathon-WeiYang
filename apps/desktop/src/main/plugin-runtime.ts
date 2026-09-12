@@ -8,6 +8,7 @@ import type {
   PluginSnapshot,
   PluginInspection,
   PluginTrial,
+  IngestionStatus,
 } from '@memo/contracts'
 import {
   parseSourceManifest,
@@ -58,6 +59,15 @@ export interface PluginRuntimeDependencies {
   transport?: HttpTransport
   now?: () => number
 }
+const pressureCodes = {
+  queue_limit: 'INGESTION_QUEUE_LIMIT',
+  database_limit: 'INGESTION_DATABASE_LIMIT',
+  disk_low: 'INGESTION_DISK_LOW',
+  probe_unavailable: 'INGESTION_PROBE_UNAVAILABLE',
+} as const
+type PressureCode = (typeof pressureCodes)[keyof typeof pressureCodes]
+const isPressure = (code: string): code is PressureCode =>
+  (Object.values(pressureCodes) as string[]).includes(code)
 /** Main-process capability owner. Neither trials nor network responses can directly write tasks. */
 export function createPluginRuntime(deps: PluginRuntimeDependencies) {
   const now = deps.now ?? Date.now
@@ -68,6 +78,7 @@ export function createPluginRuntime(deps: PluginRuntimeDependencies) {
     attempts = new Map<string, number[]>(),
     lastRun = new Map<string, number>(),
     recovery = new Map<string, { attempt: number; next: number }>()
+  const pressure = new Map<string, { code: PressureCode; next: number }>()
   async function call<T>(request: HostRequest): Promise<T> {
     const reply = await deps.request(request)
     if (!reply.ok) throw new Error(reply.error)
@@ -81,7 +92,7 @@ export function createPluginRuntime(deps: PluginRuntimeDependencies) {
         ...plugin,
         runtime: {
           state:
-            plugin.status !== 'active'
+            plugin.status !== 'active' || pressure.has(plugin.id)
               ? 'paused'
               : running.has(plugin.id)
                 ? 'reading'
@@ -89,9 +100,11 @@ export function createPluginRuntime(deps: PluginRuntimeDependencies) {
                   ? 'retrying'
                   : 'waiting',
           retryAttempt: recovery.get(plugin.id)?.attempt ?? 0,
-          nextRetryAt: recovery.has(plugin.id)
-            ? new Date(recovery.get(plugin.id)!.next).toISOString()
-            : null,
+          nextRetryAt: pressure.has(plugin.id)
+            ? new Date(pressure.get(plugin.id)!.next).toISOString()
+            : recovery.has(plugin.id)
+              ? new Date(recovery.get(plugin.id)!.next).toISOString()
+              : null,
         },
       })),
       ...(inspection ? { inspection: inspection.view } : {}),
@@ -169,6 +182,8 @@ export function createPluginRuntime(deps: PluginRuntimeDependencies) {
   }
   async function sync(id: string) {
     if (running.has(id)) throw new Error('PLUGIN_UNAVAILABLE')
+    const blocked = pressure.get(id)
+    if (blocked && now() < blocked.next) throw new Error(blocked.code)
     const controller = new AbortController()
     running.set(id, controller)
     let binding: Binding | undefined
@@ -177,6 +192,22 @@ export function createPluginRuntime(deps: PluginRuntimeDependencies) {
     try {
       binding = await call<Binding>({ method: 'pluginHost.get', id })
       if (binding.status !== 'active') throw new Error('PLUGIN_CONFLICT')
+      const capacity = await call<IngestionStatus>({
+        method: 'ingestion.status',
+      })
+      if (
+        !capacity ||
+        typeof capacity.paused !== 'boolean' ||
+        !(
+          capacity.reason === null ||
+          Object.hasOwn(pressureCodes, capacity.reason)
+        ) ||
+        capacity.paused !== (capacity.reason !== null)
+      )
+        throw new Error('INGESTION_PROBE_UNAVAILABLE')
+      if (capacity.reason) throw new Error(pressureCodes[capacity.reason])
+      const wasBlocked = pressure.delete(id)
+      if (wasBlocked) lastRun.delete(id)
       const manifest = parseSourceManifest(binding.manifest)
       intervalMs = manifest.sampling.intervalSeconds * 1000
       const retry = recovery.get(id)
@@ -210,6 +241,12 @@ export function createPluginRuntime(deps: PluginRuntimeDependencies) {
       })
       recovery.delete(id)
     } catch (error) {
+      const code = error instanceof Error ? error.message : ''
+      if (isPressure(code)) {
+        pressure.set(id, { code, next: now() + 60_000 })
+        throw error
+      }
+      if (code === 'CORE_UNAVAILABLE') throw error
       const transient =
         reading &&
         error instanceof HttpTransportError &&
@@ -246,6 +283,8 @@ export function createPluginRuntime(deps: PluginRuntimeDependencies) {
   }
   function cancel(id?: string) {
     running.get('$trial')?.abort()
+    if (id) pressure.delete(id)
+    else pressure.clear()
     if (id) recovery.delete(id)
     else recovery.clear()
     if (id) running.get(id)?.abort()
@@ -422,8 +461,9 @@ export function createPluginRuntime(deps: PluginRuntimeDependencies) {
       const code = error instanceof Error ? error.message : ''
       return {
         ok: false,
-        error:
-          code === 'PLUGIN_CONFLICT'
+        error: isPressure(code)
+          ? code
+          : code === 'PLUGIN_CONFLICT'
             ? 'PLUGIN_CONFLICT'
             : code === 'CORE_UNAVAILABLE'
               ? 'CORE_UNAVAILABLE'

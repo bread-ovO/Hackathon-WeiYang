@@ -1,3 +1,9 @@
+import {
+  ingestionRequestSchema,
+  type IngestionStatus,
+  type IngestionLimitsPatch,
+} from './ingestion'
+export * from './ingestion'
 import { processingRequestSchema, type ProcessingStatus } from './processing'
 export * from './processing'
 export * from './pet-actions'
@@ -139,6 +145,7 @@ const coreRequestSchema = {
   oneOf: [
     healthRequestSchema,
     processingRequestSchema,
+    ingestionRequestSchema,
     workspaceRequestSchema,
     sourcesRequestSchema,
     exportSaveRequestSchema,
@@ -286,8 +293,16 @@ export type CoreReply<T = Health> =
         | 'INVALID_STORE'
         | 'UNKNOWN_MODEL'
         | 'STORAGE_LIMIT'
+        | 'INGESTION_QUEUE_LIMIT'
+        | 'INGESTION_DATABASE_LIMIT'
+        | 'INGESTION_DISK_LOW'
+        | 'INGESTION_PROBE_UNAVAILABLE'
     }
 export interface DesktopBridge {
+  ingestion: {
+    status(): Promise<CoreReply<IngestionStatus>>
+    configure(patch: IngestionLimitsPatch): Promise<CoreReply<IngestionStatus>>
+  }
   processing: {
     status(): Promise<CoreReply<ProcessingStatus>>
     configure(enabled: boolean): Promise<CoreReply<ProcessingStatus>>

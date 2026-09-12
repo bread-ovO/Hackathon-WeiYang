@@ -1,3 +1,4 @@
+import { ingestionErrors } from './ingestion-panel'
 import { useEffect, useRef, useState } from 'react'
 import type {
   CoreReply,
@@ -72,13 +73,14 @@ export function PluginManager() {
       } else {
         setData((old) => ({ ...old, trial: undefined }))
         setMessage(
-          r.error === 'PLUGIN_TRIAL_FAILED'
-            ? '试运行失败，插件未启用。请检查授权范围、凭据和数据格式。'
-            : r.error === 'PLUGIN_UNAVAILABLE'
-              ? '操作正在进行或尚未到下一次采样时间，请稍后重试。'
-              : r.error === 'PLUGIN_CONFLICT'
-                ? '确认已失效，请重新选择插件并试运行。'
-                : '操作未完成，请刷新后检查插件配置。',
+          ingestionErrors[r.error] ??
+            (r.error === 'PLUGIN_TRIAL_FAILED'
+              ? '试运行失败，插件未启用。请检查授权范围、凭据和数据格式。'
+              : r.error === 'PLUGIN_UNAVAILABLE'
+                ? '操作正在进行或尚未到下一次采样时间，请稍后重试。'
+                : r.error === 'PLUGIN_CONFLICT'
+                  ? '确认已失效，请重新选择插件并试运行。'
+                  : '操作未完成，请刷新后检查插件配置。'),
         )
       }
     } catch {

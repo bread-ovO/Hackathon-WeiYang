@@ -78,8 +78,12 @@ test('real IPC rejects foreign windows and malformed requests; source text stays
     await expect(
       page.getByRole('heading', { name: '跟进', exact: true }),
     ).toBeVisible()
+    expect(
+      await page.evaluate(() => Object.keys(window.memo.ingestion)),
+    ).toEqual(['status', 'configure'])
     expect(await page.evaluate(() => Object.keys(window.memo))).toEqual([
       'pet',
+      'ingestion',
       'processing',
       'health',
       'plugins',
