@@ -50,3 +50,5 @@ export function mergeTaskIds(primary: string, duplicates: string[]): { primary: 
 export function splitTaskId(parent: string, children: string[]): string[] { if (!parent.trim() || children.length < 2 || children.some(id=>!id.trim()||id===parent)) throw new Error('INVALID_TASK_SPLIT'); return [...new Set(children)] }
 
 export function canRevoke(source: 'automatic'|'manual', status: TaskStatus): boolean { return (source==='automatic'||source==='manual') && status!=='cancelled' }
+
+export function shouldNotify(enabled: boolean, quietHours: boolean, due: boolean): boolean { return enabled && !quietHours && due }
