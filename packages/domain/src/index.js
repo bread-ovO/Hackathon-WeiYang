@@ -33,3 +33,4 @@ export function shouldNotify(enabled,quietHours,due){return enabled&&!quietHours
 export function withinNotificationCooldown(last,now,cooldown){return !!last&&Date.parse(now)-Date.parse(last)<cooldown;}
 export function canRetryNotification(attempts,maxAttempts=3){return Number.isInteger(attempts)&&attempts>=0&&attempts<maxAttempts;}
 export function cleanupTargets(projectId){if(!projectId.trim())throw new Error('INVALID_PROJECT_ID');return [`events:${projectId}`,`tasks:${projectId}`,`index:${projectId}`,`outbox:${projectId}`];}
+export function cloudInferenceAllowed(enabled,scope){return enabled&&scope.length>0;}
