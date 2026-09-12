@@ -1,4 +1,10 @@
 import {
+  credentialRequestSchema,
+  type CredentialImportInput,
+  type CredentialsSnapshot,
+} from './credentials'
+export * from './credentials'
+import {
   exportSaveRequestSchema,
   exportBuildRequestSchema,
   type ExportBuildRequest,
@@ -112,6 +118,7 @@ const coreRequestSchema = {
     workspaceRequestSchema,
     sourcesRequestSchema,
     exportSaveRequestSchema,
+    credentialRequestSchema,
   ],
 } as const
 export type CoreRequest = FromSchema<typeof coreRequestSchema>
@@ -128,7 +135,17 @@ export function parseCoreRequest(value: unknown): CoreRequest {
   return value
 }
 export type HostRequest =
-  | Exclude<CoreRequest, { method: 'sources.chooseFile' | 'exports.save' }>
+  | Exclude<
+      CoreRequest,
+      {
+        method:
+          | 'sources.chooseFile'
+          | 'exports.save'
+          | 'credentials.list'
+          | 'credentials.importFile'
+          | 'credentials.remove'
+      }
+    >
   | ImportFileRequest
   | ExportBuildRequest
 const validateImportFile = ajv.compile<ImportFileRequest>(
@@ -144,7 +161,10 @@ export function parseHostRequest(value: unknown): HostRequest {
   const request = parseCoreRequest(value)
   if (
     request.method === 'sources.chooseFile' ||
-    request.method === 'exports.save'
+    request.method === 'exports.save' ||
+    request.method === 'credentials.list' ||
+    request.method === 'credentials.importFile' ||
+    request.method === 'credentials.remove'
   )
     throw new Error('INVALID_REQUEST')
   return request
@@ -169,9 +189,21 @@ export type CoreReply<T = Health> =
         | 'EXPORT_LIMIT_EXCEEDED'
         | 'EXPORT_INVALID_DATA'
         | 'EXPORT_WRITE_FAILED'
+        | 'VAULT_UNAVAILABLE'
+        | 'VAULT_INVALID_DATA'
+        | 'VAULT_WRITE_FAILED'
+        | 'VAULT_NOT_FOUND'
+        | 'VAULT_SCOPE_MISMATCH'
     }
 export interface DesktopBridge {
   health(): Promise<CoreReply>
+  credentials: {
+    list(): Promise<CoreReply<CredentialsSnapshot>>
+    importFile(
+      input: CredentialImportInput,
+    ): Promise<CoreReply<CredentialsSnapshot>>
+    remove(id: string): Promise<CoreReply<CredentialsSnapshot>>
+  }
   exports: { save(scope: ExportScope): Promise<CoreReply<ExportReceipt>> }
   sources: {
     list(): Promise<CoreReply<SourcesSnapshot>>

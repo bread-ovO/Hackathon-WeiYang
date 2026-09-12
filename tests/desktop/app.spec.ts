@@ -32,7 +32,7 @@ test('packaged renderer connects to isolated SQLite core without exposing Node',
         node: typeof (globalThis as unknown as { require: unknown }).require,
         keys: Object.keys(window.memo),
       })),
-    ).toEqual({ node: 'undefined', keys: ['health', 'exports', 'sources', 'workspace'] })
+    ).toEqual({ node: 'undefined', keys: ['health', 'credentials', 'exports', 'sources', 'workspace'] })
 
     await expect(
       page.getByRole('heading', { name: '基础链路已连通' }),

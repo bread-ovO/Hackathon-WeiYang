@@ -80,6 +80,7 @@ test('real IPC rejects foreign windows and malformed requests; source text stays
     ).toBeVisible()
     expect(await page.evaluate(() => Object.keys(window.memo))).toEqual([
       'health',
+      'credentials',
       'exports',
       'sources',
       'workspace',
@@ -100,6 +101,9 @@ test('real IPC rejects foreign windows and malformed requests; source text stays
     expect(await page.evaluate(() => Object.keys(window.memo.exports))).toEqual(
       ['save'],
     )
+    expect(
+      await page.evaluate(() => Object.keys(window.memo.credentials)),
+    ).toEqual(['list', 'importFile', 'remove'])
     // Privileged test harness only: inject a temporary probe, never ship raw IPC in production preload.
     const preload = join(data, 'probe.cjs')
     await writeFile(
@@ -155,6 +159,34 @@ test('real IPC rejects foreign windows and malformed requests; source text stays
       [{ ...update, expectedVersion: '1' }],
       [{ ...update, expectedVersion: Number.MAX_SAFE_INTEGER + 1 }],
       [{ method: 'workspace.list', query: { limit: 101 } }],
+      [
+        {
+          method: 'credentials.importFile',
+          label: 'test',
+          domain: 'api.example.com',
+          purpose: 'source',
+          path: '/tmp/forged-secret.txt',
+        },
+      ],
+      [
+        {
+          method: 'credentials.importFile',
+          label: 'test',
+          domain: 'api.example.com',
+          purpose: 'source',
+          secret: 'forged-secret',
+        },
+      ],
+      [
+        {
+          method: 'credentials.importFile',
+          label: 'test',
+          domain: '127.0.0.1',
+          purpose: 'source',
+        },
+      ],
+      [{ method: 'credentials.list', ciphertext: 'forged' }],
+      [{ method: 'credentials.getSecret', id: 'c' }],
       [{ method: 'exports.build', projectId: 'p', includeSourceText: false }],
       [
         {
@@ -350,6 +382,23 @@ test('real IPC rejects foreign windows and malformed requests; source text stays
         }),
       ),
     ).toEqual({ ok: false, error: 'INVALID_REQUEST' })
+    for (const request of [
+      { method: 'credentials.list' },
+      {
+        method: 'credentials.importFile',
+        label: 'test',
+        domain: 'api.example.com',
+        purpose: 'source',
+      },
+      { method: 'credentials.remove', id: 'credential-1' },
+    ])
+      expect(
+        await foreign.evaluate(
+          (request) =>
+            (window as unknown as ProbeWindow).securityProbe.request(request),
+          request,
+        ),
+      ).toEqual({ ok: false, error: 'INVALID_REQUEST' })
     // Production CSP denies embedding even a same-origin frame.
     await page.evaluate((url) => {
       const frame = document.createElement('iframe')

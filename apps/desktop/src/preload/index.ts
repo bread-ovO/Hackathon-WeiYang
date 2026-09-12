@@ -2,6 +2,17 @@ import { contextBridge, ipcRenderer } from 'electron'
 import type { DesktopBridge } from '@memo/contracts'
 const bridge: DesktopBridge = {
   health: () => ipcRenderer.invoke('memo:request', { method: 'health' }),
+  credentials: Object.freeze({
+    list: () =>
+      ipcRenderer.invoke('memo:request', { method: 'credentials.list' }),
+    importFile: (input) =>
+      ipcRenderer.invoke('memo:request', {
+        ...input,
+        method: 'credentials.importFile',
+      }),
+    remove: (id) =>
+      ipcRenderer.invoke('memo:request', { method: 'credentials.remove', id }),
+  }),
   exports: Object.freeze({
     save: (scope) =>
       ipcRenderer.invoke('memo:request', { ...scope, method: 'exports.save' }),
