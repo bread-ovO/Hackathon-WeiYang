@@ -44,3 +44,5 @@ export function canAutoComplete(risk: 'low'|'high', evidence: EvidenceStatus): b
 export function acceptRevision(current: number, incoming: number): boolean { return Number.isInteger(incoming) && incoming > current }
 
 export function reevaluateAfterRetraction(status: EvidenceStatus, retracted: boolean): EvidenceStatus { return retracted && status==='sufficient' ? 'partial' : status }
+
+export function mergeTaskIds(primary: string, duplicates: string[]): { primary: string; duplicates: string[] } { if (!primary.trim() || duplicates.some(id=>!id.trim()||id===primary)) throw new Error('INVALID_TASK_MERGE'); return {primary,duplicates:[...new Set(duplicates)]} }
