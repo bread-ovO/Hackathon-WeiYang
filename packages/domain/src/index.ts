@@ -40,3 +40,5 @@ export function validateEvidence(e: { sourceId?: string; quote?: string }): 'suf
 export function transitionTask(task: Task, next: TaskStatus): Task { if (task.status==='completed' && next!=='completed') throw new Error('INVALID_STATUS_TRANSITION'); return {...task,status:next,version:task.version+1} }
 
 export function canAutoComplete(risk: 'low'|'high', evidence: EvidenceStatus): boolean { return risk==='low' && evidence==='sufficient' }
+
+export function acceptRevision(current: number, incoming: number): boolean { return Number.isInteger(incoming) && incoming > current }
