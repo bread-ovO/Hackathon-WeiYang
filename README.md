@@ -107,3 +107,5 @@ pnpm package:dir
 第十批[专用来源 HTTPS 宿主层](docs/engineering/专用来源HTTPS宿主层_2026-09-13.md)：复用受限传输支持 ETag/304 和限流响应；凭据在每次请求前按授权范围重新读取。专用连接配置与持久调度仍待接入。
 
 第十一批[桌宠模型管理交付](docs/engineering/桌宠模型管理交付_2026-09-13.md)：真实设置页、目录授权会话、独立 worker 与受控模型存储；不等同于 SDK 渲染验收。
+
+第十二批[SDK 兼容性重验](docs/engineering/PET01_Cubism_SDK兼容性验证_2026-09-13.md)已在 macOS arm64 验证真实动作与坏 MOC 拒绝；[许可清单](docs/engineering/Live2D许可与发布边界_2026-09-13.md)更正 Framework 非 MIT，并保留正式发布待确认项。
