@@ -34,3 +34,5 @@ export function validateSuggestion(value: unknown): value is { title: string; co
 
 export type ModelOutcome = { kind: 'success'; value: unknown } | { kind: 'failed'; code: string } | { kind: 'cancelled' }
 export function classifyModelError(error: unknown, cancelled = false): ModelOutcome { if (cancelled || (error instanceof Error && error.name === 'AbortError')) return { kind:'cancelled' }; return { kind:'failed', code:error instanceof Error ? error.message : 'MODEL_UNKNOWN_ERROR' } }
+
+export function validateEvidence(e: { sourceId?: string; quote?: string }): 'sufficient' | 'unknown' { return e.sourceId?.trim() && e.quote?.trim() ? 'sufficient' : 'unknown' }

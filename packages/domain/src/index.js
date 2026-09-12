@@ -21,3 +21,4 @@ export function linkCrossSourceCandidates(ids) { const groups=new Map(); for(con
 export function resolveCandidateLinks(groups) { return {linked:groups.filter(g=>g.length===1),uncertain:groups.filter(g=>g.length>1)}; }
 export function validateSuggestion(value) { return !!value && typeof value==='object' && typeof value.title==='string' && value.title.trim().length>0 && typeof value.confidence==='number' && value.confidence>=0 && value.confidence<=1; }
 export function classifyModelError(error,cancelled=false){if(cancelled||(error instanceof Error&&error.name==='AbortError'))return {kind:'cancelled'};return {kind:'failed',code:error instanceof Error?error.message:'MODEL_UNKNOWN_ERROR'};}
+export function validateEvidence(e){return e&&e.sourceId?.trim()&&e.quote?.trim()?'sufficient':'unknown';}
