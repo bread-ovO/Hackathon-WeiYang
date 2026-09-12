@@ -50,14 +50,18 @@ const codes = new Set([
 export function validPetReport(
   value: unknown,
   modelId: string | undefined,
-): value is { modelId: string; status: 'ready' | 'error'; code?: string } {
+): value is {
+  modelId: string
+  status: 'ready' | 'recovering' | 'error'
+  code?: string
+} {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return false
   const v = value as Record<string, unknown>
   return (
     !!modelId &&
     v.modelId === modelId &&
     Object.keys(v).every((k) => ['modelId', 'status', 'code'].includes(k)) &&
-    (v.status === 'ready'
+    (v.status === 'ready' || v.status === 'recovering'
       ? v.code === undefined
       : v.status === 'error' && typeof v.code === 'string' && codes.has(v.code))
   )
@@ -70,6 +74,11 @@ export function createPetDesktopController(deps: PetDesktopDeps) {
   const devOrigin = deps.devURL ? new URL(deps.devURL).origin : null
   let installing = false,
     showing: Promise<CoreReply<PetState>> | null = null
+  let recoveryTimer: ReturnType<typeof setTimeout> | undefined
+  const clearRecoveryDeadline = () => {
+    clearTimeout(recoveryTimer)
+    recoveryTimer = undefined
+  }
   const presentations = createPresentationQueue()
   let catalog: ReturnType<typeof parsePetActionCatalog> = {
     motions: [],
@@ -293,6 +302,7 @@ export function createPetDesktopController(deps: PetDesktopDeps) {
         })
         created.on('closed', () => {
           if (pet === created) {
+            clearRecoveryDeadline()
             pet = null
             presentations.clear()
             deps.onDisplayChanged?.()
@@ -341,15 +351,30 @@ export function createPetDesktopController(deps: PetDesktopDeps) {
         !windows.displaying()
       )
         throw new Error('INVALID_PET_REPORT')
+      clearRecoveryDeadline()
       if (input.status === 'ready')
         presentations.bind(`${descriptor!.id}/${generation}`)
       else {
         presentations.clear()
-        catalog = { motions: [], expressions: [] }
+        if (input.status === 'error') catalog = { motions: [], expressions: [] }
       }
-      renderStatus = input.status
+      renderStatus = input.status === 'recovering' ? 'loading' : input.status
       renderError = input.code
       deps.onDisplayChanged?.()
+      if (input.status === 'recovering') {
+        const recovering = pet
+        recoveryTimer = setTimeout(() => {
+          if (pet !== recovering || renderStatus !== 'loading') return
+          renderStatus = 'error'
+          renderError = 'RENDER_FAILED'
+          descriptor = null
+          presentations.clear()
+          catalog = { motions: [], expressions: [] }
+          windows.rendererGone()
+          deps.onDisplayChanged?.()
+        }, 10000)
+        recoveryTimer.unref()
+      }
       if (input.status === 'error') {
         // The fixed SDK does not cancel pending shader fetches. Destroy the
         // failing renderer, keeping its safe error code in the settings state.
@@ -475,6 +500,7 @@ export function createPetDesktopController(deps: PetDesktopDeps) {
     }
   }
   function stop() {
+    clearRecoveryDeadline()
     presentations.clear()
     catalog = { motions: [], expressions: [] }
     generation++
@@ -632,6 +658,7 @@ export function createPetDesktopController(deps: PetDesktopDeps) {
     },
     dispose() {
       if (disposed) return
+      clearRecoveryDeadline()
       presentations.clear()
       catalog = { motions: [], expressions: [] }
       disposed = true

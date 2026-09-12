@@ -156,6 +156,7 @@ export { CubismMatrix44 } from './CubismSdkForWeb-5-r.5/Framework/src/math/cubis
 export { CubismModel } from './CubismSdkForWeb-5-r.5/Framework/src/model/cubismmodel'
 export { CubismMoc } from './CubismSdkForWeb-5-r.5/Framework/src/model/cubismmoc'
 export { CubismRenderer_WebGL } from './CubismSdkForWeb-5-r.5/Framework/src/rendering/cubismrenderer_webgl'
+export { CubismShaderManager_WebGL } from './CubismSdkForWeb-5-r.5/Framework/src/rendering/cubismshader_webgl'
 export { CubismMotion } from './CubismSdkForWeb-5-r.5/Framework/src/motion/cubismmotion'
 export { CubismMotionManager } from './CubismSdkForWeb-5-r.5/Framework/src/motion/cubismmotionmanager'
 export { CubismExpressionMotion } from './CubismSdkForWeb-5-r.5/Framework/src/motion/cubismexpressionmotion'

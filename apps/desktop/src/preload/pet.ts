@@ -11,7 +11,7 @@ contextBridge.exposeInMainWorld(
     state: () => ipcRenderer.invoke('memo-pet:state'),
     report: (input: {
       modelId: string
-      status: 'ready' | 'error'
+      status: 'ready' | 'recovering' | 'error'
       code?: string
     }) => ipcRenderer.invoke('memo-pet:report', input),
   }),

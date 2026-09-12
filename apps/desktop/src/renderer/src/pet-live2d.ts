@@ -1,3 +1,7 @@
+import {
+  guardShaderRegistration,
+  type ShaderRegistration,
+} from './pet-shader-lifecycle'
 import { parsePetActionCatalog } from '@memo/contracts/pet-actions'
 import {
   createAlphaHitMap,
@@ -30,6 +34,7 @@ export interface Live2DSession {
   currentAction(): { id: string | null; kind: 'idle' | 'motion' | 'expression' }
   frame(now: number): void
   hitTest(x: number, y: number, width: number, height: number): boolean
+  isContextLost(): boolean
   pause(): void
   resize(): void
   dispose(): void
@@ -112,6 +117,9 @@ interface Framework {
     } | null
   }
   CubismMatrix44: new () => Matrix
+  CubismShaderManager_WebGL: {
+    getInstance(): { getShader(gl: WebGL2RenderingContext): ShaderRegistration }
+  }
   CubismRenderer_WebGL: {
     new (width: number, height: number): Renderer
     doStaticRelease(): void
@@ -237,11 +245,15 @@ export async function bootLive2D(
     disposed = false,
     lastTime: number | undefined,
     elapsed = 0
+  let context: WebGL2RenderingContext | null = null
+  let closeShaderGate = () => {}
   const release: Array<() => void> = []
   const dispose = () => {
     if (disposed) return
     disposed = true
-    for (const cleanup of release.reverse()) {
+    closeShaderGate()
+    while (release.length) {
+      const cleanup = release.pop()!
       try {
         cleanup()
       } catch {
@@ -312,6 +324,7 @@ export async function bootLive2D(
       alpha: true,
     })
     if (!gl) throw new Error('WebGL2 required')
+    context = gl
     let minX = Infinity,
       minY = Infinity,
       maxX = -Infinity,
@@ -335,6 +348,9 @@ export async function bootLive2D(
     release.push(() => renderer.release())
     renderer.initialize(model)
     renderer.startUp(gl)
+    closeShaderGate = guardShaderRegistration(
+      F.CubismShaderManager_WebGL.getInstance().getShader(gl),
+    )
     renderer.setIsPremultipliedAlpha(true)
     const resize = () => {
       const ratio = Math.min(2, devicePixelRatio || 1),
@@ -460,16 +476,28 @@ export async function bootLive2D(
       | undefined
     let actionSeconds = 0
     const stopPreview = () => {
-      actionManager.stopAllMotions()
-      if (expressionManager) {
-        expressionManager.stopAllMotions()
-        expressionManager.release()
-        expressionManager = undefined
-      }
-      preview?.release()
+      // Detach ownership first and attempt every release even if an SDK object
+      // throws while the context is lost. Repeated disposal is a no-op.
+      const manager = expressionManager,
+        motion = preview,
+        face = expression
+      expressionManager = undefined
       preview = undefined
-      expression?.release()
       expression = undefined
+      const operations = [
+        () => actionManager.stopAllMotions(),
+        () => manager?.stopAllMotions(),
+        () => manager?.release(),
+        () => motion?.release(),
+        () => face?.release(),
+      ]
+      for (const cleanup of operations) {
+        try {
+          cleanup()
+        } catch {
+          /* Continue the independent releases. */
+        }
+      }
     }
     const resumeIdle = () => {
       stopPreview()
@@ -521,7 +549,8 @@ export async function bootLive2D(
     const play = async (
       actionId: string,
     ): Promise<{ status: 'playing' | 'unavailable' }> => {
-      if (disposed || signal.aborted) return { status: 'unavailable' }
+      if (disposed || signal.aborted || gl.isContextLost())
+        return { status: 'unavailable' }
       const ticket = ++actionGeneration
       actionAbort?.abort()
       const file = actionFiles.get(actionId)
@@ -536,7 +565,12 @@ export async function bootLive2D(
       let loaded: { release(): void } | undefined
       try {
         const data = await bytes(resource(file.path), local.signal)
-        if (disposed || ticket !== actionGeneration || local.signal.aborted)
+        if (
+          disposed ||
+          ticket !== actionGeneration ||
+          local.signal.aborted ||
+          gl.isContextLost()
+        )
           return { status: 'unavailable' }
         if (file.kind === 'motion') {
           const motion = F.CubismMotion.create(
@@ -679,6 +713,7 @@ export async function bootLive2D(
       }
     }
     const draw = () => {
+      if (disposed || gl.isContextLost()) return
       resize()
       model.update()
       gl.bindFramebuffer(gl.FRAMEBUFFER, null)
@@ -688,7 +723,7 @@ export async function bootLive2D(
       renderer.setRenderState(null, [0, 0, canvas.width, canvas.height])
       renderer.drawModel(shaders)
       updateHitMap()
-      if (gl.isContextLost() || gl.getError() !== gl.NO_ERROR)
+      if (!gl.isContextLost() && gl.getError() !== gl.NO_ERROR)
         throw new PetRenderError('RENDER_FAILED')
     }
     failure = 'SHADER_TIMEOUT'
@@ -703,6 +738,15 @@ export async function bootLive2D(
           signal,
         )
         deadline += performance.now() - began
+        continue
+      }
+      if (gl.isContextLost()) {
+        // Give the window's contextlost handler time to abort this in-flight boot.
+        if (performance.now() > deadline) throw cancelled()
+        await abortable(
+          new Promise((resolve) => setTimeout(resolve, 50)),
+          signal,
+        )
         continue
       }
       draw()
@@ -729,19 +773,25 @@ export async function bootLive2D(
       play,
       currentAction: () => ({ ...action }),
       hitTest: (x, y, width, height) =>
-        !disposed && hitMap.hit(x, y, width, height),
-      resize,
+        !disposed && !gl.isContextLost() && hitMap.hit(x, y, width, height),
+      resize() {
+        if (!disposed && !gl.isContextLost()) resize()
+      },
+      isContextLost: () => gl.isContextLost(),
       pause() {
         lastTime = undefined
       },
       dispose,
       frame(now) {
         if (disposed || signal.aborted) return
+        if (gl.isContextLost()) {
+          lastTime = undefined
+          return
+        }
         if (document.hidden) {
           lastTime = undefined
           return
         }
-        if (lastTime !== undefined && now - lastTime < 1000 / 30) return
         const delta =
           lastTime === undefined
             ? 1 / 30
@@ -794,6 +844,10 @@ export async function bootLive2D(
           physics?.evaluate(model, delta)
           draw()
         } catch (error) {
+          if (gl.isContextLost()) {
+            lastTime = undefined
+            return
+          }
           dispose()
           throw error instanceof PetRenderError
             ? error
@@ -803,6 +857,10 @@ export async function bootLive2D(
     }
   } catch (error) {
     dispose()
+    if (context?.isContextLost() && !signal.aborted) {
+      // Context events are queued by the browser after loss is observed.
+      await new Promise((resolve) => setTimeout(resolve, 0))
+    }
     if (signal.aborted) throw cancelled()
     throw error instanceof PetRenderError ? error : new PetRenderError(failure)
   }

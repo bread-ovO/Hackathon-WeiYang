@@ -1,3 +1,8 @@
+import {
+  createPetFrameBudget,
+  createPetRecoveryBudget,
+  petTargetFps,
+} from './pet-frame-budget'
 import { createPetPresentationPlayer, type PetPresentation } from './pet-bubble'
 import {
   bootLive2D,
@@ -18,7 +23,7 @@ interface PetInput {
   drag(input: { phase: 'start' | 'move' | 'end' }): Promise<void>
   report(input: {
     modelId: string
-    status: 'ready' | 'error'
+    status: 'ready' | 'error' | 'recovering'
     code?: PetRenderErrorCode
   }): Promise<void> | void
 }
@@ -29,6 +34,10 @@ declare global {
       mode: 'empty' | 'loading' | 'live2d' | 'live2d-idle' | 'error'
       error: PetRenderErrorCode | null
       frames: number
+      totalFrames: number
+      targetFps: 15 | 30
+      recoveries: number
+      contextState: 'ready' | 'lost' | 'recovering' | 'failed'
       modelId: string | null
       currentAction: {
         id: string | null
@@ -50,6 +59,10 @@ const diagnostics = (window.__petRender = {
   mode: 'empty' as 'empty' | 'loading' | 'live2d' | 'live2d-idle' | 'error',
   error: null as PetRenderErrorCode | null,
   frames: 0,
+  totalFrames: 0,
+  targetFps: 15 as 15 | 30,
+  recoveries: 0,
+  contextState: 'ready' as 'ready' | 'lost' | 'recovering' | 'failed',
   modelId: null as string | null,
   currentAction: {
     id: null as string | null,
@@ -75,13 +88,46 @@ let session: Live2DSession | null = null,
   polling = false
 let bootChain: Promise<void> = Promise.resolve(),
   generation = 0,
-  lastFrame = 0,
   animation = 0
 let clickThrough = true,
   dragging = false,
   activePointer: number | null = null
 let pointer: { x: number; y: number } | null = null,
   lastInteractive: boolean | undefined
+const frameBudget = createPetFrameBudget(),
+  recoveryBudget = createPetRecoveryBudget()
+let lastInteraction = -Infinity
+let selectedModel: RuntimeModel | null = null
+let recovery: {
+  ticket: number
+  model: RuntimeModel
+  timer: ReturnType<typeof setTimeout>
+} | null = null
+function stopFrames() {
+  cancelAnimationFrame(animation)
+  animation = 0
+  frameBudget.reset()
+  session?.pause()
+}
+function wakeFrames() {
+  if (
+    !animation &&
+    !stopped &&
+    visible &&
+    !document.hidden &&
+    session &&
+    !recovery
+  )
+    animation = requestAnimationFrame(render)
+}
+function interacted() {
+  lastInteraction = performance.now()
+  wakeFrames()
+}
+function cancelRecovery() {
+  if (recovery) clearTimeout(recovery.timer)
+  recovery = null
+}
 let lastDragMove = -Infinity
 function sendHit(interactive: boolean) {
   if (!input || lastInteractive === interactive) return
@@ -142,6 +188,7 @@ function endDrag() {
   refreshHit()
 }
 function trackPointer(event: MouseEvent) {
+  interacted()
   pointer = { x: event.clientX, y: event.clientY }
   if (dragging && input) {
     if (event.buttons === 0) {
@@ -162,6 +209,8 @@ function trackPointer(event: MouseEvent) {
 // Keep both: pointermove drives captured drags, mousemove restores forwarded hits.
 window.addEventListener('pointermove', trackPointer)
 window.addEventListener('mousemove', trackPointer)
+window.addEventListener('pointerdown', interacted)
+window.addEventListener('keydown', interacted)
 canvas.addEventListener('pointerdown', (event) => {
   pointer = { x: event.clientX, y: event.clientY }
   if (
@@ -205,7 +254,7 @@ const show = (text: string) => {
 }
 const report = (
   modelId: string,
-  status: 'ready' | 'error',
+  status: 'ready' | 'error' | 'recovering',
   code?: PetRenderErrorCode,
 ) => {
   if (!input) return
@@ -239,6 +288,8 @@ bubble.addEventListener('pointerdown', (event) => {
   event.stopPropagation()
 })
 function clear() {
+  cancelRecovery()
+  stopFrames()
   presentation.clear()
   endDrag()
   pointer = null
@@ -253,14 +304,23 @@ function clear() {
   diagnostics.frames = 0
   diagnostics.modelId = null
   diagnostics.currentAction = { id: null, kind: 'idle' }
+  diagnostics.contextState = 'ready'
 }
-function select(model: RuntimeModel | null) {
+function select(model: RuntimeModel | null, restoring = false) {
   const selected = model ? { id: model.id, entry: model.entry } : null
   const next = selected ? `${selected.id}/${selected.entry}` : null
-  if (next === key) return
+  if (next === key && !restoring) return
   key = next
+  selectedModel = selected
   const ticket = ++generation
+  const pendingRecovery = restoring ? recovery : null
+  if (restoring) recovery = null
   clear()
+  if (pendingRecovery) {
+    recovery = pendingRecovery
+    pendingRecovery.ticket = ticket
+    diagnostics.contextState = 'recovering'
+  }
   if (!selected) return
   diagnostics.mode = 'loading'
   diagnostics.modelId = selected.id
@@ -284,11 +344,17 @@ function select(model: RuntimeModel | null) {
         diagnostics.mode = created.mode
         diagnostics.error = null
         show('')
+        if (recovery?.ticket === ticket) cancelRecovery()
+        diagnostics.contextState = 'ready'
         report(selected.id, 'ready')
+        frameBudget.reset()
+        wakeFrames()
       } catch (error) {
         if (stopped || ticket !== generation || abort.signal.aborted) return
         const code =
           error instanceof PetRenderError ? error.code : 'RENDER_FAILED'
+        cancelRecovery()
+        diagnostics.contextState = 'failed'
         diagnostics.mode = 'error'
         diagnostics.error = code
         canvas.hidden = true
@@ -318,10 +384,11 @@ async function poll() {
     visible = result.visible
     if (!visible) endDrag()
     refreshHit()
-    if (!visible) session?.pause()
+    if (!visible || document.hidden) stopFrames()
     select(result.model)
     if (session && visible) presentation.sync(result.presentation ?? null)
     else if (!visible) presentation.clear()
+    wakeFrames()
   } catch {
     if (stopped) return
     visible = false
@@ -333,18 +400,85 @@ async function poll() {
     polling = false
   }
 }
+function failContext(modelId: string) {
+  generation++
+  clear()
+  diagnostics.modelId = modelId
+  diagnostics.contextState = 'failed'
+  diagnostics.mode = 'error'
+  diagnostics.error = 'WEBGL_UNAVAILABLE'
+  show(errors.WEBGL_UNAVAILABLE)
+  report(modelId, 'error', 'WEBGL_UNAVAILABLE')
+}
+function contextLost(event: Event) {
+  event.preventDefault()
+  if (stopped || !selectedModel || recovery) return
+  const model = { ...selectedModel }
+  if (!recoveryBudget.take(performance.now())) {
+    failContext(model.id)
+    return
+  }
+  generation++
+  clear()
+  diagnostics.recoveries++
+  diagnostics.modelId = model.id
+  diagnostics.mode = 'loading'
+  diagnostics.contextState = 'lost'
+  const attempt = {
+    ticket: generation,
+    model,
+    timer: undefined as unknown as ReturnType<typeof setTimeout>,
+  }
+  recovery = attempt
+  attempt.timer = setTimeout(() => {
+    if (recovery === attempt && !stopped) failContext(model.id)
+  }, 8000)
+  show('正在恢复桌宠画面…')
+  report(model.id, 'recovering')
+}
+function contextRestored() {
+  if (
+    stopped ||
+    !recovery ||
+    recovery.ticket !== generation ||
+    key !== `${recovery.model.id}/${recovery.model.entry}`
+  )
+    return
+  diagnostics.contextState = 'recovering'
+  select(recovery.model, true)
+}
+canvas.addEventListener('webglcontextlost', contextLost)
+canvas.addEventListener('webglcontextrestored', contextRestored)
 function render(now: number) {
-  if (stopped) return
-  if (visible && !document.hidden && session && now - lastFrame >= 1000 / 30) {
-    lastFrame = now
+  animation = 0
+  if (stopped || !visible || document.hidden || !session || recovery) {
+    stopFrames()
+    return
+  }
+  if (session.isContextLost()) {
+    stopFrames()
+    return
+  }
+  const active =
+    dragging || !bubble.hidden || session.currentAction().kind !== 'idle'
+  diagnostics.targetFps = petTargetFps(now, lastInteraction, active)
+  if (frameBudget.due(now, diagnostics.targetFps)) {
     try {
       session.frame(now)
       diagnostics.frames++
+      diagnostics.totalFrames++
       diagnostics.currentAction = session.currentAction()
       presentation.tick()
     } catch (error) {
+      // Context-lost events own recovery; do not replace them with a generic fatal report.
+      if (canvas.getContext('webgl2')?.isContextLost()) {
+        stopFrames()
+        return
+      }
+      stopFrames()
       session.dispose()
       session = null
+      presentation.clear()
       const code =
         error instanceof PetRenderError ? error.code : 'RENDER_FAILED'
       diagnostics.mode = 'error'
@@ -353,9 +487,9 @@ function render(now: number) {
       show(errors[code])
       if (diagnostics.modelId) report(diagnostics.modelId, 'error', code)
     }
-  } else if (!visible || document.hidden) session?.pause()
-  refreshHit()
-  animation = requestAnimationFrame(render)
+    refreshHit()
+  }
+  wakeFrames()
 }
 const resize = () => {
   try {
@@ -373,13 +507,17 @@ const resize = () => {
 }
 window.addEventListener('resize', resize)
 document.addEventListener('visibilitychange', () => {
-  session?.pause()
+  stopFrames()
   if (document.hidden) {
     pointer = null
     endDrag()
     refreshHit()
   }
-  if (!document.hidden) void poll()
+  if (!document.hidden) {
+    frameBudget.reset()
+    wakeFrames()
+    void poll()
+  }
 })
 const timer = setInterval(() => void poll(), 1000)
 window.addEventListener(
@@ -390,6 +528,10 @@ window.addEventListener(
     clearInterval(timer)
     cancelAnimationFrame(animation)
     window.removeEventListener('resize', resize)
+    canvas.removeEventListener('webglcontextlost', contextLost)
+    canvas.removeEventListener('webglcontextrestored', contextRestored)
+    window.removeEventListener('pointerdown', interacted)
+    window.removeEventListener('keydown', interacted)
     clear()
   },
   { once: true },
@@ -400,5 +542,4 @@ if (!input) {
   show('桌宠窗口连接未就绪')
 } else {
   void poll()
-  animation = requestAnimationFrame(render)
 }
