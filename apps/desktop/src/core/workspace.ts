@@ -16,6 +16,7 @@ export function handleWorkspace(
       if (!task) throw new Error('TASK_NOT_IN_PROJECT')
       return {
         task,
+        provenance: store.processing.getTaskEvidence(request.projectId, request.id),
         criteria: store.tasks.getCriteria(
           request.projectId,
           request.id,

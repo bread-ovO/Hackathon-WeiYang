@@ -1,5 +1,10 @@
+import './candidate-provenance.css'
 import { useEffect, useRef, useState } from 'react'
-import type { CoreRequest, WorkspaceTask } from '@memo/contracts'
+import type {
+  CoreRequest,
+  WorkspaceTask,
+  CandidateProvenance,
+} from '@memo/contracts'
 import { AppButton, AppInput } from './ui'
 export const taskLabels = {
   todo: '待办',
@@ -39,6 +44,7 @@ export function TaskEditor({
     >([]),
     [error, setError] = useState(''),
     [loading, setLoading] = useState(false)
+  const [provenance, setProvenance] = useState<CandidateProvenance[]>([])
   const generation = useRef(0)
   useEffect(() => {
     setTitle(task.title)
@@ -49,13 +55,16 @@ export function TaskEditor({
     const seq = ++generation.current
     if (!task.projectId) return
     setLoading(true)
+    setProvenance([])
     setError('')
     window.memo.workspace
       .detail(task.projectId, task.id, version)
       .then((r) => {
         if (seq !== generation.current) return
-        if (r.ok) setItems(r.data.criteria.items.map((x) => ({ ...x })))
-        else setError('条件读取失败，请刷新事项。')
+        if (r.ok) {
+          setItems(r.data.criteria.items.map((x) => ({ ...x })))
+          setProvenance(r.data.provenance ?? [])
+        } else setError('条件读取失败，请刷新事项。')
       })
       .catch(() => {
         if (seq === generation.current) setError('本地核心暂不可用。')
@@ -87,6 +96,45 @@ export function TaskEditor({
             }[task.evidenceStatus]
           }
         </p>
+        {!loading && provenance.length > 0 && (
+          <section className="candidate-provenance" aria-label="候选来源依据">
+            <h3>候选来源依据</h3>
+            <p>
+              由本地有限规则整理。引用用于说明候选来源，不代表交付已经完成。
+            </p>
+            {provenance.map((item) => (
+              <details key={`${item.eventId}:${item.quoteStart}`}>
+                <summary>
+                  {item.quoteKind === 'revision_excerpt'
+                    ? '查看待复核修订摘录'
+                    : '查看原文引用'}{' '}
+                  · 修订 {item.revision}
+                </summary>
+                <blockquote>{item.quote}</blockquote>
+                {item.quoteKind === 'revision_excerpt' && (
+                  <p>这是后续修订的摘录，尚未应用到事项，也不作为完成证据。</p>
+                )}
+                {item.revisionStatus === 'review_required' && (
+                  <p>来源有后续修订，请复核此候选；原引用仍保留。</p>
+                )}
+                {item.sourceStatus !== 'active' && (
+                  <p>
+                    {
+                      (
+                        {
+                          revoked: '来源已停用，原引用仍保留。',
+                          uninstalled: '来源插件已卸载，原引用仍保留。',
+                          unknown: '来源授权状态不可确认，引用需复核。',
+                        } as const
+                      )[item.sourceStatus]
+                    }
+                  </p>
+                )}
+                <p>整理时间：{new Date(item.createdAt).toLocaleString()}</p>
+              </details>
+            ))}
+          </section>
+        )}
         {task.projectId ? (
           <>
             <form

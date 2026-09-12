@@ -1,3 +1,4 @@
+import { prepareEventProcessing } from '@memo/application'
 import { openStore, type StoredTask, type TaskExpectation } from '@memo/storage'
 import Database from 'better-sqlite3'
 import { createExports, EXPORT_MAX_BYTES } from '../packages/storage/src/export'
@@ -16,6 +17,137 @@ const expected = (t: StoredTask): TaskExpectation => ({
   expectedManualVersion: t.manualVersion,
 })
 try {
+  {
+    const rulePath = join(folder, 'rule.sqlite')
+    const rules = openStore(rulePath)
+    rules.tasks.createProject('rules', '规则候选项目')
+    rules.tasks.createProject('other', '隔离项目')
+    const grant = rules.sources.authorize({
+      projectId: 'rules',
+      path: join(folder, 'PRIVATE_RULE_PATH.jsonl'),
+    })
+    let cursor = ''
+    const now = new Date('2026-09-13T12:00:00Z')
+    const ingest = (externalId: string, revision: string, text: string) => {
+      const next = cursor + 'x'
+      rules.sources.receiveBatch(
+        grant.id,
+        grant.grantVersion,
+        [
+          {
+            schemaVersion: 1,
+            sourceInstanceId: grant.id,
+            externalId,
+            revision,
+            text,
+            role: 'user',
+            occurredAt: '2026-09-13T09:00:00Z',
+          },
+        ],
+        next,
+        cursor,
+      )
+      cursor = next
+      const job = rules.processing.claim(now)!
+      const context = rules.processing.load(job, now)!
+      return rules.processing.commit(
+        job,
+        context,
+        prepareEventProcessing({
+          event: context.event,
+          eventId: context.eventId,
+          projectId: context.projectId,
+        }),
+        now,
+      )
+    }
+    const taskId = ingest('one', '1', '我会提交规则候选报告。').taskIds[0]!
+    ingest('one', '2', '取消原计划 PRIVATE_REVIEW_BODY')
+    const unrelated = ingest('two', '1', '我会提交另一份报告。').taskIds[0]!
+    const ruleScope = {
+      projectId: 'rules',
+      taskIds: [taskId],
+      includeSourceText: true,
+    }
+    const full = rules.exports.build(ruleScope)
+    assert.equal(full.schemaVersion, 2)
+    assert.equal(full.decisions.length, 0)
+    assert.equal(full.ruleDecisions.length, 2)
+    assert.deepEqual(
+      full.ruleDecisions.map((d) => d.actor),
+      ['rule', 'rule'],
+    )
+    assert.deepEqual(
+      full.ruleDecisions.map((d) => d.outcome),
+      ['created', 'review_required'],
+    )
+    assert.equal(full.candidateEvidence.length, 1)
+    assert.equal(full.candidateEvidence[0]!.quote, '我会提交规则候选报告。')
+    assert.equal(full.events.length, 2)
+    assert.equal(full.events[1]!.text, '取消原计划 PRIVATE_REVIEW_BODY')
+    assert.equal(full.tasks[0]!.manualVersion, 0)
+    assert.equal(full.revisions[0]!.decisionId, null)
+    assert.ok(!full.tasks.some((t) => t.id === unrelated))
+    const redacted = rules.exports.build({
+      ...ruleScope,
+      includeSourceText: false,
+    })
+    assert.ok(redacted.events.every((e) => !('text' in e)))
+    assert.ok(redacted.candidateEvidence.every((e) => !('quote' in e)))
+    const serialized = JSON.stringify(redacted)
+    assert.ok(!serialized.includes('我会'))
+    assert.ok(!serialized.includes('PRIVATE_REVIEW_BODY'))
+    assert.ok(!serialized.includes('PRIVATE_RULE_PATH'))
+    assert.equal(redacted.ruleDecisions.length, 2)
+    assert.equal(redacted.events.length, 2)
+    assert.throws(
+      () => rules.exports.build({ ...ruleScope, projectId: 'other' }),
+      /EXPORT_TASK_NOT_IN_PROJECT/,
+    )
+    rules.sources.revoke(grant.id)
+    assert.ok(
+      rules.exports
+        .build(ruleScope)
+        .events.every((e) => e.sourceStatus === 'revoked'),
+    )
+    const ruleRaw = new Database(rulePath)
+    ruleRaw
+      .prepare('UPDATE processing_evidence SET quote=? WHERE task_id=?')
+      .run('TAMPERED_QUOTE', taskId)
+    assert.throws(
+      () => rules.exports.build({ ...ruleScope, includeSourceText: false }),
+      /EXPORT_CORRUPT_DATA/,
+    )
+    ruleRaw
+      .prepare('UPDATE processing_evidence SET quote=? WHERE task_id=?')
+      .run('我会提交规则候选报告。', taskId)
+    const savedEvidence = ruleRaw
+      .prepare('SELECT * FROM processing_evidence WHERE task_id=?')
+      .get(taskId) as Record<string, string | number>
+    ruleRaw
+      .prepare('DELETE FROM processing_evidence WHERE task_id=?')
+      .run(taskId)
+    assert.throws(() => rules.exports.build(ruleScope), /EXPORT_CORRUPT_DATA/)
+    ruleRaw
+      .prepare(
+        'INSERT INTO processing_evidence(id,project_id,task_id,event_id,quote_start,quote_end,quote) VALUES(?,?,?,?,?,?,?)',
+      )
+      .run(
+        savedEvidence.id!,
+        savedEvidence.project_id!,
+        savedEvidence.task_id!,
+        savedEvidence.event_id!,
+        savedEvidence.quote_start!,
+        savedEvidence.quote_end!,
+        savedEvidence.quote!,
+      )
+    ruleRaw
+      .prepare('UPDATE processing_decisions SET reason=? WHERE task_id=?')
+      .run('/PRIVATE_ERROR', taskId)
+    assert.throws(() => rules.exports.build(ruleScope), /EXPORT_CORRUPT_DATA/)
+    ruleRaw.close()
+    rules.close()
+  }
   const store = openStore(path)
   store.tasks.createProject('p', '导出项目')
   store.tasks.createProject('other', '无关项目')
@@ -84,7 +216,7 @@ try {
   store.sources.revoke(source.id)
   const scope = { projectId: 'p', includeSourceText: false }
   const exported = store.exports.build(scope)
-  assert.equal(exported.schemaVersion, 1)
+  assert.equal(exported.schemaVersion, 2)
   assert.deepEqual(exported.selection, { mode: 'project' })
   assert.deepEqual(
     store.exports.build({ ...scope, taskIds: ['t'] }).selection,

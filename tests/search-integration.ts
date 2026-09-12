@@ -28,7 +28,7 @@ try {
   `)
   legacy.close()
   let store = openStore(path)
-  assert.equal(store.health().schemaVersion, 7)
+  assert.equal(store.health().schemaVersion, 8)
   assert.equal(store.health().eventCount, 1)
   assert.equal(store.health().jobCount, 1)
   assert.equal(store.cursor('synthetic-source'), 'cursor1')

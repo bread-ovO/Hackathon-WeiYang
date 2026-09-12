@@ -1,3 +1,5 @@
+import { createProcessing, migrateProcessing } from './processing'
+export type { ProcessingContext, ProcessingResult } from './processing'
 import { createEventReceiver } from './receive'
 import { createEventContexts, migrateEventContexts } from './event-context'
 export type { StoredEventContext } from './event-context'
@@ -25,7 +27,7 @@ export function openStore(path:string) {
     db.pragma('foreign_keys = ON'); db.pragma('journal_mode = WAL')
     db.pragma('synchronous = FULL'); db.pragma('busy_timeout = 3000')
     const version = db.pragma('user_version', {simple:true}) as number
-    if (version > 7) throw new Error('DATABASE_TOO_NEW')
+    if (version > 8) throw new Error('DATABASE_TOO_NEW')
     if (version < 1) db.transaction(() => {
       db.exec(`
         CREATE TABLE source_instances (id TEXT PRIMARY KEY, cursor TEXT NOT NULL DEFAULT '');
@@ -52,9 +54,11 @@ export function openStore(path:string) {
     if (version < 5) migrateSources(db)
     if (version < 6) migratePlugins(db)
     if (version < 7) migrateEventContexts(db)
+    if (version < 8) migrateProcessing(db)
     const contexts = createEventContexts(db)
     const receive = createEventReceiver(db, contexts.record)
     return {
+      processing: createProcessing(db),
       contexts: { get: contexts.get },
       plugins: createPlugins(db,receive),
       exports: createExports(db),

@@ -37,6 +37,15 @@ const bridge: DesktopBridge = {
     remove: (modelId) =>
       ipcRenderer.invoke('memo:request', { method: 'pet.remove', modelId }),
   }),
+  processing: Object.freeze({
+    status: () =>
+      ipcRenderer.invoke('memo:request', { method: 'processing.status' }),
+    configure: (enabled) =>
+      ipcRenderer.invoke('memo:request', {
+        method: 'processing.configure',
+        enabled,
+      }),
+  }),
   health: () => ipcRenderer.invoke('memo:request', { method: 'health' }),
   plugins: Object.freeze({
     list: () => ipcRenderer.invoke('memo:request', { method: 'plugins.list' }),

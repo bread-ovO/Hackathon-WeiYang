@@ -1,3 +1,4 @@
+import { ProcessingPanel } from './processing-panel'
 import { PluginManager } from './plugin-manager'
 import { PetModels } from './pet-models'
 import { CredentialsPanel } from './credentials-panel'
@@ -672,6 +673,7 @@ function App() {
             <p className="page-description">
               把工作发生的地方连接起来。你决定读取哪些内容。
             </p>
+            <ProcessingPanel />
             <SourceImport />
             <PluginManager />
             <div className="connection-summary">
