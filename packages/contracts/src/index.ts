@@ -1,3 +1,4 @@
+import { petRequestSchemas } from './pet'
 export * from './pet'
 import {
   pluginsRequestSchema,
@@ -132,6 +133,7 @@ const coreRequestSchema = {
     exportSaveRequestSchema,
     credentialRequestSchema,
     pluginsRequestSchema,
+    ...petRequestSchemas,
   ],
 } as const
 export type CoreRequest = FromSchema<typeof coreRequestSchema>
