@@ -99,16 +99,21 @@ import {
   validPetReport,
 } from '../../apps/desktop/src/main/pet/desktop-controller'
 const id = 'a'.repeat(64)
-function create() {
+function create(
+  stateReader?: () => Promise<any>,
+  mutations: { select?: () => Promise<any>; remove?: () => Promise<any> } = {},
+) {
   return createPetDesktopController({
     worker: { request: mock.model } as any,
     flow: {
-      state: async () => ({
-        ok: true,
-        data: { currentModelId: id, models: [], display: false },
-      }),
-      select: vi.fn(),
-      remove: vi.fn(),
+      state:
+        stateReader ??
+        (async () => ({
+          ok: true,
+          data: { currentModelId: id, models: [], display: false },
+        })),
+      select: mutations.select ?? vi.fn(),
+      remove: mutations.remove ?? vi.fn(),
     } as any,
     modelRoot: '/fake',
     runtimeRoot: '/fake',
@@ -178,6 +183,8 @@ describe('isolated pet desktop host', () => {
     expect(read(event)).toEqual({
       model: { id, entry: 'a.model3.json' },
       visible: true,
+      catalog: { motions: [], expressions: [] },
+      presentation: null,
       preferences: { scale: 1, alwaysOnTop: false, clickThrough: true },
     })
     const hit = mock.handlers.get('memo-pet:hitTest')!,
@@ -205,11 +212,30 @@ describe('isolated pet desktop host', () => {
         preferences: { scale: 2, alwaysOnTop: true, clickThrough: false },
       },
     })
+    expect(await host.speak({ text: '未ready' })).toMatchObject({ ok: false })
     const report = mock.handlers.get('memo-pet:report')!
     expect(() =>
       report(event, { modelId: 'b'.repeat(64), status: 'ready' }),
     ).toThrow()
     report(event, { modelId: id, status: 'ready' })
+    expect(await host.play('unknown')).toMatchObject({
+      ok: false,
+      error: 'INVALID_REQUEST',
+    })
+    expect(await host.speak({ text: '第一句' })).toMatchObject({ ok: true })
+    const first = read(event).presentation
+    await host.speak({ text: '第二句' })
+    expect(read(event).presentation.id).toBe(first.id)
+    const ack = mock.handlers.get('memo-pet:ack')!
+    expect(() => ack(event, { id: 'wrong', status: 'done' })).toThrow()
+    expect(() =>
+      ack(event, { id: first.id, status: 'done', extra: true }),
+    ).toThrow()
+    ack(event, { id: first.id, status: 'done' })
+    expect(read(event).presentation.text).toBe('第二句')
+    await host.dismissBubble()
+    expect(read(event).presentation).toBeNull()
+
     expect(await host.show()).toMatchObject({
       ok: true,
       data: { renderStatus: 'ready' },
@@ -281,4 +307,102 @@ describe('isolated pet desktop host', () => {
       validPetReport({ modelId: id, status: 'ready', extra: true }, id),
     ).toBe(false)
   })
+})
+
+it('coalesces reads and acknowledges queued presentations without another worker read', async () => {
+  let unavailable = false,
+    resolveRead: ((v: any) => void) | undefined,
+    hold = false
+  const reader = vi.fn(async () => {
+    if (hold)
+      return new Promise((done) => {
+        resolveRead = done
+      })
+    return unavailable
+      ? { ok: false, error: 'PET_UNAVAILABLE' }
+      : { ok: true, data: { currentModelId: id, models: [], display: false } }
+  })
+  const host = create(reader)
+  await host.show()
+  const win = mock.windows[0],
+    event = { sender: win.webContents, senderFrame: win.webContents.mainFrame }
+  mock.handlers.get('memo-pet:report')!(event, { modelId: id, status: 'ready' })
+  hold = true
+  const before = reader.mock.calls.length
+  const first = host.state(),
+    second = host.state()
+  expect(reader.mock.calls.length).toBe(before + 1)
+  expect(await host.speak({ text: '已经入队' })).toMatchObject({
+    ok: true,
+    data: { presentation: { text: '已经入队' } },
+  })
+  expect(await host.speak({ text: '第二条' })).toMatchObject({ ok: true })
+  expect(reader.mock.calls.length).toBe(before + 1)
+  resolveRead!({ ok: false, error: 'PET_UNAVAILABLE' })
+  expect(await first).toMatchObject({ ok: false })
+  expect(await second).toMatchObject({ ok: false })
+  hold = false
+  unavailable = true
+  expect(await host.dismissBubble()).toMatchObject({
+    ok: true,
+    data: { presentation: { text: '第二条' } },
+  })
+  expect(await host.speak({ text: '第三条' })).toMatchObject({ ok: true })
+  host.dispose()
+})
+
+for (const method of ['select', 'remove'] as const)
+  it(`${method} returns committed snapshot while an older state waits for runtime`, async () => {
+    const oldModel = {
+      id,
+      entry: 'a.model3.json',
+      importedAt: '2026-09-13T00:00:00Z',
+      totalBytes: 1,
+    }
+    const next = {
+      currentModelId: null,
+      models: method === 'remove' ? [] : [oldModel],
+      display: false,
+    }
+    let finishRuntime!: (value: boolean) => void
+    mock.runtime.mockImplementationOnce(
+      () =>
+        new Promise<boolean>((resolve) => {
+          finishRuntime = resolve
+        }),
+    )
+    const host = create(
+      async () => ({
+        ok: true,
+        data: { currentModelId: id, models: [oldModel], display: false },
+      }),
+      { [method]: async () => ({ ok: true, data: next }) },
+    )
+    const previousRead = host.state()
+    await vi.waitFor(() => expect(finishRuntime).toBeDefined())
+    const changed =
+      method === 'select' ? await host.select(null) : await host.remove(id)
+    expect(changed).toMatchObject({ ok: true, data: next })
+    finishRuntime(true)
+    expect(await previousRead).toMatchObject({ ok: true, data: next })
+    host.dispose()
+  })
+it('a late worker read cannot overwrite a committed model snapshot', async () => {
+  let finishRead!: (value: any) => void
+  const next = { currentModelId: null, models: [], display: false }
+  const host = create(
+    () =>
+      new Promise((resolve) => {
+        finishRead = resolve
+      }),
+    { remove: async () => ({ ok: true, data: next }) },
+  )
+  const pending = host.state()
+  expect(await host.remove(id)).toMatchObject({ ok: true, data: next })
+  finishRead({
+    ok: true,
+    data: { currentModelId: id, models: [], display: false },
+  })
+  expect(await pending).toMatchObject({ ok: true, data: next })
+  host.dispose()
 })

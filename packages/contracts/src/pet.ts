@@ -1,3 +1,4 @@
+import type { PetActionCatalog, PetPresentation } from './pet-actions'
 import Ajv from 'ajv'
 import type { FromSchema } from 'json-schema-to-ts'
 
@@ -5,6 +6,44 @@ import type { FromSchema } from 'json-schema-to-ts'
 // directory selection lives in the main process and imports reference a
 // session-scoped entry file name only.
 export const petRequestSchemas = [
+  {
+    type: 'object',
+    properties: {
+      method: { const: 'pet.play' },
+      actionId: {
+        type: 'string',
+        pattern: '^(motion:[0-9]{1,2}:[0-9]{1,2}|expression:[0-9]{1,2})$',
+      },
+    },
+    required: ['method', 'actionId'],
+    additionalProperties: false,
+  },
+  {
+    type: 'object',
+    properties: {
+      method: { const: 'pet.speak' },
+      input: {
+        type: 'object',
+        properties: {
+          text: { type: 'string', minLength: 1, maxLength: 240 },
+          actionId: {
+            type: 'string',
+            pattern: '^(motion:[0-9]{1,2}:[0-9]{1,2}|expression:[0-9]{1,2})$',
+          },
+        },
+        required: ['text'],
+        additionalProperties: false,
+      },
+    },
+    required: ['method', 'input'],
+    additionalProperties: false,
+  },
+  {
+    type: 'object',
+    properties: { method: { const: 'pet.dismissBubble' } },
+    required: ['method'],
+    additionalProperties: false,
+  },
   {
     type: 'object',
     properties: {
@@ -124,6 +163,8 @@ export interface PetPreferences {
   clickThrough: boolean
 }
 export interface PetState {
+  catalog?: PetActionCatalog
+  presentation?: PetPresentation | null
   preferences?: PetPreferences
   currentModelId: string | null
   /** Whether the pet window is wanted on screen right now. */

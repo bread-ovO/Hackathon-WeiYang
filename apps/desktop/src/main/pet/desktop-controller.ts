@@ -1,3 +1,5 @@
+import { createPresentationQueue } from './presentation-queue'
+import { parsePetActionCatalog } from '@memo/contracts'
 import {
   BrowserWindow,
   ipcMain,
@@ -60,7 +62,34 @@ export function createPetDesktopController(deps: PetDesktopDeps) {
   const devOrigin = deps.devURL ? new URL(deps.devURL).origin : null
   let installing = false,
     showing: Promise<CoreReply<PetState>> | null = null
+  const presentations = createPresentationQueue()
+  let catalog: ReturnType<typeof parsePetActionCatalog> = {
+    motions: [],
+    expressions: [],
+  }
   const runtime = createRuntimeStore(deps.runtimeRoot)
+  let snapshot: PetState | null = null,
+    runtimeReady = false
+  let snapshotRevision = 0
+  let reading: Promise<CoreReply<PetState>> | null = null
+  async function readSnapshot(): Promise<CoreReply<PetState>> {
+    if (reading) return reading
+    const revision = snapshotRevision
+    reading = (async () => {
+      const value = await deps.flow.state()
+      if (value.ok && !disposed && revision === snapshotRevision)
+        snapshot = structuredClone(value.data)
+      if (!disposed && revision !== snapshotRevision && snapshot)
+        return { ok: true as const, data: structuredClone(snapshot) }
+      return value
+    })()
+    try {
+      return await reading
+    } finally {
+      reading = null
+    }
+  }
+
   const isolated = session.fromPartition(`memo-pet-${randomUUID()}`, {
     cache: false,
   })
@@ -155,8 +184,9 @@ export function createPetDesktopController(deps: PetDesktopDeps) {
     ...(deps.stateFile ? { stateFile: deps.stateFile } : {}),
     hasCurrentModel: async () => {
       const ticket = generation
-      if (!(await runtime.status())) throw new Error('PET_RUNTIME_INVALID')
-      const state = await deps.flow.state()
+      if (!(runtimeReady = await runtime.status()))
+        throw new Error('PET_RUNTIME_INVALID')
+      const state = await readSnapshot()
       if (!state.ok || !state.data.currentModelId) return false
       const model = await deps.worker.request('renderModel', {
         modelId: state.data.currentModelId,
@@ -164,6 +194,26 @@ export function createPetDesktopController(deps: PetDesktopDeps) {
       if (!model.ok) throw new Error('MODEL_LOAD_FAILED')
       if (disposed || ticket !== generation) return false
       descriptor = (model.data as { model: ModelResourceDescriptor }).model
+      const selected = descriptor
+      const resource = await readModelResource(
+        deps.modelRoot,
+        selected,
+        selected.entry,
+      )
+      if (disposed || ticket !== generation) return false
+      try {
+        catalog = resource
+          ? parsePetActionCatalog(
+              JSON.parse(
+                new TextDecoder('utf-8', { fatal: true }).decode(
+                  resource.bytes,
+                ),
+              ),
+            )
+          : { motions: [], expressions: [] }
+      } catch {
+        catalog = { motions: [], expressions: [] }
+      }
       renderStatus = 'loading'
       renderError = undefined
       return true
@@ -225,6 +275,8 @@ export function createPetDesktopController(deps: PetDesktopDeps) {
           if (pet === created) {
             generation++
             descriptor = null
+            presentations.clear()
+            catalog = { motions: [], expressions: [] }
             renderStatus = 'error'
             renderError = 'RENDER_FAILED'
             windows.rendererGone()
@@ -237,6 +289,8 @@ export function createPetDesktopController(deps: PetDesktopDeps) {
         void created.loadURL(pageURL).catch(() => {
           if (pet === created) {
             descriptor = null
+            presentations.clear()
+            catalog = { motions: [], expressions: [] }
             renderStatus = 'error'
             renderError = 'RENDER_FAILED'
             windows.rendererGone()
@@ -259,6 +313,8 @@ export function createPetDesktopController(deps: PetDesktopDeps) {
       model: descriptor ? { id: descriptor.id, entry: descriptor.entry } : null,
       visible: windows.displaying(),
       preferences: windows.preferences(),
+      presentation: presentations.current(),
+      catalog,
     }
   })
   ipcMain.handle(
@@ -271,6 +327,12 @@ export function createPetDesktopController(deps: PetDesktopDeps) {
         !windows.displaying()
       )
         throw new Error('INVALID_PET_REPORT')
+      if (input.status === 'ready')
+        presentations.bind(`${descriptor!.id}/${generation}`)
+      else {
+        presentations.clear()
+        catalog = { motions: [], expressions: [] }
+      }
       renderStatus = input.status
       renderError = input.code
       if (input.status === 'error') {
@@ -318,23 +380,87 @@ export function createPetDesktopController(deps: PetDesktopDeps) {
         }
       },
     )
-  async function state(): Promise<CoreReply<PetState>> {
-    if (disposed) return { ok: false, error: 'PET_UNAVAILABLE' }
-    const value = await deps.flow.state()
-    if (!value.ok) return value
+  ipcMain.handle(
+    'memo-pet:ack',
+    (event, input: unknown, ...args: unknown[]) => {
+      if (
+        args.length ||
+        !authorized(event) ||
+        !descriptor ||
+        !windows.displaying() ||
+        renderStatus !== 'ready' ||
+        !input ||
+        typeof input !== 'object' ||
+        Array.isArray(input)
+      )
+        throw new Error('INVALID_PET_ACK')
+      const v = input as Record<string, unknown>
+      if (
+        Object.keys(v).length !== 2 ||
+        typeof v.id !== 'string' ||
+        (v.status !== 'done' && v.status !== 'unavailable') ||
+        !presentations.ack(`${descriptor.id}/${generation}`, v.id)
+      )
+        throw new Error('INVALID_PET_ACK')
+    },
+  )
+  const enqueue = (input: {
+    kind: 'action' | 'bubble'
+    text?: string
+    actionId?: string
+  }) => {
+    if (
+      disposed ||
+      !descriptor ||
+      !snapshot ||
+      snapshot.currentModelId !== descriptor.id ||
+      !windows.displaying() ||
+      renderStatus !== 'ready'
+    )
+      return false
+    return presentations.enqueue(
+      `${descriptor.id}/${generation}`,
+      input,
+      new Set(
+        [...catalog.motions, ...catalog.expressions].map((item) => item.id),
+      ),
+    )
+  }
+  function snapshotReply(): CoreReply<PetState> {
+    if (disposed || !snapshot) return { ok: false, error: 'PET_UNAVAILABLE' }
     return {
       ok: true,
       data: {
-        ...value.data,
+        ...structuredClone(snapshot),
         display: windows.displaying(),
         preferences: windows.preferences(),
-        runtimeReady: await runtime.status(),
+        catalog: structuredClone(catalog),
+        presentation: presentations.current(),
+        runtimeReady,
         renderStatus,
         ...(renderError ? { renderError } : {}),
       },
     }
   }
+  let stateReading: Promise<CoreReply<PetState>> | null = null
+  async function state(): Promise<CoreReply<PetState>> {
+    if (disposed) return { ok: false, error: 'PET_UNAVAILABLE' }
+    if (stateReading) return stateReading
+    stateReading = (async () => {
+      const value = await readSnapshot()
+      if (!value.ok) return value
+      runtimeReady = await runtime.status()
+      return snapshotReply()
+    })()
+    try {
+      return await stateReading
+    } finally {
+      stateReading = null
+    }
+  }
   function stop() {
+    presentations.clear()
+    catalog = { motions: [], expressions: [] }
     generation++
     descriptor = null
     windows.rendererGone()
@@ -343,6 +469,36 @@ export function createPetDesktopController(deps: PetDesktopDeps) {
   }
   return {
     state,
+    async play(actionId: string): Promise<CoreReply<PetState>> {
+      return enqueue({ kind: 'action', actionId })
+        ? snapshotReply()
+        : { ok: false, error: 'INVALID_REQUEST' }
+    },
+    async speak(input: {
+      text: string
+      actionId?: string
+    }): Promise<CoreReply<PetState>> {
+      if (
+        !input ||
+        typeof input !== 'object' ||
+        Array.isArray(input) ||
+        Object.keys(input).some((k) => !['text', 'actionId'].includes(k))
+      )
+        return { ok: false, error: 'INVALID_REQUEST' }
+      return enqueue({
+        kind: 'bubble',
+        text: input.text,
+        ...(input.actionId !== undefined ? { actionId: input.actionId } : {}),
+      })
+        ? snapshotReply()
+        : { ok: false, error: 'INVALID_REQUEST' }
+    },
+    async dismissBubble() {
+      if (disposed || !snapshot)
+        return { ok: false as const, error: 'PET_UNAVAILABLE' as const }
+      presentations.dismissBubble()
+      return snapshotReply()
+    },
     async configure(patch: {
       scale?: number
       alwaysOnTop?: boolean
@@ -408,12 +564,18 @@ export function createPetDesktopController(deps: PetDesktopDeps) {
     async select(id: string | null) {
       stop()
       const reply = await deps.flow.select(id)
-      return reply.ok ? state() : reply
+      if (!reply.ok) return reply
+      snapshotRevision++
+      snapshot = structuredClone(reply.data)
+      return snapshotReply()
     },
     async remove(id: string) {
       stop()
       const reply = await deps.flow.remove(id)
-      return reply.ok ? state() : reply
+      if (!reply.ok) return reply
+      snapshotRevision++
+      snapshot = structuredClone(reply.data)
+      return snapshotReply()
     },
     async installRuntime(): Promise<CoreReply<PetState>> {
       if (installing || disposed) return { ok: false, error: 'PET_UNAVAILABLE' }
@@ -434,6 +596,8 @@ export function createPetDesktopController(deps: PetDesktopDeps) {
     },
     dispose() {
       if (disposed) return
+      presentations.clear()
+      catalog = { motions: [], expressions: [] }
       disposed = true
       generation++
       descriptor = null
@@ -442,6 +606,7 @@ export function createPetDesktopController(deps: PetDesktopDeps) {
       ipcMain.removeHandler('memo-pet:report')
       ipcMain.removeHandler('memo-pet:hitTest')
       ipcMain.removeHandler('memo-pet:drag')
+      ipcMain.removeHandler('memo-pet:ack')
       isolated.protocol.unhandle('memo-pet')
       isolated.webRequest.onBeforeRequest(null)
     },

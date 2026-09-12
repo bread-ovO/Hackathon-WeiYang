@@ -200,6 +200,12 @@ else {
           () => window?.webContents ?? null,
           pageURL,
           async (request) => {
+            if (request.method === 'pet.play')
+              return petDesktop.play(request.actionId)
+            if (request.method === 'pet.speak')
+              return petDesktop.speak(request.input)
+            if (request.method === 'pet.dismissBubble')
+              return petDesktop.dismissBubble()
             if (request.method === 'pet.configure')
               return petDesktop.configure(request.patch)
             if (request.method === 'pet.resetPosition')

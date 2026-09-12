@@ -1,3 +1,4 @@
+export * from './pet-actions'
 import {
   petRequestSchemas,
   type PetRequest,
@@ -213,6 +214,9 @@ export function parseHostRequest(value: unknown): HostRequest {
   if (validateImportFile(value)) return value
   const request = parseCoreRequest(value)
   if (
+    request.method === 'pet.play' ||
+    request.method === 'pet.speak' ||
+    request.method === 'pet.dismissBubble' ||
     request.method === 'pet.configure' ||
     request.method === 'pet.resetPosition' ||
     request.method === 'pet.show' ||
@@ -280,6 +284,12 @@ export type CoreReply<T = Health> =
     }
 export interface DesktopBridge {
   pet: {
+    play(actionId: string): Promise<CoreReply<PetState>>
+    speak(input: {
+      text: string
+      actionId?: string
+    }): Promise<CoreReply<PetState>>
+    dismissBubble(): Promise<CoreReply<PetState>>
     configure(patch: {
       scale?: number
       alwaysOnTop?: boolean

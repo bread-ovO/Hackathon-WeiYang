@@ -1,3 +1,4 @@
+import { createPetPresentationPlayer, type PetPresentation } from './pet-bubble'
 import {
   bootLive2D,
   PetRenderError,
@@ -9,8 +10,10 @@ interface PetInput {
   state(): Promise<{
     model: RuntimeModel | null
     visible: boolean
+    presentation: PetPresentation | null
     preferences: { scale: number; alwaysOnTop: boolean; clickThrough: boolean }
   }>
+  ack(input: { id: string; status: 'done' | 'unavailable' }): Promise<void>
   hitTest(input: { interactive: boolean }): Promise<void>
   drag(input: { phase: 'start' | 'move' | 'end' }): Promise<void>
   report(input: {
@@ -27,17 +30,31 @@ declare global {
       error: PetRenderErrorCode | null
       frames: number
       modelId: string | null
+      currentAction: {
+        id: string | null
+        kind: 'idle' | 'motion' | 'expression'
+      }
     }
   }
 }
 const canvas = document.getElementById('stage-gl') as HTMLCanvasElement
 const message = document.getElementById('pet-status') as HTMLDivElement
+const bubble = document.getElementById('pet-bubble') as HTMLDivElement
+const bubbleText = document.getElementById('pet-bubble-text') as HTMLDivElement
+const bubbleClose = document.getElementById(
+  'pet-bubble-close',
+) as HTMLButtonElement
+let closeBubble: (() => void) | undefined
 const input = window.petInput
 const diagnostics = (window.__petRender = {
   mode: 'empty' as 'empty' | 'loading' | 'live2d' | 'live2d-idle' | 'error',
   error: null as PetRenderErrorCode | null,
   frames: 0,
   modelId: null as string | null,
+  currentAction: {
+    id: null as string | null,
+    kind: 'idle' as 'idle' | 'motion' | 'expression',
+  },
 })
 const errors: Record<PetRenderErrorCode, string> = {
   RUNTIME_MISSING: 'Live2D 运行环境尚未就绪',
@@ -83,6 +100,16 @@ function modelHit() {
     rect.height,
   )
 }
+function bubbleHit() {
+  if (!pointer || bubble.hidden) return false
+  const r = bubble.getBoundingClientRect()
+  return (
+    pointer.x >= r.left &&
+    pointer.x < r.right &&
+    pointer.y >= r.top &&
+    pointer.y < r.bottom
+  )
+}
 function refreshHit() {
   const rect = message.getBoundingClientRect()
   const statusHit =
@@ -94,7 +121,9 @@ function refreshHit() {
     pointer.y < rect.bottom
   const interactive =
     dragging ||
-    (!document.hidden && visible && (!clickThrough || statusHit || modelHit()))
+    (!document.hidden &&
+      visible &&
+      (!clickThrough || statusHit || bubbleHit() || modelHit()))
   canvas.style.cursor = dragging ? 'grabbing' : modelHit() ? 'grab' : 'default'
   sendHit(interactive)
 }
@@ -135,7 +164,14 @@ window.addEventListener('pointermove', trackPointer)
 window.addEventListener('mousemove', trackPointer)
 canvas.addEventListener('pointerdown', (event) => {
   pointer = { x: event.clientX, y: event.clientY }
-  if (event.button !== 0 || !visible || !modelHit() || !input || dragging)
+  if (
+    event.button !== 0 ||
+    !visible ||
+    bubbleHit() ||
+    !modelHit() ||
+    !input ||
+    dragging
+  )
     return
   event.preventDefault()
   dragging = true
@@ -179,7 +215,31 @@ const report = (
       /* host may have changed the selected model */
     })
 }
+const presentation = createPetPresentationPlayer({
+  show(text, close) {
+    bubbleText.textContent = text
+    closeBubble = close
+    bubble.hidden = false
+    refreshHit()
+  },
+  hide() {
+    bubble.hidden = true
+    bubbleText.textContent = ''
+    closeBubble = undefined
+    refreshHit()
+  },
+  play: async (id) => (session ? session.play(id) : { status: 'unavailable' }),
+  currentAction: () => session?.currentAction() ?? { id: null, kind: 'idle' },
+  ack: async (request) => {
+    await input?.ack(request)
+  },
+})
+bubbleClose.addEventListener('click', () => closeBubble?.())
+bubble.addEventListener('pointerdown', (event) => {
+  event.stopPropagation()
+})
 function clear() {
+  presentation.clear()
   endDrag()
   pointer = null
   controller?.abort()
@@ -192,6 +252,7 @@ function clear() {
   diagnostics.error = null
   diagnostics.frames = 0
   diagnostics.modelId = null
+  diagnostics.currentAction = { id: null, kind: 'idle' }
 }
 function select(model: RuntimeModel | null) {
   const selected = model ? { id: model.id, entry: model.entry } : null
@@ -259,6 +320,8 @@ async function poll() {
     refreshHit()
     if (!visible) session?.pause()
     select(result.model)
+    if (session && visible) presentation.sync(result.presentation ?? null)
+    else if (!visible) presentation.clear()
   } catch {
     if (stopped) return
     visible = false
@@ -277,6 +340,8 @@ function render(now: number) {
     try {
       session.frame(now)
       diagnostics.frames++
+      diagnostics.currentAction = session.currentAction()
+      presentation.tick()
     } catch (error) {
       session.dispose()
       session = null

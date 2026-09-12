@@ -3,7 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "exports": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./pet-actions": "./src/pet-actions.ts"
+  },
   "dependencies": {
     "ajv": "8.17.1",
     "json-schema-to-ts": "3.1.1"
