@@ -25,3 +25,4 @@ export function validateEvidence(e){return e&&e.sourceId?.trim()&&e.quote?.trim(
 export function transitionTask(task,next){if(task.status==='completed'&&next!=='completed')throw new Error('INVALID_STATUS_TRANSITION');return {...task,status:next,version:task.version+1};}
 export function canAutoComplete(risk,evidence){return risk==='low'&&evidence==='sufficient';}
 export function acceptRevision(current,incoming){return Number.isInteger(incoming)&&incoming>current;}
+export function reevaluateAfterRetraction(status,retracted){return retracted&&status==='sufficient'?'partial':status;}

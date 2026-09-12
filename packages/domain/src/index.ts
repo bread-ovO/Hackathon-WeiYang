@@ -42,3 +42,5 @@ export function transitionTask(task: Task, next: TaskStatus): Task { if (task.st
 export function canAutoComplete(risk: 'low'|'high', evidence: EvidenceStatus): boolean { return risk==='low' && evidence==='sufficient' }
 
 export function acceptRevision(current: number, incoming: number): boolean { return Number.isInteger(incoming) && incoming > current }
+
+export function reevaluateAfterRetraction(status: EvidenceStatus, retracted: boolean): EvidenceStatus { return retracted && status==='sufficient' ? 'partial' : status }
