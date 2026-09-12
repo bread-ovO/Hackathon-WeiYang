@@ -46,3 +46,4 @@ export function normalizeConversationRole(role){return role==='user'||role==='as
 export function canResumeFile(previous,current){return previous.dev===current.dev&&previous.ino===current.ino;}
 export function editTaskTitle(task,title){if(!title.trim())throw new Error('INVALID_TASK_TITLE');return {...task,title:title.trim(),version:task.version+1};}
 export function toggleInclusion(included){return !included;}
+export function hasMinimumGithubScopes(scopes){const s=new Set(scopes);return s.has('repo:status')&&s.has('pull_requests:read');}
