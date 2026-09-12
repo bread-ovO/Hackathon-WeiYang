@@ -17,6 +17,16 @@ const diagnostics = (window.__petRender = {
   mode: 'booting' as 'booting' | 'live2d' | 'breathing-only' | 'placeholder',
   error: null as string | null,
   frames: 0,
+  idle: false,
+  hidden: false,
+  contextLost: 0,
+} as {
+  mode: 'booting' | 'live2d' | 'breathing-only' | 'placeholder'
+  error: string | null
+  frames: number
+  idle: boolean
+  hidden: boolean
+  contextLost: number
 })
 declare global {
   interface Window {
@@ -24,6 +34,9 @@ declare global {
       mode: 'booting' | 'live2d' | 'breathing-only' | 'placeholder'
       error: string | null
       frames: number
+      idle: boolean
+      hidden: boolean
+      contextLost: number
     }
   }
 }
@@ -96,13 +109,58 @@ const boot = async () => {
 }
 void boot()
 
+// PET14: full cadence while interacting, ~15fps when idle, zero when hidden.
+const fullFrameMs = 1000 / 30
+const idleFrameMs = 1000 / 15
+const idleAfterMs = 5000
+let lastInteraction = performance.now()
+let lastFrameAt = 0
+let renderQueued = false
+for (const type of ['mousemove', 'wheel', 'pointerdown'] as const)
+  document.addEventListener(type, () => {
+    lastInteraction = performance.now()
+  })
 const render = (now: number) => {
+  renderQueued = false
+  if (document.hidden) {
+    // Hidden windows stop rendering entirely; rAF is paused by the platform,
+    // the explicit check keeps the contract observable in diagnostics.
+    diagnostics.hidden = true
+    return
+  }
+  diagnostics.hidden = false
+  const idle = now - lastInteraction > idleAfterMs
+  const budget = idle ? idleFrameMs : fullFrameMs
+  if (now - lastFrameAt < budget) {
+    queueRender()
+    return
+  }
+  lastFrameAt = now
   if (session) session.frame(now)
   else drawPlaceholder()
   diagnostics.frames++
-  requestAnimationFrame(render)
+  diagnostics.idle = idle
+  queueRender()
 }
-requestAnimationFrame(render)
+const queueRender = () => {
+  if (!renderQueued) {
+    renderQueued = true
+    requestAnimationFrame(render)
+  }
+}
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) queueRender()
+})
+queueRender()
+// PET14: a lost WebGL context must recover, not freeze the pet.
+canvasGL.addEventListener('webglcontextlost', (event) => {
+  event.preventDefault()
+  session?.dispose()
+  session = null
+  diagnostics.mode = 'booting'
+  diagnostics.contextLost = (diagnostics.contextLost ?? 0) + 1
+  void boot()
+})
 
 // PET06: a changed current model must release GPU state and reboot; a
 // lightweight poll keeps this renderer-side without extra push IPC.

@@ -13,6 +13,9 @@ declare global {
       mode: 'booting' | 'live2d' | 'breathing-only' | 'placeholder'
       error: string | null
       frames: number
+      idle: boolean
+      hidden: boolean
+      contextLost: number
     }
   }
 }
@@ -145,25 +148,23 @@ test.describe('PET06 Live2D rendering', () => {
       await expect
         .poll(() => petPage.evaluate(() => window.__petRender?.mode), { timeout: 30_000 })
         .toBe('live2d')
-      const hashes = await petPage.evaluate(async () => {
+      await expect
+        .poll(() => petPage.evaluate(() => window.__petRender?.frames ?? 0))
+        .toBeGreaterThan(2)
+      const snapshots = await petPage.evaluate(async () => {
         const canvas = document.getElementById('stage-gl') as HTMLCanvasElement
-        const gl = canvas.getContext('webgl')!
-        const read = () => {
-          const pixels = new Uint8Array(canvas.width * canvas.height * 4)
-          gl.readPixels(0, 0, canvas.width, canvas.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels)
-          let hash = 0
-          for (let i = 0; i < pixels.length; i += 97) hash = (hash * 31 + (pixels[i] ?? 0)) | 0
-          return hash
-        }
-        const first = read()
-        await new Promise((r) => setTimeout(r, 400))
-        const second = read()
-        await new Promise((r) => setTimeout(r, 400))
-        const third = read()
+        // A transparent empty canvas has a tiny fixed data URL; a rendered
+        // model is far larger and keeps changing while animating.
+        const shot = () => canvas.toDataURL().length
+        const first = shot()
+        await new Promise((r) => setTimeout(r, 500))
+        const second = shot()
+        await new Promise((r) => setTimeout(r, 500))
+        const third = shot()
         return { first, second, third }
       })
-      expect(hashes.first).not.toBe(0)
-      expect(hashes.third).not.toBe(hashes.first)
+      expect(snapshots.first).toBeGreaterThan(5000)
+      expect(new Set([snapshots.first, snapshots.second, snapshots.third]).size).toBeGreaterThan(1)
       await petPage.screenshot({
         animations: 'disabled',
         path: 'test-results/pet06-haru.png',

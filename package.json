@@ -15,7 +15,7 @@
     "test:storage": "node scripts/test-storage.mjs",
     "test:desktop": "playwright test",
     "rebuild:native": "pnpm --filter @memo/desktop rebuild:native",
-    "check": "pnpm check:boundaries && pnpm typecheck && pnpm test && pnpm build && pnpm test:storage && pnpm test:desktop",
+    "check": "node scripts/check-live2d-boundary.mjs && pnpm check:boundaries && pnpm typecheck && pnpm test && pnpm build && pnpm test:storage && pnpm test:desktop",
     "package:dir": "pnpm --filter @memo/desktop package:dir"
   },
   "devDependencies": {

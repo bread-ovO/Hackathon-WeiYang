@@ -84,7 +84,7 @@ else {
     .then(async () => {
       const rendererRoot = resolve(__dirname, '../renderer')
       const petStoreRoot = join(app.getPath('userData'), 'pet-models')
-      protocol.handle('memo', (request) => {
+      protocol.handle('memo', async (request) => {
         const url = new URL(request.url)
         if (url.hostname !== 'app')
           return new Response('Forbidden', { status: 403 })
@@ -94,8 +94,14 @@ else {
           decodeURIComponent(url.pathname),
           petStoreRoot,
         )
-        if (modelResource)
-          return net.fetch(pathToFileURL(modelResource).toString())
+        if (modelResource) {
+          try {
+            return await net.fetch(pathToFileURL(modelResource).toString())
+          } catch {
+            // Missing store bytes answer 404; never a thrown fetch.
+            return new Response('Not found', { status: 404 })
+          }
+        }
         let path: string
         try {
           path = resolve(rendererRoot, '.' + decodeURIComponent(url.pathname))
@@ -104,7 +110,11 @@ else {
         }
         if (!path.startsWith(rendererRoot + sep))
           return new Response('Forbidden', { status: 403 })
-        return net.fetch(pathToFileURL(path).toString())
+        try {
+          return await net.fetch(pathToFileURL(path).toString())
+        } catch {
+          return new Response('Not found', { status: 404 })
+        }
       })
       session.defaultSession.setPermissionRequestHandler(
         (_webContents, _permission, callback) => callback(false),
