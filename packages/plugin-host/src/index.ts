@@ -1,5 +1,2 @@
-export interface SourceManifest {
-  id:string; version:string; schemaVersion:1
-  permissions: { domains:readonly string[]; directories:readonly string[] }
-}
-// Protocol only. No arbitrary plugin code is loaded by this scaffold.
+export * from './manifest'
+// Protocol only. No arbitrary plugin code is loaded or executed by this package.

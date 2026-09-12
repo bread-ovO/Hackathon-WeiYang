@@ -1,17 +1,13 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type {
   CoreReply,
+  CoreRequest,
   WorkspaceSnapshot,
+  WorkspaceQuery,
   WorkspaceTask,
 } from '@memo/contracts'
 import { AppButton, AppInput } from './ui'
-const statuses = {
-  todo: '待办',
-  in_progress: '进行中',
-  waiting: '等待反馈',
-  completed: '已完成',
-  cancelled: '已取消',
-} as const
+import { TaskEditor, taskLabels } from './task-editor'
 export function RealWorkspace({
   onCount,
 }: {
@@ -20,78 +16,134 @@ export function RealWorkspace({
   const [data, setData] = useState<WorkspaceSnapshot>({
     projects: [],
     tasks: [],
+    nextCursor: null,
+    totalCount: 0,
+    activeCount: 0,
   })
   const [busy, setBusy] = useState(false),
-    [message, setMessage] = useState('正在读取本地事项…')
+    [saving, setSaving] = useState(false),
+    [message, setMessage] = useState('')
   const [project, setProject] = useState(''),
     [title, setTitle] = useState(''),
     [name, setName] = useState('')
   const [query, setQuery] = useState(''),
-    [archive, setArchive] = useState(false)
-  const [selected, setSelected] = useState<string | null>(null),
-    [edit, setEdit] = useState('')
+    [archive, setArchive] = useState(false),
+    [status, setStatus] = useState(''),
+    [admission, setAdmission] = useState('')
+  const [selected, setSelected] = useState<string | null>(null)
+  const seq = useRef(0),
+    mutating = useRef(false)
   const current = data.tasks.find((t) => t.id === selected)
+  const filters = JSON.stringify({
+    ...(project ? { projectId: project } : {}),
+    ...(status ? { status } : {}),
+    ...(admission ? { admission } : {}),
+    archive: archive ? 'archived' : 'active',
+    query,
+    limit: 50,
+  })
+  const load = useCallback(
+    async (append = false, cursor?: string) => {
+      const generation = ++seq.current
+      setBusy(true)
+      try {
+        const r = await window.memo.workspace.list({
+          ...(JSON.parse(filters) as WorkspaceQuery),
+          ...(cursor ? { cursor } : {}),
+        })
+        if (generation !== seq.current) return
+        if (r.ok) {
+          setData((old) => ({
+            ...r.data,
+            tasks: append
+              ? [
+                  ...old.tasks,
+                  ...r.data.tasks.filter(
+                    (t) => !old.tasks.some((o) => o.id === t.id),
+                  ),
+                ]
+              : r.data.tasks,
+          }))
+          onCount(r.data.activeCount)
+        } else setMessage('读取失败，请刷新后重试。')
+      } catch {
+        if (generation === seq.current)
+          setMessage('本地核心暂不可用，请稍后刷新。')
+      } finally {
+        if (generation === seq.current) setBusy(false)
+      }
+    },
+    [filters, onCount],
+  )
+  const latestLoad = useRef(load)
+  latestLoad.current = load
+  useEffect(() => {
+    setSelected(null)
+    void load()
+    return () => {
+      seq.current++
+    }
+  }, [load])
   async function run(
-    action: () => Promise<CoreReply<WorkspaceSnapshot>>,
-    success = '',
+    action: () => Promise<CoreReply<unknown>>,
+    success: string,
   ) {
+    if (mutating.current) return
+    mutating.current = true
+    setSaving(true)
     setBusy(true)
+    seq.current++
     try {
-      const reply = await action()
-      if (reply.ok) {
-        setData(reply.data)
-        onCount(
-          reply.data.tasks.filter(
-            (t) =>
-              !t.archivedAt &&
-              t.status !== 'completed' &&
-              t.status !== 'cancelled',
-          ).length,
-        )
+      const r = await action()
+      if (r.ok) {
         setMessage(success)
+        await latestLoad.current()
       } else
         setMessage(
-          reply.error === 'VERSION_CONFLICT'
+          r.error === 'VERSION_CONFLICT'
             ? '事项已被更新，请刷新后重试。你的修改尚未保存。'
-            : '操作未成功，请重试。',
+            : '操作未成功，请检查输入后重试。',
         )
     } catch {
       setMessage('本地核心暂不可用，请稍后刷新。')
     } finally {
+      mutating.current = false
+      setSaving(false)
       setBusy(false)
     }
   }
-  useEffect(() => {
-    void run(() => window.memo.workspace.list())
-  }, [])
-  function update(
-    task: WorkspaceTask,
-    patch: {
-      title?: string
-      status?: WorkspaceTask['status']
-      archived?: boolean
-    },
-  ) {
-    if (!task.projectId) return
-    return run(
-      () =>
-        window.memo.workspace.updateTask({
-          projectId: task.projectId!,
-          id: task.id,
-          expectedVersion: task.version,
-          expectedCriteriaVersion: task.criteriaVersion,
-          expectedManualVersion: task.manualVersion,
-          patch,
-        }),
-      '已保存到本地，人工操作已记录。',
-    )
+  function expectation(t: WorkspaceTask) {
+    return {
+      projectId: t.projectId!,
+      id: t.id,
+      expectedVersion: t.version,
+      expectedCriteriaVersion: t.criteriaVersion,
+      expectedManualVersion: t.manualVersion,
+    }
   }
-  const visible = data.tasks.filter(
-    (t) =>
-      (!project || t.projectId === project) &&
-      Boolean(t.archivedAt) === archive &&
-      t.title.includes(query),
-  )
+  async function update(
+    patch: Extract<CoreRequest, { method: 'workspace.updateTask' }>['patch'],
+  ) {
+    if (current?.projectId)
+      await run(
+        () =>
+          window.memo.workspace.updateTask({ ...expectation(current), patch }),
+        '已保存到本地，人工操作已记录。',
+      )
+  }
+  async function replace(
+    criteria: { id: string; description: string; originEventId?: number }[],
+  ) {
+    if (current?.projectId)
+      await run(
+        () =>
+          window.memo.workspace.replaceCriteria({
+            ...expectation(current),
+            criteria,
+          }),
+        '条件新版本已保存，旧证据仍保留在原版本。',
+      )
+  }
   return (
     <>
       <div className="page-heading">
@@ -103,8 +155,8 @@ export function RealWorkspace({
         </div>
         <AppButton
           className="secondary"
-          disabled={busy}
-          onClick={() => void run(() => window.memo.workspace.list())}
+          disabled={saving || busy}
+          onClick={() => void load()}
         >
           刷新
         </AppButton>
@@ -130,7 +182,7 @@ export function RealWorkspace({
           <AppButton
             type="submit"
             className="secondary"
-            disabled={busy || !name.trim()}
+            disabled={saving || busy || !name.trim()}
           >
             创建项目
           </AppButton>
@@ -146,6 +198,7 @@ export function RealWorkspace({
           }}
         >
           <select
+            disabled={saving}
             aria-label="所属项目"
             value={project}
             onChange={(e) => setProject(e.target.value)}
@@ -167,24 +220,58 @@ export function RealWorkspace({
           <AppButton
             type="submit"
             className="primary"
-            disabled={busy || !project || !title.trim()}
+            disabled={saving || busy || !project || !title.trim()}
           >
             添加事项
           </AppButton>
         </form>
       </div>
-      <div className="list-tools">
+      <div className="list-tools real-filters">
         <div className="filters">
-          <AppButton aria-pressed={!archive} onClick={() => setArchive(false)}>
-            跟进中
+          <AppButton
+            disabled={saving}
+            aria-pressed={!archive}
+            onClick={() => setArchive(false)}
+          >
+            未归档
           </AppButton>
-          <AppButton aria-pressed={archive} onClick={() => setArchive(true)}>
+          <AppButton
+            disabled={saving}
+            aria-pressed={archive}
+            onClick={() => setArchive(true)}
+          >
             已归档
           </AppButton>
+          <select
+            disabled={saving}
+            aria-label="业务状态筛选"
+            value={status}
+            onChange={(e) => setStatus(e.target.value)}
+          >
+            <option value="">全部状态</option>
+            {Object.entries(taskLabels).map(([v, l]) => (
+              <option key={v} value={v}>
+                {l}
+              </option>
+            ))}
+          </select>
+          <select
+            disabled={saving}
+            aria-label="收录筛选"
+            value={admission}
+            onChange={(e) => setAdmission(e.target.value)}
+          >
+            <option value="">全部收录</option>
+            <option value="accepted">已收录</option>
+            <option value="candidate">待确认</option>
+            <option value="ignored">已忽略</option>
+          </select>
         </div>
         <AppInput
+          disabled={saving}
           aria-label="搜索本地事项"
-          placeholder="搜索事项"
+          placeholder="搜索事项与条件"
+          maxLength={256}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
@@ -196,15 +283,18 @@ export function RealWorkspace({
       )}
       <div className={`work-body ${current ? 'has-detail' : ''}`}>
         <section className="task-list" aria-label="事项列表">
-          {visible.length ? (
-            visible.map((t) => (
+          <div className="list-caption">
+            <span>
+              已显示 {data.tasks.length} / {data.totalCount}
+            </span>
+            {busy && <span>读取中…</span>}
+          </div>
+          {data.tasks.length ? (
+            data.tasks.map((t) => (
               <AppButton
                 key={t.id}
                 className={`task-row ${selected === t.id ? 'chosen' : ''}`}
-                onClick={() => {
-                  setSelected(t.id)
-                  setEdit(t.title)
-                }}
+                onClick={() => setSelected(t.id)}
               >
                 <span className="task-copy">
                   <span className="task-title">{t.title}</span>
@@ -219,100 +309,45 @@ export function RealWorkspace({
                         : '已收录'}
                   </span>
                 </span>
-                <span className="task-trailing">{statuses[t.status]}</span>
+                <span className="task-trailing">
+                  {taskLabels[t.status]}
+                  <small>
+                    {t.dueAt ? new Date(t.dueAt).toLocaleString() : '未设截止'}
+                  </small>
+                </span>
               </AppButton>
             ))
           ) : (
             <div className="empty-state">
               <h2>
-                {data.tasks.length
+                {project || query || status || admission || archive
                   ? '没有匹配的事项'
                   : '你的跟进清单，从这里开始'}
               </h2>
-              <p>先创建项目，再添加真实事项。来源自动采集尚未接入。</p>
+              <p>可以调整筛选，或创建项目并添加真实事项。</p>
             </div>
           )}
+          {data.nextCursor && (
+            <AppButton
+              className="secondary load-more"
+              disabled={saving || busy}
+              onClick={() => void load(true, data.nextCursor!)}
+            >
+              加载更多
+            </AppButton>
+          )}
           <div className="list-foot">
-            每项目最多显示 100 条 · 手动添加不会伪造来源或完成证据
+            人工事项保存在本机 · 来源自动采集尚未接入
           </div>
         </section>
         {current && (
-          <section className="detail" aria-label="事项详情">
-            <div className="detail-top">
-              <AppButton onClick={() => setSelected(null)}>关闭详情</AppButton>
-            </div>
-            <div className="real-editor">
-              <h2>{current.title}</h2>
-              <p>业务状态：{statuses[current.status]}</p>
-              <p>
-                证据：
-                {
-                  {
-                    unknown: '尚未核验',
-                    partial: '部分充分',
-                    sufficient: '充分',
-                    conflict: '存在冲突',
-                  }[current.evidenceStatus]
-                }
-              </p>
-              {current.projectId ? (
-                <>
-                  <form
-                    onSubmit={(e) => {
-                      e.preventDefault()
-                      if (edit.trim())
-                        void update(current, { title: edit.trim() })
-                    }}
-                  >
-                    <AppInput
-                      aria-label="编辑事项标题"
-                      value={edit}
-                      maxLength={512}
-                      onChange={(e) => setEdit(e.target.value)}
-                    />
-                    <AppButton
-                      type="submit"
-                      className="secondary"
-                      disabled={busy || !edit.trim()}
-                    >
-                      保存标题
-                    </AppButton>
-                  </form>
-                  <label>
-                    手动状态
-                    <select
-                      aria-label="手动状态"
-                      disabled={busy}
-                      value={current.status}
-                      onChange={(e) =>
-                        void update(current, {
-                          status: e.target.value as WorkspaceTask['status'],
-                        })
-                      }
-                    >
-                      {Object.entries(statuses).map(([v, l]) => (
-                        <option key={v} value={v}>
-                          {l}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <AppButton
-                    className="secondary"
-                    disabled={busy}
-                    onClick={() =>
-                      void update(current, { archived: !current.archivedAt })
-                    }
-                  >
-                    {current.archivedAt ? '恢复显示' : '归档事项'}
-                  </AppButton>
-                  <p>归档只改变显示范围；手动完成不改变证据核验结果。</p>
-                </>
-              ) : (
-                <p>旧事项尚未分配项目，暂不可编辑。</p>
-              )}
-            </div>
-          </section>
+          <TaskEditor
+            task={current}
+            busy={busy || saving}
+            update={update}
+            replace={replace}
+            close={() => setSelected(null)}
+          />
         )}
       </div>
     </>

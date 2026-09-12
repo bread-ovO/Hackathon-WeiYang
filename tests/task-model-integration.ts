@@ -40,7 +40,7 @@ try {
   store.close()
   // Restore the exact v2 task columns while retaining existing events, jobs and search projections.
   const legacy = new Database(path)
-  legacy.exec(`DROP TABLE notification_outbox;DROP TABLE manual_overrides;DROP TABLE task_revisions;DROP TABLE decisions;DROP TABLE evidence_links;DROP TABLE criteria;DROP TABLE criterion_sets;DROP TABLE event_projects;
+  legacy.exec(`DROP TABLE task_listing_fts;DROP TABLE notification_outbox;DROP TABLE manual_overrides;DROP TABLE task_revisions;DROP TABLE decisions;DROP TABLE evidence_links;DROP TABLE criteria;DROP TABLE criterion_sets;DROP TABLE event_projects;
     DROP TABLE tasks;DROP TABLE projects;
     CREATE TABLE tasks(id TEXT PRIMARY KEY,title TEXT NOT NULL,status TEXT NOT NULL CHECK(status IN ('todo','in_progress','waiting','completed','cancelled')),
       evidence_status TEXT NOT NULL CHECK(evidence_status IN ('unknown','partial','sufficient','conflict')),version INTEGER NOT NULL DEFAULT 1 CHECK(version>0),archived_at TEXT);
@@ -48,7 +48,7 @@ try {
   legacy.close()
   store = openStore(path)
   const tasks = store.tasks
-  assert.equal(store.health().schemaVersion, 3)
+  assert.equal(store.health().schemaVersion, 4)
   assert.equal(store.health().eventCount, 2)
   assert.equal(store.health().jobCount, 2)
   assert.equal(store.cursor('fixture'), 'cursor')
@@ -277,6 +277,120 @@ try {
     store.search.query({ projectId: 'beta', text: '新标题' }).length,
     0,
   )
+  assert.throws(
+    () =>
+      raw
+        .prepare(
+          "UPDATE tasks SET due_at='2026-02-30T00:00:00.000Z' WHERE id='t1'",
+        )
+        .run(),
+    /CHECK/,
+  )
+  assert.equal(task.dueAt, null)
+  for (const dueAt of [
+    '2026-02-30T09:00:00Z',
+    '2026-09-13',
+    '2026-09-13T24:00:00Z',
+    '2026-09-13T10:00:00+08:00',
+    'invalid',
+  ]) {
+    assert.throws(
+      () => tasks.update(expected(task), { dueAt }, by),
+      /INVALID_DUE_DATE/,
+    )
+    assert.deepEqual(tasks.get('alpha', 't1'), task)
+  }
+  task = tasks.update(expected(task), { dueAt: '2026-09-15T09:00:00.1Z' }, by)
+  assert.equal(task.dueAt, '2026-09-15T09:00:00.100Z')
+  assert.equal(tasks.getDecisionHistory('alpha', 't1')[0]?.scope, 'dueAt')
+  const historical = tasks.getCriteria('alpha', 't1', 1)
+  assert.equal(historical.version, 1)
+  assert.equal(historical.items[0]?.description, '提交可复核结果')
+  assert.equal(tasks.getCriteria('alpha', 't1').version, 2)
+  assert.throws(() => tasks.getCriteria('beta', 't1'), /TASK_NOT_IN_PROJECT/)
+  assert.throws(
+    () => tasks.getCriteria('alpha', 't1', 3),
+    /UNKNOWN_CRITERIA_VERSION/,
+  )
+  task = tasks.update(expected(task), { dueAt: null }, by)
+  assert.equal(task.dueAt, null)
+  // Query filters precede keyset/LIMIT; archive and ignored queries use their own all-task FTS.
+  for (let n = 0; n < 105; n++)
+    tasks.create(
+      {
+        id: `p${String(n).padStart(3, '0')}`,
+        projectId: 'beta',
+        title: '分页测试',
+        admission: 'accepted',
+      },
+      by,
+    )
+  let hidden = tasks.create(
+    { id: 'a-hidden', projectId: 'alpha', title: '归档可搜' },
+    by,
+  )
+  hidden = tasks.update(
+    expected(hidden),
+    { archived: true, admission: 'ignored' },
+    by,
+  )
+  assert.deepEqual(
+    tasks.listPage({ query: '归档', archive: 'all' }).items.map((t) => t.id),
+    ['a-hidden'],
+  )
+  assert.equal(tasks.listPage({ query: '归档' }).totalCount, 0)
+  const first = tasks.listPage({
+    projectId: 'beta',
+    query: '分页',
+    status: 'todo',
+    admission: 'accepted',
+    limit: 60,
+  })
+  assert.equal(first.items.length, 60)
+  assert.equal(first.totalCount, 105)
+  assert.ok(first.nextCursor)
+  // Delete a previous row between pages: keyset must not skip the next row as offset does.
+  raw
+    .prepare(
+      "UPDATE tasks SET archived_at='2026-09-13T00:00:00Z' WHERE id='p000'",
+    )
+    .run()
+  const second = tasks.listPage({
+    projectId: 'beta',
+    query: '分页',
+    status: 'todo',
+    admission: 'accepted',
+    limit: 60,
+    cursor: first.nextCursor!,
+  })
+  assert.equal(second.items.length, 45)
+  assert.equal(second.items[0]?.id, 'p060')
+  assert.equal(second.nextCursor, null)
+  assert.equal(second.totalCount, 104)
+  assert.equal(
+    new Set([...first.items, ...second.items].map((t) => t.id)).size,
+    105,
+  )
+  assert.throws(
+    () => tasks.listPage({ projectId: 'alpha', cursor: first.nextCursor! }),
+    /INVALID_TASK_CURSOR/,
+  )
+  assert.throws(
+    () => tasks.listPage({ cursor: 'invalid' }),
+    /INVALID_TASK_CURSOR/,
+  )
+  assert.throws(() => tasks.listPage({ limit: 101 }), /INVALID_TASK_INPUT/)
+  assert.throws(
+    () => tasks.listPage({ query: 'x'.repeat(257) }),
+    /INVALID_SEARCH_INPUT/,
+  )
+  assert.equal(tasks.listPage({ projectId: "beta' OR 1=1 --" }).items.length, 0)
+  assert.equal(tasks.listPage({ query: '" : * ()' }).items.length, 0)
+  assert.equal(tasks.listPage({ projectId: 'beta', limit: 1 }).activeCount, 104)
+  assert.equal(
+    tasks.listPage({ projectId: 'beta', query: '分页', limit: 1 }).items.length,
+    1,
+  )
   raw.close()
   store.close()
   store = openStore(path)
@@ -285,6 +399,31 @@ try {
     store.tasks.history('alpha', 't1').revisions.length,
     task.version,
   )
+  store.close()
+  // Independently exercise v3 -> v4 with existing manual history and searchable criteria.
+  const v3 = new Database(path)
+  v3.exec(
+    'DROP TABLE task_listing_fts; ALTER TABLE tasks DROP COLUMN due_at; PRAGMA user_version=3;',
+  )
+  const oldDecisions = (
+    v3.prepare('SELECT count(*) AS n FROM decisions').get() as { n: number }
+  ).n
+  v3.close()
+  store = openStore(path)
+  assert.equal(store.health().schemaVersion, 4)
+  assert.equal(store.tasks.get('alpha', 't1')?.dueAt, null)
+  assert.equal(store.tasks.getCriteria('alpha', 't1').version, 2)
+  assert.equal(store.tasks.listPage({ query: '新标题' }).items[0]?.id, 't1')
+  const migrated = new Database(path)
+  assert.equal(
+    (
+      migrated.prepare('SELECT count(*) AS n FROM decisions').get() as {
+        n: number
+      }
+    ).n,
+    oldDecisions,
+  )
+  migrated.close()
   store.close()
   console.log(
     'Task model integration passed: v2 migration, project isolation, criteria history, evidence FKs, manual audit, archive, optimistic concurrency, outbox and search atomicity',
