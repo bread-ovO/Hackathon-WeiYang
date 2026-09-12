@@ -6,6 +6,8 @@ contextBridge.exposeInMainWorld(
       ipcRenderer.invoke('memo-pet:hitTest', input),
     drag: (input: { phase: 'start' | 'move' | 'end' }) =>
       ipcRenderer.invoke('memo-pet:drag', input),
+    ack: (input: { id: string; status: 'done' | 'unavailable' }) =>
+      ipcRenderer.invoke('memo-pet:ack', input),
     state: () => ipcRenderer.invoke('memo-pet:state'),
     report: (input: {
       modelId: string

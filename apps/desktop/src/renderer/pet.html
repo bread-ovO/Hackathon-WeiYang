@@ -3,16 +3,104 @@
   <head>
     <meta charset="UTF-8" />
     <title>BUGU 桌宠</title>
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' memo-pet://app; style-src 'self' 'unsafe-inline'; connect-src 'self' memo-pet://app; img-src 'self' memo-pet://app; object-src 'none'; base-uri 'none'; frame-src 'none'" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self' memo-pet://app; style-src 'self' 'unsafe-inline'; connect-src 'self' memo-pet://app; img-src 'self' memo-pet://app; object-src 'none'; base-uri 'none'; frame-src 'none'"
+    />
     <style>
-      html, body { margin: 0; width: 100%; height: 100%; background: transparent; overflow: hidden; user-select: none; }
-      canvas { touch-action: none; position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
-      [hidden] { display: none !important; }
-      #pet-status { position: absolute; bottom: 16px; left: 16px; right: 16px; padding: 12px 16px; border: 1px solid #d9d9dd; border-radius: 12px; color: #53545a; background: #fafafaf2; font: 12px/1.6 -apple-system, BlinkMacSystemFont, sans-serif; text-align: center; }
+      html,
+      body {
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        background: transparent;
+        overflow: hidden;
+        user-select: none;
+      }
+      canvas {
+        touch-action: none;
+        position: absolute;
+        inset: 0;
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+      [hidden] {
+        display: none !important;
+      }
+      #pet-status {
+        position: absolute;
+        bottom: 16px;
+        left: 16px;
+        right: 16px;
+        padding: 12px 16px;
+        border: 1px solid #d9d9dd;
+        border-radius: 12px;
+        color: #53545a;
+        background: #fafafaf2;
+        font:
+          12px/1.6 -apple-system,
+          BlinkMacSystemFont,
+          sans-serif;
+        text-align: center;
+      }
+      #pet-bubble {
+        position: absolute;
+        z-index: 2;
+        top: 8px;
+        left: 8px;
+        right: 8px;
+        max-height: calc(100% - 16px);
+        box-sizing: border-box;
+        padding: 12px 36px 12px 12px;
+        border: 1px solid #d4d4d8;
+        border-radius: 12px;
+        background: #fffef8f5;
+        color: #292a2e;
+        box-shadow: 0 4px 12px #00000018;
+        font:
+          14px/1.5 -apple-system,
+          BlinkMacSystemFont,
+          sans-serif;
+      }
+      #pet-bubble-text {
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+        overflow-y: auto;
+        max-height: calc(100vh - 42px);
+        user-select: text;
+      }
+      #pet-bubble-close {
+        position: absolute;
+        right: 4px;
+        top: 4px;
+        width: 28px;
+        height: 28px;
+        border: 0;
+        border-radius: 8px;
+        background: transparent;
+        color: #606168;
+        font: 20px/1 sans-serif;
+        cursor: pointer;
+      }
+      #pet-bubble-close:hover {
+        background: #e7e7e9;
+      }
     </style>
   </head>
   <body>
     <canvas id="stage-gl" hidden aria-label="Live2D 桌宠"></canvas>
+    <div id="pet-bubble" role="status" aria-live="polite" hidden>
+      <div id="pet-bubble-text"></div>
+      <button
+        id="pet-bubble-close"
+        type="button"
+        aria-label="关闭气泡"
+        tabindex="-1"
+      >
+        ×
+      </button>
+    </div>
     <div id="pet-status" role="status" hidden></div>
     <script type="module" src="/src/pet-main.ts"></script>
   </body>

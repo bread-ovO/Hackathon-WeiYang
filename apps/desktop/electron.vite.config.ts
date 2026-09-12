@@ -1,21 +1,27 @@
 import { defineConfig } from 'electron-vite'
 import react from '@vitejs/plugin-react'
 import { resolve } from 'node:path'
-const alias = Object.fromEntries(
-  [
-    'contracts',
-    'domain',
-    'application',
-    'storage',
-    'connectors',
-    'plugin-host',
-    'model',
-    'evals',
-  ].map((name) => [
-    `@memo/${name}`,
-    resolve(__dirname, `../../packages/${name}/src/index.ts`),
-  ]),
-)
+const alias = {
+  '@memo/contracts/pet-actions': resolve(
+    __dirname,
+    '../../packages/contracts/src/pet-actions.ts',
+  ),
+  ...Object.fromEntries(
+    [
+      'contracts',
+      'domain',
+      'application',
+      'storage',
+      'connectors',
+      'plugin-host',
+      'model',
+      'evals',
+    ].map((name) => [
+      `@memo/${name}`,
+      resolve(__dirname, `../../packages/${name}/src/index.ts`),
+    ]),
+  ),
+}
 export default defineConfig({
   main: {
     resolve: { alias },

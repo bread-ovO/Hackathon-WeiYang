@@ -110,6 +110,9 @@ test('real IPC rejects foreign windows and malformed requests; source text stays
       ['list', 'inspect', 'trial', 'activate', 'disable', 'uninstall', 'sync'],
     )
     expect(await page.evaluate(() => Object.keys(window.memo.pet))).toEqual([
+      'play',
+      'speak',
+      'dismissBubble',
       'configure',
       'resetPosition',
       'show',

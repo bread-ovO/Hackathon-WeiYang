@@ -56,6 +56,8 @@ export function PetModels() {
   const [message, setMessage] = useState('')
   const [choice, setChoice] = useState<Choice | null>(null)
   const [entry, setEntry] = useState('')
+  const [action, setAction] = useState('')
+  const [speech, setSpeech] = useState('你好，今天也一起慢慢来。')
   const [issues, setIssues] = useState<PetModelIssue[]>([])
   const [removing, setRemoving] = useState<string | null>(null)
   const alive = useRef(false),
@@ -153,13 +155,20 @@ export function PetModels() {
     }
   }, [])
   useEffect(() => {
-    if (!data.display || data.renderStatus !== 'loading') return
+    if (
+      !data.display ||
+      (data.renderStatus !== 'loading' && !data.presentation)
+    )
+      return
     const timer = setInterval(() => {
       if (locked.current) return
       void refresh()
     }, 2000)
     return () => clearInterval(timer)
-  }, [data.display, data.renderStatus])
+  }, [data.display, data.renderStatus, data.presentation])
+  useEffect(() => {
+    setAction('')
+  }, [data.currentModelId])
   async function choose() {
     if (locked.current) return
     choosing.current = true
@@ -377,6 +386,86 @@ export function PetModels() {
           拖动角色调整位置。透明区域可点击下方应用；始终可以从这里隐藏桌宠。
         </p>
       </div>
+      {data.display && data.renderStatus === 'ready' && (
+        <div className="pet-models-presentation" aria-label="桌宠动作与气泡">
+          <label htmlFor="pet-action">表情与动作</label>
+          <div className="pet-models-actions">
+            <select
+              id="pet-action"
+              value={action}
+              disabled={busy}
+              onChange={(event) => setAction(event.target.value)}
+            >
+              <option value="">保持待机</option>
+              <optgroup label="动作">
+                {data.catalog?.motions.map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.label}
+                  </option>
+                ))}
+              </optgroup>
+              <optgroup label="表情">
+                {data.catalog?.expressions.map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.label}
+                  </option>
+                ))}
+              </optgroup>
+            </select>
+            <AppButton
+              disabled={busy || !action}
+              onClick={() =>
+                void perform(
+                  () => api().play(action),
+                  (value) => setData(value),
+                )
+              }
+            >
+              播放动作
+            </AppButton>
+          </div>
+          <label htmlFor="pet-speech">气泡文字</label>
+          <textarea
+            id="pet-speech"
+            value={speech}
+            maxLength={240}
+            disabled={busy}
+            rows={2}
+            onChange={(event) => setSpeech(event.target.value)}
+          />
+          <div className="pet-models-actions">
+            <AppButton
+              disabled={busy || !speech.trim()}
+              onClick={() =>
+                void perform(
+                  () =>
+                    api().speak({
+                      text: speech,
+                      ...(action ? { actionId: action } : {}),
+                    }),
+                  (value) => setData(value),
+                )
+              }
+            >
+              显示气泡
+            </AppButton>
+            <AppButton
+              disabled={busy || data.presentation?.kind !== 'bubble'}
+              onClick={() =>
+                void perform(
+                  () => api().dismissBubble(),
+                  (value) => setData(value),
+                )
+              }
+            >
+              关闭当前气泡
+            </AppButton>
+            <span className="pet-models-presentation-note">
+              手动预览，自动话语尚未启用。
+            </span>
+          </div>
+        </div>
+      )}
       {(data.display || data.renderStatus === 'error') && (
         <p className="pet-models-message" role="status">
           {data.renderStatus === 'ready'

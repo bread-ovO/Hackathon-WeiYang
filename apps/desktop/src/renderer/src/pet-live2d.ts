@@ -1,3 +1,4 @@
+import { parsePetActionCatalog } from '@memo/contracts/pet-actions'
 import {
   createAlphaHitMap,
   HIT_MAP_SIZE,
@@ -25,6 +26,8 @@ export class PetRenderError extends Error {
 }
 export interface Live2DSession {
   mode: 'live2d' | 'live2d-idle'
+  play(actionId: string): Promise<{ status: 'playing' | 'unavailable' }>
+  currentAction(): { id: string | null; kind: 'idle' | 'motion' | 'expression' }
   frame(now: number): void
   hitTest(x: number, y: number, width: number, height: number): boolean
   pause(): void
@@ -61,6 +64,8 @@ interface MotionManager {
     priority: number,
   ): unknown
   updateMotion(model: Model, delta: number): boolean
+  isFinished(): boolean
+  stopAllMotions(): void
   release(): void
 }
 interface Setting {
@@ -119,6 +124,15 @@ interface Framework {
       began?: unknown,
       check?: boolean,
     ): Motion | null
+  }
+  CubismExpressionMotion: {
+    create(buffer: ArrayBuffer, size: number): { release(): void } | null
+  }
+  CubismExpressionMotionManager: new () => {
+    startMotion(motion: { release(): void }, autoDelete: boolean): unknown
+    updateMotion(model: Model, delta: number): boolean
+    stopAllMotions(): void
+    release(): void
   }
   CubismMotionManager: new () => MotionManager
   CubismPhysics: {
@@ -287,6 +301,9 @@ export async function bootLive2D(
       drawableCount = model.getDrawableCount()
     if (parameterCount <= 0 || drawableCount <= 0)
       throw new Error('empty model')
+    const defaults = Array.from({ length: parameterCount }, (_, i) =>
+      model.getParameterValueByIndex(i),
+    )
     model.saveParameters()
     failure = 'WEBGL_UNAVAILABLE'
     const gl = canvas.getContext('webgl2', {
@@ -395,27 +412,175 @@ export async function bootLive2D(
       (_, i) => setting.getLipSyncParameterId(i),
     )
     let manager: MotionManager | undefined
+    let idleMotion: Motion | undefined
+    // Optional/broken Idle never prevents the actual model from rendering.
     if (setting.getMotionCount('Idle') > 0) {
-      const data = await bytes(
-        resource(setting.getMotionFileName('Idle', 0)),
-        signal,
-      )
-      const motion = F.CubismMotion.create(
-        data,
-        data.byteLength,
-        undefined,
-        undefined,
-        true,
-      )
-      if (!motion) throw new Error('invalid idle motion')
-      release.push(() => motion.release())
-      motion.setLoop(true)
-      motion.setEffectIds(eyeIds, lipIds)
+      try {
+        const data = await bytes(
+          resource(setting.getMotionFileName('Idle', 0)),
+          signal,
+        )
+        const motion = F.CubismMotion.create(
+          data,
+          data.byteLength,
+          undefined,
+          undefined,
+          true,
+        )
+        if (!motion) throw new Error('invalid idle motion')
+        idleMotion = motion
+        release.push(() => motion.release())
+        motion.setLoop(true)
+        motion.setEffectIds(eyeIds, lipIds)
+        manager = new F.CubismMotionManager()
+        const ownedManager = manager
+        release.push(() => ownedManager.release())
+        if (manager.startMotionPriority(motion, false, 3) === -1)
+          throw new Error('idle unavailable')
+      } catch {
+        check(signal)
+        manager?.stopAllMotions()
+        idleMotion = undefined
+      }
+    }
+    if (!manager) {
       manager = new F.CubismMotionManager()
       const ownedManager = manager
       release.push(() => ownedManager.release())
-      if (manager.startMotionPriority(motion, false, 3) === -1)
-        throw new Error('motion start failed')
+    }
+    const actionManager = manager
+    let action: { id: string | null; kind: 'idle' | 'motion' | 'expression' } =
+      { id: null, kind: 'idle' }
+    let actionGeneration = 0,
+      actionAbort: AbortController | undefined
+    let preview: Motion | undefined
+    let expression: { release(): void } | undefined
+    let expressionManager:
+      | InstanceType<Framework['CubismExpressionMotionManager']>
+      | undefined
+    let actionSeconds = 0
+    const stopPreview = () => {
+      actionManager.stopAllMotions()
+      if (expressionManager) {
+        expressionManager.stopAllMotions()
+        expressionManager.release()
+        expressionManager = undefined
+      }
+      preview?.release()
+      preview = undefined
+      expression?.release()
+      expression = undefined
+    }
+    const resumeIdle = () => {
+      stopPreview()
+      action = { id: null, kind: 'idle' }
+      actionSeconds = 0
+      for (let i = 0; i < defaults.length; i++)
+        model.setParameterValueByIndex(i, defaults[i]!)
+      model.saveParameters()
+      if (idleMotion) actionManager.startMotionPriority(idleMotion, false, 3)
+    }
+    release.push(() => {
+      actionGeneration++
+      actionAbort?.abort()
+      stopPreview()
+      action = { id: null, kind: 'idle' }
+    })
+    // IDs resolve exclusively through the validated, bounded manifest catalog.
+    const actionFiles = new Map<
+      string,
+      { path: string; kind: 'motion' | 'expression' }
+    >()
+    try {
+      const raw: unknown = JSON.parse(
+        new TextDecoder('utf-8', { fatal: true }).decode(manifest),
+      )
+      const catalog = parsePetActionCatalog(raw)
+      const refs = (
+        raw as {
+          FileReferences: {
+            Motions?: Record<string, { File: string }[]>
+            Expressions?: { File: string }[]
+          }
+        }
+      ).FileReferences
+      const groups = Object.keys(refs.Motions ?? {})
+      for (const item of catalog.motions) {
+        const [, g, m] = item.id.split(':')
+        const path = refs.Motions?.[groups[Number(g)]!]?.[Number(m)]?.File
+        if (safePath(path)) actionFiles.set(item.id, { path, kind: 'motion' })
+      }
+      for (const item of catalog.expressions) {
+        const path = refs.Expressions?.[Number(item.id.split(':')[1])]?.File
+        if (safePath(path))
+          actionFiles.set(item.id, { path, kind: 'expression' })
+      }
+    } catch {
+      /* Invalid optional catalog degrades to ordinary Idle. */
+    }
+    const play = async (
+      actionId: string,
+    ): Promise<{ status: 'playing' | 'unavailable' }> => {
+      if (disposed || signal.aborted) return { status: 'unavailable' }
+      const ticket = ++actionGeneration
+      actionAbort?.abort()
+      const file = actionFiles.get(actionId)
+      if (!file) {
+        resumeIdle()
+        return { status: 'unavailable' }
+      }
+      const local = new AbortController()
+      actionAbort = local
+      const abort = () => local.abort()
+      signal.addEventListener('abort', abort, { once: true })
+      let loaded: { release(): void } | undefined
+      try {
+        const data = await bytes(resource(file.path), local.signal)
+        if (disposed || ticket !== actionGeneration || local.signal.aborted)
+          return { status: 'unavailable' }
+        if (file.kind === 'motion') {
+          const motion = F.CubismMotion.create(
+            data,
+            data.byteLength,
+            undefined,
+            undefined,
+            true,
+          )
+          if (!motion) throw new Error('motion unavailable')
+          loaded = motion
+          motion.setLoop(false)
+          motion.setEffectIds(eyeIds, lipIds)
+          resumeIdle()
+          actionManager.stopAllMotions()
+          if (actionManager.startMotionPriority(motion, false, 3) === -1)
+            throw new Error('motion unavailable')
+          preview = motion
+        } else {
+          const candidate = F.CubismExpressionMotion.create(
+            data,
+            data.byteLength,
+          )
+          if (!candidate) throw new Error('expression unavailable')
+          loaded = candidate
+          resumeIdle()
+          expressionManager = new F.CubismExpressionMotionManager()
+          if (expressionManager.startMotion(candidate, false) === -1)
+            throw new Error('expression unavailable')
+          expression = candidate
+        }
+        loaded = undefined
+        action = { id: actionId, kind: file.kind }
+        actionSeconds = 0
+        return { status: 'playing' }
+      } catch {
+        if (!disposed && ticket === actionGeneration && !signal.aborted)
+          resumeIdle()
+        return { status: 'unavailable' }
+      } finally {
+        loaded?.release()
+        signal.removeEventListener('abort', abort)
+        if (actionAbort === local) actionAbort = undefined
+      }
     }
     failure = 'PHYSICS_INVALID'
     let physics: ReturnType<Framework['CubismPhysics']['create']> | undefined
@@ -560,7 +725,9 @@ export async function bootLive2D(
     release.push(() => signal.removeEventListener('abort', onAbort))
     check(signal)
     return {
-      mode: manager ? 'live2d' : 'live2d-idle',
+      mode: idleMotion ? 'live2d' : 'live2d-idle',
+      play,
+      currentAction: () => ({ ...action }),
       hitTest: (x, y, width, height) =>
         !disposed && hitMap.hit(x, y, width, height),
       resize,
@@ -583,10 +750,21 @@ export async function bootLive2D(
         elapsed += delta
         try {
           model.loadParameters()
-          if (manager && manager.updateMotion(model, delta) !== true)
-            throw new PetRenderError('MOTION_INVALID')
+          try {
+            if (idleMotion || action.kind === 'motion')
+              actionManager.updateMotion(model, delta)
+            actionSeconds += delta
+            if (
+              (action.kind === 'motion' &&
+                (actionManager.isFinished() || actionSeconds >= 30)) ||
+              (action.kind === 'expression' && actionSeconds >= 3)
+            )
+              resumeIdle()
+          } catch {
+            resumeIdle()
+          }
           // No motion? Animate only existing native parameters; no substitute drawing.
-          if (!manager) {
+          if (!idleMotion && action.kind !== 'motion') {
             if (breathIndex !== undefined) {
               const min = model.getParameterMinimumValue(breathIndex),
                 max = model.getParameterMaximumValue(breathIndex)
@@ -608,6 +786,11 @@ export async function bootLive2D(
               )
           }
           model.saveParameters()
+          try {
+            expressionManager?.updateMotion(model, delta)
+          } catch {
+            resumeIdle()
+          }
           physics?.evaluate(model, delta)
           draw()
         } catch (error) {
