@@ -1,3 +1,4 @@
+import { SourceAssociations } from './source-associations'
 import { PlanChanges } from './plan-changes'
 import { TaskTimeline } from './task-timeline'
 import { ReferenceList } from './reference-list'
@@ -49,6 +50,7 @@ export function TaskEditor({
     >([]),
     [error, setError] = useState(''),
     [loading, setLoading] = useState(false)
+  const [associationRefresh, setAssociationRefresh] = useState(0)
   const [provenance, setProvenance] = useState<CandidateProvenance[]>([])
   const [evidenceLoading, setEvidenceLoading] = useState(false)
   const [evidenceError, setEvidenceError] = useState('')
@@ -216,7 +218,15 @@ export function TaskEditor({
           </section>
         )}
         {task.projectId && (
+          <SourceAssociations
+            task={task}
+            busy={busy}
+            onChanged={() => setAssociationRefresh((value) => value + 1)}
+          />
+        )}
+        {task.projectId && (
           <PlanChanges
+            refreshVersion={associationRefresh}
             task={task}
             busy={busy}
             onApplied={(next) => {

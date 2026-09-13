@@ -1,0 +1,87 @@
+.source-associations {
+  padding: 12px 0;
+  border-top: 1px solid var(--color-kumo-line, #ddd);
+  font-size: 14px;
+}
+.source-associations > summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.source-associations section {
+  display: grid;
+  gap: 8px;
+  padding-top: 12px;
+}
+.source-associations p,
+.source-associations h4 {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.source-associations p {
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--color-kumo-subtle);
+}
+.association-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.association-picker {
+  display: grid;
+  gap: 8px;
+  max-height: 360px;
+  overflow: auto;
+  padding: 8px;
+  border: 1px solid var(--color-kumo-line, #ddd);
+  border-radius: 8px;
+}
+.real-editor label.association-event {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 8px;
+  text-align: left;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--color-kumo-line, #ddd);
+}
+.association-event input {
+  flex: none;
+  width: 16px;
+  margin-top: 4px;
+}
+.association-event > span {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.association-event strong {
+  font-weight: 500;
+  white-space: pre-wrap;
+}
+.association-event span span {
+  color: var(--color-kumo-subtle);
+}
+.association-selection,
+.association-pair,
+.association-record {
+  display: grid;
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid var(--color-kumo-line, #ddd);
+  border-radius: 8px;
+}
+.source-associations blockquote {
+  margin: 0;
+  padding: 8px;
+  border-left: 2px solid var(--color-kumo-line, #ddd);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.real-editor label.association-reason {
+  display: grid;
+  gap: 4px;
+  text-align: left;
+}

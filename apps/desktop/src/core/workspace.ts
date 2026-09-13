@@ -9,6 +9,10 @@ import type {
   TimelinePage,
   PlanChangesPage,
   PlanChangeResult,
+  PlanChangeProposal,
+  ProjectSourceEvents,
+  SourceBindings,
+  IdentityMappings,
 } from '@memo/contracts'
 export function handleWorkspace(
   store: ReturnType<typeof openStore>,
@@ -20,9 +24,49 @@ export function handleWorkspace(
   | ReferenceReview
   | TimelinePage
   | PlanChangesPage
-  | PlanChangeResult {
+  | PlanChangeResult
+  | PlanChangeProposal
+  | ProjectSourceEvents
+  | SourceBindings
+  | IdentityMappings {
   const by = { actorId: 'local-user', reason: '用户在我的工作区手动操作' }
   switch (request.method) {
+    case 'workspace.sourceEvents': {
+      const { method: _, ...input } = request
+      return store.sourceAssociations.sourceEvents(input)
+    }
+    case 'workspace.sourceBindings': {
+      const { method: _, ...input } = request
+      return store.sourceAssociations.sourceBindings(input)
+    }
+    case 'workspace.bindSourceObject': {
+      const { method: _, ...input } = request
+      return store.sourceAssociations.bindSourceObject(input, 'local-user')
+    }
+    case 'workspace.revokeSourceBinding': {
+      const { method: _, ...input } = request
+      return store.sourceAssociations.revokeSourceBinding(input, 'local-user')
+    }
+    case 'workspace.identityMappings': {
+      const { method: _, ...input } = request
+      return store.sourceAssociations.identityMappings(input)
+    }
+    case 'workspace.confirmIdentityMapping': {
+      const { method: _, ...input } = request
+      return store.sourceAssociations.confirmIdentityMapping(
+        input,
+        'local-user',
+      )
+    }
+    case 'workspace.revokeIdentityMapping': {
+      const { method: _, ...input } = request
+      return store.sourceAssociations.revokeIdentityMapping(input, 'local-user')
+    }
+
+    case 'workspace.reevaluatePlanChange': {
+      const { method: _, ...input } = request
+      return store.planChanges.reevaluate(input, 'local-user')
+    }
     case 'workspace.planChanges': {
       const { method: _, ...input } = request
       return store.planChanges.list(input)

@@ -1,3 +1,4 @@
+import { createSourceAssociations } from './source-associations'
 import { createPlanChanges } from './plan-changes'
 import { eventMetadataFields } from './event-metadata'
 import type { SourceEvent } from '@memo/contracts'
@@ -21,7 +22,19 @@ export interface ExportScope {
 }
 export interface ExportBundle {
   selection: { mode: 'project' } | { mode: 'tasks'; taskIds: string[] }
-  schemaVersion: 6
+  schemaVersion: 7
+  sourceBindings: ReturnType<
+    ReturnType<typeof createSourceAssociations>['exportForTasks']
+  >['bindings']
+  identityMappings: ReturnType<
+    ReturnType<typeof createSourceAssociations>['exportForTasks']
+  >['mappings']
+  associationAudit: ReturnType<
+    ReturnType<typeof createSourceAssociations>['exportForTasks']
+  >['audits']
+  planAssessments: ReturnType<
+    ReturnType<typeof createPlanChanges>['exportAssessmentsForTasks']
+  >
   planChangeProposals: ReturnType<
     ReturnType<typeof createPlanChanges>['exportForTasks']
   >
@@ -337,7 +350,11 @@ export function createExports(db: Database.Database) {
       if (scope.taskIds && tasks.length !== scope.taskIds.length)
         throw new Error('EXPORT_TASK_NOT_IN_PROJECT')
       const bundle: ExportBundle = {
-        schemaVersion: 6,
+        schemaVersion: 7,
+        sourceBindings: [],
+        identityMappings: [],
+        associationAudit: [],
+        planAssessments: [],
         selection: scope.taskIds
           ? { mode: 'tasks', taskIds: [...scope.taskIds].sort() }
           : { mode: 'project' },
@@ -371,6 +388,68 @@ export function createExports(db: Database.Database) {
         return v
       }
       try {
+        const associations = createSourceAssociations(db).exportForTasks(
+          scope.projectId,
+          ids,
+          scope.includeSourceText,
+        )
+        if (
+          associations.bindings.length +
+            associations.mappings.length +
+            associations.audits.length >
+          MAX_ROWS
+        )
+          throw new Error('EXPORT_LIMIT_EXCEEDED')
+        for (const binding of associations.bindings) {
+          if (
+            binding.projectId !== scope.projectId ||
+            !taskMap.has(binding.taskId)
+          )
+            fail()
+          addRef(binding.baselineEventId)
+          account(binding)
+          bundle.sourceBindings.push(binding)
+        }
+        const mappings = new Set(
+          associations.mappings.map((mapping) => mapping.id),
+        )
+        for (const mapping of associations.mappings) {
+          if (mapping.projectId !== scope.projectId) fail()
+          addRef(mapping.leftEventId)
+          addRef(mapping.rightEventId)
+          account(mapping)
+          bundle.identityMappings.push(mapping)
+        }
+        for (const audit of associations.audits) {
+          if (
+            audit.projectId !== scope.projectId ||
+            (audit.kind === 'source_binding'
+              ? !taskMap.has(audit.taskId)
+              : !mappings.has(audit.entityId))
+          )
+            fail()
+          for (const snapshot of [audit.before, audit.after]) {
+            if (!snapshot) continue
+            if ('baselineEventId' in snapshot) addRef(snapshot.baselineEventId)
+            else {
+              addRef(snapshot.leftEventId)
+              addRef(snapshot.rightEventId)
+            }
+          }
+          account(audit)
+          bundle.associationAudit.push(audit)
+        }
+        const assessments = createPlanChanges(db).exportAssessmentsForTasks(
+          scope.projectId,
+          ids,
+        )
+        if (assessments.length > MAX_ROWS)
+          throw new Error('EXPORT_LIMIT_EXCEEDED')
+        for (const assessment of assessments) {
+          assessment.eventIds.forEach(addRef)
+          account(assessment)
+          bundle.planAssessments.push(assessment)
+        }
         const proposals = createPlanChanges(db).exportForTasks(
           scope.projectId,
           ids,

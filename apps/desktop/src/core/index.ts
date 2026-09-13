@@ -70,6 +70,13 @@ parentPort.on('message', async ({ data }) => {
     reply = {
       ok: false,
       error:
+        code === 'ASSOCIATION_INVALID_INPUT' ||
+        code === 'ASSOCIATION_NOT_FOUND' ||
+        code === 'ASSOCIATION_CONFLICT' ||
+        code === 'ASSOCIATION_UNAVAILABLE' ||
+        code === 'ASSOCIATION_LIMIT_EXCEEDED' ||
+        code === 'ASSOCIATION_CORRUPT_DATA' ||
+        code === 'ASSOCIATION_INVALID_CURSOR' ||
         code === 'PLAN_CHANGE_INVALID_INPUT' ||
         code === 'PLAN_CHANGE_NOT_FOUND' ||
         code === 'PLAN_CHANGE_NOT_APPLICABLE' ||

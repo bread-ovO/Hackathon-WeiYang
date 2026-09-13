@@ -71,6 +71,7 @@ try {
       expectedVersion: proposal.taskVersion,
       expectedCriteriaVersion: proposal.criteriaVersion,
       expectedManualVersion: proposal.manualVersion,
+      expectedAssessmentVersion: proposal.assessmentVersion,
       reason: '核对原文后确认',
     },
     'local-user',

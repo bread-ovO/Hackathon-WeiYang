@@ -78,6 +78,10 @@ import {
   type TimelinePage,
   type PlanChangesPage,
   type PlanChangeResult,
+  type PlanChangeProposal,
+  type ProjectSourceEvents,
+  type SourceBindings,
+  type IdentityMappings,
 } from './workspace'
 export * from './workspace'
 import Ajv from 'ajv'
@@ -372,6 +376,13 @@ export type CoreReply<T = Health> =
         | 'CORE_UNAVAILABLE'
         | 'INVALID_REQUEST'
         | 'INTERNAL_ERROR'
+        | 'ASSOCIATION_INVALID_INPUT'
+        | 'ASSOCIATION_NOT_FOUND'
+        | 'ASSOCIATION_CONFLICT'
+        | 'ASSOCIATION_UNAVAILABLE'
+        | 'ASSOCIATION_LIMIT_EXCEEDED'
+        | 'ASSOCIATION_CORRUPT_DATA'
+        | 'ASSOCIATION_INVALID_CURSOR'
         | 'PLAN_CHANGE_INVALID_INPUT'
         | 'PLAN_CHANGE_NOT_FOUND'
         | 'PLAN_CHANGE_NOT_APPLICABLE'
@@ -502,6 +513,54 @@ export interface DesktopBridge {
     revoke(id: string): Promise<CoreReply<SourcesSnapshot>>
   }
   workspace: {
+    sourceEvents(
+      request: Omit<
+        Extract<CoreRequest, { method: 'workspace.sourceEvents' }>,
+        'method'
+      >,
+    ): Promise<CoreReply<ProjectSourceEvents>>
+    sourceBindings(
+      request: Omit<
+        Extract<CoreRequest, { method: 'workspace.sourceBindings' }>,
+        'method'
+      >,
+    ): Promise<CoreReply<SourceBindings>>
+    bindSourceObject(
+      request: Omit<
+        Extract<CoreRequest, { method: 'workspace.bindSourceObject' }>,
+        'method'
+      >,
+    ): Promise<CoreReply<SourceBindings>>
+    revokeSourceBinding(
+      request: Omit<
+        Extract<CoreRequest, { method: 'workspace.revokeSourceBinding' }>,
+        'method'
+      >,
+    ): Promise<CoreReply<SourceBindings>>
+    identityMappings(
+      request: Omit<
+        Extract<CoreRequest, { method: 'workspace.identityMappings' }>,
+        'method'
+      >,
+    ): Promise<CoreReply<IdentityMappings>>
+    confirmIdentityMapping(
+      request: Omit<
+        Extract<CoreRequest, { method: 'workspace.confirmIdentityMapping' }>,
+        'method'
+      >,
+    ): Promise<CoreReply<IdentityMappings>>
+    revokeIdentityMapping(
+      request: Omit<
+        Extract<CoreRequest, { method: 'workspace.revokeIdentityMapping' }>,
+        'method'
+      >,
+    ): Promise<CoreReply<IdentityMappings>>
+    reevaluatePlanChange(
+      request: Omit<
+        Extract<CoreRequest, { method: 'workspace.reevaluatePlanChange' }>,
+        'method'
+      >,
+    ): Promise<CoreReply<PlanChangeProposal>>
     planChanges(
       request: Omit<
         Extract<CoreRequest, { method: 'workspace.planChanges' }>,

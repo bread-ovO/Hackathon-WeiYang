@@ -114,6 +114,14 @@ test('real IPC rejects foreign windows and malformed requests; source text stays
     expect(
       await page.evaluate(() => Object.keys(window.memo.workspace)),
     ).toEqual([
+      'sourceEvents',
+      'sourceBindings',
+      'bindSourceObject',
+      'revokeSourceBinding',
+      'identityMappings',
+      'confirmIdentityMapping',
+      'revokeIdentityMapping',
+      'reevaluatePlanChange',
       'planChanges',
       'confirmPlanChange',
       'timeline',
@@ -201,6 +209,7 @@ test('real IPC rejects foreign windows and malformed requests; source text stays
       projectId: 'p',
       taskId: 't',
       proposalId: 1,
+      expectedAssessmentVersion: 0,
       expectedVersion: 1,
       expectedCriteriaVersion: 0,
       expectedManualVersion: 0,

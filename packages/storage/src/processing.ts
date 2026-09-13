@@ -1,3 +1,4 @@
+import { createSourceAssociations } from './source-associations'
 import { createPlanChanges } from './plan-changes'
 import { eventMetadataFields } from './event-metadata'
 import { getSourceStatus } from './source-status'
@@ -231,6 +232,17 @@ export function createProcessing(db: Database.Database) {
           actual.event.sourceInstanceId,
           actual.event.externalId,
         ) as { id: string }[]
+      // An explicit binding already gives this exact source object a task. A later
+      // commitment-shaped revision is a review, never a second candidate/origin.
+      const binding = origin.length
+        ? null
+        : createSourceAssociations(db).resolveObject(
+            actual.projectId,
+            actual.event.sourceInstanceId,
+            actual.event.externalId,
+          )
+      if (binding && !origin.some((row) => row.id === binding.taskId))
+        origin.push({ id: binding.taskId })
       const retraction = createRetractions(db).forEvent(
         actual.projectId,
         actual.eventId,
