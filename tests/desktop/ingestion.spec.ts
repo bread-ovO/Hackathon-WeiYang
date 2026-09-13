@@ -56,6 +56,8 @@ test('queue pressure preserves local import progress and budget across restart',
       return r.data.projects[0]!.id
     })
     await page.getByRole('button', { name: '连接', exact: true }).click()
+    await page.locator('#preset-processing > summary').click()
+    await page.getByRole('button', { name: '导入本地记录', exact: true }).click()
     const budget = page.getByRole('region', { name: '收录预算' })
     await expect(budget.getByLabel('队列上限')).toBeEnabled()
     await budget.getByLabel('队列上限').fill('1')

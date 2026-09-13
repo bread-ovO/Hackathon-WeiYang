@@ -81,6 +81,8 @@ test('local background processing preserves pause, citations, project scope and 
       }
     })
     await page.getByRole('button', { name: '连接', exact: true }).click()
+    await page.locator('#preset-processing > summary').click()
+    await page.getByRole('button', { name: '导入本地记录', exact: true }).click()
     const processing = page.getByRole('region', { name: '本地候选整理' })
     await processing
       .getByRole('button', { name: '暂停整理', exact: true })

@@ -46,18 +46,17 @@ export function SourcePresets({ onDemoReady }: { onDemoReady(): void }) {
   }
   function configure(id: string) {
     const target = document.getElementById(id)
+    if (target instanceof HTMLDetailsElement) target.open = true
     target?.scrollIntoView({ block: 'start' })
-    target?.focus({ preventScroll: true })
+    target?.querySelector('summary')?.focus({ preventScroll: true })
   }
   return (
     <section className="source-presets" aria-label="预置来源">
       <div className="source-starter">
         <div>
-          <span className="source-eyebrow">无需账号 · 真实采集流程</span>
-          <h2>先用三条工作记录，认识不咕</h2>
-          <p>
-            在独立体验项目中运行预置插件，生成待确认候选。全部是虚构数据，不读取你的个人文件。
-          </p>
+          <span className="source-eyebrow">快速开始</span>
+          <h2>体验不咕</h2>
+          <p>用三条虚构记录试试，无需连接账号。</p>
         </div>
         <AppButton
           variant="primary"
@@ -95,15 +94,17 @@ export function SourcePresets({ onDemoReady }: { onDemoReady(): void }) {
               <span>内置</span>
             </div>
             <p>{description}</p>
-            <AppButton variant="secondary" onClick={() => configure(id!)}>
+            <AppButton
+              id={`${id}-trigger`}
+              variant="secondary"
+              onClick={() => configure(id!)}
+            >
               {button}
             </AppButton>
           </article>
         ))}
       </div>
-      <p className="source-preset-note">
-        以上来源无需安装插件。连接你自己的数据时，再选择项目并配置读取范围与凭据。
-      </p>
+      <p className="source-preset-note">内置来源，配置后即可使用。</p>
     </section>
   )
 }

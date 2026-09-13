@@ -1163,3 +1163,25 @@ dd {
 .pet-voice-settings {display:grid;gap:8px;padding:16px 0;border-top:1px solid var(--color-kumo-line)}
 .pet-voice-settings h2,.pet-voice-settings p{margin:0}.pet-voice-settings p,.pet-voice-settings details {font-size:12px;line-height:1.6}
 .pet-voice-fields{display:flex;gap:12px;flex-wrap:wrap}.pet-voice-fields label{display:grid;gap:4px;font-size:12px}.pet-voice-fields input{max-width:120px}.pet-voice-fields select{max-width:100%;border:1px solid var(--line);border-radius:8px;background:var(--color-kumo-base);padding:8px}.pet-voice-settings summary{cursor:pointer;color:var(--muted)}
+
+/* Keep icon geometry independent of font baselines and component defaults. */
+.app-control { display: inline-flex; align-items: center; justify-content: center; gap: 8px; vertical-align: middle; line-height: 20px; }
+.app-control svg { display: block; width: 16px; height: 16px; flex: 0 0 16px; align-self: center; }
+.nav-item.app-control, .project.app-control { justify-content: flex-start; }
+.task-row.app-control { display: grid; }
+.icon-button.app-control { display: inline-flex; padding: 0; }
+.detail-close { margin-left: auto; }
+.real-editor { min-height: 0; overflow-y: auto; flex: 1; gap: 12px; }
+.real-editor > form, .real-editor > label { width: 100%; }
+.real-editor > form > .app-input { min-width: 0; flex: 1 1 160px; }
+.real-editor > label { justify-content: space-between; }
+.real-editor > p { font-size: 12px; line-height: 20px; color: var(--muted); }
+.standalone { max-width: none; }
+.standalone > * { max-width: 800px; }
+.page-description { margin-bottom: 16px; }
+.real-editor .disclosure-body { display: flex; flex-direction: column; gap: 16px; }
+.real-editor .candidate-provenance { margin: 0; }
+
+/* Kumo wraps child content in display:contents; selectors must include that wrapper. */
+.app-control > .relative.flex { gap: 8px; min-width: 0; }
+#preset-feishu:not([open]), #preset-github:not([open]), #preset-local:not([open]) { display: none; }

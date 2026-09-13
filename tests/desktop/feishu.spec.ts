@@ -50,6 +50,7 @@ test('Feishu management preserves coverage and rejects same-window rereading dur
       .poll(() => page.evaluate(async () => (await window.memo.health()).ok))
       .toBe(true)
     await page.getByRole('button', { name: '连接', exact: true }).click()
+    await page.getByRole('button', { name: '配置飞书', exact: true }).click()
     const panel = page.getByRole('region', { name: '飞书会话连接' })
     await expect(panel).toContainText('oc_synthetic_history')
     await expect(panel).toContainText('已暂停')

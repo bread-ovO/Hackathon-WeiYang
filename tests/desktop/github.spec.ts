@@ -50,6 +50,7 @@ test('Github observation UI preserves pause schedule and never treats PR merge a
       .poll(() => page.evaluate(async () => (await window.memo.health()).ok))
       .toBe(true)
     await page.getByRole('button', { name: '连接', exact: true }).click()
+    await page.getByRole('button', { name: '配置 GitHub', exact: true }).click()
     const panel = page.getByRole('region', { name: 'GitHub仓库连接' })
     await expect(panel).toContainText('fictional-owner/fictional-repository')
     await expect(panel).toContainText('已暂停')

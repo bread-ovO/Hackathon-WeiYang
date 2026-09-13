@@ -34,6 +34,7 @@ async function openSettings(page: Page) {
     page.getByRole('heading', { name: '跟进', exact: true }),
   ).toBeVisible()
   await page.getByRole('button', { name: '设置', exact: true }).click()
+    await page.locator('#settings-pet > summary').click()
   const settings = page.getByRole('region', { name: '自动话语设置' })
   await expect(
     settings.getByRole('button', { name: '开启自动话语', exact: true }),

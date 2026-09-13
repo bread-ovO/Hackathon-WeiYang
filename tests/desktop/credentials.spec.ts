@@ -56,6 +56,7 @@ test('credentials stay in host encrypted storage and survive restart without pla
       page.getByRole('heading', { name: '跟进', exact: true }),
     ).toBeVisible()
     await page.getByRole('button', { name: '设置', exact: true }).click()
+    await page.locator('#settings-credentials > summary').click()
     const status = await page.evaluate(() => window.memo.credentials.list())
     expect(status.ok).toBe(true)
     console.log(
@@ -140,6 +141,7 @@ test('credentials stay in host encrypted storage and survive restart without pla
       page.getByRole('heading', { name: '跟进', exact: true }),
     ).toBeVisible()
     await page.getByRole('button', { name: '设置', exact: true }).click()
+    await page.locator('#settings-credentials > summary').click()
     await expect(page.getByText('测试令牌', { exact: true })).toBeVisible()
     expect(
       await app.evaluate(

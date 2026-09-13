@@ -249,6 +249,7 @@ test('explicit quit cancels an in-flight local plugin read and preserves last su
     expect(restored.eventCount).toBe(1)
     expect(restored.lastSuccessAt).toBe(baseline.lastSuccessAt)
     await page.getByRole('button', { name: '连接', exact: true }).click()
+    await page.locator('#preset-plugins > summary').click()
     const formatted = await page.evaluate(
       (value) => new Date(value).toLocaleString(),
       baseline.lastSuccessAt!,

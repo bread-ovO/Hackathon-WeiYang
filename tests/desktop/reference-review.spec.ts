@@ -124,6 +124,7 @@ test('known version confirmation is reference-scoped, expires on new content and
       .click()
     const draft = page.getByLabel('编辑事项标题')
     await draft.fill('未保存的版本复核草稿')
+    await page.getByText('关联、改期与历史', { exact: true }).click()
     const panel = page.getByRole('region', {
       name: `引用版本复核 ${reference.kind} ${reference.id}`,
       exact: true,
@@ -322,6 +323,7 @@ test('existing manual evidence supports independent version confirmation through
         has: page.locator('.task-title', { hasText: '已有人工证据事项' }),
       })
       .click()
+    await page.getByText('关联、改期与历史', { exact: true }).click()
     const panel = page.getByRole('region', {
       name: '引用版本复核 manual manual-evidence',
       exact: true,

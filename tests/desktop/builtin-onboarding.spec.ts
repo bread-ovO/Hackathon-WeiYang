@@ -38,7 +38,7 @@ test('built-in demo works without a picker and is idempotent across restart', as
     })
     await page.getByRole('button', { name: '连接', exact: true }).click()
     await expect(page.getByRole('region', { name: '预置来源' })).toContainText(
-      '无需账号',
+      '无需连接账号',
     )
     await page.getByRole('button', { name: '一键体验', exact: true }).click()
     await expect(
