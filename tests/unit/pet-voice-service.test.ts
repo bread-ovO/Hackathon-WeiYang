@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { mkdtemp, rm, writeFile, symlink } from 'node:fs/promises'
+import { mkdtemp, rm, writeFile } from 'node:fs/promises'
+import { symlinkOrSkip } from './helpers/symlink-or-skip'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
 import {
@@ -273,7 +274,7 @@ describe('voice service generations', () => {
   })
 })
 describe('voice preferences isolated store', () => {
-  it('roundtrips atomic settings, rejects symlinks and corrupt text', async () => {
+  it('roundtrips atomic settings, rejects symlinks and corrupt text', async (ctx) => {
     const dir = await mkdtemp(join(tmpdir(), 'bugu-voice-pref-'))
     try {
       const path = join(dir, 'voice.json'),
@@ -281,7 +282,7 @@ describe('voice preferences isolated store', () => {
       expect(await s.load()).toBeNull()
       await s.save(prefs)
       expect(await s.load()).toEqual(prefs)
-      await symlink(path, join(dir, 'link'))
+      await symlinkOrSkip(ctx, path, join(dir, 'link'))
       await expect(
         createPetVoiceStore(join(dir, 'link')).load(),
       ).rejects.toThrow('PET_VOICE_STORAGE')
