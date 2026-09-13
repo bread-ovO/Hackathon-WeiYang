@@ -108,7 +108,7 @@ const metadataIdentity = {
   maxLength: 256,
   pattern: '^[^\\s\\u0000-\\u001f\\u007f]+$',
 } as const
-export const sourceEventMetadataSchema = {
+const sourceEventMetadataSchema = {
   type: 'object',
   additionalProperties: false,
   minProperties: 1,
@@ -209,7 +209,7 @@ export function parseSourceEvent(value: unknown): SourceEvent {
   if (!validateSourceEvent(value)) throw new Error('INVALID_SOURCE_EVENT')
   return value
 }
-export const healthRequestSchema = {
+const healthRequestSchema = {
   type: 'object',
   properties: { method: { const: 'health' } },
   required: ['method'],

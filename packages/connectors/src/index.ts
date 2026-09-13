@@ -1,6 +1,5 @@
 export * from './feishu'
 export * from './github'
-export * from './polling'
 export * from './http-client'
 
 // Apply while receiving/decompressing transport chunks, before building the full payload.

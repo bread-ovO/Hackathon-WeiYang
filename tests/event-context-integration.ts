@@ -103,7 +103,7 @@ try {
   store.close()
   store = undefined
   db.exec(
-    'DROP TABLE task_merges; DROP TABLE plan_change_assessments; DROP TABLE source_association_audit; DROP TABLE explicit_identity_mappings; DROP TABLE task_source_anchors; DROP TABLE source_object_bindings; DROP TABLE plan_change_proposals; ALTER TABLE source_events DROP COLUMN metadata_json; DROP TABLE reference_revision_audit; DROP TABLE feishu_page_tokens; DROP TABLE feishu_credential_cooldowns; DROP TABLE feishu_connections; DROP TABLE github_credential_cooldowns; DROP TABLE github_connections; DROP TABLE reference_revision_decisions; DROP TABLE reference_revision_reviews; DROP TABLE retraction_impacts; DROP TABLE object_retractions; ALTER TABLE source_events DROP COLUMN operation; DROP TABLE ingestion_limits; DROP TABLE processing_decisions; DROP TABLE processing_evidence; DROP TABLE processing_origins; DROP TABLE processing_results; DROP TABLE processing_preferences; ALTER TABLE jobs DROP COLUMN processing_skips; DROP TABLE event_contexts; PRAGMA user_version=6;',
+    'DROP TABLE task_merges; DROP TABLE task_splits; DROP TABLE plan_change_assessments; DROP TABLE source_association_audit; DROP TABLE explicit_identity_mappings; DROP TABLE task_source_anchors; DROP TABLE source_object_bindings; DROP TABLE plan_change_proposals; ALTER TABLE source_events DROP COLUMN metadata_json; DROP TABLE reference_revision_audit; DROP TABLE feishu_page_tokens; DROP TABLE feishu_credential_cooldowns; DROP TABLE feishu_connections; DROP TABLE github_credential_cooldowns; DROP TABLE github_connections; DROP TABLE reference_revision_decisions; DROP TABLE reference_revision_reviews; DROP TABLE retraction_impacts; DROP TABLE object_retractions; ALTER TABLE source_events DROP COLUMN operation; DROP TABLE ingestion_limits; DROP TABLE processing_decisions; DROP TABLE processing_evidence; DROP TABLE processing_origins; DROP TABLE processing_results; DROP TABLE processing_preferences; ALTER TABLE jobs DROP COLUMN processing_skips; DROP TABLE event_contexts; PRAGMA user_version=6;',
   )
   db.prepare('UPDATE source_events SET occurred_at=? WHERE id=?').run(
     '2026-02-30T10:00:00Z',
@@ -111,7 +111,7 @@ try {
   )
   db.close()
   store = openStore(path)
-  assert.equal(store.health().schemaVersion, 20)
+  assert.equal(store.health().schemaVersion, 21)
   assert.deepEqual(store.contexts.get('alpha', id), first)
   const old = store.contexts.get('beta', betaId)!
   assert.equal(old.status, 'invalid_legacy_time')
@@ -126,7 +126,7 @@ try {
     .prepare('UPDATE source_events SET occurred_at=? WHERE id=?')
     .run('2026-09-13T09:00:00-00:00', betaId)
   legacy.exec(
-    'DROP TABLE task_merges; DROP TABLE plan_change_assessments; DROP TABLE source_association_audit; DROP TABLE explicit_identity_mappings; DROP TABLE task_source_anchors; DROP TABLE source_object_bindings; DROP TABLE plan_change_proposals; ALTER TABLE source_events DROP COLUMN metadata_json; DROP TABLE reference_revision_audit; DROP TABLE feishu_page_tokens; DROP TABLE feishu_credential_cooldowns; DROP TABLE feishu_connections; DROP TABLE github_credential_cooldowns; DROP TABLE github_connections; DROP TABLE reference_revision_decisions; DROP TABLE reference_revision_reviews; DROP TABLE retraction_impacts; DROP TABLE object_retractions; ALTER TABLE source_events DROP COLUMN operation; DROP TABLE ingestion_limits; DROP TABLE processing_decisions; DROP TABLE processing_evidence; DROP TABLE processing_origins; DROP TABLE processing_results; DROP TABLE processing_preferences; ALTER TABLE jobs DROP COLUMN processing_skips; DROP TABLE event_contexts; PRAGMA user_version=6;',
+    'DROP TABLE task_merges; DROP TABLE task_splits; DROP TABLE plan_change_assessments; DROP TABLE source_association_audit; DROP TABLE explicit_identity_mappings; DROP TABLE task_source_anchors; DROP TABLE source_object_bindings; DROP TABLE plan_change_proposals; ALTER TABLE source_events DROP COLUMN metadata_json; DROP TABLE reference_revision_audit; DROP TABLE feishu_page_tokens; DROP TABLE feishu_credential_cooldowns; DROP TABLE feishu_connections; DROP TABLE github_credential_cooldowns; DROP TABLE github_connections; DROP TABLE reference_revision_decisions; DROP TABLE reference_revision_reviews; DROP TABLE retraction_impacts; DROP TABLE object_retractions; ALTER TABLE source_events DROP COLUMN operation; DROP TABLE ingestion_limits; DROP TABLE processing_decisions; DROP TABLE processing_evidence; DROP TABLE processing_origins; DROP TABLE processing_results; DROP TABLE processing_preferences; ALTER TABLE jobs DROP COLUMN processing_skips; DROP TABLE event_contexts; PRAGMA user_version=6;',
   )
   legacy.close()
   store = openStore(path)
@@ -170,5 +170,5 @@ try {
   console.log('Event context integration passed')
 } finally {
   store?.close()
-  rmSync(folder, { recursive: true, force: true })
+  try { rmSync(folder, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 }) } catch {}
 }

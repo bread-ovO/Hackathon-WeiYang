@@ -16,23 +16,12 @@ import { createFeishu, migrateFeishu } from './feishu'
 export type {
   FeishuConnection,
   FeishuAuthorized,
-  FeishuAuthorizeInput,
-  FeishuBatchInput,
-  FeishuFailureInput,
-  FeishuFailureCode,
-  FeishuFence,
 } from './feishu'
-export { feishuFailureCodes } from './feishu'
 import { createGithub, migrateGithub, migrateGithubAccount } from './github'
 export type {
   GithubConnection,
   GithubAuthorized,
-  GithubAuthorizeInput,
-  GithubBatchInput,
-  GithubFailureInput,
-  GithubFailureCode,
 } from './github'
-export { githubFailureCodes } from './github'
 import { createRevisionReview, migrateRevisionReview } from './revision-review'
 import { createRetractions, migrateRetractions } from './retractions'
 import {
@@ -40,7 +29,7 @@ import {
   migrateIngestionBudget,
 } from './ingestion-budget'
 import { createProcessing, migrateProcessing } from './processing'
-export type { ProcessingContext, ProcessingResult } from './processing'
+export type { ProcessingContext } from './processing'
 import { createEventReceiver } from './receive'
 import { createEventContexts, migrateEventContexts } from './event-context'
 export type { StoredEventContext } from './event-context'
@@ -88,21 +77,14 @@ export type {
 } from './task-model'
 import { createJobQueue } from './jobs'
 import { createCandidateSearch, migrateSearch } from './search'
-export type { SearchProjection, CandidateQuery, CandidateHit } from './search'
-export type { Job, JobLease, JobErrorCode } from './jobs'
-export { MAX_JOB_ATTEMPTS, JOB_LEASE_MS } from './jobs'
+
+export type { Job } from './jobs'
+export { JOB_LEASE_MS } from './jobs'
 import type { SourceEvent, Health } from '@memo/contracts'
 
 export function openStore(path: string) {
   const db = new Database(path)
   try {
-    // The opt-in foundation store uses a different v2 schema. Never migrate it as production.
-    if (
-      (db.pragma('table_info(source_events)') as { name: string }[]).some(
-        (column) => column.name === 'envelope',
-      )
-    )
-      throw new Error('INCOMPATIBLE_DATABASE_FORMAT')
     db.pragma('foreign_keys = ON')
     db.pragma('journal_mode = WAL')
     db.pragma('synchronous = FULL')

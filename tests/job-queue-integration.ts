@@ -147,6 +147,6 @@ async function run() {
   } finally {
     store.close()
     other.close()
-    rmSync(dir, { recursive: true, force: true })
+    try { rmSync(dir, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 }) } catch {}
   }
 }

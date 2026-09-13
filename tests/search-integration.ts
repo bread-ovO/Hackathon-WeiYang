@@ -28,7 +28,7 @@ try {
   `)
   legacy.close()
   let store = openStore(path)
-  assert.equal(store.health().schemaVersion, 20)
+  assert.equal(store.health().schemaVersion, 21)
   assert.equal(store.health().eventCount, 1)
   assert.equal(store.health().jobCount, 1)
   assert.equal(store.cursor('synthetic-source'), 'cursor1')
@@ -139,5 +139,5 @@ try {
     'Search integration passed: migration, Chinese/mixed/identifier recall, isolation, rebuild, limits; known misses 登入 / receiv / 认证',
   )
 } finally {
-  rmSync(folder, { recursive: true, force: true })
+  try { rmSync(folder, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 }) } catch {}
 }

@@ -231,7 +231,7 @@ try {
     createIngestionBudget(db, { probe }).getStatus().limits.maxQueuedJobs,
     100,
   )
-  assert.equal(db.pragma('user_version', { simple: true }), 20)
+  assert.equal(db.pragma('user_version', { simple: true }), 21)
   // Exercise production openStore wrappers too, not only the injected assembly.
   const production = openStore(join(root, 'production.sqlite'))
   try {
@@ -412,5 +412,5 @@ try {
   )
 } finally {
   db?.close()
-  rmSync(root, { recursive: true, force: true })
+  try { rmSync(root, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 }) } catch {}
 }
