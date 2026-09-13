@@ -3,6 +3,7 @@ import {
   GithubConnectorError,
   GithubRateLimitError,
   verifyGithubRepository,
+  verifyGithubAccount,
   type SourceHttpTransport,
 } from '@memo/connectors'
 import {
@@ -133,6 +134,7 @@ export function createGithubRuntime(deps: GithubRuntimeDependencies) {
       id: string
       owner: string
       repo: string
+      mode?: 'repository' | 'account'
       repositoryId: number
       credentialId: string
     },
@@ -163,6 +165,7 @@ export function createGithubRuntime(deps: GithubRuntimeDependencies) {
       binding.owner,
       binding.repo,
       binding.repositoryId,
+      binding.mode,
       binding.credentialId,
       binding.grantVersion,
     ])
@@ -305,6 +308,9 @@ export function createGithubRuntime(deps: GithubRuntimeDependencies) {
         expectedPollVersion: binding.pollVersion,
         expectedCursor: binding.cursor,
         errorCode: code,
+        ...(error instanceof GithubConnectorError && error.scope
+          ? { errorScope: error.scope }
+          : {}),
         nextPollAt: Math.min(
           8_640_000_000_000_000,
           Math.max(binding.nextPollAt, sharedDeadline ?? now() + delay),
@@ -327,7 +333,10 @@ export function createGithubRuntime(deps: GithubRuntimeDependencies) {
           ok: true,
           data: await call({ ...request, method: 'githubHost.records' }),
         }
-      if (request.method === 'github.connect') {
+      if (
+        request.method === 'github.connect' ||
+        request.method === 'github.connectAccount'
+      ) {
         if (connecting || removingCredentials.has(request.credentialId))
           throw new Error('GITHUB_BUSY')
         const controller = new AbortController()
@@ -348,9 +357,19 @@ export function createGithubRuntime(deps: GithubRuntimeDependencies) {
           cooldown = await getCooldown(request.credentialId)
           live(controller.signal)
           if (cooldown.notBefore > now()) throw new Error('GITHUB_NOT_DUE')
-          const owner = request.owner.toLowerCase(),
-            repo = request.repo.toLowerCase(),
-            signal = controller.signal
+          const mode =
+            request.method === 'github.connectAccount'
+              ? ('account' as const)
+              : ('repository' as const)
+          let owner =
+            request.method === 'github.connect'
+              ? request.owner.toLowerCase()
+              : ''
+          const repo =
+            request.method === 'github.connect'
+              ? request.repo.toLowerCase()
+              : ''
+          const signal = controller.signal
           // This initial metadata call also resolves the vault at request time.
           const boundTransport: SourceHttpTransport = async (input) => {
             live(signal)
@@ -369,26 +388,39 @@ export function createGithubRuntime(deps: GithubRuntimeDependencies) {
             live(signal)
             return result
           }
-          const repositoryId = await verifyGithubRepository(
-            'host-managed',
-            owner,
-            repo,
-            boundTransport,
-            signal,
-          )
-          await reader(
-            {
-              id: randomUUID(),
+          const account =
+            mode === 'account'
+              ? await verifyGithubAccount(
+                  'host-managed',
+                  boundTransport,
+                  signal,
+                )
+              : null
+          if (account) owner = account.login
+          const repositoryId =
+            account?.id ??
+            (await verifyGithubRepository(
+              'host-managed',
               owner,
               repo,
-              repositoryId,
-              credentialId: request.credentialId,
-            },
-            signal,
-            () => {
-              credentialFailed = true
-            },
-          ).pull('', signal)
+              boundTransport,
+              signal,
+            ))
+          if (mode === 'repository')
+            await reader(
+              {
+                id: randomUUID(),
+                owner,
+                repo,
+                repositoryId,
+                mode,
+                credentialId: request.credentialId,
+              },
+              signal,
+              () => {
+                credentialFailed = true
+              },
+            ).pull('', signal)
           live(signal)
           await call({
             method: 'githubHost.authorize',
@@ -397,6 +429,7 @@ export function createGithubRuntime(deps: GithubRuntimeDependencies) {
               owner,
               repo,
               repositoryId,
+              mode,
               credentialId: request.credentialId,
             },
           })

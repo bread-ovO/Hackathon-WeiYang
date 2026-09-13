@@ -8,10 +8,10 @@ BUGU 不咕：把分散在工作上下文里的承诺、进展与依据整理成
 
 ## 团队文档
 
-| 文档 | 飞书入口 |
-| --- | --- |
-| PRD · 产品需求 | [产品需求文档](https://my.feishu.cn/docx/JQ11dTz4ioqXcExWlq2cMH9zn5e) |
-| ERD · 工程设计 | [现有技术方案](https://my.feishu.cn/docx/BTFWdltVvoQs2exIwDKc1LNKnVh) |
+| 文档                    | 飞书入口                                                                                 |
+| ----------------------- | ---------------------------------------------------------------------------------------- |
+| PRD · 产品需求          | [产品需求文档](https://my.feishu.cn/docx/JQ11dTz4ioqXcExWlq2cMH9zn5e)                    |
+| ERD · 工程设计          | [现有技术方案](https://my.feishu.cn/docx/BTFWdltVvoQs2exIwDKc1LNKnVh)                    |
 | 多维表 · 需求拆解与进度 | [需求明细](https://my.feishu.cn/base/VHWebJShaa0nhnskizncs3GZnud?table=tblAzOvM7QohTvak) |
 
 ERD 入口沿用此前创建的「技术方案」，尚无单独命名的 ERD 文档；历史文档中原项目名后续统一称为 BUGU 不咕。最新新增范围见 [Live2D 桌宠需求与架构增补](docs/product/BUGU_桌宠需求与架构增补.md)，对应多维表 PET01–PET16。
@@ -55,7 +55,6 @@ ERD 入口沿用此前创建的「技术方案」，尚无单独命名的 ERD �
 
 本地开发准备运行库：执行 `node scripts/fetch-pet-sdk.mjs`，在设置的「选择运行库目录」中选择 `.pet-sdk/runtime`。安装器仅接受仓库固定版本、大小和哈希匹配的文件；运行库与示例模型不随应用打包。随后导入模型、设为当前并点击「显示桌宠」。隐藏或切换模型会释放窗口，重新显示需点击按钮。模型与 SDK 的发布许可见 [许可边界](docs/engineering/Live2D许可与发布边界_2026-09-13.md)。
 
-
 事项话语可独立授权项目，引用真实事项并回到详情；可选本机 Ollama 只选择受限模板，默认关闭。见[事项话语交付与验证边界](docs/engineering/桌宠事项话语与本机模型选择_2026-09-13.md)。
 
 ## 本地启动
@@ -93,17 +92,17 @@ pnpm exec playwright test tests/desktop/source-import.spec.ts
 
 ## 工程结构
 
-| 目录 | 职责 |
-| --- | --- |
-| apps/desktop | main、preload、renderer、core 入口与打包 |
-| packages/contracts | 版本化 JSON Schema 和边界类型 |
-| packages/domain | 与平台无关的领域规则 |
-| packages/application | 接收等应用用例及存储接口 |
-| packages/storage | SQLite、迁移与事务实现 |
-| packages/connectors | 来源适配器；GitHub 仓库与飞书限定会话均已接宿主持久采集 |
+| 目录                 | 职责                                                                                    |
+| -------------------- | --------------------------------------------------------------------------------------- |
+| apps/desktop         | main、preload、renderer、core 入口与打包                                                |
+| packages/contracts   | 版本化 JSON Schema 和边界类型                                                           |
+| packages/domain      | 与平台无关的领域规则                                                                    |
+| packages/application | 接收等应用用例及存储接口                                                                |
+| packages/storage     | SQLite、迁移与事务实现                                                                  |
+| packages/connectors  | 来源适配器；GitHub 仓库与飞书限定会话均已接宿主持久采集                                 |
 | packages/plugin-host | 版本化 manifest 校验、local-jsonl 与 HTTPS JSON 读取模块；含安装/授权、试运行与启停界面 |
-| packages/model | 受限本机 Ollama 桌宠模板选择；通用事项提取仍未接入 |
-| packages/evals | 按时间回放的评测类型，真实样例待补 |
+| packages/model       | 受限本机 Ollama 桌宠模板选择；通用事项提取仍未接入                                      |
+| packages/evals       | 按时间回放的评测类型，真实样例待补                                                      |
 
 队列存储与故障恢复说明见 [S05 交付记录](docs/engineering/S05_持久作业与租约恢复_2026-09-13.md)。作业处理器已接本地明确承诺规则，只生成待确认候选。事项处理尚未连接语义模型；不把队列领取等同于事项处理成功。
 
@@ -149,12 +148,14 @@ pnpm exec playwright test tests/desktop/source-import.spec.ts
 
 第十七批[桌宠帧率与恢复](docs/engineering/桌宠帧率与恢复交付_2026-09-13.md)：闲置15fps/活动30fps、WebGL受限恢复和着色器迟到回调释放保护；运行库需升级为lifecycle1。
 
-
 第十八批[事件入口一致性与退出验收](docs/engineering/事件入口一致性与退出验收_2026-09-13.md)：同修订冲突事务拒绝、v7 时间上下文与项目隔离查询；补本地插件在途退出和同步时间恢复。事项自动消费者及迟到计划更新尚未接通。
-
 
 第十九批[本地候选整理闭环](docs/engineering/本地候选整理闭环_2026-09-13.md)：授权事件经后台规则处理进入待确认候选，暂停持久化，修订保留待复核且不覆盖人工更改；详情可见原文与规则来源，导出升级至 v2 并保留相关依据。有限规则不能替代完整模型语义理解。
 
 S01–S08 分支合并保留主干 v14 生产数据库及现有来源、工作区和桌宠。额外的 v2 数据底座通过 `@memo/storage/foundation` 的 `openFoundationStore` 显式使用独立数据库；尚未接入桌面生产流水线。见[合并范围与兼容边界](docs/engineering/数据与作业_S01-S08_主干合并说明_2026-09-13.md)。
 
 第二十九批[桌宠系统语音与口型联动](docs/engineering/桌宠系统语音与口型联动_2026-09-13.md)：默认关闭的 macOS 系统声音、真实 PCM 口型、即时停止与文字降级。
+
+### 本批新增：筛选、截止解析、Kimi、合并与账户监听
+
+入口与边界见 [U01 / A02 / L06 / H03 / G05 交付说明](docs/engineering/五项需求交付_U01_A02_L06_H03_G05.md)。存储测试支持指定受影响的用例，例如 `pnpm test:storage five-requirements-integration`；桌面测试继续按 spec 定向执行。

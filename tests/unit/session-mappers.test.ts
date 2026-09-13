@@ -209,3 +209,45 @@ describe('session mapper registry', () => {
     expect(SESSION_NORMALIZER_IDS.codex).toMatch(/^codex-session@/)
   })
 })
+
+it('imports Kimi wire user input with occurrence time and stable trusted byte offsets', () => {
+  const record = {
+    timestamp: 1789362000,
+    message: {
+      type: 'TurnBegin',
+      payload: {
+        user_input: [
+          { type: 'text', text: '我会提交验收报告' },
+          { type: 'image_url', image_url: { url: 'data:fictional' } },
+        ],
+      },
+    },
+  }
+  const result = SESSION_MAPPERS.kimi(record, { byteOffset: 100 })!
+  expect(result.role).toBe('user')
+  expect(result.created_at).toBe(new Date(1789362000 * 1000).toISOString())
+  expect(result.content).toBe('我会提交验收报告')
+  expect(result.id).toBe('offset:100')
+  expect(() => SESSION_MAPPERS.kimi(record)).toThrow()
+  expect(() =>
+    SESSION_MAPPERS.kimi({ type: 'metadata', protocol_version: '2.0' }),
+  ).toThrow()
+  expect(
+    SESSION_MAPPERS.kimi({ type: 'metadata', protocol_version: '1.10' }),
+  ).toBeNull()
+  expect(() =>
+    SESSION_MAPPERS.kimi(
+      { role: 'user', content: 'context without timestamp' },
+      { byteOffset: 0 },
+    ),
+  ).toThrow()
+  expect(
+    SESSION_MAPPERS.kimi(
+      {
+        timestamp: 1789362000,
+        message: { type: 'TextPart', payload: { text: '我会提交助手报告' } },
+      },
+      { byteOffset: 200 },
+    )!.role,
+  ).toBe('assistant')
+})

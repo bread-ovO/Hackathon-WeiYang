@@ -52,6 +52,9 @@ export const workspaceQuerySchema = {
     status,
     admission,
     archive: { enum: ['active', 'archived', 'all'] },
+    sourceInstanceId: id,
+    updatedSince: { type: 'string', format: 'workspace-date-time' },
+    updatedBefore: { type: 'string', format: 'workspace-date-time' },
     query: { type: 'string', maxLength: 256 },
     limit: { type: 'integer', minimum: 1, maximum: 100 },
     cursor: { type: 'string', minLength: 1, maxLength: 4096 },
@@ -60,6 +63,21 @@ export const workspaceQuerySchema = {
 export type WorkspaceQuery = FromSchema<typeof workspaceQuerySchema>
 export const workspaceRequestSchema = {
   oneOf: [
+    {
+      type: 'object',
+      additionalProperties: false,
+      required: ['method', ...expected, 'target'],
+      properties: {
+        method: { const: 'workspace.mergeTasks' },
+        ...expectation,
+        target: {
+          type: 'object',
+          additionalProperties: false,
+          required: expected,
+          properties: expectation,
+        },
+      },
+    },
     ...petContextFactsRequestSchemas,
     ...planChangeRequestSchemas,
     ...sourceAssociationRequestSchemas,
@@ -197,6 +215,10 @@ export interface CandidateProvenance {
   createdAt: string
 }
 export interface WorkspaceDetail {
+  merge?: {
+    mergedInto: string | null
+    mergedFrom: { id: string; title: string }[]
+  }
   provenance?: CandidateProvenance[]
   task: WorkspaceTask
   criteria: {

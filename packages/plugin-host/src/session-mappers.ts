@@ -62,6 +62,9 @@ const ignoredBlocks = new Set([
   'input_image',
   'input_audio',
   'output_audio',
+  'image_url',
+  'audio_url',
+  'video_url',
   'refusal',
 ])
 function blockTexts(blocks: unknown, types: ReadonlySet<string>): string {
@@ -200,15 +203,94 @@ export const codexSessionMapper: SessionMapper = (record, context) => {
   return finish(id, record.timestamp as string, role, text)
 }
 
+/** Kimi Wire logs carry actual occurrence time; context.jsonl does not. */
+const kimiIgnored = new Set([
+  'TurnEnd',
+  'StepBegin',
+  'StepInterrupted',
+  'StepRetry',
+  'CompactionBegin',
+  'CompactionEnd',
+  'MCPLoadingBegin',
+  'MCPLoadingEnd',
+  'StatusUpdate',
+  'Notification',
+  'ThinkPart',
+  'ImageURLPart',
+  'AudioURLPart',
+  'VideoURLPart',
+  'ToolCall',
+  'ToolCallPart',
+  'ToolResult',
+  'ApprovalRequest',
+  'ApprovalResponse',
+  'ApprovalRequestResolved',
+  'ToolCallRequest',
+  'QuestionRequest',
+  'QuestionResponse',
+  'HookRequest',
+  'HookTriggered',
+  'HookResolved',
+  'SubagentEvent',
+  'PlanDisplay',
+  'BtwBegin',
+  'BtwEnd',
+])
+export const kimiSessionMapper: SessionMapper = (record, context) => {
+  if (record.type === 'metadata') {
+    if (
+      typeof record.protocol_version !== 'string' ||
+      !/^1\.(?:[1-9]|10)$/.test(record.protocol_version)
+    )
+      invalid()
+    return null
+  }
+  if (!ownObject(record.message) || !ownObject(record.message.payload))
+    invalid()
+  const { type, payload } = record.message
+  if (typeof type !== 'string') invalid()
+  if (kimiIgnored.has(type)) return null
+  if (!['TurnBegin', 'SteerInput', 'TextPart'].includes(type)) invalid()
+  if (
+    typeof record.timestamp !== 'number' ||
+    !Number.isFinite(record.timestamp) ||
+    record.timestamp < 0 ||
+    record.timestamp > 8640000000000
+  )
+    invalid()
+  if (
+    !context ||
+    !Number.isSafeInteger(context.byteOffset) ||
+    context.byteOffset < 0
+  )
+    invalid()
+  const user = type !== 'TextPart'
+  const value = user ? payload.user_input : payload.text
+  const text =
+    typeof value === 'string'
+      ? value
+      : user
+        ? blockTexts(value, new Set(['text']))
+        : invalid()
+  return finish(
+    `offset:${context.byteOffset}`,
+    new Date(record.timestamp * 1000).toISOString(),
+    user ? 'user' : 'assistant',
+    text,
+  )
+}
+
 /** Stable normalizer identities mixed into the read cursor's mapping
  * fingerprint; bump the suffix when a mapper's keep/extract rules change so
  * existing sources rescan instead of resuming with stale rules. */
 export const SESSION_NORMALIZER_IDS = {
   'claude-code': 'claude-code-session@2',
   codex: 'codex-session@2',
+  kimi: 'kimi-wire-session@1',
 } as const
 export type SessionSourceKind = keyof typeof SESSION_NORMALIZER_IDS
 export const SESSION_MAPPERS: Record<SessionSourceKind, SessionMapper> = {
   'claude-code': claudeSessionMapper,
   codex: codexSessionMapper,
+  kimi: kimiSessionMapper,
 }

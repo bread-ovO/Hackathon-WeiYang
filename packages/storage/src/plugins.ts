@@ -7,6 +7,7 @@ export type PluginGrant =
   | { kind: 'http-json'; domain: string; credentialId?: string }
   | { kind: 'local-jsonl'; path: string }
 export interface SafePlugin {
+  sourceInstanceId: string
   id: string
   projectId: string
   displayName: string
@@ -32,7 +33,7 @@ export interface PluginActivation {
   manifest: object
   grant: PluginGrant
 }
-const summary = `SELECT p.id,p.project_id AS projectId,p.display_name AS displayName,p.version,p.digest,
+const summary = `SELECT p.id,p.source_instance_id AS sourceInstanceId,p.project_id AS projectId,p.display_name AS displayName,p.version,p.digest,
  CASE WHEN p.enabled=0 THEN 'disabled' WHEN p.has_error=1 THEN 'error' ELSE 'active' END AS status,
  p.grant_version AS grantVersion,p.last_success_at AS lastSuccessAt,
  (SELECT count(*) FROM source_events e WHERE e.source_id=p.source_instance_id) AS eventCount

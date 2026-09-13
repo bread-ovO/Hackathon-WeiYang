@@ -52,6 +52,7 @@ export function prepareEventProcessing(
     revision: event.revision,
     ...extractExplicitCommitments({
       text: event.text,
+      occurredAt: event.occurredAt,
       role: event.role,
       ...(event.operation ? { operation: event.operation } : {}),
     }),

@@ -51,3 +51,8 @@ export async function readBoundedUtf8(
     }
   }
 }
+
+export {
+  createGithubAccountFetcher,
+  verifyGithubAccount,
+} from './github-account'

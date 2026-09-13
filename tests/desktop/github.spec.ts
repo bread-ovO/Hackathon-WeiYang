@@ -57,6 +57,11 @@ test('Github observation UI preserves pause schedule and never treats PR merge a
     await expect(
       panel.getByRole('button', { name: '验证并启用仓库' }),
     ).toBeDisabled()
+    await panel.getByLabel('GitHub监听范围').selectOption('account')
+    await expect(panel.getByLabel('GitHub所有者')).toHaveCount(0)
+    await expect(panel.getByLabel('GitHub仓库名')).toHaveCount(0)
+    await panel.getByLabel('GitHub监听范围').selectOption('repository')
+    await expect(panel.getByLabel('GitHub所有者')).toBeVisible()
     const before = await page.evaluate(() => window.memo.github.list())
     if (!before.ok) throw Error('LIST_FAILED')
     const connection = before.data.connections[0]!
@@ -65,7 +70,7 @@ test('Github observation UI preserves pause schedule and never treats PR merge a
     expect(Object.keys(connection)).not.toContain('token')
     await panel.getByRole('button', { name: '查看 PR 观察记录' }).click()
     const records = panel.getByRole('region', {
-      name: 'PR观察记录 fictional-owner/fictional-repository',
+      name: 'GitHub观察记录 fictional-owner/fictional-repository',
     })
     await expect(records).toContainText('打开中')
     await expect(records).toContainText('已关闭')

@@ -682,7 +682,10 @@ function App() {
                                   {e.app} · {e.time}
                                 </small>
                               </span>
-                              <span className="evidence-toggle" aria-hidden="true">
+                              <span
+                                className="evidence-toggle"
+                                aria-hidden="true"
+                              >
                                 {evidence === i ? '−' : '+'}
                               </span>
                             </AppButton>
@@ -765,6 +768,9 @@ function App() {
               description="收录本机 Codex 会话"
             >
               <SessionSources kind="codex" />
+            </Disclosure>
+            <Disclosure id="preset-kimi" title="Kimi 会话">
+              <SessionSources kind="kimi" />
             </Disclosure>
             <Disclosure
               id="preset-plugins"

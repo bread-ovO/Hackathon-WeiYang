@@ -14,7 +14,11 @@ import { spawnSync } from 'node:child_process'
 import Database from 'better-sqlite3'
 import { openStore as openProductionStore } from '@memo/storage'
 import { migrateSearch } from '../../packages/storage/src/search'
-import { openFoundationStore as openStore, type FoundationStore as Store, type StoreOptions } from '@memo/storage/foundation'
+import {
+  openFoundationStore as openStore,
+  type FoundationStore as Store,
+  type StoreOptions,
+} from '@memo/storage/foundation'
 import { JobRunner, ingestNextPage } from '@memo/application'
 import {
   setup,
@@ -136,26 +140,29 @@ function seedLegacy(path: string): void {
 }
 
 async function main(): Promise<void> {
-  await test('merge: production refuses foundation v2 without changing data', env => {
+  await test('merge: production refuses foundation v2 without changing data', (env) => {
     const store = env.create()
     receive(store, [event()])
     store.close()
     const before = readFileSync(env.path)
-    assert.throws(() => openProductionStore(env.path), /INCOMPATIBLE_DATABASE_FORMAT/)
+    assert.throws(
+      () => openProductionStore(env.path),
+      /INCOMPATIBLE_DATABASE_FORMAT/,
+    )
     assert.deepEqual(readFileSync(env.path), before)
     assert.equal(env.open().health().eventCount, 1)
   })
-  await test('merge: foundation refuses production v18 without changing data', env => {
+  await test('merge: foundation refuses production v18 without changing data', (env) => {
     const store = openProductionStore(env.path)
     store.close()
     const before = readFileSync(env.path)
     assert.throws(() => env.open(), /DATABASE_TOO_NEW/)
     assert.deepEqual(readFileSync(env.path), before)
     const reopened = openProductionStore(env.path)
-    assert.equal(reopened.health().schemaVersion, 18)
+    assert.equal(reopened.health().schemaVersion, 20)
     reopened.close()
   })
-  await test('merge: production v2 is distinguishable and still upgrades to v18', env => {
+  await test('merge: production v2 is distinguishable and still upgrades to v18', (env) => {
     seedLegacy(env.path)
     const db = new Database(env.path)
     migrateSearch(db)
@@ -164,7 +171,7 @@ async function main(): Promise<void> {
     assert.throws(() => env.open(), /INCOMPATIBLE_DATABASE_FORMAT/)
     assert.deepEqual(readFileSync(env.path), before)
     const upgraded = openProductionStore(env.path)
-    assert.equal(upgraded.health().schemaVersion, 18)
+    assert.equal(upgraded.health().schemaVersion, 20)
     upgraded.close()
   })
   await test('S03/S04: whole-page atomicity, stable receipts and conflict detection', (env) => {

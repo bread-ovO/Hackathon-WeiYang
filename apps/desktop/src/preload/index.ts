@@ -50,6 +50,11 @@ const bridge: DesktopBridge = {
       }),
   }),
   github: Object.freeze({
+    connectAccount: (input) =>
+      ipcRenderer.invoke('memo:request', {
+        ...input,
+        method: 'github.connectAccount',
+      }),
     list: () => ipcRenderer.invoke('memo:request', { method: 'github.list' }),
     connect: (input) =>
       ipcRenderer.invoke('memo:request', {
@@ -73,9 +78,15 @@ const bridge: DesktopBridge = {
       }),
   }),
   pet: Object.freeze({
-    voiceState: () => ipcRenderer.invoke('memo:request',{method:'pet.voiceState'}),
-    configureVoice: input => ipcRenderer.invoke('memo:request',{method:'pet.configureVoice',...input}),
-    stopVoice: () => ipcRenderer.invoke('memo:request',{method:'pet.stopVoice'}),
+    voiceState: () =>
+      ipcRenderer.invoke('memo:request', { method: 'pet.voiceState' }),
+    configureVoice: (input) =>
+      ipcRenderer.invoke('memo:request', {
+        method: 'pet.configureVoice',
+        ...input,
+      }),
+    stopVoice: () =>
+      ipcRenderer.invoke('memo:request', { method: 'pet.stopVoice' }),
     contextState: () =>
       ipcRenderer.invoke('memo:request', { method: 'pet.contextState' }),
     configureContext: (input) =>
@@ -144,7 +155,8 @@ const bridge: DesktopBridge = {
   }),
   health: () => ipcRenderer.invoke('memo:request', { method: 'health' }),
   plugins: Object.freeze({
-    startDemo: () => ipcRenderer.invoke('memo:request', { method: 'plugins.startDemo' }),
+    startDemo: () =>
+      ipcRenderer.invoke('memo:request', { method: 'plugins.startDemo' }),
     list: () => ipcRenderer.invoke('memo:request', { method: 'plugins.list' }),
     inspect: () =>
       ipcRenderer.invoke('memo:request', { method: 'plugins.inspect' }),
@@ -294,6 +306,11 @@ const bridge: DesktopBridge = {
         method: 'workspace.createTask',
         projectId,
         title,
+      }),
+    mergeTasks: (request) =>
+      ipcRenderer.invoke('memo:request', {
+        ...request,
+        method: 'workspace.mergeTasks',
       }),
     updateTask: (request) =>
       ipcRenderer.invoke('memo:request', {

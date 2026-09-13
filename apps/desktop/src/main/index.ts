@@ -145,8 +145,14 @@ else {
       const bundledPetRoot = app.isPackaged
         ? join(process.resourcesPath, 'app.asar.unpacked/out/bundled-pet')
         : join(__dirname, '../bundled-pet')
-      const showBundledPet = await initializeBundledPet(bundledPetRoot, data, petWorker)
-        .catch(() => { console.error('BUNDLED_PET_INIT_FAILED'); return false })
+      const showBundledPet = await initializeBundledPet(
+        bundledPetRoot,
+        data,
+        petWorker,
+      ).catch(() => {
+        console.error('BUNDLED_PET_INIT_FAILED')
+        return false
+      })
       const pets = createPetImportFlow({
         worker: petWorker,
         pickDirectory: async () => {
@@ -525,6 +531,7 @@ else {
             if (
               request.method === 'github.list' ||
               request.method === 'github.connect' ||
+              request.method === 'github.connectAccount' ||
               request.method === 'github.setEnabled' ||
               request.method === 'github.revoke' ||
               request.method === 'github.sync' ||
@@ -635,12 +642,16 @@ else {
                   title:
                     request.kind === 'claude-code'
                       ? '选择 Claude Code 会话目录'
-                      : '选择 Codex 会话目录',
+                      : request.kind === 'kimi'
+                        ? '选择 Kimi 会话目录'
+                        : '选择 Codex 会话目录',
                   defaultPath: join(
                     homedir(),
                     request.kind === 'claude-code'
                       ? '.claude/projects'
-                      : '.codex/sessions',
+                      : request.kind === 'kimi'
+                        ? '.kimi/sessions'
+                        : '.codex/sessions',
                   ),
                   properties: ['openDirectory'],
                 })

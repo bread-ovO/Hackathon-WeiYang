@@ -1,3 +1,8 @@
+import {
+  parseGithubAccountCursor,
+  parseGithubAccountObservation,
+} from '@memo/contracts'
+import { createHash } from 'node:crypto'
 import type Database from 'better-sqlite3'
 import { parseContextTimestamp } from '@memo/domain'
 import { randomUUID } from 'node:crypto'
@@ -17,6 +22,8 @@ export const githubFailureCodes = [
 ] as const
 export type GithubFailureCode = (typeof githubFailureCodes)[number]
 export interface GithubConnection {
+  mode?: 'repository' | 'account'
+  errorScope?: string | null
   id: string
   projectId: string
   owner: string
@@ -38,6 +45,7 @@ export interface GithubAuthorized extends GithubConnection {
   revoked: boolean
 }
 export interface GithubAuthorizeInput {
+  mode?: 'repository' | 'account'
   projectId: string
   owner: string
   repo: string
@@ -54,6 +62,7 @@ export interface GithubBatchInput {
   nextPollAt: number
 }
 export interface GithubFailureInput {
+  errorScope?: string
   id: string
   expectedGrantVersion: number
   expectedPollVersion: number
@@ -77,17 +86,28 @@ function integer(v: unknown, min = 0): asserts v is number {
   if (typeof v !== 'number' || !Number.isSafeInteger(v) || v < min) invalid()
 }
 function cursor(v: unknown): asserts v is string {
+  if (typeof v === 'string' && v.startsWith('{')) {
+    parseGithubAccountCursor(v)
+    return
+  }
   if (
     typeof v !== 'string' ||
     (v !== '' && (!/^[1-9][0-9]{0,4}$/.test(v) || Number(v) > 10000))
   )
     invalid()
 }
-const summary = `SELECT g.source_id AS id,g.project_id AS projectId,g.owner,g.repo,g.repository_id AS repositoryId,g.credential_id AS credentialId,g.grant_version AS grantVersion,g.next_poll_at AS nextPollAt,g.last_success_at AS lastSuccessAt,g.error_code AS errorCode,g.failure_count AS failureCount,CASE WHEN g.revoked=1 THEN 'revoked' WHEN g.enabled=0 THEN 'paused' WHEN g.error_code IS NOT NULL THEN 'error' ELSE 'active' END AS status,(SELECT count(*) FROM source_events e JOIN event_projects ep ON ep.event_id=e.id AND ep.project_id=g.project_id WHERE e.source_id=g.source_id) AS eventCount FROM github_connections g`
+const summary = `SELECT g.error_scope AS errorScope,g.mode,g.source_id AS id,g.project_id AS projectId,g.owner,g.repo,g.repository_id AS repositoryId,g.credential_id AS credentialId,g.grant_version AS grantVersion,g.next_poll_at AS nextPollAt,g.last_success_at AS lastSuccessAt,g.error_code AS errorCode,g.failure_count AS failureCount,CASE WHEN g.revoked=1 THEN 'revoked' WHEN g.enabled=0 THEN 'paused' WHEN g.error_code IS NOT NULL THEN 'error' ELSE 'active' END AS status,(SELECT count(*) FROM source_events e JOIN event_projects ep ON ep.event_id=e.id AND ep.project_id=g.project_id WHERE e.source_id=g.source_id) AS eventCount FROM github_connections g`
 export function migrateGithub(db: Database.Database) {
   db.transaction(() =>
     db.exec(
       `CREATE TABLE github_connections(source_id TEXT PRIMARY KEY REFERENCES source_instances(id),project_id TEXT NOT NULL REFERENCES projects(id),owner TEXT NOT NULL,repo TEXT NOT NULL,repository_id INTEGER NOT NULL CHECK(repository_id>0),credential_id TEXT NOT NULL,grant_version INTEGER NOT NULL DEFAULT 1 CHECK(grant_version>0 AND grant_version<=9007199254740991),poll_version INTEGER NOT NULL DEFAULT 1 CHECK(poll_version>0 AND poll_version<=9007199254740991),enabled INTEGER NOT NULL DEFAULT 1 CHECK(enabled IN (0,1)),revoked INTEGER NOT NULL DEFAULT 0 CHECK(revoked IN (0,1)),next_poll_at INTEGER NOT NULL DEFAULT 0 CHECK(next_poll_at>=0),last_success_at TEXT,error_code TEXT CHECK(error_code IS NULL OR error_code IN (${githubFailureCodes.map((c) => `'${c}'`).join(',')})),failure_count INTEGER NOT NULL DEFAULT 0 CHECK(failure_count>=0));CREATE TABLE github_credential_cooldowns(credential_id TEXT PRIMARY KEY,not_before INTEGER NOT NULL CHECK(not_before>=0 AND not_before<=8640000000000000),failure_count INTEGER NOT NULL CHECK(failure_count>=1 AND failure_count<=1000000));CREATE UNIQUE INDEX github_active_repo ON github_connections(project_id,owner,repo) WHERE revoked=0;PRAGMA user_version=12;`,
+    ),
+  )()
+}
+export function migrateGithubAccount(db: Database.Database) {
+  db.transaction(() =>
+    db.exec(
+      "ALTER TABLE github_connections ADD COLUMN mode TEXT NOT NULL DEFAULT 'repository' CHECK(mode IN ('repository','account'));ALTER TABLE github_connections ADD COLUMN error_scope TEXT;PRAGMA user_version=20;",
     ),
   )()
 }
@@ -150,6 +170,17 @@ export function createGithub(
       (e.operation ?? 'upsert') !== 'upsert'
     )
       invalid()
+    if (g.mode === 'account') {
+      const p = parseGithubAccountObservation(JSON.parse(e.text))
+      if (
+        e.externalId !==
+          `repo:${p.repositoryId}:${p.objectKind}:${p.objectId}` ||
+        e.occurredAt !== p.updatedAt ||
+        e.revision !== createHash('sha256').update(e.text).digest('hex')
+      )
+        invalid()
+      return e
+    }
     let payload: Record<string, unknown> = {}
     try {
       payload = JSON.parse(e.text)
@@ -282,6 +313,8 @@ export function createGithub(
     },
     getAuthorized,
     authorize: db.transaction((i: GithubAuthorizeInput) => {
+      if (i.mode !== undefined && !['repository', 'account'].includes(i.mode))
+        invalid()
       text(i.projectId)
       text(i.credentialId, 128)
       integer(i.repositoryId, 1)
@@ -289,7 +322,9 @@ export function createGithub(
         typeof i.owner !== 'string' ||
         !/^[a-z0-9](?:[a-z0-9-]{0,38})$/i.test(i.owner) ||
         typeof i.repo !== 'string' ||
-        !/^[a-z0-9_.-]{1,100}$/i.test(i.repo) ||
+        (i.mode === 'account'
+          ? i.repo !== ''
+          : !/^[a-z0-9_.-]{1,100}$/i.test(i.repo)) ||
         ['.', '..'].includes(i.repo)
       )
         invalid()
@@ -308,8 +343,16 @@ export function createGithub(
       const id = randomUUID()
       db.prepare('INSERT INTO source_instances(id) VALUES(?)').run(id)
       db.prepare(
-        'INSERT INTO github_connections(source_id,project_id,owner,repo,repository_id,credential_id) VALUES(?,?,?,?,?,?)',
-      ).run(id, i.projectId, owner, repo, i.repositoryId, i.credentialId)
+        'INSERT INTO github_connections(source_id,project_id,owner,repo,repository_id,credential_id,mode) VALUES(?,?,?,?,?,?,?)',
+      ).run(
+        id,
+        i.projectId,
+        owner,
+        repo,
+        i.repositoryId,
+        i.credentialId,
+        i.mode ?? 'repository',
+      )
       return get(id)
     }),
     setEnabled: db.transaction((id: string, enabled: boolean) => {
@@ -356,7 +399,7 @@ export function createGithub(
         g.id,
       )
       db.prepare(
-        'UPDATE github_connections SET next_poll_at=?,last_success_at=?,error_code=NULL,failure_count=0,poll_version=poll_version+1 WHERE source_id=?',
+        'UPDATE github_connections SET next_poll_at=?,last_success_at=?,error_code=NULL,error_scope=NULL,failure_count=0,poll_version=poll_version+1 WHERE source_id=?',
       ).run(i.nextPollAt, new Date().toISOString(), g.id)
       return {
         inserted,
@@ -365,6 +408,11 @@ export function createGithub(
       }
     }),
     recordFailure: db.transaction((i: GithubFailureInput) => {
+      if (
+        i.errorScope !== undefined &&
+        !/^[a-z0-9][a-z0-9-]{0,38}\/[a-z0-9_.-]{1,100}$/.test(i.errorScope)
+      )
+        invalid()
       integer(i.nextPollAt)
       if (!githubFailureCodes.includes(i.errorCode)) invalid()
       let g: GithubAuthorized
@@ -384,8 +432,13 @@ export function createGithub(
         throw error
       }
       db.prepare(
-        'UPDATE github_connections SET next_poll_at=?,error_code=?,failure_count=min(failure_count+1,1000000),poll_version=poll_version+1 WHERE source_id=?',
-      ).run(Math.max(g.nextPollAt, i.nextPollAt), i.errorCode, g.id)
+        'UPDATE github_connections SET next_poll_at=?,error_code=?,error_scope=?,failure_count=min(failure_count+1,1000000),poll_version=poll_version+1 WHERE source_id=?',
+      ).run(
+        Math.max(g.nextPollAt, i.nextPollAt),
+        i.errorCode,
+        i.errorScope ?? null,
+        g.id,
+      )
       return true
     }),
     records(i: { id: string; cursor?: string; limit?: number }) {

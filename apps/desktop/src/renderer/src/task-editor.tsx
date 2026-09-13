@@ -1,3 +1,4 @@
+import { TaskMerge } from './task-merge'
 import { Disclosure } from './ui/disclosure'
 import { X } from '@phosphor-icons/react'
 import { SourceAssociations } from './source-associations'
@@ -47,10 +48,11 @@ type EditorDraft = {
 const editorDrafts = new Map<string, EditorDraft>()
 export function TaskEditor({
   task,
-  busy,
+  busy: externalBusy,
   update,
   replace,
   close,
+  openRelated,
   onPlanApplied,
 }: {
   task: WorkspaceTask
@@ -61,8 +63,14 @@ export function TaskEditor({
     baseline?: EditorBaseline,
   ) => Promise<void>
   onPlanApplied: (task: WorkspaceTask) => void
+  openRelated: (id: string) => void
   close: () => void
 }) {
+  const [merge, setMerge] = useState<{
+    mergedInto: string | null
+    mergedFrom: { id: string; title: string }[]
+  }>({ mergedInto: null, mergedFrom: [] })
+  const busy = externalBusy || !!merge.mergedInto
   const draftKey = JSON.stringify([task.projectId, task.id])
   const restored = useRef(editorDrafts.get(draftKey))
   const [baseline, setBaseline] = useState<EditorBaseline>(
@@ -132,6 +140,7 @@ export function TaskEditor({
           if (preservePlanDrafts.current !== task.version)
             setItems(r.data.criteria.items.map((x) => ({ ...x })))
           setProvenance(r.data.provenance ?? [])
+          setMerge(r.data.merge ?? { mergedInto: null, mergedFrom: [] })
         } else setError('条件读取失败，请刷新事项。')
       })
       .catch(() => {
@@ -215,6 +224,14 @@ export function TaskEditor({
       </div>
       <div className="real-editor">
         <h2>{task.title}</h2>
+        {merge.mergedInto && (
+          <p>
+            此事项已合并，历史记录只读。
+            <AppButton onClick={() => openRelated(merge.mergedInto!)}>
+              打开目标事项
+            </AppButton>
+          </p>
+        )}
         {staleDraft && (
           <section role="alert" aria-label="草稿版本冲突">
             <p>事项已在别处更新，旧草稿已保留。请核对当前保存内容后再提交。</p>
@@ -355,7 +372,8 @@ export function TaskEditor({
               <form
                 onSubmit={(e) => {
                   e.preventDefault()
-                  if (!staleDraft) void update({ title: title.trim() }, baseline)
+                  if (!staleDraft)
+                    void update({ title: title.trim() }, baseline)
                 }}
               >
                 <AppInput
@@ -404,7 +422,10 @@ export function TaskEditor({
                     return
                   }
                   if (!staleDraft)
-                    void update({ dueAt: date?.toISOString() ?? null }, baseline)
+                    void update(
+                      { dueAt: date?.toISOString() ?? null },
+                      baseline,
+                    )
                 }}
               >
                 <label htmlFor="task-due">截止时间（本机时区）</label>
@@ -442,9 +463,9 @@ export function TaskEditor({
                   onChange={(e) =>
                     void update({
                       admission: e.target.value as
-                      | 'candidate'
-                      | 'accepted'
-                      | 'ignored',
+                        | 'candidate'
+                        | 'accepted'
+                        | 'ignored',
                     })
                   }
                 >
@@ -564,6 +585,22 @@ export function TaskEditor({
           </>
         ) : (
           <p>旧事项尚未分配项目，暂不可编辑。</p>
+        )}
+        {merge.mergedFrom.length > 0 && (
+          <Disclosure title="合并来源与原始历史" id="merge-history">
+            {merge.mergedFrom.map((t) => (
+              <AppButton key={t.id} onClick={() => openRelated(t.id)}>
+                {t.title}
+              </AppButton>
+            ))}
+          </Disclosure>
+        )}
+        {!merge.mergedInto && !task.archivedAt && (
+          <TaskMerge
+            task={task}
+            disabled={busy}
+            onMerged={(next) => openRelated(next.id)}
+          />
         )}
         <Disclosure title="关联、改期与历史">
           {task.projectId && (

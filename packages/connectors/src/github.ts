@@ -36,7 +36,10 @@ export type GithubErrorCode =
   | 'GITHUB_AUTH_FAILED'
   | 'GITHUB_REPOSITORY_CHANGED'
 export class GithubConnectorError extends Error {
-  constructor(readonly code: GithubErrorCode) {
+  constructor(
+    readonly code: GithubErrorCode,
+    readonly scope?: string,
+  ) {
     super(code)
     this.name = 'GithubConnectorError'
   }
@@ -70,7 +73,7 @@ const header = (headers: Record<string, string>, name: string) =>
   Object.entries(headers).find(([key]) => key.toLowerCase() === name)?.[1]
 
 /** Fixed, scrubbed classification. Permission failures must not masquerade as rate limits. */
-function checkGithubResponseStatus(response: {
+export function checkGithubResponseStatus(response: {
   status: number
   headers: Record<string, string>
   body?: unknown
