@@ -114,6 +114,7 @@ test('real IPC rejects foreign windows and malformed requests; source text stays
     expect(
       await page.evaluate(() => Object.keys(window.memo.workspace)),
     ).toEqual([
+      'timeline',
       'listReferences',
       'reviewReference',
       'confirmReference',

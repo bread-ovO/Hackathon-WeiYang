@@ -70,6 +70,8 @@ parentPort.on('message', async ({ data }) => {
     reply = {
       ok: false,
       error:
+        code === 'TIMELINE_INVALID_CURSOR' ||
+        code === 'TIMELINE_CORRUPT_DATA' ||
         code === 'FEISHU_PAGE_LOOP' ||
         code === 'FEISHU_PAGE_LIMIT' ||
         code === 'INVALID_REFERENCE_REVIEW' ||
@@ -94,7 +96,7 @@ parentPort.on('message', async ({ data }) => {
                     ? 'NOT_FOUND'
                     : code === 'VERSION_CONFLICT'
                       ? 'VERSION_CONFLICT'
-                      : code === 'TASK_NOT_IN_PROJECT'
+                      : code === 'TASK_NOT_IN_PROJECT' || code === 'NOT_FOUND'
                         ? 'NOT_FOUND'
                         : 'INVALID_REQUEST',
     }

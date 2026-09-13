@@ -1,3 +1,5 @@
+import { migrateReferenceAudit } from './reference-audit'
+import { createTimeline } from './timeline'
 import { createFeishu, migrateFeishu } from './feishu'
 export type {
   FeishuConnection,
@@ -84,7 +86,7 @@ export function openStore(path: string) {
     db.pragma('synchronous = FULL')
     db.pragma('busy_timeout = 3000')
     const version = db.pragma('user_version', { simple: true }) as number
-    if (version > 13) throw new Error('DATABASE_TOO_NEW')
+    if (version > 14) throw new Error('DATABASE_TOO_NEW')
     if (version < 1)
       db.transaction(() => {
         db.exec(`
@@ -118,6 +120,7 @@ export function openStore(path: string) {
     if (version < 11) migrateRevisionReview(db)
     if (version < 12) migrateGithub(db)
     if (version < 13) migrateFeishu(db)
+    if (version < 14) migrateReferenceAudit(db)
     const revisionReview = createRevisionReview(db)
     const retractions = createRetractions(db)
     const ingestion = createIngestionBudget(db)
@@ -136,6 +139,7 @@ export function openStore(path: string) {
     const github = createGithub(db, receive, observeEvent)
     const feishu = createFeishu(db, receive, observeEvent)
     return {
+      timeline: createTimeline(db),
       feishu: {
         ...feishu,
         receiveBatch: (input: Parameters<typeof feishu.receiveBatch>[0]) =>

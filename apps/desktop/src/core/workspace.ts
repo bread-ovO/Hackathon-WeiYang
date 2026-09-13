@@ -6,13 +6,23 @@ import type {
   WorkspaceDetail,
   ReferenceList,
   ReferenceReview,
+  TimelinePage,
 } from '@memo/contracts'
 export function handleWorkspace(
   store: ReturnType<typeof openStore>,
   request: WorkspaceRequest,
-): WorkspaceSnapshot | WorkspaceDetail | ReferenceList | ReferenceReview {
+):
+  | WorkspaceSnapshot
+  | WorkspaceDetail
+  | ReferenceList
+  | ReferenceReview
+  | TimelinePage {
   const by = { actorId: 'local-user', reason: '用户在我的工作区手动操作' }
   switch (request.method) {
+    case 'workspace.timeline': {
+      const { method: _, ...input } = request
+      return store.timeline.list(input)
+    }
     case 'workspace.listReferences': {
       const { method: _, ...input } = request
       return store.revisionReview.listReferences(input)

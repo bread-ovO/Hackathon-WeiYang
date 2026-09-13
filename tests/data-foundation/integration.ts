@@ -145,17 +145,17 @@ async function main(): Promise<void> {
     assert.deepEqual(readFileSync(env.path), before)
     assert.equal(env.open().health().eventCount, 1)
   })
-  await test('merge: foundation refuses production v13 without changing data', env => {
+  await test('merge: foundation refuses production v14 without changing data', env => {
     const store = openProductionStore(env.path)
     store.close()
     const before = readFileSync(env.path)
     assert.throws(() => env.open(), /DATABASE_TOO_NEW/)
     assert.deepEqual(readFileSync(env.path), before)
     const reopened = openProductionStore(env.path)
-    assert.equal(reopened.health().schemaVersion, 13)
+    assert.equal(reopened.health().schemaVersion, 14)
     reopened.close()
   })
-  await test('merge: production v2 is distinguishable and still upgrades to v13', env => {
+  await test('merge: production v2 is distinguishable and still upgrades to v14', env => {
     seedLegacy(env.path)
     const db = new Database(env.path)
     migrateSearch(db)
@@ -164,7 +164,7 @@ async function main(): Promise<void> {
     assert.throws(() => env.open(), /INCOMPATIBLE_DATABASE_FORMAT/)
     assert.deepEqual(readFileSync(env.path), before)
     const upgraded = openProductionStore(env.path)
-    assert.equal(upgraded.health().schemaVersion, 13)
+    assert.equal(upgraded.health().schemaVersion, 14)
     upgraded.close()
   })
   await test('S03/S04: whole-page atomicity, stable receipts and conflict detection', (env) => {
