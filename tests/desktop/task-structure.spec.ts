@@ -68,8 +68,9 @@ test('workspace tasks split selected criteria into a new task', async ({}, testI
           els.map((e) => (e as HTMLInputElement).value).sort(),
         )
     await expect.poll(criterionValues).toEqual(['反馈链接'])
-    // 拆出的新事项出现在列表中，且包含被移出的条件。
+    // 拆出的新事项出现在列表中，且包含被移出的条件。详情为模态，先关闭再点下一行。
     await expect(page.locator('.task-row')).toHaveCount(2)
+    await page.keyboard.press('Escape')
     await page.getByRole('button', { name: /拆出的补充测试/ }).click()
     await expect.poll(criterionValues).toEqual(['补充测试'])
     await page.screenshot({

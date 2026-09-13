@@ -173,11 +173,12 @@ test('local background processing preserves pause, citations, project scope and 
       manualVersion: manual.manualVersion,
     })
     // User-requested refresh does not let the background consumer overwrite the form.
+    // 详情为模态：先关闭详情，再操作列表上方的刷新条。
+    await page.getByRole('button', { name: '关闭详情' }).click()
     await expect(
       page.getByRole('button', { name: '刷新整理结果' }),
     ).toBeVisible({ timeout: 10000 })
     await page.getByRole('button', { name: '刷新整理结果' }).click()
-    await page.getByRole('button', { name: '关闭详情' }).click()
     await page
       .getByRole('button')
       .filter({

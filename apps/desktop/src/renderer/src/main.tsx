@@ -18,13 +18,12 @@ import {
   List,
   Link,
   MagnifyingGlass,
-  SlidersHorizontal,
+  GearSix,
   Plus,
   ArrowRight,
   Check,
   Clock,
   X,
-  CaretLeft,
   FileText,
   ChatsCircle,
   TerminalWindow,
@@ -40,6 +39,7 @@ import {
   AppDialog,
   DialogTitle,
   DialogDescription,
+  IconButton,
   StatusBadge,
   WorkspacePanel,
 } from './ui'
@@ -60,7 +60,6 @@ type IconName =
   | 'check'
   | 'clock'
   | 'close'
-  | 'back'
   | 'file'
   | 'chat'
   | 'terminal'
@@ -70,13 +69,12 @@ const icons: Record<IconName, PhosphorIcon> = {
   list: List,
   link: Link,
   search: MagnifyingGlass,
-  settings: SlidersHorizontal,
+  settings: GearSix,
   plus: Plus,
   arrow: ArrowRight,
   check: Check,
   clock: Clock,
   close: X,
-  back: CaretLeft,
   file: FileText,
   chat: ChatsCircle,
   terminal: TerminalWindow,
@@ -113,11 +111,13 @@ function App() {
   const [filter, setFilter] = useState<string>('全部'),
     [project, setProject] = useState('全部项目'),
     [query, setQuery] = useState(''),
-    [selected, setSelected] = useState<string | null>('01')
+    [selected, setSelected] = useState<string | null>(null)
   const [detailTab, setDetailTab] = useState('概览'),
     [evidence, setEvidence] = useState<number | null>(null),
     [modal, setModal] = useState(false),
     [draft, setDraft] = useState(''),
+    [draftProject, setDraftProject] = useState('日常协作'),
+    [draftDue, setDraftDue] = useState(''),
     [notice, setNotice] = useState('')
   const [undo, setUndo] = useState<Task[] | null>(null)
   const [realCount, setRealCount] = useState(0)
@@ -215,10 +215,10 @@ function App() {
       {
         id,
         title: draft.trim(),
-        project: '日常协作',
+        project: draftProject,
         status: '进行中',
         next: '手动添加，等待补充完成条件',
-        date: '待定',
+        date: draftDue ? new Date(draftDue).toLocaleString() : '待定',
         source: '手动添加',
         person: '我',
         quote: '手动添加的示例事项，尚未关联来源记录。',
@@ -231,6 +231,7 @@ function App() {
     setProject('全部项目')
     setSelected(id)
     setDraft('')
+    setDraftDue('')
     setModal(false)
     setUndo(null)
     setNotice('示例事项已添加，仅在本次预览中保留。')
@@ -349,7 +350,7 @@ function App() {
                 className={demo ? 'selected' : ''}
                 onClick={() => {
                   setDemo(true)
-                  setSelected('01')
+                  setSelected(null)
                 }}
               >
                 示例体验
@@ -436,7 +437,7 @@ function App() {
                 <kbd>⌘ K</kbd>
               </label>
             </div>
-            <div className={`work-body ${current ? 'has-detail' : ''}`}>
+            <div className="work-body">
               <section className="task-list" aria-label="事项列表">
                 <div className="list-caption">
                   <span>
@@ -511,16 +512,17 @@ function App() {
                     : '尚未接入应用 · 当前没有采集工作记录'}
                 </div>
               </section>
+            </div>
+            <AppDialog
+              open={!!current}
+              onOpenChange={(open) => {
+                if (!open) setSelected(null)
+              }}
+              className="detail-dialog"
+            >
               {current && (
                 <section className="detail" aria-label="事项详情">
                   <div className="detail-top">
-                    <AppButton
-                      className="icon-button"
-                      aria-label="关闭详情"
-                      onClick={() => setSelected(null)}
-                    >
-                      <Icon name="back" />
-                    </AppButton>
                     <span>
                       {current.project}
                       <span className="detail-number">
@@ -531,7 +533,16 @@ function App() {
                           : `事项 ${current.id}`}
                       </span>
                     </span>
-                    <StatusBadge status={current.status} />
+                    <div className="detail-top-actions">
+                      <StatusBadge status={current.status} />
+                      <IconButton
+                        label="关闭详情"
+                        className="detail-close"
+                        onClick={() => setSelected(null)}
+                      >
+                        <Icon name="close" />
+                      </IconButton>
+                    </div>
                   </div>
                   <div className="detail-scroll">
                     <h2>{current.title}</h2>
@@ -730,7 +741,7 @@ function App() {
                   </footer>
                 </section>
               )}
-            </div>
+            </AppDialog>
           </>
         ) : page === '连接' ? (
           <div className="standalone" key="connections">
@@ -810,6 +821,7 @@ function App() {
             >
               <CredentialsPanel />
             </Disclosure>
+            <p className="settings-group-label">诊断与说明</p>
             <Disclosure
               id="settings-runtime"
               title="运行状态"
@@ -896,29 +908,28 @@ function App() {
               撤销
             </AppButton>
           )}
-          <AppButton
-            aria-label="关闭提示"
+          <IconButton
+            label="关闭提示"
             onClick={() => {
               setNotice('')
               setUndo(null)
             }}
           >
             <Icon name="close" size={14} />
-          </AppButton>
+          </IconButton>
         </div>
       )}
       <AppDialog open={modal} onOpenChange={setModal}>
         <form onSubmit={addTask}>
           <div className="section-heading">
             <DialogTitle>添加示例事项</DialogTitle>
-            <AppButton
+            <IconButton
               type="button"
-              className="icon-button"
-              aria-label="关闭添加窗口"
+              label="关闭添加窗口"
               onClick={() => setModal(false)}
             >
               <Icon name="close" />
-            </AppButton>
+            </IconButton>
           </div>
           <DialogDescription className="muted">
             仅在本次设计预览中保留。
@@ -934,6 +945,29 @@ function App() {
             placeholder="例如：确认接口联调时间"
             autoFocus
             required
+          />
+          <label className="form-label" htmlFor="demo-task-project">
+            项目
+          </label>
+          <select
+            id="demo-task-project"
+            aria-label="示例事项项目"
+            value={draftProject}
+            onChange={(e) => setDraftProject(e.target.value)}
+          >
+            <option>工作台改版</option>
+            <option>开放平台</option>
+            <option>日常协作</option>
+          </select>
+          <label className="form-label" htmlFor="demo-task-due">
+            截止时间（可不填）
+          </label>
+          <AppInput
+            id="demo-task-due"
+            type="datetime-local"
+            aria-label="示例截止时间"
+            value={draftDue}
+            onChange={(e) => setDraftDue(e.target.value)}
           />
           <div className="modal-actions">
             <AppButton

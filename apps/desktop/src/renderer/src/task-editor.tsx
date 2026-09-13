@@ -7,7 +7,7 @@ import { PlanChanges } from './plan-changes'
 import { TaskTimeline } from './task-timeline'
 import { ReferenceList } from './reference-list'
 import './candidate-provenance.css'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import type {
   CoreRequest,
   WorkspaceTask,
@@ -56,6 +56,7 @@ export function TaskEditor({
   close,
   openRelated,
   onPlanApplied,
+  toolbar,
 }: {
   task: WorkspaceTask
   busy: boolean
@@ -70,6 +71,7 @@ export function TaskEditor({
   onPlanApplied: (task: WorkspaceTask) => void
   openRelated: (id: string) => void
   close: () => void
+  toolbar?: ReactNode
 }) {
   const [merge, setMerge] = useState<{
     mergedInto: string | null
@@ -222,9 +224,12 @@ export function TaskEditor({
     <section className="detail" aria-label="事项详情">
       <div className="detail-top">
         <span>事项详情</span>
-        <IconButton className="detail-close" label="关闭详情" onClick={close}>
-          <X size={16} aria-hidden="true" />
-        </IconButton>
+        <div className="detail-top-actions">
+          {toolbar}
+          <IconButton className="detail-close" label="关闭详情" onClick={close}>
+            <X size={16} aria-hidden="true" />
+          </IconButton>
+        </div>
       </div>
       <div className="real-editor">
         <h2>{task.title}</h2>

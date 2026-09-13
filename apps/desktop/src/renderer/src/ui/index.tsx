@@ -67,10 +67,14 @@ export function AppDialog({
   open,
   onOpenChange,
   children,
+  className = '',
+  size = 'lg',
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
   children: ReactNode
+  className?: string
+  size?: ComponentProps<typeof Dialog>['size']
 }) {
   const opener = useRef<HTMLElement | null>(null)
   useLayoutEffect(() => {
@@ -85,7 +89,7 @@ export function AppDialog({
         if (!isOpen && opener.current?.isConnected) opener.current.focus()
       }}
     >
-      <Dialog className="app-dialog" size="lg">
+      <Dialog className={`app-dialog ${className}`.trim()} size={size}>
         {children}
       </Dialog>
     </Dialog.Root>

@@ -44,7 +44,12 @@ test('compact actions are centered, labeled and settings cards work at both size
     await page.getByRole('button', { name: '我的工作区', exact: true }).click()
     await expect(page.getByLabel('真实事项标题')).toHaveCount(0)
     await expect(page.getByLabel('业务状态筛选')).toHaveCount(0)
-    for (const label of ['刷新', '导出', '新建事项', '筛选事项']) {
+    for (const [label, size] of [
+      ['刷新', 28],
+      ['导出', 28],
+      ['筛选事项', 28],
+      ['新建事项', 32],
+    ] as const) {
       const button = page.getByRole('button', { name: label, exact: true })
       await expect(button.locator('svg')).toHaveCount(1)
       const geometry = await button.evaluate((el) => {
@@ -57,8 +62,8 @@ test('compact actions are centered, labeled and settings cards work at both size
           dy: Math.abs((b.top + b.bottom - i.top - i.bottom) / 2),
         }
       })
-      expect(geometry.w).toBe(32)
-      expect(geometry.h).toBe(32)
+      expect(geometry.w).toBe(size)
+      expect(geometry.h).toBe(size)
       expect(geometry.dx).toBeLessThan(1)
       expect(geometry.dy).toBeLessThan(1)
     }
@@ -69,17 +74,19 @@ test('compact actions are centered, labeled and settings cards work at both size
     await page.getByRole('button', { name: '刷新', exact: true }).focus()
     await page.keyboard.press('Tab')
     await page.keyboard.press('Shift+Tab')
-    await expect(page.locator('.kumo-tooltip-popup')).toHaveText('刷新')
+    await expect(
+      page.locator('.kumo-tooltip-popup[data-open]'),
+    ).toHaveText('刷新')
     await page.getByRole('button', { name: /提交登录修复.*已收录/ }).click()
     await expect(page.getByLabel('编辑事项标题')).not.toBeVisible()
     await page.screenshot({ path: '/tmp/bugu-simple-workspace-wide.png' })
+    // 详情为居中模态：窄屏时模态仍完整适配宽度，列表保持在背景中。
     await app.evaluate(({ BrowserWindow }) =>
       BrowserWindow.getAllWindows()[0]!.setSize(980, 760),
     )
     await expect(
-      page.getByRole('region', { name: '事项列表' }),
-    ).not.toBeVisible()
-    await expect(page.getByRole('region', { name: '事项详情' })).toBeVisible()
+      page.getByRole('region', { name: '事项详情' }),
+    ).toBeVisible()
     expect(
       await page
         .locator('.detail')
