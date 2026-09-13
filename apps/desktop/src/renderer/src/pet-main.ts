@@ -3,6 +3,8 @@ import {
   createPetRecoveryBudget,
   petTargetFps,
 } from './pet-frame-budget'
+import { createPetAudioPlayer } from './pet-audio'
+import type { PetVoiceAudio, PetVoicePlayback } from '@memo/contracts'
 import { createPetPresentationPlayer, type PetPresentation } from './pet-bubble'
 import {
   bootLive2D,
@@ -12,11 +14,22 @@ import {
   type RuntimeModel,
 } from './pet-live2d'
 interface PetInput {
+  voiceAudio(input: {
+    id: string
+    version: number
+  }): Promise<PetVoiceAudio | null>
+  voiceReport(input: {
+    id: string
+    version: number
+    status: 'playing' | 'ended' | 'error'
+  }): Promise<void>
+  onVoiceStop(callback: () => void): () => void
   openContext(input: { id: string }): Promise<boolean>
   state(): Promise<{
     model: RuntimeModel | null
     visible: boolean
     presentation: PetPresentation | null
+    voice?: PetVoicePlayback
     preferences: { scale: number; alwaysOnTop: boolean; clickThrough: boolean }
   }>
   ack(input: { id: string; status: 'done' | 'unavailable' }): Promise<void>
@@ -40,6 +53,11 @@ declare global {
       recoveries: number
       contextState: 'ready' | 'lost' | 'recovering' | 'failed'
       modelId: string | null
+      audioPlaying: boolean
+      lipSyncAvailable: boolean
+      lipSyncLevel: number | null
+      lipSyncAppliedFrames: number
+      lipSyncParameters: { index: number; value: number }[]
       currentAction: {
         id: string | null
         kind: 'idle' | 'motion' | 'expression'
@@ -51,6 +69,7 @@ const canvas = document.getElementById('stage-gl') as HTMLCanvasElement
 const message = document.getElementById('pet-status') as HTMLDivElement
 const bubble = document.getElementById('pet-bubble') as HTMLDivElement
 const bubbleText = document.getElementById('pet-bubble-text') as HTMLDivElement
+const voiceStop = document.getElementById('pet-voice-stop') as HTMLButtonElement
 const contextButton = document.createElement('button')
 contextButton.type = 'button'
 contextButton.hidden = true
@@ -85,6 +104,11 @@ const diagnostics = (window.__petRender = {
   recoveries: 0,
   contextState: 'ready' as 'ready' | 'lost' | 'recovering' | 'failed',
   modelId: null as string | null,
+  audioPlaying: false as boolean,
+  lipSyncAvailable: false as boolean,
+  lipSyncLevel: null as number | null,
+  lipSyncAppliedFrames: 0,
+  lipSyncParameters: [] as { index: number; value: number }[],
   currentAction: {
     id: null as string | null,
     kind: 'idle' as 'idle' | 'motion' | 'expression',
@@ -119,6 +143,33 @@ const frameBudget = createPetFrameBudget(),
   recoveryBudget = createPetRecoveryBudget()
 let lastInteraction = -Infinity
 let selectedModel: RuntimeModel | null = null
+let voiceSnapshot: PetVoicePlayback | undefined
+const audio = createPetAudioPlayer({
+  audio: (request) => input?.voiceAudio(request) ?? Promise.resolve(null),
+  report: (request) => input?.voiceReport(request) ?? Promise.resolve(),
+  lip(level) {
+    diagnostics.lipSyncLevel = level
+    session?.setLipSyncLevel(level)
+  },
+  changed(playing) {
+    diagnostics.audioPlaying = playing
+    voiceStop.hidden = !playing
+  },
+})
+let voiceEpoch = 0
+const unsubscribeVoiceStop = input?.onVoiceStop(() => {
+  voiceEpoch++
+  audio.stop()
+})
+voiceStop.addEventListener('click', () => audio.stop())
+function stopAudio() {
+  audio.stop()
+  if (voiceSnapshot?.id && voiceSnapshot.status === 'synthesizing') {
+    const { id, version } = voiceSnapshot
+    void input?.voiceReport({ id, version, status: 'ended' }).catch(() => {})
+  }
+  voiceSnapshot = undefined
+}
 let recovery: {
   ticket: number
   model: RuntimeModel
@@ -299,6 +350,7 @@ const presentation = createPetPresentationPlayer({
     refreshHit()
   },
   hide() {
+    stopAudio()
     contextId = null
     contextButton.hidden = true
     bubble.hidden = true
@@ -333,6 +385,9 @@ function clear() {
   diagnostics.frames = 0
   diagnostics.modelId = null
   diagnostics.currentAction = { id: null, kind: 'idle' }
+  diagnostics.lipSyncAvailable = false
+  diagnostics.lipSyncAppliedFrames = 0
+  diagnostics.lipSyncParameters = []
   diagnostics.contextState = 'ready'
 }
 function select(model: RuntimeModel | null, restoring = false) {
@@ -370,6 +425,7 @@ function select(model: RuntimeModel | null, restoring = false) {
           return
         }
         session = created
+        diagnostics.lipSyncAvailable = created.lipSyncAvailable
         diagnostics.mode = created.mode
         diagnostics.error = null
         show('')
@@ -395,6 +451,7 @@ function select(model: RuntimeModel | null, restoring = false) {
 async function poll() {
   if (stopped || polling || !input) return
   polling = true
+  const voiceTicket = voiceEpoch
   try {
     const result = await input.state()
     if (stopped) return
@@ -415,8 +472,18 @@ async function poll() {
     refreshHit()
     if (!visible || document.hidden) stopFrames()
     select(result.model)
-    if (session && visible) presentation.sync(result.presentation ?? null)
-    else if (!visible) presentation.clear()
+    if (session && visible && !document.hidden) {
+      presentation.sync(result.presentation ?? null)
+      voiceSnapshot = result.voice
+      if (voiceTicket === voiceEpoch)
+        audio.sync(
+          result.voice,
+          result.presentation &&
+            presentation.isBubbleOpen(result.presentation.id)
+            ? result.presentation.id
+            : null,
+        )
+    } else if (!visible) presentation.clear()
     wakeFrames()
   } catch {
     if (stopped) return
@@ -485,6 +552,7 @@ function render(now: number) {
     return
   }
   if (session.isContextLost()) {
+    stopAudio()
     stopFrames()
     return
   }
@@ -493,7 +561,11 @@ function render(now: number) {
   diagnostics.targetFps = petTargetFps(now, lastInteraction, active)
   if (frameBudget.due(now, diagnostics.targetFps)) {
     try {
+      audio.tick()
       session.frame(now)
+      const lipState = session.lipSyncState()
+      diagnostics.lipSyncAppliedFrames = lipState.appliedFrames
+      diagnostics.lipSyncParameters = lipState.parameters
       diagnostics.frames++
       diagnostics.totalFrames++
       diagnostics.currentAction = session.currentAction()
@@ -524,6 +596,7 @@ const resize = () => {
   try {
     session?.resize()
   } catch {
+    stopAudio()
     session?.dispose()
     session = null
     diagnostics.mode = 'error'
@@ -538,6 +611,7 @@ window.addEventListener('resize', resize)
 document.addEventListener('visibilitychange', () => {
   stopFrames()
   if (document.hidden) {
+    stopAudio()
     pointer = null
     endDrag()
     refreshHit()
@@ -562,6 +636,8 @@ window.addEventListener(
     window.removeEventListener('pointerdown', interacted)
     window.removeEventListener('keydown', interacted)
     clear()
+    unsubscribeVoiceStop?.()
+    audio.dispose()
   },
   { once: true },
 )

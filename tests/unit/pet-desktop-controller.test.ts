@@ -52,6 +52,7 @@ vi.mock('../../apps/desktop/node_modules/electron', () => ({
       mainFrame: { url: 'memo-pet://app/pet.html' },
       setWindowOpenHandler: vi.fn(),
       on: vi.fn(),
+      send: vi.fn(),
     }
     constructor(readonly options: unknown) {
       mock.windows.push(this)
@@ -97,15 +98,18 @@ vi.mock('../../apps/desktop/src/main/pet/runtime-store', () => ({
 import {
   createPetDesktopController,
   validPetReport,
+  type PetDesktopDeps,
 } from '../../apps/desktop/src/main/pet/desktop-controller'
 const id = 'a'.repeat(64)
 function create(
   stateReader?: () => Promise<any>,
   mutations: { select?: () => Promise<any>; remove?: () => Promise<any> } = {},
   onDisplayChanged?: () => void,
-  openContext?: (id:string)=>Promise<boolean>,
+  openContext?: (id: string) => Promise<boolean>,
+  voice: Partial<PetDesktopDeps> = {},
 ) {
   return createPetDesktopController({
+    ...voice,
     onDisplayChanged,
     openContext,
     worker: { request: mock.model } as any,
@@ -472,19 +476,136 @@ it('a renderer that never completes recovery is destroyed on a bounded host dead
   }
 })
 
-it('opens only the current trusted contextual bubble from the actual pet sender',async()=>{
- const open=vi.fn(async()=>true),host=create(undefined,{},undefined,open)
- await host.show();const win=mock.windows[0],event={sender:win.webContents,senderFrame:win.webContents.mainFrame}
- mock.handlers.get('memo-pet:report')!(event,{modelId:id,status:'ready'})
- const presentationId=host.enqueueContext('查看事项','有效依据')!
- expect(presentationId).toBeTruthy();expect(host.isContextCurrent(presentationId)).toBe(true)
- const handler=mock.handlers.get('memo-pet:openContext')!
- await expect(handler({...event,sender:{}},{id:presentationId})).rejects.toThrow()
- await expect(handler(event,{id:presentationId,taskId:'forged'})).rejects.toThrow()
- expect(open).not.toHaveBeenCalled()
- await expect(handler(event,{id:presentationId})).resolves.toBe(true)
- expect(open).toHaveBeenCalledWith(presentationId)
- host.dismissBubble();expect(host.isContextCurrent(presentationId)).toBe(false)
- await expect(handler(event,{id:presentationId})).rejects.toThrow()
- host.dispose()
+it('opens only the current trusted contextual bubble from the actual pet sender', async () => {
+  const open = vi.fn(async () => true),
+    host = create(undefined, {}, undefined, open)
+  await host.show()
+  const win = mock.windows[0],
+    event = { sender: win.webContents, senderFrame: win.webContents.mainFrame }
+  mock.handlers.get('memo-pet:report')!(event, { modelId: id, status: 'ready' })
+  const presentationId = host.enqueueContext('查看事项', '有效依据')!
+  expect(presentationId).toBeTruthy()
+  expect(host.isContextCurrent(presentationId)).toBe(true)
+  const handler = mock.handlers.get('memo-pet:openContext')!
+  await expect(
+    handler({ ...event, sender: {} }, { id: presentationId }),
+  ).rejects.toThrow()
+  await expect(
+    handler(event, { id: presentationId, taskId: 'forged' }),
+  ).rejects.toThrow()
+  expect(open).not.toHaveBeenCalled()
+  await expect(handler(event, { id: presentationId })).resolves.toBe(true)
+  expect(open).toHaveBeenCalledWith(presentationId)
+  host.dismissBubble()
+  expect(host.isContextCurrent(presentationId)).toBe(false)
+  await expect(handler(event, { id: presentationId })).rejects.toThrow()
+  host.dispose()
+})
+
+it('voice IPC binds current bubble, generation, exact main frame and clears on ack/hide', async () => {
+  let currentId: string | null = null
+  const onPresentation = vi.fn((p: { id: string } | null) => {
+    currentId = p?.id ?? null
+  })
+  const voiceReport = vi.fn(),
+    voiceAudio = vi.fn(async (request: { id: string; version: number }) => ({
+      ...request,
+      volume: 0.6,
+      pcm: {
+        sampleRate: 8000,
+        channels: 1 as const,
+        format: 'f32le' as const,
+        frames: 1,
+        data: 'AAAAAA==',
+      },
+    }))
+  const host = create(undefined, {}, undefined, undefined, {
+    onPresentation,
+    voiceReport,
+    voiceAudio,
+    voicePlayback: () => ({
+      id: currentId,
+      version: 7,
+      status: 'synthesizing',
+    }),
+  })
+  await host.show()
+  const win = mock.windows[0],
+    event = { sender: win.webContents, senderFrame: win.webContents.mainFrame }
+  expect(win.options.webPreferences.autoplayPolicy).toBe(
+    'no-user-gesture-required',
+  )
+  mock.handlers.get('memo-pet:report')!(event, { modelId: id, status: 'ready' })
+  await host.speak({ text: '合成播音' })
+  const request = { id: host.currentPresentation()!.id, version: 7 }
+  expect(onPresentation).toHaveBeenLastCalledWith(
+    expect.objectContaining({ id: request.id, text: '合成播音' }),
+  )
+  const fetch = mock.handlers.get('memo-pet:voiceAudio')!,
+    reportVoice = mock.handlers.get('memo-pet:voiceReport')!
+  for (const bad of [
+    { ...request, version: 6 },
+    { ...request, path: '/fake' },
+    { ...request, id: 'other' },
+  ])
+    await expect(fetch(event, bad)).rejects.toThrow('INVALID_PET_VOICE')
+  await expect(fetch({ ...event, sender: {} }, request)).rejects.toThrow(
+    'INVALID_PET_VOICE',
+  )
+  await expect(
+    fetch({ ...event, senderFrame: { url: event.senderFrame.url } }, request),
+  ).rejects.toThrow('INVALID_PET_VOICE')
+  await expect(fetch(event, request, 'extra')).rejects.toThrow(
+    'INVALID_PET_VOICE',
+  )
+  expect(await fetch(event, request)).toMatchObject(request)
+  // A local close can cancel synthesis before there is a playing AudioContext.
+  reportVoice(event, { ...request, status: 'ended' })
+  expect(voiceReport).toHaveBeenCalledExactlyOnceWith({
+    ...request,
+    status: 'ended',
+  })
+  expect(() =>
+    reportVoice(event, { ...request, status: 'ended', text: 'not allowed' }),
+  ).toThrow('INVALID_PET_VOICE')
+  host.notifyVoiceStop()
+  expect(win.webContents.send).toHaveBeenCalledExactlyOnceWith(
+    'memo-pet:voiceStop',
+  )
+  mock.handlers.get('memo-pet:ack')!(event, { id: request.id, status: 'done' })
+  expect(onPresentation).toHaveBeenLastCalledWith(null)
+  await expect(fetch(event, request)).rejects.toThrow('INVALID_PET_VOICE')
+  await host.hide()
+  expect(host.currentPresentation()).toBeNull()
+  expect(onPresentation).toHaveBeenLastCalledWith(null)
+  host.dispose()
+  expect(mock.handlers.has('memo-pet:voiceAudio')).toBe(false)
+  expect(mock.handlers.has('memo-pet:voiceReport')).toBe(false)
+})
+
+it('never returns delayed PCM after the current presentation has changed', async () => {
+  let currentId: string | null = null,
+    release!: (value: any) => void
+  const host = create(undefined, {}, undefined, undefined, {
+    onPresentation: (p) => {
+      currentId = p?.id ?? null
+    },
+    voicePlayback: () => ({ id: currentId, version: 1, status: 'ready' }),
+    voiceAudio: () =>
+      new Promise((done) => {
+        release = done
+      }),
+  })
+  await host.show()
+  const win = mock.windows[0],
+    event = { sender: win.webContents, senderFrame: win.webContents.mainFrame }
+  mock.handlers.get('memo-pet:report')!(event, { modelId: id, status: 'ready' })
+  await host.speak({ text: '旧气泡' })
+  const request = { id: host.currentPresentation()!.id, version: 1 }
+  const reading = mock.handlers.get('memo-pet:voiceAudio')!(event, request)
+  await host.dismissBubble()
+  await host.speak({ text: '新气泡' })
+  release({ ...request, volume: 1, pcm: {} })
+  expect(await reading).toBeNull()
+  host.dispose()
 })

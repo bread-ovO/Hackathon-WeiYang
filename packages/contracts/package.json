@@ -6,6 +6,7 @@
   "exports": {
     ".": "./src/index.ts",
     "./pet-actions": "./src/pet-actions.ts",
+    "./pet-voice-pcm": "./src/pet-voice-pcm.ts",
     "./foundation": "./src/foundation.ts"
   },
   "dependencies": {

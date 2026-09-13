@@ -72,6 +72,13 @@ export function createPetPresentationPlayer(deps: PresentationDeps) {
   return {
     clear,
     tick,
+    isBubbleOpen(id: string) {
+      return (
+        active?.item.id === id &&
+        active.item.kind === 'bubble' &&
+        !active.bubbleDone
+      )
+    },
     sync(item: PetPresentation | null) {
       if (!item) {
         clear()

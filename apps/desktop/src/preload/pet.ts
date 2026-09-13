@@ -2,6 +2,9 @@ import { contextBridge, ipcRenderer } from 'electron'
 contextBridge.exposeInMainWorld(
   'petInput',
   Object.freeze({
+    voiceAudio: (input:{id:string;version:number})=>ipcRenderer.invoke('memo-pet:voiceAudio',input),
+    voiceReport: (input:{id:string;version:number;status:'playing'|'ended'|'error'})=>ipcRenderer.invoke('memo-pet:voiceReport',input),
+    onVoiceStop: (callback:()=>void)=>{const listener=()=>callback();ipcRenderer.on('memo-pet:voiceStop',listener);return()=>ipcRenderer.removeListener('memo-pet:voiceStop',listener)},
     openContext: (input: { id: string }) =>
       ipcRenderer.invoke('memo-pet:openContext', input),
     hitTest: (input: { interactive: boolean }) =>
