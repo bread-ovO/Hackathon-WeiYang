@@ -84,6 +84,7 @@ interface Setting {
   getMotionCount(group: string): number
   getMotionFileName(group: string, index: number): string
   getPhysicsFileName(): string
+  getPoseFileName(): string
   release(): void
 }
 interface Renderer {
@@ -148,6 +149,12 @@ interface Framework {
       buffer: ArrayBuffer,
       size: number,
     ): { evaluate(model: Model, delta: number): void; release(): void } | null
+  }
+  CubismPose: {
+    create(
+      buffer: ArrayBuffer,
+      size: number,
+    ): { updateParameters(model: Model, delta: number): void } | null
   }
 }
 const runtime = 'memo-pet://app/runtime/'
@@ -625,6 +632,22 @@ export async function bootLive2D(
       const ownedPhysics = physics
       release.push(() => ownedPhysics.release())
     }
+    // The pose file toggles visibility between overlapping part groups (for
+    // example crossed arms versus resting hands). Without it every variant
+    // draws at once. Optional like Idle: a broken pose degrades, never blocks.
+    // CubismPose holds no GPU/native state, so GC reclaims it with the session.
+    let pose:
+      | ReturnType<Framework['CubismPose']['create']>
+      | undefined
+    if (setting.getPoseFileName()) {
+      try {
+        const data = await bytes(resource(setting.getPoseFileName()), signal)
+        pose = F.CubismPose.create(data, data.byteLength) ?? undefined
+      } catch {
+        check(signal)
+        pose = undefined
+      }
+    }
     const ids = F.CubismFramework.getIdManager(),
       breathId = ids.getId('ParamBreath')
     const breathIndex = Array.from(
@@ -842,6 +865,7 @@ export async function bootLive2D(
             resumeIdle()
           }
           physics?.evaluate(model, delta)
+          pose?.updateParameters(model, delta)
           draw()
         } catch (error) {
           if (gl.isContextLost()) {

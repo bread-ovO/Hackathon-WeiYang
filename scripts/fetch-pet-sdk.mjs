@@ -163,6 +163,7 @@ export { CubismExpressionMotion } from './CubismSdkForWeb-5-r.5/Framework/src/mo
 export { CubismExpressionMotionManager } from './CubismSdkForWeb-5-r.5/Framework/src/motion/cubismexpressionmotionmanager'
 export { CubismMotionQueueManager } from './CubismSdkForWeb-5-r.5/Framework/src/motion/cubismmotionqueuemanager'
 export { CubismPhysics } from './CubismSdkForWeb-5-r.5/Framework/src/physics/cubismphysics'
+export { CubismPose } from './CubismSdkForWeb-5-r.5/Framework/src/effect/cubismpose'
 export { CubismModelSettingJson } from './CubismSdkForWeb-5-r.5/Framework/src/cubismmodelsettingjson'
 export { CubismJson } from './CubismSdkForWeb-5-r.5/Framework/src/utils/cubismjson'
 export { CubismIdManager } from './CubismSdkForWeb-5-r.5/Framework/src/id/cubismidmanager'

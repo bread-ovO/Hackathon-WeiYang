@@ -1,5 +1,5 @@
 {
-  "version": "cubism-web-5-r.5-lifecycle1",
+  "version": "cubism-web-5-r.5-lifecycle2",
   "files": [
     {
       "path": "core.js",
@@ -9,8 +9,8 @@
     },
     {
       "path": "framework.js",
-      "bytes": 181285,
-      "sha256": "535df09a428f381f387cfbde2fd77a02b2004aab581646e89b2518b245f03d23",
+      "bytes": 184570,
+      "sha256": "8c6e0c08ee3fbb4fa801f5178355ebf0ac04b224ed282046b12820078f6f7c58",
       "source": "dist/live2dcubismframework.min.js"
     },
     {
