@@ -12,22 +12,23 @@ const brand = [246, 130, 31] // --text-color-kumo-brand #f6821f
 const ink = [59, 36, 23] // --text-color-kumo-default (dark brown ink)
 
 /** Renders the brand mark centered on a transparent S×S canvas.
- * Same geometry as .brand-mark (three bars, -13deg skew, brand-colored
- * middle), re-proportioned to stay legible at 16–32px taskbar sizes. */
+ * Faithful replica of .brand-mark (and its rendered look in the app): bars
+ * and gaps share the SAME width (4u each, box 20u×24u), heights 16u/24u/16u,
+ * group skewed -13deg, middle bar in the Kumo brand color. Scaled up by
+ * u=S/32 so the mark stays legible at taskbar sizes. */
 function render(S) {
   const px = new Uint8Array(S * S * 4)
-  const k = S / 512
-  const boxW = 320 * k
-  const boxH = 340 * k
-  const barW = 70 * k
-  const gap = 18 * k
+  const u = S / 32
+  const barW = 4 * u
+  const gap = 4 * u
+  const boxW = 3 * barW + 2 * gap
   const cx = S / 2
   const cy = S / 2
   const skew = Math.tan((-13 * Math.PI) / 180)
   const bars = [
-    { h: 240 * k, color: ink },
-    { h: 340 * k, color: brand },
-    { h: 240 * k, color: ink },
+    { h: 16 * u, color: ink },
+    { h: 24 * u, color: brand },
+    { h: 16 * u, color: ink },
   ]
   let x = cx - boxW / 2
   for (const bar of bars) {
