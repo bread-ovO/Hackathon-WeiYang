@@ -3,7 +3,7 @@ import { join } from 'node:path'
 import { createRuntimeStore } from './runtime-store'
 import type { PetWorkerClient, PetSnapshot } from './worker-client'
 
-/** Explicit local demo package only. Never re-import after a user removes/deselects the sample. */
+/** Default packaged character. Never re-import after a user removes/deselects the sample. */
 export async function initializeBundledPet(
   root: string,
   data: string,
@@ -24,7 +24,7 @@ export async function initializeBundledPet(
   const manifest = JSON.parse(
     await readFile(join(root, 'demo.json'), 'utf8'),
   ) as { version?: unknown; entry?: unknown }
-  if (manifest.version !== 1 || manifest.entry !== 'Haru.model3.json')
+  if (manifest.version !== 1 || manifest.entry !== 'Hiyori.model3.json')
     throw new Error('INVALID_BUNDLED_PET')
   const prior = await worker.request('list')
   if (!prior.ok) throw new Error('PET_UNAVAILABLE')
@@ -41,7 +41,7 @@ export async function initializeBundledPet(
     return false
   }
   const imported = await worker.request('import', {
-    directory: join(root, 'Haru'),
+    directory: join(root, 'Hiyori'),
     entry: manifest.entry,
   })
   if (!imported.ok) throw new Error('PET_IMPORT_FAILED')

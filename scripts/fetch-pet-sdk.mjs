@@ -127,6 +127,8 @@ try {
     'Framework/LICENSE.md',
     'Framework/src/live2dcubismframework.ts',
     'Framework/Shaders/WebGL',
+    'Samples/Resources/Hiyori/Hiyori.model3.json',
+    'Samples/Resources/Hiyori/Hiyori.moc3',
     'Samples/Resources/Haru/Haru.model3.json',
     'Samples/Resources/Haru/motions/haru_g_idle.motion3.json',
   ])

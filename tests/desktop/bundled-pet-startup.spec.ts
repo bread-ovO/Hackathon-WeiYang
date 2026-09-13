@@ -5,10 +5,10 @@ import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { createRequire } from 'node:module'
 const require = createRequire(resolve('apps/desktop/package.json'))
-test('local demo auto-installs and renders Haru; removing it survives restart', async () => {
+test('default package auto-installs and renders Hiyori; removing it survives restart', async () => {
   test.skip(
     !existsSync(resolve('apps/desktop/out/bundled-pet/demo.json')),
-    'Explicit demo build only',
+    'Run package:dir or bundle-demo-pet.mjs to prepare default assets',
   )
   test.setTimeout(60000)
   const root = await realpath(
@@ -57,7 +57,7 @@ test('local demo auto-installs and renders Haru; removing it survives restart', 
         ),
       )
       .toBeGreaterThan(3)
-    await pet.screenshot({ path: 'test-results/bundled-haru.png' })
+    await pet.screenshot({ path: 'test-results/bundled-hiyori.png' })
     expect(
       (
         await page.evaluate(

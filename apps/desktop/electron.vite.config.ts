@@ -39,7 +39,7 @@ export default defineConfig({
   main: {
     plugins: [
       {
-        name: 'clear-local-demo-assets',
+        name: 'clear-stale-bundled-assets',
         buildStart() {
           rmSync(resolve(__dirname, 'out/bundled-pet'), {
             recursive: true,

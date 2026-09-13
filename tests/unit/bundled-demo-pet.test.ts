@@ -26,7 +26,7 @@ async function fixture() {
   await mkdir(data)
   await writeFile(
     join(bundle, 'demo.json'),
-    JSON.stringify({ version: 1, entry: 'Haru.model3.json' }),
+    JSON.stringify({ version: 1, entry: 'Hiyori.model3.json' }),
   )
   return { bundle, data }
 }
@@ -49,6 +49,10 @@ it('initializes a fresh library once and does not resurrect a removed default', 
     'import',
     'select',
   ])
+  expect(request).toHaveBeenCalledWith('import', {
+    directory: join(bundle, 'Hiyori'),
+    entry: 'Hiyori.model3.json',
+  })
   request.mockClear()
   expect(await initializeBundledPet(bundle, data, { request })).toBe(false)
   expect(request).not.toHaveBeenCalled()
@@ -62,12 +66,25 @@ it('keeps an existing library and deliberate null selection', async () => {
   expect(await initializeBundledPet(bundle, data, { request })).toBe(false)
   expect(request).toHaveBeenCalledTimes(1)
 })
-it('ordinary packages perform no model work', async () => {
+it('development builds without bundled assets perform no model work', async () => {
   const request = vi.fn()
   expect(
     await initializeBundledPet('/nonexistent-bugu-demo', '/unused', {
       request,
     }),
   ).toBe(false)
+  expect(request).not.toHaveBeenCalled()
+})
+
+it('rejects a legacy Haru manifest before importing any model', async () => {
+  const { bundle, data } = await fixture()
+  await writeFile(
+    join(bundle, 'demo.json'),
+    JSON.stringify({ version: 1, entry: 'Haru.model3.json' }),
+  )
+  const request = vi.fn()
+  await expect(initializeBundledPet(bundle, data, { request })).rejects.toThrow(
+    'INVALID_BUNDLED_PET',
+  )
   expect(request).not.toHaveBeenCalled()
 })
