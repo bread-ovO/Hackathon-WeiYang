@@ -24,7 +24,7 @@ ERD 入口沿用此前创建的「技术方案」，尚无单独命名的 ERD �
 
 ## 当前能力
 
-- pnpm workspace、严格 TypeScript、包边界检查和 macOS CI 配置。
+- pnpm workspace、严格 TypeScript 和本地包边界检查。
 - React 桌面设计预览：事项列表/详情、来源记录、连接规划与真实核心/数据库健康状态。
 - Electron sandbox renderer、最小 preload、白名单 IPC 与自定义本地资源协议。
 - 独立 utilityProcess 核心，超时和有上限的崩溃重启。
@@ -72,12 +72,16 @@ npx --yes pnpm@10.34.5 dev
 
 ## 验证与构建
 
+仓库已移除 GitHub Actions CI 工作流，提交与 PR 不再自动运行全量检查、打包或公网来源探针。开发时按改动范围做本地验证，默认只跑受影响的 E2E 用例。
+
 ```bash
-pnpm check
-pnpm package:dir
+pnpm typecheck
+# 按改动选择相关单测或桌面用例，例如：
+pnpm exec vitest run tests/unit/local-jsonl.test.ts
+pnpm exec playwright test tests/desktop/source-import.spec.ts
 ```
 
-`check` 顺序执行包边界、类型、单元、构建、SQLite 集成和桌面端到端测试。`package:dir` 生成 release/ 下的本地未签名应用目录，尚非可公开分发的安装包。CI 配置已提供，远端执行结果需推送后确认。
+跨包修改运行 `pnpm check:boundaries`；原生依赖或打包配置修改运行 `pnpm package:dir`。`package:dir` 生成 release/ 下的本地未签名应用目录，尚非可公开分发的安装包。`pnpm check` 保留为手动全量入口，按需使用；公网来源探针仍可手动执行 `node scripts/probe-http-source.mjs`。
 
 给试用用户可构建**无示例体验版本**：`pnpm package:real`（渲染层以 `VITE_MEMO_NO_DEMO=1` 构建），输出 `release/real/`。该版本启动即进入「我的工作区」，隐藏示例体验切换与相关说明，功能与默认构建一致。
 
