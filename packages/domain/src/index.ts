@@ -195,3 +195,5 @@ export function identityKey(
   return JSON.stringify(parts)
 }
 export { extractExplicitPlanChange } from './plan-change'
+
+export { resolveDeadline } from './deadline'

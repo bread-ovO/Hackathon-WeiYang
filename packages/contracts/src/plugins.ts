@@ -18,7 +18,12 @@ export const pluginTrialInputSchema = {
 export type PluginTrialInput = FromSchema<typeof pluginTrialInputSchema>
 export const pluginsRequestSchema = {
   oneOf: [
-    { type: 'object', additionalProperties: false, required: ['method'], properties: { method: { const: 'plugins.startDemo' } } },
+    {
+      type: 'object',
+      additionalProperties: false,
+      required: ['method'],
+      properties: { method: { const: 'plugins.startDemo' } },
+    },
     {
       type: 'object',
       additionalProperties: false,
@@ -67,6 +72,7 @@ export const pluginsRequestSchema = {
 } as const
 export type PluginsRequest = FromSchema<typeof pluginsRequestSchema>
 export interface InstalledPlugin {
+  sourceInstanceId?: string
   id: string
   projectId: string
   displayName: string
@@ -76,7 +82,11 @@ export interface InstalledPlugin {
   grantVersion: number
   eventCount: number
   lastSuccessAt: string | null
-  runtime?: { state: 'reading' | 'waiting' | 'retrying' | 'paused'; retryAttempt: number; nextRetryAt: string | null }
+  runtime?: {
+    state: 'reading' | 'waiting' | 'retrying' | 'paused'
+    retryAttempt: number
+    nextRetryAt: string | null
+  }
 }
 export interface PluginInspection {
   inspectionId: string

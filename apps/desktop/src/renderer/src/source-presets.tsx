@@ -78,7 +78,7 @@ export function SourcePresets({ onDemoReady }: { onDemoReady(): void }) {
           [
             'preset-github',
             'GitHub',
-            '跟踪指定仓库的 PR，保留交付记录。',
+            '跟踪授权仓库的 PR、Issue 与评论，保留交付记录。',
             '配置 GitHub',
           ],
           [
@@ -98,6 +98,12 @@ export function SourcePresets({ onDemoReady }: { onDemoReady(): void }) {
             'Codex 会话',
             '从本机 Codex 会话收录工作约定与进展。',
             '配置 Codex',
+          ],
+          [
+            'preset-kimi',
+            'Kimi 会话',
+            '从本机 Kimi Code CLI 会话收录工作约定。',
+            '配置 Kimi',
           ],
         ].map(([id, name, description, button]) => (
           <article key={id}>

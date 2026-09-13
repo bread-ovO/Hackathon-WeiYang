@@ -32,6 +32,27 @@ export function handleWorkspace(
   | IdentityMappings
   | PetContextFacts
   | { valid: boolean } {
+  const mutating = [
+    'workspace.updateTask',
+    'workspace.replaceCriteria',
+    'workspace.confirmPlanChange',
+    'workspace.bindSourceObject',
+    'workspace.revokeSourceBinding',
+    'workspace.confirmReference',
+  ]
+  const taskId =
+    'id' in request
+      ? request.id
+      : 'taskId' in request
+        ? request.taskId
+        : undefined
+  if (
+    mutating.includes(request.method) &&
+    taskId &&
+    'projectId' in request &&
+    store.tasks.mergeInfo(request.projectId, taskId).mergedInto
+  )
+    throw Error('TASK_MERGED')
   const by = { actorId: 'local-user', reason: '用户在我的工作区手动操作' }
   switch (request.method) {
     case 'workspace.petContextFacts':
@@ -103,6 +124,7 @@ export function handleWorkspace(
       if (!task) throw new Error('TASK_NOT_IN_PROJECT')
       return {
         task,
+        merge: store.tasks.mergeInfo(request.projectId, request.id),
         provenance: store.processing.getTaskEvidence(
           request.projectId,
           request.id,
@@ -114,6 +136,13 @@ export function handleWorkspace(
         ),
       }
     }
+    case 'workspace.mergeTasks':
+      store.tasks.merge(
+        { ...request, taskId: request.id },
+        { ...request.target, taskId: request.target.id },
+        by,
+      )
+      break
     case 'workspace.createProject':
       store.tasks.createProject(randomUUID(), request.name)
       break

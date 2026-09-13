@@ -88,6 +88,16 @@ function PRObservation({
               ),
           )}
         </>
+      ) : pr?.kind === 'github-account-observation' ? (
+        <>
+          <strong>
+            {String(pr.repository)} · {String(pr.objectKind)}{' '}
+            {pr.number ? `#${pr.number}` : ''}
+          </strong>
+          <p>{String(pr.title ?? '')}</p>
+          {typeof pr.state === 'string' && <p>观察状态：{String(pr.state)}</p>}
+          <p>{String(pr.body ?? '')}</p>
+        </>
       ) : (
         <pre>{record.text}</pre>
       )}
@@ -145,7 +155,9 @@ function GithubRecordList({ connection }: { connection: GithubConnection }) {
     }
   }
   return (
-    <section aria-label={`PR观察记录 ${connection.owner}/${connection.repo}`}>
+    <section
+      aria-label={`GitHub观察记录 ${connection.owner}/${connection.repo}`}
+    >
       <AppButton disabled={busy} onClick={() => void load()}>
         {data ? '刷新观察记录' : '查看 PR 观察记录'}
       </AppButton>
@@ -177,6 +189,7 @@ export function GithubPanel({
 }: {
   onGoCredentials?: () => void
 }) {
+  const [mode, setMode] = useState<'repository' | 'account'>('repository')
   const [data, setData] = useState<GithubSnapshot>({ connections: [] }),
     [projects, setProjects] = useState<{ id: string; name: string }[]>([]),
     [credentials, setCredentials] = useState<CredentialSummary[]>([])
@@ -252,22 +265,36 @@ export function GithubPanel({
   return (
     <section className="source-import github-panel" aria-label="GitHub仓库连接">
       <p>
-        仅访问所选仓库的 PR
-        记录，凭据保存在本机保险库。验证通过后启用定时采样，不会自动完成事项。
+        支持单仓库 PR，或整个账户下凭据可访问仓库的 PR、Issue
+        和评论。凭据保存在本机；分批读取，首轮可能较久。权限不足会停止并提示，可调整凭据后继续。不会自动完成事项。
       </p>
       <form
         onSubmit={(e) => {
           e.preventDefault()
           void run(() =>
-            window.memo.github.connect({
-              projectId,
-              owner: owner.trim(),
-              repo: repo.trim(),
-              credentialId,
-            }),
+            mode === 'account'
+              ? window.memo.github.connectAccount({ projectId, credentialId })
+              : window.memo.github.connect({
+                  projectId,
+                  owner: owner.trim(),
+                  repo: repo.trim(),
+                  credentialId,
+                }),
           )
         }}
       >
+        <label>
+          监听范围
+          <select
+            aria-label="GitHub监听范围"
+            value={mode}
+            disabled={busy}
+            onChange={(e) => setMode(e.target.value as typeof mode)}
+          >
+            <option value="repository">所选仓库的 PR</option>
+            <option value="account">账户全部授权仓库</option>
+          </select>
+        </label>
         <div className="github-fields">
           <label>
             项目
@@ -285,26 +312,30 @@ export function GithubPanel({
               ))}
             </select>
           </label>
-          <label>
-            所有者
-            <AppInput
-              aria-label="GitHub所有者"
-              maxLength={39}
-              value={owner}
-              disabled={busy}
-              onChange={(e) => setOwner(e.target.value)}
-            />
-          </label>
-          <label>
-            仓库
-            <AppInput
-              aria-label="GitHub仓库名"
-              maxLength={100}
-              value={repo}
-              disabled={busy}
-              onChange={(e) => setRepo(e.target.value)}
-            />
-          </label>
+          {mode === 'repository' && (
+            <>
+              <label>
+                所有者
+                <AppInput
+                  aria-label="GitHub所有者"
+                  maxLength={39}
+                  value={owner}
+                  disabled={busy}
+                  onChange={(e) => setOwner(e.target.value)}
+                />
+              </label>
+              <label>
+                仓库
+                <AppInput
+                  aria-label="GitHub仓库名"
+                  maxLength={100}
+                  value={repo}
+                  disabled={busy}
+                  onChange={(e) => setRepo(e.target.value)}
+                />
+              </label>
+            </>
+          )}
           <label>
             读取凭据
             <select
@@ -329,8 +360,7 @@ export function GithubPanel({
               busy ||
               !projectId ||
               !credentialId ||
-              !owner.trim() ||
-              !repo.trim()
+              (mode === 'repository' && (!owner.trim() || !repo.trim()))
             }
           >
             验证并启用仓库
@@ -352,7 +382,9 @@ export function GithubPanel({
       {data.connections.map((c) => (
         <article className="github-connection" key={c.id}>
           <h3>
-            {c.owner}/{c.repo}
+            {c.mode === 'account'
+              ? `${c.owner} · 全部授权仓库`
+              : `${c.owner}/${c.repo}`}
           </h3>
           <p>
             {projects.find((p) => p.id === c.projectId)?.name ?? '所属项目'} ·{' '}
@@ -371,7 +403,17 @@ export function GithubPanel({
               : '等待调度'}{' '}
             · 连续失败 {c.failureCount} 次
           </p>
-          {c.errorCode && <p>{errors[c.errorCode]}</p>}
+          {c.mode === 'account' && (
+            <p>
+              可见范围：当前凭据允许列出的仓库；未授权的私有仓库无法枚举。首次全量分页后定期重新发现。暂停保留进度，撤销立即停止采集。
+            </p>
+          )}
+          {c.errorCode && (
+            <p>
+              {c.errorScope ? `受影响仓库：${c.errorScope} · ` : ''}
+              {errors[c.errorCode]}
+            </p>
+          )}
           <div className="source-import-actions">
             <AppButton
               disabled={busy || c.status === 'revoked'}

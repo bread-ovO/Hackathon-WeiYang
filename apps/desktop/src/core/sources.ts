@@ -26,12 +26,13 @@ const pressureCodes = new Set([
 const SESSION_DISPLAY_PREFIX: Record<SessionSourceKind, string> = {
   'claude-code': 'Claude Code 会话',
   codex: 'Codex 会话',
+  kimi: 'Kimi 会话',
 }
 function sessionKindOf(grant: {
   path: string
   displayName: string
 }): SessionSourceKind | null {
-  for (const kind of ['claude-code', 'codex'] as const)
+  for (const kind of ['claude-code', 'codex', 'kimi'] as const)
     if (
       typeof grant.displayName === 'string' &&
       grant.displayName.startsWith(SESSION_DISPLAY_PREFIX[kind])
@@ -40,6 +41,7 @@ function sessionKindOf(grant: {
   const parts = grant.path.split(nodePath.sep)
   if (parts.includes('.claude')) return 'claude-code'
   if (parts.includes('.codex')) return 'codex'
+  if (parts.includes('.kimi')) return 'kimi'
   return null
 }
 const MAX_DIRECTORY_FILES = 200
@@ -98,7 +100,10 @@ export function createSourceHandler(store: ReturnType<typeof openStore>) {
    * Symlinks are never followed; oversized files stay for the sync loop to
    * reject so they are counted as skipped. Scanning lives here in core; the
    * bounded reader itself never scans directories. */
-  async function collectSessionFiles(directory: string) {
+  async function collectSessionFiles(
+    directory: string,
+    kind: SessionSourceKind,
+  ) {
     const files: string[] = []
     let truncated = false
     async function walk(current: string): Promise<void> {
@@ -110,7 +115,12 @@ export function createSourceHandler(store: ReturnType<typeof openStore>) {
         if (entry.isSymbolicLink()) continue
         const full = nodePath.join(current, entry.name)
         if (entry.isDirectory()) await walk(full)
-        else if (entry.isFile() && entry.name.toLowerCase().endsWith('.jsonl')) {
+        else if (
+          entry.isFile() &&
+          (kind === 'kimi'
+            ? entry.name === 'wire.jsonl'
+            : entry.name.toLowerCase().endsWith('.jsonl'))
+        ) {
           if (files.length >= MAX_DIRECTORY_FILES) {
             truncated = true
             return
@@ -163,7 +173,10 @@ export function createSourceHandler(store: ReturnType<typeof openStore>) {
           resolved.dev !== before.dev
         )
           throw new Error('UNSAFE_SOURCE_PATH')
-        const { files, truncated } = await collectSessionFiles(directory)
+        const { files, truncated } = await collectSessionFiles(
+          directory,
+          request.kind,
+        )
         const summary: DirectoryImportSummary = {
           files: files.length,
           imported: 0,

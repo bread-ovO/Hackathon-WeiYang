@@ -23,7 +23,7 @@ export type {
   FeishuFence,
 } from './feishu'
 export { feishuFailureCodes } from './feishu'
-import { createGithub, migrateGithub } from './github'
+import { createGithub, migrateGithub, migrateGithubAccount } from './github'
 export type {
   GithubConnection,
   GithubAuthorized,
@@ -66,6 +66,7 @@ import {
   createTaskModel,
   migrateTaskModel,
   migrateTaskEditing,
+  migrateTaskMerges,
 } from './task-model'
 export type {
   StoredTask,
@@ -102,7 +103,7 @@ export function openStore(path: string) {
     db.pragma('synchronous = FULL')
     db.pragma('busy_timeout = 3000')
     const version = db.pragma('user_version', { simple: true }) as number
-    if (version > 18) throw new Error('DATABASE_TOO_NEW')
+    if (version > 20) throw new Error('DATABASE_TOO_NEW')
     if (version < 1)
       db.transaction(() => {
         db.exec(`
@@ -141,6 +142,8 @@ export function openStore(path: string) {
     if (version < 16) migratePlanChanges(db)
     if (version < 17) migrateSourceAssociations(db)
     if (version < 18) migratePlanAssessments(db)
+    if (version < 19) migrateTaskMerges(db)
+    if (version < 20) migrateGithubAccount(db)
     const revisionReview = createRevisionReview(db)
     const retractions = createRetractions(db)
     const ingestion = createIngestionBudget(db)

@@ -327,7 +327,7 @@ try {
     () => store.feishu.getAuthorized(other.id),
     /FEISHU_INVALID_RESPONSE/,
   )
-  assert.equal(store.health().schemaVersion, 18)
+  assert.equal(store.health().schemaVersion, 20)
   console.log('Feishu storage integration passed')
 } finally {
   db.close()

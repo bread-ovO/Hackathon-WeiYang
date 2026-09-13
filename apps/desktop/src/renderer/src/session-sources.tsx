@@ -17,6 +17,12 @@ const kindMeta: Record<
     intro:
       '只读收录所选目录中的 Claude Code 会话文件（.jsonl），每个来源每次最多 100 条。正文保存在本机，当前尚未加密；不会发送给模型。',
   },
+  kimi: {
+    label: 'Kimi 会话',
+    prefix: 'Kimi 会话',
+    intro:
+      '只读收录所选目录中的 Kimi Code CLI wire.jsonl 用户输入与助手文本，保留消息时间。正文在本机保存；不读取缺少时间的 context.jsonl。',
+  },
   codex: {
     label: 'Codex 会话',
     prefix: 'Codex 会话',

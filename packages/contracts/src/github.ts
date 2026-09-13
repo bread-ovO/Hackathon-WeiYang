@@ -53,6 +53,16 @@ export const githubRequestSchema = {
     {
       type: 'object',
       additionalProperties: false,
+      required: ['method', 'projectId', 'credentialId'],
+      properties: {
+        method: { const: 'github.connectAccount' },
+        projectId: id,
+        credentialId: uuid,
+      },
+    },
+    {
+      type: 'object',
+      additionalProperties: false,
       required: ['method'],
       properties: { method: { const: 'github.list' } },
     },
@@ -150,7 +160,16 @@ export function createGithubHostRequestSchema(
               'repositoryId',
               'credentialId',
             ],
-            properties: { ...selection, repositoryId: positive },
+            properties: {
+              ...selection,
+              repo: {
+                type: 'string',
+                maxLength: 100,
+                pattern: '^[A-Za-z0-9_.-]*$',
+              },
+              mode: { enum: ['repository', 'account'] },
+              repositoryId: positive,
+            },
           },
         },
       },
@@ -212,6 +231,11 @@ export function createGithubHostRequestSchema(
           expectedGrantVersion: positive,
           expectedPollVersion: positive,
           expectedCursor: collectorCursor,
+          errorScope: {
+            type: 'string',
+            maxLength: 140,
+            pattern: '^[a-z0-9][a-z0-9-]{0,38}/[a-z0-9_.-]{1,100}$',
+          },
           errorCode: { enum: githubErrorCodes },
           nextPollAt: timestamp,
         },
@@ -234,6 +258,8 @@ export type GithubHostRequest = FromSchema<
   ReturnType<typeof createGithubHostRequestSchema>
 >
 export interface GithubConnection {
+  mode?: 'repository' | 'account'
+  errorScope?: string | null
   id: string
   projectId: string
   owner: string

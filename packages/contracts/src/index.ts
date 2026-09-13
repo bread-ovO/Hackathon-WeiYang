@@ -1,4 +1,4 @@
-import type {PetVoiceState,PetVoicePreferences} from './pet-voice'
+import type { PetVoiceState, PetVoicePreferences } from './pet-voice'
 export * from './pet-voice'
 export * from './pet-voice-pcm'
 import type {
@@ -328,6 +328,7 @@ export function parseHostRequest(value: unknown): HostRequest {
     request.method === 'feishu.records' ||
     request.method === 'github.list' ||
     request.method === 'github.connect' ||
+    request.method === 'github.connectAccount' ||
     request.method === 'github.setEnabled' ||
     request.method === 'github.revoke' ||
     request.method === 'github.sync' ||
@@ -411,7 +412,15 @@ export type CoreReply<T = Health> =
         | 'PET_MODEL_CANCELLED'
         | 'PET_MODEL_UNAVAILABLE'
         | 'PET_MODEL_BUSY'
-        | 'PET_VOICE_UNAVAILABLE' | 'PET_VOICE_INVALID' | 'PET_VOICE_INVALID_PCM' | 'PET_VOICE_TOO_LONG' | 'PET_VOICE_TIMEOUT' | 'PET_VOICE_CANCELLED' | 'PET_VOICE_BUSY' | 'PET_VOICE_STORAGE' | 'PET_VOICE_CONFLICT'
+        | 'PET_VOICE_UNAVAILABLE'
+        | 'PET_VOICE_INVALID'
+        | 'PET_VOICE_INVALID_PCM'
+        | 'PET_VOICE_TOO_LONG'
+        | 'PET_VOICE_TIMEOUT'
+        | 'PET_VOICE_CANCELLED'
+        | 'PET_VOICE_BUSY'
+        | 'PET_VOICE_STORAGE'
+        | 'PET_VOICE_CONFLICT'
         | 'PET_CONTEXT_STORAGE_ERROR'
         | 'PET_CONTEXT_CONFLICT'
         | 'PET_CONTEXT_EXPIRED'
@@ -484,6 +493,12 @@ export interface DesktopBridge {
     ): Promise<CoreReply<FeishuRecords>>
   }
   github: {
+    connectAccount(
+      input: Omit<
+        Extract<GithubRequest, { method: 'github.connectAccount' }>,
+        'method'
+      >,
+    ): Promise<CoreReply<GithubSnapshot>>
     list(): Promise<CoreReply<GithubSnapshot>>
     connect(
       input: Omit<
@@ -511,8 +526,11 @@ export interface DesktopBridge {
   }
   pet: {
     voiceState(): Promise<CoreReply<PetVoiceState>>
-    configureVoice(input:{expectedVersion:number;preferences:Omit<PetVoicePreferences,'version'>}):Promise<CoreReply<PetVoiceState>>
-    stopVoice():Promise<CoreReply<PetVoiceState>>
+    configureVoice(input: {
+      expectedVersion: number
+      preferences: Omit<PetVoicePreferences, 'version'>
+    }): Promise<CoreReply<PetVoiceState>>
+    stopVoice(): Promise<CoreReply<PetVoiceState>>
     contextState(): Promise<CoreReply<PetContextState>>
     configureContext(input: {
       expectedVersion: number
@@ -679,6 +697,12 @@ export interface DesktopBridge {
       projectId: string,
       title: string,
     ): Promise<CoreReply<WorkspaceSnapshot>>
+    mergeTasks(
+      request: Omit<
+        Extract<CoreRequest, { method: 'workspace.mergeTasks' }>,
+        'method'
+      >,
+    ): Promise<CoreReply<WorkspaceSnapshot>>
     updateTask(
       request: Omit<
         Extract<CoreRequest, { method: 'workspace.updateTask' }>,
@@ -687,3 +711,4 @@ export interface DesktopBridge {
     ): Promise<CoreReply<WorkspaceSnapshot>>
   }
 }
+export * from './github-account'

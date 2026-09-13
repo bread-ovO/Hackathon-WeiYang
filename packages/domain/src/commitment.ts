@@ -1,11 +1,12 @@
+import { resolveDeadline } from './deadline'
 /** A deliberately narrow local grammar, not a model or a completion judgement. */
-export const EXPLICIT_COMMITMENT_VERSION = 'explicit-commitment-v1' as const
+export const EXPLICIT_COMMITMENT_VERSION = 'explicit-commitment-v2' as const
 export const MAX_EXPLICIT_COMMITMENTS = 8
 export interface ExplicitCommitment {
   /** Position within this immutable event revision; never a cross-revision identity. */
   key: string
   title: string
-  dueAt: null
+  dueAt: string | null
   /** UTF-16 offsets into the original event text, including the commitment wording. */
   quoteStart: number
   quoteEnd: number
@@ -25,6 +26,7 @@ export function extractExplicitCommitments(input: {
   text: string
   role: string
   operation?: 'upsert' | 'retract'
+  occurredAt?: string
 }): ExplicitCommitmentResult {
   if (
     !input ||
@@ -87,9 +89,21 @@ export function extractExplicitCommitments(input: {
       )
     )
       continue
+    // A leading calendar phrase can precede a first-person commitment.
+    const commitmentLine = line.replace(
+      /^(?:(?:今天|明天|后天|(?:下周|本周|周|星期)[一二三四五六日天]|\d{4}-\d{2}-\d{2})(?:上午|下午|晚上|中午|凌晨)?(?:\d{1,2}(?::\d{2}|点(?:半|\d{1,2}分)?))?)(?:前|之前)?[，,\s]*/,
+      '',
+    )
+    const calendar =
+      /^(?:在)?(?:今天|明天|后天|(?:下周|本周|周|星期)[一二三四五六日天]|\d{4}-\d{2}-\d{2})(?:上午|下午|晚上|中午|凌晨)?(?:\d{1,2}(?::\d{2}|点(?:半|\d{1,2}分)?))?(?:前|之前)?\s*/u
+    const normalizedCommitment = commitmentLine.replace(
+      /^(我(?:会|将|来|负责)|由我负责)\s*(.*)$/u,
+      (_, subject: string, rest: string) =>
+        subject + rest.replace(calendar, ''),
+    )
     const chinese =
       /^(?:我(?:会|将|来|负责)|由我负责)\s*((?:提交|发送|反馈|修复|实现|编写|整理|补充|更新|提供|交付|完成|检查|确认|联系|准备|设计|测试|处理).+)$/u.exec(
-        line,
+        normalizedCommitment,
       )
     const english =
       /^I (?:will|shall) ((?:submit|send|fix|implement|write|prepare|deliver|review|test|update|provide|finish|contact)\s+.+)$/iu.exec(
@@ -103,7 +117,7 @@ export function extractExplicitCommitments(input: {
     candidates.push({
       key: String(quoteStart),
       title,
-      dueAt: null,
+      dueAt: input.occurredAt ? resolveDeadline(line, input.occurredAt) : null,
       quoteStart,
       quoteEnd: quoteStart + line.length,
     })
