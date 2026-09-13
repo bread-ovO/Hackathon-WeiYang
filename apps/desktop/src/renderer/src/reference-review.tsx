@@ -150,6 +150,19 @@ export function ReferenceReviewPanel({
           <p>
             这里只列出已收录的已知版本，不代表平台最新版本。确认只为当前引用指定使用的整条消息，原始引用仍保留。
           </p>
+          <p>
+            当前来源状态：
+            {
+              {
+                active: '采集已启用',
+                paused: '采集已暂停',
+                revoked: '授权已撤销',
+                uninstalled: '插件已卸载',
+                unknown: '无法确认',
+              }[review.reference.sourceStatus]
+            }
+            。来源状态与消息撤回、引用状态分别记录。
+          </p>
           {review.confirmation && (
             <div className="reference-confirmation">
               <strong>

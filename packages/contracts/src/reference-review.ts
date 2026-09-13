@@ -94,6 +94,7 @@ export type ReferenceSummary = {
   sourceInstanceId: string
   externalId: string
   status: 'available' | 'review_required' | 'confirmed' | 'invalidated'
+  sourceStatus: 'active' | 'paused' | 'revoked' | 'uninstalled' | 'unknown'
   originalReferenceStatus: 'available' | 'invalidated'
 }
 export interface ReferenceList {

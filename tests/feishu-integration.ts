@@ -1,3 +1,4 @@
+import { getSourceStatus } from '../packages/storage/src/source-status'
 import assert from 'node:assert/strict'
 import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
@@ -218,6 +219,12 @@ try {
   store.feishu.beginWindow({ ...fence(), until: start + 3 * day })
   const advanced = store.feishu.getAuthorized(g.id)
   const pause = store.feishu.setEnabled(g.id, false)
+  assert.equal(getSourceStatus(db, 'a', g.id), 'paused')
+  assert.equal(getSourceStatus(db, 'b', g.id), 'unknown')
+  const pausedEvidence = store.processing.getTaskEvidence('a', taskId)[0]!
+  assert.equal(pausedEvidence.sourceStatus, 'paused')
+  assert.equal(pausedEvidence.eventStatus, 'retracted')
+  assert.equal(pausedEvidence.referenceStatus, 'invalidated')
   assert.equal(pause.windowStart, advanced.windowStart)
   assert.equal(pause.nextPollAt, advanced.nextPollAt)
   assert.throws(
@@ -225,6 +232,7 @@ try {
     /FEISHU_DISABLED/,
   )
   store.feishu.setEnabled(g.id, true)
+  assert.equal(getSourceStatus(db, 'a', g.id), 'active')
   db.prepare(
     'UPDATE feishu_connections SET page_count=10000 WHERE source_id=?',
   ).run(g.id)
@@ -257,6 +265,7 @@ try {
     'active',
   )
   store.feishu.revoke(g.id)
+  assert.equal(getSourceStatus(db, 'a', g.id), 'revoked')
   assert.equal(
     store.exports.build({ projectId: 'a', includeSourceText: false }).events[0]!
       .sourceStatus,
@@ -318,7 +327,7 @@ try {
     () => store.feishu.getAuthorized(other.id),
     /FEISHU_INVALID_RESPONSE/,
   )
-  assert.equal(store.health().schemaVersion, 13)
+  assert.equal(store.health().schemaVersion, 14)
   console.log('Feishu storage integration passed')
 } finally {
   db.close()

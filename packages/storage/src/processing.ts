@@ -1,3 +1,4 @@
+import { getSourceStatus } from './source-status'
 import type Database from 'better-sqlite3'
 import { randomUUID } from 'node:crypto'
 import { isDeepStrictEqual } from 'node:util'
@@ -452,12 +453,6 @@ export function createProcessing(db: Database.Database) {
       const rows = db
         .prepare(
           `SELECT v.event_id AS eventId,e.source_id AS sourceInstanceId,e.external_id AS externalId,e.revision,v.quote_start AS quoteStart,v.quote_end AS quoteEnd,v.quote,v.reference_id AS referenceId,v.reference_status AS storedReferenceStatus,v.invalidated_by_event_id AS storedInvalidatedBy,r.reason,r.created_at AS createdAt,r.rule_version AS policyVersion,'rule' AS actor,r.outcome,
-      CASE WHEN EXISTS(SELECT 1 FROM feishu_connections f WHERE f.source_id=e.source_id AND (f.revoked=1 OR f.enabled=0)) THEN 'revoked' WHEN EXISTS(SELECT 1 FROM feishu_connections f WHERE f.source_id=e.source_id AND f.revoked=0 AND f.enabled=1) THEN 'active' WHEN EXISTS(SELECT 1 FROM github_connections h WHERE h.source_id=e.source_id AND (h.revoked=1 OR h.enabled=0)) THEN 'revoked' WHEN EXISTS(SELECT 1 FROM github_connections h WHERE h.source_id=e.source_id AND h.revoked=0 AND h.enabled=1) THEN 'active' WHEN EXISTS(SELECT 1 FROM source_grants g WHERE g.source_id=e.source_id AND g.revoked=1) THEN 'revoked'
-       WHEN EXISTS(SELECT 1 FROM source_grants g WHERE g.source_id=e.source_id AND g.revoked=0) THEN 'active'
-       WHEN EXISTS(SELECT 1 FROM plugin_bindings p WHERE p.source_instance_id=e.source_id AND p.uninstalled=1) THEN 'uninstalled'
-       WHEN EXISTS(SELECT 1 FROM plugin_bindings p WHERE p.source_instance_id=e.source_id AND p.enabled=0) THEN 'revoked'
-       WHEN EXISTS(SELECT 1 FROM plugin_bindings p WHERE p.source_instance_id=e.source_id AND p.enabled=1 AND p.uninstalled=0) THEN 'active'
-       WHEN EXISTS(SELECT 1 FROM plugin_source_history h WHERE h.source_instance_id=e.source_id) THEN 'uninstalled' ELSE 'unknown' END AS sourceStatus,
       CASE WHEN EXISTS(SELECT 1 FROM source_events later JOIN event_projects ep ON ep.event_id=later.id WHERE ep.project_id=v.project_id AND later.source_id=e.source_id AND later.external_id=e.external_id AND later.revision<>e.revision AND later.id>e.id) THEN 'review_required' ELSE 'current' END AS revisionStatus
       FROM (SELECT project_id,task_id,event_id,quote_start,quote_end,quote,CAST(id AS TEXT) AS reference_id,reference_status,invalidated_by_event_id FROM processing_evidence
        UNION ALL SELECT d.project_id,d.task_id,d.event_id,0,0,substr(e.content,1,1024),NULL,NULL,NULL FROM processing_decisions d JOIN source_events e ON e.id=d.event_id WHERE d.outcome='review_required') v JOIN source_events e ON e.id=v.event_id JOIN processing_results r ON r.event_id=v.event_id WHERE v.project_id=? AND v.task_id=? ORDER BY CASE WHEN r.outcome='created' THEN 0 ELSE 1 END,v.event_id DESC LIMIT 100`,
@@ -478,7 +473,6 @@ export function createProcessing(db: Database.Database) {
         policyVersion: string
         actor: 'rule'
         outcome: 'created' | 'review_required'
-        sourceStatus: 'active' | 'revoked' | 'uninstalled' | 'unknown'
         revisionStatus: 'current' | 'review_required'
       }[]
       return rows.map((original) => {
@@ -516,6 +510,11 @@ export function createProcessing(db: Database.Database) {
           (review?.reference.status === 'confirmed' && !selectedSameContent)
         const row = {
           ...publicFields,
+          sourceStatus: getSourceStatus(
+            db,
+            projectId,
+            original.sourceInstanceId,
+          ),
           referenceKind: original.referenceId ? ('processing' as const) : null,
           referenceVersion: review?.reference.version ?? null,
           knownContentSetDigest: review?.knownContentSetDigest ?? null,

@@ -153,6 +153,11 @@ const bridge: DesktopBridge = {
       ipcRenderer.invoke('memo:request', { method: 'sources.revoke', id }),
   }),
   workspace: Object.freeze({
+    timeline: (request) =>
+      ipcRenderer.invoke('memo:request', {
+        ...request,
+        method: 'workspace.timeline',
+      }),
     listReferences: (request) =>
       ipcRenderer.invoke('memo:request', {
         ...request,

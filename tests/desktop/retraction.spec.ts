@@ -185,7 +185,7 @@ test('explicit source retraction invalidates citation without overwriting manual
     ).toBe(true)
     await page.getByRole('button', { name: '刷新依据', exact: true }).click()
     await expect(evidence).toContainText('引用已失效')
-    await expect(evidence).toContainText('来源已停用')
+    await expect(evidence).toContainText('来源授权已撤销')
     await app.evaluate(({ app }) => app.quit()).catch(() => {})
     await app.close().catch(() => {})
     app = await launch()

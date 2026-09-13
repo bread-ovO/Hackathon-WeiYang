@@ -1,0 +1,77 @@
+.task-timeline {
+  margin-block: 16px;
+  min-width: 0;
+}
+.task-timeline .task-timeline-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.task-timeline h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+.task-timeline p {
+  margin: 8px 0;
+  overflow-wrap: anywhere;
+}
+.task-timeline .task-timeline-entry {
+  border-top: 1px solid var(--color-kumo-line, #dedede);
+  padding: 12px 0;
+  min-width: 0;
+  text-align: left;
+}
+.task-timeline-entry header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  align-items: baseline;
+}
+.task-timeline-entry header span {
+  font-size: 12px;
+}
+.task-timeline .task-timeline-entry dl {
+  display: block;
+  margin: 8px 0;
+  padding: 0;
+  border: 0;
+}
+.task-timeline .task-timeline-entry dl > div {
+  display: grid;
+  grid-template-columns: 100px minmax(0, 1fr);
+  gap: 8px;
+  margin: 8px 0;
+  padding: 0;
+  border: 0;
+  text-align: left;
+}
+.task-timeline .task-timeline-entry dt,
+.task-timeline .task-timeline-entry dd {
+  padding: 0;
+  border: 0;
+  text-align: left;
+  min-width: 0;
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.task-timeline-entry summary {
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+.task-timeline-entry blockquote {
+  margin: 8px 0;
+  padding: 8px 12px;
+  border-left: 2px solid var(--color-kumo-line, #dedede);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 900px) {
+  .task-timeline .task-timeline-entry dl > div {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+  }
+}

@@ -75,6 +75,7 @@ import {
   type WorkspaceDetail,
   type ReferenceList,
   type ReferenceReview,
+  type TimelinePage,
 } from './workspace'
 export * from './workspace'
 import Ajv from 'ajv'
@@ -350,6 +351,8 @@ export type CoreReply<T = Health> =
         | 'INTERNAL_ERROR'
         | 'VERSION_CONFLICT'
         | 'NOT_FOUND'
+        | 'TIMELINE_INVALID_CURSOR'
+        | 'TIMELINE_CORRUPT_DATA'
         | 'EXPORT_LIMIT_EXCEEDED'
         | 'EXPORT_INVALID_DATA'
         | 'EXPORT_WRITE_FAILED'
@@ -473,6 +476,12 @@ export interface DesktopBridge {
     revoke(id: string): Promise<CoreReply<SourcesSnapshot>>
   }
   workspace: {
+    timeline(
+      request: Omit<
+        Extract<CoreRequest, { method: 'workspace.timeline' }>,
+        'method'
+      >,
+    ): Promise<CoreReply<TimelinePage>>
     listReferences(
       request: Omit<
         Extract<CoreRequest, { method: 'workspace.listReferences' }>,
