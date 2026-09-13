@@ -1,0 +1,173 @@
+{
+  "scope": "synthetic SQLite integration; no real source/model authorization claimed",
+  "results": [
+    {
+      "name": "merge: production refuses foundation v2 without changing data",
+      "ms": 34
+    },
+    {
+      "name": "merge: foundation refuses production v13 without changing data",
+      "ms": 9
+    },
+    {
+      "name": "merge: production v2 is distinguishable and still upgrades to v13",
+      "ms": 11
+    },
+    {
+      "name": "S03/S04: whole-page atomicity, stable receipts and conflict detection",
+      "ms": 18
+    },
+    {
+      "name": "S03: independent streams, stale CAS, input scope and revoked in-flight pages",
+      "ms": 7
+    },
+    {
+      "name": "S01/S04/S07: equivalent facts, A-B-A revisions and tombstone ordering",
+      "ms": 7
+    },
+    {
+      "name": "S03: process kill during page transaction and after durable commit",
+      "ms": 305
+    },
+    {
+      "name": "S02: four dimensions, criterion references, manual protection and rollback",
+      "ms": 13
+    },
+    {
+      "name": "S02/V05 substrate: sufficient evidence, criteria revision and source withdrawal",
+      "ms": 10
+    },
+    {
+      "name": "S05: atomic claim, fencing, expired lease and crash budget",
+      "ms": 6
+    },
+    {
+      "name": "S05: repeated real process crashes stop at maxAttempts",
+      "ms": 421
+    },
+    {
+      "name": "S04/S05: business and job completion survive transaction and post-commit kills",
+      "ms": 296
+    },
+    {
+      "name": "S05 runner: real handler commit, validated output, timeout and no handler",
+      "ms": 32
+    },
+    {
+      "name": "S07: mapping versions and late plan facts cannot override a newer plan",
+      "ms": 10
+    },
+    {
+      "name": "S08: UTF-8 budgets, duplicate receipts, queue hysteresis and persistent pause",
+      "ms": 10
+    },
+    {
+      "name": "S08: unavailable disk, automatic result admission, actual SQLITE_FULL and recovery",
+      "ms": 14
+    },
+    {
+      "name": "S08: WAL growth is measured and checkpoint reports a long reader",
+      "ms": 11
+    },
+    {
+      "name": "S02: v1 consistent backup, conservative migration and repeated open",
+      "ms": 12
+    },
+    {
+      "name": "S02: migration fails closed at backup:before",
+      "ms": 10
+    },
+    {
+      "name": "S02: migration fails closed at backup:after",
+      "ms": 10
+    },
+    {
+      "name": "S02: migration fails closed at migration:before",
+      "ms": 10
+    },
+    {
+      "name": "S02: migration fails closed at migration:copied",
+      "ms": 12
+    },
+    {
+      "name": "S02: migration fails closed at migration:verified",
+      "ms": 12
+    },
+    {
+      "name": "S02: failed backup path and future database never start writers",
+      "ms": 7
+    },
+    {
+      "name": "S05/S08: paused work resumes with capacity, clock pause requires explicit resume",
+      "ms": 7
+    },
+    {
+      "name": "S05: lease expires during business transaction and rolls back all writes",
+      "ms": 6
+    },
+    {
+      "name": "S03/S08: receipt retention and queue hysteresis survive restart",
+      "ms": 9
+    },
+    {
+      "name": "S06: project/scope before LIMIT, consistent index, fallback and deletion",
+      "ms": 28
+    },
+    {
+      "name": "S05: stopping runner preserves retryable work and exhaustion is terminal",
+      "ms": 7
+    },
+    {
+      "name": "S02 hardening: backup includes committed WAL with another connection open",
+      "ms": 9
+    },
+    {
+      "name": "S02 hardening: invalid old foreign keys abort migration and preserve v1",
+      "ms": 9
+    },
+    {
+      "name": "S03 hardening: four independent processes contend for one checkpoint",
+      "ms": 211
+    },
+    {
+      "name": "S05 hardening: four independent processes cannot share a lease",
+      "ms": 214
+    },
+    {
+      "name": "S01 hardening: missing envelope/provenance fields never persist",
+      "ms": 6
+    },
+    {
+      "name": "S05 hardening: saved proposal survives process death without rerunning handler",
+      "ms": 150
+    },
+    {
+      "name": "S05/H01 hardening: waiting handler cannot overwrite an intervening manual decision",
+      "ms": 7
+    },
+    {
+      "name": "S05/Q03 hardening: in-flight handler result stays cancelled after revoke and regrant",
+      "ms": 7
+    },
+    {
+      "name": "S07 hardening: mapping source revocation is checked even without a direct event input",
+      "ms": 7
+    },
+    {
+      "name": "S05 hardening: wall clock rollback before first heartbeat pauses a fast result",
+      "ms": 6
+    },
+    {
+      "name": "S05 hardening: storage fencing rejects clock rollback without runner",
+      "ms": 5
+    },
+    {
+      "name": "S06 hardening: tokenizer upgrade rebuilds and failed rebuild stays degraded",
+      "ms": 9
+    },
+    {
+      "name": "S06: frozen 120-case recall and 10k-task cold/warm baseline",
+      "ms": 9790
+    }
+  ]
+}

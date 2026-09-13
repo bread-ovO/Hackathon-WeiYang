@@ -1,0 +1,1 @@
+{"checks":["credential scope","rate limit handling","pagination","revoke stops sync","error redaction"],"status":"required-before-release"}

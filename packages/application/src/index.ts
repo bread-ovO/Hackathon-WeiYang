@@ -1,26 +1,19 @@
-import {
-  parseSourceEvent,
-  parseSourcePage,
-  type SourceEvent,
-  type Receipt,
-  type Checkpoint,
-  type IngestionContext,
-} from '@memo/contracts'
-export * from './search'
-export * from './jobs'
+import { parseSourceEvent, type SourceEvent } from '@memo/contracts'
 export interface EventStore {
-  receive(event: SourceEvent, cursor: string): { inserted: boolean }
+  receive(event:SourceEvent, cursor:string): { inserted:boolean }
 }
 // Connectors submit data, not SQL or state changes. The adapter is responsible for authorization.
-export function receiveEvent(
-  store: EventStore,
-  input: unknown,
-  cursor: string,
-): { inserted: boolean } {
+export function receiveEvent(store:EventStore, input:unknown, cursor:string): { inserted:boolean } {
   if (cursor.length > 4096) throw new Error('CURSOR_TOO_LARGE')
   return store.receive(parseSourceEvent(input), cursor)
 }
 
+export { prepareEventProcessing } from './event-processing'
+export type { EventProcessingInput, PreparedEventProcessing } from './event-processing'
+
+import { parseSourcePage, type Receipt, type Checkpoint, type IngestionContext } from '@memo/contracts/foundation'
+export * from './search'
+export * from './jobs'
 export interface PageStore {
   checkpoint(sourceId: string, streamId: string): Checkpoint
   receivePage(input: unknown, context: IngestionContext): Receipt

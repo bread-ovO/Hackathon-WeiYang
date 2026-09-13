@@ -1,0 +1,249 @@
+
+> bugu@0.1.0 check <repo>
+> pnpm check:boundaries && pnpm typecheck && pnpm test && pnpm build && pnpm test:storage && pnpm test:desktop
+
+
+> bugu@0.1.0 check:boundaries <repo>
+> node scripts/check-boundaries.mjs
+
+Package boundaries passed
+
+> bugu@0.1.0 typecheck <repo>
+> tsc --noEmit
+
+
+> bugu@0.1.0 test <repo>
+> vitest run
+
+
+ RUN  v3.2.4 <repo>
+
+ ✓ tests/unit/pet-window.test.ts (22 tests) 12ms
+ ✓ tests/unit/http-json.test.ts (32 tests) 45ms
+ ✓ tests/unit/pet-desktop-controller.test.ts (12 tests) 220ms
+ ✓ tests/unit/feishu-runtime.test.ts (20 tests) 221ms
+ ✓ tests/unit/github-runtime.test.ts (21 tests) 286ms
+ ✓ tests/unit/http-transport.test.ts (64 tests) 20ms
+ ✓ tests/unit/local-jsonl.test.ts (27 tests) 398ms
+ ✓ tests/unit/source-http-integration.test.ts (18 tests) 127ms
+ ✓ tests/unit/context.test.ts (31 tests) 53ms
+ ✓ tests/unit/source-poller.test.ts (20 tests) 16ms
+ ✓ tests/unit/pet-model-validation.test.ts (27 tests) 240ms
+ ✓ tests/unit/plugin-runtime.test.ts (14 tests) 260ms
+ ✓ tests/unit/credential-vault.test.ts (34 tests) 795ms
+ ✓ tests/unit/pet-worker-client.test.ts (14 tests) 14ms
+ ✓ tests/unit/http-response.test.ts (35 tests) 12ms
+ ✓ tests/unit/plugin-recovery.test.ts (12 tests) 28ms
+ ✓ tests/unit/feishu-validation.test.ts (36 tests) 21ms
+ ✓ tests/unit/provider-reader.test.ts (7 tests) 10ms
+ ✓ tests/unit/pet-model-store.test.ts (23 tests) 1697ms
+ ✓ tests/unit/pet-speech-policy.test.ts (13 tests) 23ms
+ ✓ tests/unit/pet-speech-service.test.ts (8 tests) 12ms
+ ✓ tests/unit/github-connector.test.ts (37 tests) 30ms
+ ✓ tests/unit/plugin-manifest.test.ts (66 tests) 18ms
+ ✓ tests/unit/workspace-contract.test.ts (80 tests) 69ms
+ ✓ tests/unit/source-http.test.ts (39 tests) 22ms
+ ✓ tests/unit/data-foundation.test.ts (11 tests) 34ms
+ ✓ tests/unit/http-manifest-boundary.test.ts (49 tests) 11ms
+ ✓ tests/unit/export-file.test.ts (11 tests) 171ms
+ ✓ tests/unit/plugin-contract.test.ts (47 tests) 33ms
+ ✓ tests/unit/event-processing.test.ts (37 tests) 24ms
+ ✓ tests/unit/pet-bubble.test.ts (10 tests) 16ms
+ ✓ tests/unit/pet-runtime-store.test.ts (8 tests) 699ms
+ ✓ tests/unit/credential-input.test.ts (26 tests) 136ms
+ ✓ tests/unit/reference-review-contract.test.ts (36 tests) 44ms
+ ✓ tests/unit/export-contract.test.ts (25 tests) 43ms
+ ✓ tests/unit/feishu-scope-errors.test.ts (18 tests) 12ms
+ ✓ tests/unit/source-contract.test.ts (26 tests) 62ms
+ ✓ tests/unit/pet-speech-environment.test.ts (5 tests) 6ms
+ ✓ tests/unit/pet-worker-queue.test.ts (1 test) 135ms
+ ✓ tests/unit/github-contracts.test.ts (31 tests) 22ms
+ ✓ tests/unit/plugin-install.test.ts (17 tests) 169ms
+ ✓ tests/unit/github-repository-identity.test.ts (13 tests) 10ms
+ ✓ tests/unit/security.test.ts (7 tests) 17ms
+ ✓ tests/unit/feishu-connector.test.ts (7 tests) 19ms
+ ✓ tests/unit/credential-contract.test.ts (39 tests) 47ms
+stderr | tests/unit/tray.test.ts > tray controller > degrades instead of failing when the platform has no tray
+TRAY_UNAVAILABLE
+
+ ✓ tests/unit/tray.test.ts (7 tests) 5ms
+ ✓ tests/unit/feishu-contracts.test.ts (27 tests) 45ms
+ ✓ tests/unit/source-backpressure.test.ts (7 tests) 16ms
+ ✓ tests/unit/foundation.test.ts (9 tests) 46ms
+ ✓ tests/unit/event-context.test.ts (7 tests) 10ms
+ ✓ tests/unit/pet-presentation-queue.test.ts (3 tests) 2ms
+ ✓ tests/unit/pet-frame-budget.test.ts (8 tests) 6ms
+ ✓ tests/unit/transport-hardening.test.ts (4 tests) 3ms
+ ✓ tests/unit/event-retraction-contract.test.ts (16 tests) 11ms
+ ✓ tests/unit/pet-import-entry.test.ts (29 tests) 4271ms
+   ✓ worker-only bounded model discovery > bounds total entries even when there are no candidates  3745ms
+ ✓ tests/unit/pet-actions-contract.test.ts (17 tests) 22ms
+ ✓ tests/unit/processing-loop.test.ts (3 tests) 4ms
+ ✓ tests/unit/pet-hit-test.test.ts (4 tests) 3ms
+ ✓ tests/unit/pet-asset-server.test.ts (11 tests) 389ms
+ ✓ tests/unit/pet-shader-lifecycle.test.ts (3 tests) 5ms
+ ✓ tests/unit/pet-model-route.test.ts (4 tests) 2ms
+ ✓ tests/unit/pet-speech-store.test.ts (1 test) 33ms
+ ✓ tests/unit/declarative-source-parity.test.ts (1 test) 30ms
+ ✓ tests/unit/pet-speech-contract.test.ts (26 tests) 28ms
+ ✓ tests/unit/ingestion-contracts.test.ts (17 tests) 18ms
+ ✓ tests/unit/pet-preferences-contract.test.ts (14 tests) 16ms
+ ✓ tests/unit/processing-contracts.test.ts (8 tests) 13ms
+
+ Test Files  67 passed (67)
+      Tests  1362 passed (1362)
+   Start at  09:44:51
+   Duration  5.67s (transform 1.42s, setup 0ms, collect 12.38s, tests 11.34s, environment 8ms, prepare 3.76s)
+
+
+> bugu@0.1.0 build <repo>
+> pnpm --filter @memo/desktop build
+
+
+> @memo/desktop@0.1.0 build <repo>/apps/desktop
+> node ../../scripts/build-pet-native.mjs && electron-vite build
+
+vite v7.3.1 building ssr environment for production...
+transforming...
+✓ 228 modules transformed.
+rendering chunks...
+out/main/chunks/import-session-BXo6llN0.js   11.54 kB
+out/main/pet-worker.js                       29.00 kB
+out/main/core.js                            198.43 kB
+out/main/index.js                           198.83 kB
+out/main/chunks/pet-speech-BdfQj51O.js      318.25 kB
+✓ built in 573ms
+vite v7.3.1 building ssr environment for production...
+transforming...
+✓ 2 modules transformed.
+rendering chunks...
+out/preload/pet.js    0.50 kB
+out/preload/index.js  7.05 kB
+✓ built in 8ms
+vite v7.3.1 building client environment for production...
+transforming...
+✓ 4688 modules transformed.
+rendering chunks...
+../../out/renderer/index.html                     0.58 kB
+../../out/renderer/pet.html                       2.79 kB
+../../out/renderer/assets/index-Bn4ROnyO.css    162.23 kB
+../../out/renderer/assets/pet-mjDux89r.js        41.31 kB
+../../out/renderer/assets/index-B3mihlfw.js   1,366.34 kB
+✓ built in 2.26s
+
+> bugu@0.1.0 test:storage <repo>
+> node scripts/test-storage.mjs
+
+Storage integration passed: {
+  status: 'ready',
+  schemaVersion: 13,
+  sqliteVersion: '3.53.4',
+  eventCount: 2,
+  jobCount: 2
+}
+Event context integration passed
+Processing integration passed: durable rule candidates, replay, revisions, human protection, grants, lease ABA and rollback
+Ingestion budget integration passed: atomic queue/disk backpressure, duplicates, rollback, recovery, real stat/statfs and persisted limits
+Job queue integration passed: fencing, retries, two connections, SIGKILL recovery
+Search integration passed: migration, Chinese/mixed/identifier recall, isolation, rebuild, limits; known misses 登入 / receiv / 认证
+Task model integration passed: v2 migration, project isolation, criteria history, evidence FKs, manual audit, archive, optimistic concurrency, outbox and search atomicity
+Source import integration passed: grants, revoke races, cursor CAS, dedup, project transaction rollback, safety and v4 migration
+Export integration passed: complete history, invalid/counter evidence, source privacy, revoked grants, references, corruption task/byte/row limits, concurrent WAL snapshot and assigned legacy history
+Retraction export integration passed: immediate invalidation, proof closure, human state, privacy, source independence and corruption rejection
+Reference review export integration passed: conflict, selected content, privacy, original quote, independent references, stale confirmation and retraction precedence
+retraction integration passed
+revision review integration passed
+Plugin installation integration passed: activate/upgrade rollback, grants, cursor CAS, transactional import, secrets rejection and uninstall/reinstall generations
+GitHub storage integration passed
+Feishu storage integration passed
+PASS merge: production refuses foundation v2 without changing data
+PASS merge: foundation refuses production v13 without changing data
+PASS merge: production v2 is distinguishable and still upgrades to v13
+PASS S03/S04: whole-page atomicity, stable receipts and conflict detection
+PASS S03: independent streams, stale CAS, input scope and revoked in-flight pages
+PASS S01/S04/S07: equivalent facts, A-B-A revisions and tombstone ordering
+PASS S03: process kill during page transaction and after durable commit
+PASS S02: four dimensions, criterion references, manual protection and rollback
+PASS S02/V05 substrate: sufficient evidence, criteria revision and source withdrawal
+PASS S05: atomic claim, fencing, expired lease and crash budget
+PASS S05: repeated real process crashes stop at maxAttempts
+PASS S04/S05: business and job completion survive transaction and post-commit kills
+PASS S05 runner: real handler commit, validated output, timeout and no handler
+PASS S07: mapping versions and late plan facts cannot override a newer plan
+PASS S08: UTF-8 budgets, duplicate receipts, queue hysteresis and persistent pause
+PASS S08: unavailable disk, automatic result admission, actual SQLITE_FULL and recovery
+PASS S08: WAL growth is measured and checkpoint reports a long reader
+PASS S02: v1 consistent backup, conservative migration and repeated open
+PASS S02: migration fails closed at backup:before
+PASS S02: migration fails closed at backup:after
+PASS S02: migration fails closed at migration:before
+PASS S02: migration fails closed at migration:copied
+PASS S02: migration fails closed at migration:verified
+PASS S02: failed backup path and future database never start writers
+PASS S05/S08: paused work resumes with capacity, clock pause requires explicit resume
+PASS S05: lease expires during business transaction and rolls back all writes
+PASS S03/S08: receipt retention and queue hysteresis survive restart
+PASS S06: project/scope before LIMIT, consistent index, fallback and deletion
+PASS S05: stopping runner preserves retryable work and exhaustion is terminal
+PASS S02 hardening: backup includes committed WAL with another connection open
+PASS S02 hardening: invalid old foreign keys abort migration and preserve v1
+PASS S03 hardening: four independent processes contend for one checkpoint
+PASS S05 hardening: four independent processes cannot share a lease
+PASS S01 hardening: missing envelope/provenance fields never persist
+PASS S05 hardening: saved proposal survives process death without rerunning handler
+PASS S05/H01 hardening: waiting handler cannot overwrite an intervening manual decision
+PASS S05/Q03 hardening: in-flight handler result stays cancelled after revoke and regrant
+PASS S07 hardening: mapping source revocation is checked even without a direct event input
+PASS S05 hardening: wall clock rollback before first heartbeat pauses a fast result
+PASS S05 hardening: storage fencing rejects clock rollback without runner
+PASS S06 hardening: tokenizer upgrade rebuilds and failed rebuild stays degraded
+PASS S06: frozen 120-case recall and 10k-task cold/warm baseline
+Data foundation integration passed: 42 scenarios
+
+> bugu@0.1.0 test:desktop <repo>
+> playwright test
+
+
+Running 30 tests using 1 worker
+
+(node:20539) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:20539) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 tests/desktop/app.spec.ts:7:5 › packaged renderer connects to isolated SQLite core without exposing Node (4.3s)
+Credential encryption available: true
+  ✓   2 tests/desktop/credentials.spec.ts:14:5 › credentials stay in host encrypted storage and survive restart without plaintext in renderer (2.5s)
+  ✓   3 tests/desktop/export.spec.ts:15:5 › export saves a scoped snapshot with explicit body choice and cancellation without file access in renderer (2.8s)
+  ✓   4 tests/desktop/feishu-connect.spec.ts:8:5 › 飞书 form verifies scope using vault and actual transport, persists paginated messages and human-only candidates and fences credential removal (4.3s)
+
+  ✓   5 tests/desktop/feishu.spec.ts:11:5 › Feishu management preserves coverage and rejects same-window rereading during cooldown (2.0s)
+  ✓   6 tests/desktop/github-connect.spec.ts:8:5 › GitHub form verifies scope using vault and actual transport, persists PR observations and fences credential removal (1.9s)
+
+  ✓   7 tests/desktop/github.spec.ts:11:5 › Github observation UI preserves pause schedule and never treats PR merge as task completion (1.9s)
+  ✓   8 tests/desktop/ingestion.spec.ts:13:5 › queue pressure preserves local import progress and budget across restart (2.5s)
+  -   9 tests/desktop/pet/pet-verify.spec.ts:61:9 › PET01 Cubism SDK compatibility › loads and animates Haru under strict CSP
+  -  10 tests/desktop/pet/pet-verify.spec.ts:61:9 › PET01 Cubism SDK compatibility › loads and animates Haru under wasm CSP
+  -  11 tests/desktop/pet-interaction.spec.ts:97:5 › pet preferences, scale and position survive restart; primary window can always disable click-through
+  -  12 tests/desktop/pet-interaction.spec.ts:282:5 › native pointer crosses transparent pet pixels but not the character
+  ✓  13 tests/desktop/pet-management.spec.ts:46:5 › pet model management imports chosen entries, preserves selection, removes copies and survives restart (2.4s)
+  ✓  14 tests/desktop/pet-management.spec.ts:220:5 › killed pet worker recovers staged copies without losing the current model (1.4s)
+  -  15 tests/desktop/pet-presentation.spec.ts:30:5 › Haru plays one-shot motions and expressions, serializes plain-text bubbles and clears them on hide
+  -  16 tests/desktop/pet-proactive-live.spec.ts:25:5 › virtual clock drives a durable automatic Haru bubble through the real host and renderer
+  -  17 tests/desktop/pet-render-lifecycle.spec.ts:10:5 › Haru frame pacing, context restoration and renderer crash isolation
+  -  18 tests/desktop/pet-soak.spec.ts:76:5 › PET14 real thirty-minute render soak with process working-set trends
+  ✓  19 tests/desktop/pet-speech-settings.spec.ts:44:5 › automatic speech settings remain opt-in and persist across restart without SDK assets (2.9s)
+  ✓  20 tests/desktop/pet-window-live.spec.ts:87:5 › missing runtime refuses show without creating a pet window (803ms)
+  -  21 tests/desktop/pet-window-live.spec.ts:156:5 › installed Haru renders through isolated pet bridge and stops on hide, switch and remove
+  ✓  22 tests/desktop/plugin-quit-local.spec.ts:18:5 › explicit quit cancels an in-flight local plugin read and preserves last successful sync on restart (2.5s)
+  ✓  23 tests/desktop/plugins.spec.ts:8:5 › plugin installation requires trial, preserves history and fences disabled imports (3.0s)
+  ✓  24 tests/desktop/processing.spec.ts:14:5 › local background processing preserves pause, citations, project scope and manual edits across revision and restart (9.7s)
+  ✓  25 tests/desktop/reference-review.spec.ts:9:5 › known version confirmation is reference-scoped, expires on new content and cannot undo retraction (2.5s)
+
+  ✓  26 tests/desktop/reference-review.spec.ts:204:5 › existing manual evidence supports independent version confirmation through the UI (1.5s)
+  ✓  27 tests/desktop/retraction.spec.ts:13:5 › explicit source retraction invalidates citation without overwriting manual task or editor drafts (4.0s)
+  ✓  28 tests/desktop/security.spec.ts:17:5 › real IPC rejects foreign windows and malformed requests; source text stays inert (1.3s)
+  ✓  29 tests/desktop/source-import.spec.ts:7:5 › selected JSONL import resumes, deduplicates and revokes without exposing filesystem paths (1.6s)
+  ✓  30 tests/desktop/workspace.spec.ts:7:5 › manual workspace persists tasks, versions and archive without fabricating evidence (3.5s)
+
+  9 skipped
+  21 passed (1.0m)

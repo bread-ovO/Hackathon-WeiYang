@@ -1,0 +1,78 @@
+{
+  "date": "2026-09-13",
+  "command": "pnpm check",
+  "sdk": "5-r.5",
+  "assetSha256": "67064a7fb1812cf502f5c4a03bfe12cc638c75a621bb4acf06bb28763df06ba0",
+  "runs": {
+    "strict": {
+      "versions": {
+        "electron": "44.3.0",
+        "chromium": "152.0.7977.78",
+        "platform": "darwin",
+        "arch": "arm64",
+        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.7977.78 Electron/44.3.0 Safari/537.36"
+      },
+      "result": {
+        "coreVersion": "6.0.0.1 (0x6000001)",
+        "webglVersion": 2,
+        "paramCount": 42,
+        "drawableCount": 84,
+        "frames": [
+          2134855089,
+          1282125645,
+          2706175156
+        ],
+        "motionUpdated": [
+          true,
+          true,
+          true
+        ],
+        "nonTransparentPixels": [
+          30086,
+          30054,
+          29790
+        ],
+        "negativeMoc3": {
+          "frameworkRejected": true,
+          "coreRejected": true
+        },
+        "resourcesReleased": true
+      }
+    },
+    "wasm": {
+      "versions": {
+        "electron": "44.3.0",
+        "chromium": "152.0.7977.78",
+        "platform": "darwin",
+        "arch": "arm64",
+        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.7977.78 Electron/44.3.0 Safari/537.36"
+      },
+      "result": {
+        "coreVersion": "6.0.0.1 (0x6000001)",
+        "webglVersion": 2,
+        "paramCount": 42,
+        "drawableCount": 84,
+        "frames": [
+          2134855089,
+          1282125645,
+          2706175156
+        ],
+        "motionUpdated": [
+          true,
+          true,
+          true
+        ],
+        "nonTransparentPixels": [
+          30086,
+          30054,
+          29790
+        ],
+        "negativeMoc3": {
+          "frameworkRejected": true,
+          "coreRejected": true
+        },
+        "resourcesReleased": true
+      }
+    }
+  }
+}

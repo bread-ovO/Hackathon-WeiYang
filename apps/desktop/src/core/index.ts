@@ -1,7 +1,11 @@
+import { handleFeishuHost, isFeishuHostRequest } from './feishu'
+import { handleGithubHost, isGithubHostRequest } from './github'
+import { handlePluginHost } from './plugins'
+import { createSourceHandler } from './sources'
+import { handleWorkspace } from './workspace'
+import { createLocalProcessing } from './processing'
 import { openStore } from '@memo/storage'
-import { parseCoreRequest, type CoreReply } from '@memo/contracts'
-import { JobRunner, type JobHandler } from '@memo/application'
-import { randomUUID } from 'node:crypto'
+import { parseHostRequest, type CoreReply } from '@memo/contracts'
 const parentPort = (
   process as unknown as {
     parentPort: {
@@ -13,12 +17,9 @@ const parentPort = (
 const path = process.argv[2]
 if (!path || !parentPort) throw new Error('CORE_STARTUP_INVALID')
 const store = openStore(path)
-// A provider must register a real handler. Unconfigured work stays pending and visible.
-const handlers = new Map<string, JobHandler>()
-store.setAvailablePipelines([...handlers.keys()])
-const runner = new JobRunner(store, handlers, { owner: randomUUID() })
-runner.start()
-parentPort.on('message', ({ data }) => {
+const sources = createSourceHandler(store)
+const processing = createLocalProcessing(store)
+parentPort.on('message', async ({ data }) => {
   if (
     !data ||
     typeof data !== 'object' ||
@@ -27,25 +28,82 @@ parentPort.on('message', ({ data }) => {
     typeof data.id !== 'string'
   )
     return
-  let reply: CoreReply
+  let reply: CoreReply<unknown>
   try {
-    const request = parseCoreRequest(data.request)
-    if (request.method === 'resumeSource') store.resumeSource(request.sourceId)
-    if (request.method === 'updateCapacity') store.setLimits(request.limits)
-    reply = { ok: true, data: store.health() }
+    const request = parseHostRequest(data.request)
+    if (request.method.startsWith('pet.')) throw new Error('INVALID_REQUEST')
+    reply = {
+      ok: true,
+      data: isFeishuHostRequest(request)
+        ? handleFeishuHost(store, request)
+        : isGithubHostRequest(request)
+          ? handleGithubHost(store, request)
+          : request.method === 'ingestion.status'
+            ? store.ingestion.getStatus()
+            : request.method === 'ingestion.configure'
+              ? store.ingestion.configure(request.patch)
+              : request.method === 'processing.status'
+                ? processing.status()
+                : request.method === 'processing.configure'
+                  ? processing.configure(request.enabled)
+                  : request.method === 'pluginHost.list' ||
+                      request.method === 'pluginHost.get' ||
+                      request.method === 'pluginHost.activate' ||
+                      request.method === 'pluginHost.disable' ||
+                      request.method === 'pluginHost.uninstall' ||
+                      request.method === 'pluginHost.receiveBatch' ||
+                      request.method === 'pluginHost.recordError'
+                    ? handlePluginHost(store, request)
+                    : request.method === 'exports.build'
+                      ? store.exports.build(request)
+                      : request.method === 'health'
+                        ? store.health()
+                        : request.method === 'sources.list' ||
+                            request.method === 'sources.importFile' ||
+                            request.method === 'sources.sync' ||
+                            request.method === 'sources.revoke'
+                          ? await sources(request)
+                          : handleWorkspace(store, request),
+    }
   } catch (error) {
+    const code = error instanceof Error ? error.message : ''
     reply = {
       ok: false,
       error:
-        error instanceof Error && error.message === 'INVALID_REQUEST'
-          ? 'INVALID_REQUEST'
-          : 'INTERNAL_ERROR',
+        code === 'FEISHU_PAGE_LOOP' ||
+        code === 'FEISHU_PAGE_LIMIT' ||
+        code === 'INVALID_REFERENCE_REVIEW' ||
+        code === 'REFERENCE_REVIEW_CONFLICT' ||
+        code === 'REFERENCE_RETRACTED' ||
+        code === 'REFERENCE_ALREADY_INVALID' ||
+        code === 'INGESTION_QUEUE_LIMIT' ||
+        code === 'INGESTION_DATABASE_LIMIT' ||
+        code === 'INGESTION_DISK_LOW' ||
+        code === 'INGESTION_PROBE_UNAVAILABLE'
+          ? code
+          : code.startsWith('FEISHU_')
+            ? 'FEISHU_FAILED'
+            : code.startsWith('GITHUB_')
+              ? 'GITHUB_FAILED'
+              : code === 'EXPORT_LIMIT_EXCEEDED'
+                ? 'EXPORT_LIMIT_EXCEEDED'
+                : code === 'EXPORT_CORRUPT_DATA'
+                  ? 'EXPORT_INVALID_DATA'
+                  : code === 'EXPORT_TASK_NOT_IN_PROJECT' ||
+                      code === 'EXPORT_UNKNOWN_PROJECT'
+                    ? 'NOT_FOUND'
+                    : code === 'VERSION_CONFLICT'
+                      ? 'VERSION_CONFLICT'
+                      : code === 'TASK_NOT_IN_PROJECT'
+                        ? 'NOT_FOUND'
+                        : 'INVALID_REQUEST',
     }
   }
   parentPort.postMessage({ id: data.id, reply })
 })
 process.on('exit', () => {
-  void runner.stop()
+  processing.dispose()
   store.close()
 })
 parentPort.postMessage({ ready: true })
+processing.start()

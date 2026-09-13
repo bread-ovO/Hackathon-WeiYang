@@ -119,7 +119,17 @@ importers:
 
   packages/model: {}
 
-  packages/plugin-host: {}
+  packages/plugin-host:
+    dependencies:
+      '@memo/contracts':
+        specifier: workspace:*
+        version: link:../contracts
+      ajv:
+        specifier: 8.17.1
+        version: 8.17.1
+      json-schema-to-ts:
+        specifier: 3.1.1
+        version: 3.1.1
 
   packages/storage:
     dependencies:

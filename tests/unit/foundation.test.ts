@@ -46,3 +46,15 @@ describe('renderer trust',()=>{
   expect(isTrustedPage('http://localhost:5174/','http://localhost:5173/')).toBe(false)
  })
 })
+
+import { parseDeadline } from '../../packages/domain/src/index'
+describe('parseDeadline', () => {
+  it('normalizes ISO dates and rejects ambiguous text', () => {
+    expect(parseDeadline('2026-09-13')).toBe('2026-09-13T00:00:00.000Z')
+    expect(parseDeadline('tomorrow')).toBeNull()
+    expect(parseDeadline('2026-99-99')).toBeNull()
+  })
+})
+
+import { extractProgressCandidates } from '../../packages/domain/src/index'
+it('extracts progress and change candidates', () => { expect(extractProgressCandidates('已完成导入\n状态更新为等待')).toEqual([{kind:'progress',text:'已完成导入'},{kind:'change',text:'状态更新为等待'}]) })

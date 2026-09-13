@@ -1,8 +1,8 @@
-export interface SourceAdapter {
-  readonly kind: string
-  // The host grants scope before creating an adapter. No implementation is enabled yet.
-  pull(cursor: string, signal: AbortSignal): Promise<unknown>
-}
+export * from './feishu'
+export * from './github'
+export * from './polling'
+export * from './http-client'
+
 // Apply while receiving/decompressing transport chunks, before building the full payload.
 export async function readBoundedUtf8(
   chunks: AsyncIterable<Uint8Array>,

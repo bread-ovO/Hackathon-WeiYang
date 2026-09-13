@@ -3,7 +3,7 @@ import { spawn, type ChildProcess } from 'node:child_process'
 import { resolve } from 'node:path'
 import Database from 'better-sqlite3'
 import { JobRunner, type JobHandler } from '@memo/application'
-import type { DecisionProposal } from '@memo/contracts'
+import type { DecisionProposal } from '@memo/contracts/foundation'
 import type { Env } from './integration'
 import {
   event,

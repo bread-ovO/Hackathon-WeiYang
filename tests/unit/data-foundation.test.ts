@@ -9,7 +9,7 @@ import {
   parseCoreRequest,
   parseCoreReply,
   parseProposal,
-} from '@memo/contracts'
+} from '@memo/contracts/foundation'
 import { resolveObjectHead, identityKey } from '@memo/domain'
 import { tokenize, searchTerms } from '@memo/application'
 import { readBoundedUtf8 } from '../../packages/connectors/src/index'

@@ -1,3 +1,12 @@
+import { FeishuPanel } from './feishu-panel'
+import { GithubPanel } from './github-panel'
+import { IngestionPanel } from './ingestion-panel'
+import { ProcessingPanel } from './processing-panel'
+import { PluginManager } from './plugin-manager'
+import { PetModels } from './pet-models'
+import { CredentialsPanel } from './credentials-panel'
+import { SourceImport } from './source-import'
+import { RealWorkspace } from './real-workspace'
 import React, { useEffect, useRef, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import {
@@ -74,12 +83,6 @@ function Icon({ name, size = 18 }: { name: IconName; size?: number }) {
   return <Component size={size} weight="regular" aria-hidden="true" />
 }
 const filters = ['全部', '进行中', '等待反馈', '待确认', '已完成'] as const
-const pauseLabels: Record<Health['pauses'][number]['code'], string> = {
-  SOURCE_DISABLED:'来源尚未授权或已断开',SOURCE_PAUSED:'来源已暂停',QUEUE_LIMIT:'待处理数据达到上限，处理后自动恢复',
-  DISK_LIMIT:'可用空间不足或已达到存储额度',DISK_UNAVAILABLE:'暂时无法确认可用空间',EVENT_TOO_LARGE:'单条记录超出大小限制',
-  PAGE_TOO_LARGE:'本批记录超出大小限制',REVISION_CONTENT_CONFLICT:'同一修订出现不同内容，需要检查来源',
-  INVALID_SOURCE_EVENT:'来源记录格式不受支持',NO_HANDLER:'处理能力尚未接入，数据已保留',CLOCK_CHANGED:'设备时间变化，处理已暂停',STORAGE_ERROR:'存储暂不可用',
-}
 function App() {
   const [health, setHealth] = useState<Health | null>(null),
     [error, setError] = useState(false)
@@ -96,7 +99,7 @@ function App() {
     [draft, setDraft] = useState(''),
     [notice, setNotice] = useState('')
   const [undo, setUndo] = useState<Task[] | null>(null)
-  const [capacityMb,setCapacityMb]=useState('512'),[capacityBusy,setCapacityBusy]=useState(false)
+  const [realCount, setRealCount] = useState(0)
   const searchRef = useRef<HTMLInputElement>(null)
   useEffect(() => {
     let active = true
@@ -121,9 +124,6 @@ function App() {
       clearInterval(timer)
     }
   }, [])
-  useEffect(() => {
-    if(health)setCapacityMb(String(health.resources.maxBytes/1048576))
-  }, [health?.resources.maxBytes])
   useEffect(() => {
     const key = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
@@ -224,7 +224,9 @@ function App() {
             <Icon name="list" />
             跟进
             <span className="nav-count">
-              {demo ? tasks.filter((t) => t.status !== '已完成').length : 0}
+              {demo
+                ? tasks.filter((t) => t.status !== '已完成').length
+                : realCount}
             </span>
           </AppButton>
           <AppButton
@@ -263,7 +265,7 @@ function App() {
         <div className="sidebar-foot">
           <div className="preview-label">
             <span className="tiny-dot" />
-            设计预览
+            {demo ? '设计预览' : '本地工作区'}
           </div>
           <AppButton
             className={page === '设置' ? 'nav-item active' : 'nav-item'}
@@ -315,7 +317,9 @@ function App() {
             </AppButton>
           </div>
         </header>
-        {page === '跟进' ? (
+        {page === '跟进' && !demo ? (
+          <RealWorkspace onCount={setRealCount} />
+        ) : page === '跟进' ? (
           <>
             <div className="page-heading">
               <div>
@@ -672,24 +676,28 @@ function App() {
             <p className="page-description">
               把工作发生的地方连接起来。你决定读取哪些内容。
             </p>
+            <IngestionPanel />
+            <ProcessingPanel />
+            <SourceImport />
+            <FeishuPanel />
+            <GithubPanel />
+            <PluginManager />
             <div className="connection-summary">
               <Icon name="link" />
-              <span>尚无已连接的应用</span>
-              <small>连接能力正在开发中</small>
+              <span>可手动导入本地 JSONL 导出</span>
+              <small>已支持指定 GitHub 仓库的 PR 采样；已支持选定飞书会话的分窗历史采样</small>
             </div>
             <div className="section-heading">
-              <h3>可接入方向</h3>
-              <span>4 种来源</span>
+              <h3>后续接入方向</h3>
+              <span>2 种来源</span>
             </div>
             {[
-              ['chat', '飞书', '从授权对话中发现承诺、变更与反馈', 'blue'],
               [
                 'terminal',
                 '本地 AI 会话',
                 '关联执行过程、工具结果和验证记录',
                 'ink',
               ],
-              ['github', 'GitHub', '核对 PR、提交与交付记录', 'ink'],
               ['folder', '本地文件', '从选定的文件夹中关联文档变化', 'amber'],
             ].map(([symbol, name, desc, color]) => (
               <div className="connection-row" key={name}>
@@ -743,37 +751,13 @@ function App() {
                 <dd>
                   {health ? `${health.eventCount} / ${health.jobCount}` : '—'}
                 </dd>
-                <dt>数据处理</dt>
-                <dd>{health ? {idle:health.queue.depth?'等待下一次处理':'没有待执行的处理',running:'正在处理',paused:'部分处理已暂停'}[health.processingStatus] : '—'}</dd>
-                <dt>等待 / 执行中 / 永久失败</dt>
-                <dd>{health ? `${health.queue.depth-health.queue.running} / ${health.queue.running} / ${health.queue.dead}` : '—'}</dd>
-                <dt>本地占用 / 存储额度</dt>
-                <dd>{health ? `${(health.resources.usedBytes/1048576).toFixed(1)} / ${(health.resources.maxBytes/1048576).toFixed(0)} MB` : '—'}</dd>
-                <dt>搜索索引</dt><dd>{health ? health.searchReady?'已就绪':'正在恢复，可有限检索' : '—'}</dd>
               </dl>
-              {health?.pauses.map((pause,index)=>(
-                <div className="connection-note" key={`${pause.sourceId}-${pause.code}-${index}`}>
-                  <p>{pauseLabels[pause.code]}</p>
-                  {pause.sourceId && !['SOURCE_DISABLED','QUEUE_LIMIT'].includes(pause.code) && <AppButton type="button" onClick={async()=>{
-                    setUndo(null)
-                    try{const reply=await window.memo.resumeSource(pause.sourceId!)
-                    if(reply.ok){setHealth(reply.data);setNotice('已解除暂停，接收时会重新检查来源和额度。')}else setNotice('暂时无法恢复，请检查来源或可用空间。')}catch{setNotice('核心暂不可用，请稍后重试。')}
-                  }}>重新检查来源</AppButton>}
-                </div>
-              ))}
-              <form className="capacity-form" onSubmit={async(event)=>{
-                event.preventDefault();setCapacityBusy(true);setUndo(null)
-                try{const reply=await window.memo.updateCapacity({diskBytes:Number(capacityMb)*1048576});if(reply.ok){setHealth(reply.data);setNotice('存储额度已保存。')}else setNotice('额度未保存，请检查输入和存储状态。')}
-                catch{setNotice('额度未保存，核心暂不可用。')}finally{setCapacityBusy(false)}
-              }}>
-                <label htmlFor="capacity-mb">调整存储额度（MB）</label>
-                <AppInput id="capacity-mb" type="number" min={64} max={10240} step={1} value={capacityMb} onChange={e=>setCapacityMb(e.target.value)} required />
-                <AppButton type="submit" disabled={!health||capacityBusy}>{capacityBusy?'保存中':'保存额度'}</AppButton>
-              </form>
               <p className="muted">
-                当前为开发版本，数据库尚未加密，仅用于测试。未配置模型或应用凭据。
+                当前为开发版本，事项数据库尚未加密；凭据使用独立的系统加密存储。
               </p>
             </section>
+            <CredentialsPanel />
+            <PetModels />
             <div className="connection-note">
               <h3>关于设计预览</h3>
               <p>

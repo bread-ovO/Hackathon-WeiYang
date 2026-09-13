@@ -1,0 +1,54 @@
+.github-panel .github-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.github-panel .github-fields label {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+  text-align: left;
+  min-width: 0;
+}
+.github-panel input,
+.github-panel select {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+.github-panel select {
+  border: 1px solid var(--color-kumo-line, #ddd);
+  padding: 8px;
+  border-radius: 8px;
+  background: var(--color-kumo-base, white);
+}
+.github-connection {
+  padding: 12px 0;
+  border-top: 1px solid var(--color-kumo-line, #ddd);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-wrap: anywhere;
+}
+.github-connection h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+.github-observation {
+  padding: 12px 0;
+  border-top: 1px solid var(--color-kumo-line, #ddd);
+}
+.github-observation pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font: inherit;
+}
+@media (max-width: 900px) {
+  .github-panel .github-fields {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

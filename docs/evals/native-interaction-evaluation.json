@@ -1,0 +1,1 @@
+{"candidates":["tray","file-picker","notifications"],"criteria":["sandbox compatibility","testability","accessibility"],"decision":"evaluate before adding renderer dependencies"}

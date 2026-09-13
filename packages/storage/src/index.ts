@@ -1,189 +1,221 @@
-import Database from 'better-sqlite3'
-import type { Health } from '@memo/contracts'
-import { pauseCodes } from '@memo/contracts'
-import { TOKENIZER_VERSION } from '@memo/application'
-import { migrate, DATABASE_VERSION } from './migrations'
+import { createFeishu, migrateFeishu } from './feishu'
+export type {
+  FeishuConnection,
+  FeishuAuthorized,
+  FeishuAuthorizeInput,
+  FeishuBatchInput,
+  FeishuFailureInput,
+  FeishuFailureCode,
+  FeishuFence,
+} from './feishu'
+export { feishuFailureCodes } from './feishu'
+import { createGithub, migrateGithub } from './github'
+export type {
+  GithubConnection,
+  GithubAuthorized,
+  GithubAuthorizeInput,
+  GithubBatchInput,
+  GithubFailureInput,
+  GithubFailureCode,
+} from './github'
+export { githubFailureCodes } from './github'
+import { createRevisionReview, migrateRevisionReview } from './revision-review'
+import { createRetractions, migrateRetractions } from './retractions'
 import {
-  makeContext,
-  validateLimits,
-  type StoreOptions,
-  type Limits,
-  type PauseCode,
-} from './context'
-import { ingestion } from './ingestion'
-import { taskRepository } from './tasks'
-import { jobRepository } from './jobs'
-import { searchRepository, isSearchReady } from './search'
-import { identityRepository } from './identities'
-export { DATABASE_VERSION } from './migrations'
-export { DEFAULT_LIMITS, type Limits, type StoreOptions } from './context'
-export type { SourceRegistration } from './ingestion'
-export type { SearchQuery, SearchResult } from './search'
+  createIngestionBudget,
+  migrateIngestionBudget,
+} from './ingestion-budget'
+import { createProcessing, migrateProcessing } from './processing'
+export type { ProcessingContext, ProcessingResult } from './processing'
+import { createEventReceiver } from './receive'
+import { createEventContexts, migrateEventContexts } from './event-context'
+export type { StoredEventContext } from './event-context'
+import Database from 'better-sqlite3'
+import { createPlugins, migratePlugins } from './plugins'
+export type {
+  HostPlugin,
+  SafePlugin,
+  PluginGrant,
+  PluginActivation,
+} from './plugins'
+import { createExports } from './export'
+export type { ExportBundle, ExportScope } from './export'
+export { EXPORT_MAX_BYTES } from './export'
+import { createSources, migrateSources } from './sources'
+export type {
+  SourceSummary,
+  AuthorizedSource,
+  SourceImportErrorCode,
+} from './sources'
+export { sourceImportErrorCodes } from './sources'
+import {
+  createTaskModel,
+  migrateTaskModel,
+  migrateTaskEditing,
+} from './task-model'
+export type {
+  StoredTask,
+  StoredTaskStatus,
+  StoredAdmission,
+  ManualActor,
+  TaskExpectation,
+  CriterionInput,
+  EvidenceInput,
+  TaskPatch,
+  TaskPageQuery,
+  TaskPage,
+  TaskDecisionSummary,
+} from './task-model'
+import { createJobQueue } from './jobs'
+import { createCandidateSearch, migrateSearch } from './search'
+export type { SearchProjection, CandidateQuery, CandidateHit } from './search'
+export type { Job, JobLease, JobErrorCode } from './jobs'
+export { MAX_JOB_ATTEMPTS, JOB_LEASE_MS } from './jobs'
+import type { SourceEvent, Health } from '@memo/contracts'
 
-export function openStore(path: string, options: StoreOptions = {}) {
+export function openStore(path: string) {
   const db = new Database(path)
   try {
-    if (
-      (db.pragma('user_version', { simple: true }) as number) > DATABASE_VERSION
-    )
-      throw new Error('DATABASE_TOO_NEW')
+    // The opt-in foundation store uses a different v2 schema. Never migrate it as production.
+    if ((db.pragma('table_info(source_events)') as { name: string }[]).some(column => column.name === 'envelope'))
+      throw new Error('INCOMPATIBLE_DATABASE_FORMAT')
     db.pragma('foreign_keys = ON')
     db.pragma('journal_mode = WAL')
     db.pragma('synchronous = FULL')
     db.pragma('busy_timeout = 3000')
-    migrate(db, path, options.fault ?? (() => {}), options.now ?? Date.now)
-    if (options.sqlitePageLimit !== undefined) {
-      if (
-        !Number.isSafeInteger(options.sqlitePageLimit) ||
-        options.sqlitePageLimit < 1
-      )
-        throw new Error('INVALID_PAGE_LIMIT')
-      db.pragma('max_page_count = ' + options.sqlitePageLimit)
+    const version = db.pragma('user_version', { simple: true }) as number
+    if (version > 13) throw new Error('DATABASE_TOO_NEW')
+    if (version < 1)
+      db.transaction(() => {
+        db.exec(`
+        CREATE TABLE source_instances (id TEXT PRIMARY KEY, cursor TEXT NOT NULL DEFAULT '');
+        CREATE TABLE source_events (
+          id INTEGER PRIMARY KEY, source_id TEXT NOT NULL REFERENCES source_instances(id),
+          external_id TEXT NOT NULL, revision TEXT NOT NULL, occurred_at TEXT NOT NULL,
+          received_at TEXT NOT NULL, role TEXT NOT NULL CHECK(role IN ('user','assistant','tool','system')),
+          content TEXT NOT NULL, UNIQUE(source_id, external_id, revision)
+        );
+        CREATE TABLE jobs (id INTEGER PRIMARY KEY, event_id INTEGER NOT NULL UNIQUE REFERENCES source_events(id),
+          state TEXT NOT NULL DEFAULT 'pending' CHECK(state IN ('pending','running','done','failed')),
+          attempt INTEGER NOT NULL DEFAULT 0, lease_until TEXT, next_run TEXT, error_code TEXT);
+        CREATE INDEX jobs_pending ON jobs(state, next_run);
+        CREATE TABLE tasks (id TEXT PRIMARY KEY, title TEXT NOT NULL,
+          status TEXT NOT NULL CHECK(status IN ('todo','in_progress','waiting','completed','cancelled')),
+          evidence_status TEXT NOT NULL CHECK(evidence_status IN ('unknown','partial','sufficient','conflict')),
+          version INTEGER NOT NULL DEFAULT 1 CHECK(version > 0), archived_at TEXT);
+        PRAGMA user_version = 1;
+      `)
+      })()
+    if (version < 2) migrateSearch(db)
+    if (version < 3) migrateTaskModel(db)
+    if (version < 4) migrateTaskEditing(db)
+    if (version < 5) migrateSources(db)
+    if (version < 6) migratePlugins(db)
+    if (version < 7) migrateEventContexts(db)
+    if (version < 8) migrateProcessing(db)
+    if (version < 9) migrateIngestionBudget(db)
+    if (version < 10) migrateRetractions(db)
+    if (version < 11) migrateRevisionReview(db)
+    if (version < 12) migrateGithub(db)
+    if (version < 13) migrateFeishu(db)
+    const revisionReview = createRevisionReview(db)
+    const retractions = createRetractions(db)
+    const ingestion = createIngestionBudget(db)
+    const contexts = createEventContexts(db)
+    const receive = createEventReceiver(
+      db,
+      contexts.record,
+      ingestion.assertCanReceive,
+    )
+    const observeEvent = (projectId: string, eventId: number) => {
+      retractions.observe(projectId, eventId)
+      revisionReview.observe(projectId, eventId)
     }
-    const ctx = makeContext(db, path, options)
-    const search = searchRepository(ctx)
-    const ready = (
-      db
-        .prepare("SELECT value FROM store_meta WHERE key='search_ready'")
-        .get() as { value: string }
-    ).value
-    const tokenizer = db
-      .prepare("SELECT value FROM store_meta WHERE key='tokenizer_version'")
-      .get() as { value: string } | undefined
-    if (ready !== '1' || tokenizer?.value !== TOKENIZER_VERSION) {
-      try {
-        search.rebuildSearch()
-      } catch {
-        ctx.pauses.set('search', 'STORAGE_ERROR')
-      }
-    }
-    let pipelines: readonly string[] = []
+    const sources = createSources(db, receive, observeEvent)
+    const plugins = createPlugins(db, receive, observeEvent)
+    const github = createGithub(db, receive, observeEvent)
+    const feishu = createFeishu(db, receive, observeEvent)
     return {
-      ...ingestion(ctx),
-      ...taskRepository(ctx),
-      ...jobRepository(ctx),
-      ...search,
-      ...identityRepository(ctx),
-      setAvailablePipelines(values: readonly string[]) {
-        pipelines = [...values]
+      feishu: {
+        ...feishu,
+        receiveBatch: (input: Parameters<typeof feishu.receiveBatch>[0]) =>
+          ingestion.withBatch(() => feishu.receiveBatch(input)),
       },
-      setLimits(input: Partial<Limits>) {
-        if (Object.keys(input).some((k) => !Object.hasOwn(ctx.limits, k)))
-          throw new Error('INVALID_LIMITS')
-        const next = { ...ctx.limits, ...input }
-        validateLimits(next)
-        // This named host-only operation can raise a quota that is preventing ordinary writes.
+      github: {
+        ...github,
+        receiveBatch: (input: Parameters<typeof github.receiveBatch>[0]) =>
+          ingestion.withBatch(() => github.receiveBatch(input)),
+      },
+      ingestion,
+      revisionReview,
+      processing: createProcessing(db),
+      contexts: { get: contexts.get },
+      plugins: {
+        ...plugins,
+        receiveBatch: (...args: Parameters<typeof plugins.receiveBatch>) =>
+          ingestion.withBatch(() => plugins.receiveBatch(...args)),
+      },
+      exports: createExports(db),
+      sources: {
+        ...sources,
+        receiveBatch: (...args: Parameters<typeof sources.receiveBatch>) =>
+          ingestion.withBatch(() => sources.receiveBatch(...args)),
+      },
+      tasks: createTaskModel(db),
+      jobs: createJobQueue(db),
+      search: createCandidateSearch(db),
+      registerSource(id: string) {
         db.prepare(
-          "INSERT INTO store_meta VALUES('limits',?) ON CONFLICT(key) DO UPDATE SET value=excluded.value",
-        ).run(JSON.stringify(next))
-        Object.assign(ctx.limits, next)
+          'INSERT INTO source_instances(id) VALUES (?) ON CONFLICT DO NOTHING',
+        ).run(id)
       },
-      checkpointWal() {
-        const row = (
-          db.pragma('wal_checkpoint(PASSIVE)') as {
-            busy: number
-            log: number
-            checkpointed: number
-          }[]
-        )[0]!
-        return {
-          busy: row.busy,
-          logPages: row.log,
-          checkpointedPages: row.checkpointed,
-        }
+      receive(event: SourceEvent, cursor: string) {
+        if (
+          db
+            .prepare('SELECT 1 FROM source_grants WHERE source_id=?')
+            .get(event.sourceInstanceId) ||
+          db
+            .prepare(
+              'SELECT 1 FROM plugin_source_history WHERE source_instance_id=?',
+            )
+            .get(event.sourceInstanceId) ||
+          db
+            .prepare('SELECT 1 FROM github_connections WHERE source_id=?')
+            .get(event.sourceInstanceId) ||
+          db
+            .prepare('SELECT 1 FROM feishu_connections WHERE source_id=?')
+            .get(event.sourceInstanceId)
+        )
+          throw new Error('USE_AUTHORIZED_SOURCE_BATCH')
+        return ingestion.withBatch(() => receive(event, cursor))
       },
       health(): Health {
-        const state = ctx.resourceState(),
-          depth = ctx.depth()
-        if (depth <= ctx.limits.queueLow) ctx.pauses.delete('queue')
-        if (depth >= ctx.limits.queueHigh)
-          ctx.pauses.set('queue', 'QUEUE_LIMIT')
-        const count = (sql: string) =>
-          (db.prepare(sql).get() as { n: number }).n
-        const pauses: Health['pauses'] = [...ctx.pauses].map(([key, code]) => ({
-          sourceId: key.startsWith('source:') ? key.slice(7) : null,
-          code,
-        }))
-        const sources = db
-          .prepare(
-            'SELECT id,active,pause_code FROM source_instances ORDER BY id LIMIT 100',
-          )
-          .all() as {
-          id: string
-          active: number
-          pause_code: PauseCode | null
-        }[]
-        for (const s of sources)
-          if (!s.active || s.pause_code)
-            pauses.push({
-              sourceId: s.id,
-              code: s.active ? s.pause_code! : 'SOURCE_DISABLED',
-            })
-        const stoppedJobs = db
-          .prepare(
-            "SELECT DISTINCT e.source_id,j.error_code FROM jobs j JOIN source_events e ON e.id=j.event_id WHERE j.state='paused' LIMIT 100",
-          )
-          .all() as { source_id: string; error_code: string }[]
-        for (const j of stoppedJobs)
-          pauses.push({
-            sourceId: j.source_id,
-            code: pauseCodes.includes(j.error_code as PauseCode)
-              ? (j.error_code as PauseCode)
-              : 'SOURCE_PAUSED',
-          })
-        const waiting = db
-          .prepare(
-            "SELECT DISTINCT pipeline_version FROM jobs WHERE state IN ('pending','retry_wait','paused')",
-          )
-          .all() as { pipeline_version: string }[]
-        if (waiting.some((j) => !pipelines.includes(j.pipeline_version)))
-          pauses.push({ sourceId: null, code: 'NO_HANDLER' })
-        const oldest = db
-          .prepare(
-            "SELECT MIN(created_at) AS oldest FROM jobs WHERE state IN ('pending','running','retry_wait','paused')",
-          )
-          .get() as { oldest: string | null }
-        const running = count(
-          "SELECT count(*) AS n FROM jobs WHERE state='running'",
-        )
         return {
           status: 'ready',
-          schemaVersion: DATABASE_VERSION,
+          schemaVersion: db.pragma('user_version', { simple: true }) as number,
           sqliteVersion: (
             db.prepare('SELECT sqlite_version() AS version').get() as {
               version: string
             }
           ).version,
-          eventCount: count('SELECT count(*) AS n FROM source_events'),
-          jobCount: count('SELECT count(*) AS n FROM jobs'),
-          processingStatus: pauses.length
-            ? 'paused'
-            : running
-              ? 'running'
-              : 'idle',
-          searchReady: isSearchReady(ctx),
-          queue: {
-            depth,
-            running,
-            dead: count("SELECT count(*) AS n FROM jobs WHERE state='dead'"),
-            oldestAgeMs: oldest.oldest
-              ? Math.max(0, ctx.now() - Date.parse(oldest.oldest))
-              : 0,
-          },
-          resources: {
-            usedBytes: Math.floor(state.usedBytes),
-            availableBytes:
-              state.availableBytes === null
-                ? null
-                : Math.floor(state.availableBytes),
-            maxBytes: ctx.limits.diskBytes,
-            queueHigh: ctx.limits.queueHigh,
-            queueLow: ctx.limits.queueLow,
-          },
-          pauses: [
-            ...new Map(pauses.map((p) => [JSON.stringify(p), p])).values(),
-          ].slice(0, 100),
+          eventCount: (
+            db.prepare('SELECT COUNT(*) AS count FROM source_events').get() as {
+              count: number
+            }
+          ).count,
+          jobCount: (
+            db.prepare('SELECT COUNT(*) AS count FROM jobs').get() as {
+              count: number
+            }
+          ).count,
         }
+      },
+      cursor(id: string) {
+        return (
+          db
+            .prepare('SELECT cursor FROM source_instances WHERE id=?')
+            .get(id) as { cursor: string } | undefined
+        )?.cursor
       },
       close() {
         db.close()
@@ -194,4 +226,3 @@ export function openStore(path: string, options: StoreOptions = {}) {
     throw error
   }
 }
-export type Store = ReturnType<typeof openStore>

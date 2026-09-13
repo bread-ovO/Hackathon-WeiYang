@@ -4,7 +4,7 @@ import {
   type SourceEventV2,
   type DecisionProposal,
   type OperationResult,
-} from '@memo/contracts'
+} from '@memo/contracts/foundation'
 
 export interface JobStore {
   claimJob(

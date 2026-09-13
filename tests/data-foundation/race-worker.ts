@@ -1,4 +1,4 @@
-import { openStore } from '@memo/storage'
+import { openFoundationStore as openStore } from '@memo/storage/foundation'
 import { NOW, probe, event, page } from './fixtures'
 const [path, mode, owner] = process.argv.slice(2)
 if (!path || !owner || !['page', 'claim'].includes(mode!))

@@ -1,4 +1,4 @@
-import { openStore, type Store, type StoreOptions } from '@memo/storage'
+import { openFoundationStore as openStore, type FoundationStore as Store, type StoreOptions } from '@memo/storage/foundation'
 import {
   parseEventV2,
   type SourceEventV2,
@@ -6,7 +6,7 @@ import {
   type TaskCommand,
   type DecisionProposal,
   type Lease,
-} from '@memo/contracts'
+} from '@memo/contracts/foundation'
 export const NOW = Date.parse('2026-09-12T09:00:00Z')
 export const probe = () => ({
   usedBytes: 1024 * 1024,

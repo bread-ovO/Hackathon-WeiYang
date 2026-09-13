@@ -1,3 +1,15 @@
-import {defineConfig} from 'vitest/config'
-import {resolve} from 'node:path'
-export default defineConfig({test:{include:['tests/unit/**/*.test.ts']},resolve:{alias:Object.fromEntries(['domain','contracts','application'].map(n=>[`@memo/${n}`,resolve(`packages/${n}/src/index.ts`)]))}})
+import { defineConfig } from 'vitest/config'
+import { resolve } from 'node:path'
+export default defineConfig({
+  test: { include: ['tests/unit/**/*.test.ts'] },
+  resolve: {
+    alias: {
+      '@memo/contracts/foundation': resolve('packages/contracts/src/foundation.ts'),
+      ...Object.fromEntries(
+        ['domain', 'contracts', 'application', 'plugin-host', 'connectors'].map(name => [
+          `@memo/${name}`, resolve(`packages/${name}/src/index.ts`),
+        ]),
+      ),
+    },
+  },
+})

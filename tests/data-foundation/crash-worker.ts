@@ -1,4 +1,4 @@
-import { openStore } from '@memo/storage'
+import { openFoundationStore as openStore } from '@memo/storage/foundation'
 import { writeSync } from 'node:fs'
 import { event, page, probe, NOW, jobProposal } from './fixtures'
 const [path, mode, point, time] = process.argv.slice(2)

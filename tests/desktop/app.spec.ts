@@ -34,7 +34,19 @@ test('packaged renderer connects to isolated SQLite core without exposing Node',
       })),
     ).toEqual({
       node: 'undefined',
-      keys: ['health', 'resumeSource', 'updateCapacity'],
+      keys: [
+        'feishu',
+        'github',
+        'pet',
+        'ingestion',
+        'processing',
+        'health',
+        'plugins',
+        'credentials',
+        'exports',
+        'sources',
+        'workspace',
+      ],
     })
 
     await expect(
@@ -51,15 +63,8 @@ test('packaged renderer connects to isolated SQLite core without exposing Node',
     expect(reply.ok).toBe(true)
     if (reply.ok) {
       expect(reply.data.eventCount).toBe(0)
-      expect(reply.data.schemaVersion).toBe(2)
-      expect(reply.data.processingStatus).toBe('idle')
+      expect(reply.data.schemaVersion).toBe(13)
     }
-    await page.getByLabel('调整存储额度（MB）').fill('256')
-    await page.getByRole('button', { name: '保存额度', exact: true }).click()
-    await expect(page.getByRole('status')).toContainText('存储额度已保存')
-    const updated = await page.evaluate(() => window.memo.health())
-    expect(updated.ok && updated.data.resources.maxBytes).toBe(256 * 1048576)
-    await page.getByRole('button', { name: '关闭提示', exact: true }).click()
     // Terminate only our named child process and verify a different, healthy core replaces it.
     const oldPid = await app.evaluate(({ app }) => {
       const metric = app
@@ -83,29 +88,27 @@ test('packaged renderer connects to isolated SQLite core without exposing Node',
     await expect
       .poll(() => page.evaluate(async () => (await window.memo.health()).ok))
       .toBe(true)
-    const persisted = await page.evaluate(() => window.memo.health())
-    expect(persisted.ok && persisted.data.resources.maxBytes).toBe(
-      256 * 1048576,
-    )
-    const invalid = await page.evaluate(async () => [
-      await window.memo.updateCapacity({ diskBytes: 1 }),
-      await window.memo.updateCapacity({
-        ...{ path: 'forbidden' },
-        diskBytes: 128 * 1048576,
-      }),
-      await window.memo.updateCapacity({ diskBytes: Number.NaN }),
-    ])
-    for (const reply of invalid)
-      expect(reply).toEqual({ ok: false, error: 'INVALID_REQUEST' })
-    const unchanged = await page.evaluate(() => window.memo.health())
-    expect(unchanged.ok && unchanged.data.resources.maxBytes).toBe(
-      256 * 1048576,
-    )
     // External windows are denied even when requested by the trusted renderer.
     await page.evaluate(() => window.open('https://example.com'))
     expect(app.windows()).toHaveLength(1)
     await page.getByRole('button', { name: '连接', exact: true }).click()
-    await expect(page.getByRole('button', { name: '即将支持' })).toHaveCount(4)
+    await expect(page.getByRole('button', { name: '即将支持' })).toHaveCount(2)
+    await expect(
+      page.getByRole('region', { name: '飞书会话连接' }),
+    ).toBeVisible()
+    await expect(
+      page
+        .getByRole('region', { name: '飞书会话连接' })
+        .getByRole('button', { name: '验证并启用会话' }),
+    ).toBeVisible()
+    await expect(
+      page.getByRole('region', { name: 'GitHub仓库连接' }),
+    ).toBeVisible()
+    await expect(
+      page
+        .getByRole('region', { name: 'GitHub仓库连接' })
+        .getByRole('button', { name: '验证并启用仓库' }),
+    ).toBeVisible()
     await page.screenshot({
       animations: 'disabled',
       path: 'test-results/desktop-connections.png',
