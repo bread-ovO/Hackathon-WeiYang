@@ -129,8 +129,7 @@ try {
     'Framework/Shaders/WebGL',
     'Samples/Resources/Hiyori/Hiyori.model3.json',
     'Samples/Resources/Hiyori/Hiyori.moc3',
-    'Samples/Resources/Haru/Haru.model3.json',
-    'Samples/Resources/Haru/motions/haru_g_idle.motion3.json',
+    'Samples/Resources/Hiyori/motions/Hiyori_m01.motion3.json',
   ])
     if (!existsSync(join(incoming, file)))
       throw new Error(`SDK incomplete: missing ${file}`)

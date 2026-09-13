@@ -45,6 +45,7 @@ test('default package auto-installs and renders Hiyori; removing it survives res
     const state = await page.evaluate(() => window.memo.pet.state())
     if (!state.ok) throw Error('PET_FAILED')
     expect(state.data.models).toHaveLength(1)
+    expect(state.data.models[0]!.entry).toBe('Hiyori.model3.json')
     expect(state.data.runtimeReady).toBe(true)
     expect(state.data.currentModelId).toBe(state.data.models[0]!.id)
     const pet = app.windows().find((w) => w.url().includes('pet.html'))!

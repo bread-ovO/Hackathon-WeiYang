@@ -14,10 +14,10 @@ import { execFile } from 'node:child_process'
 import { promisify } from 'node:util'
 const require = createRequire(resolve('apps/desktop/package.json'))
 const sdk = resolve('.pet-sdk'),
-  haru = join(sdk, 'CubismSdkForWeb-5-r.5/Samples/Resources/Haru')
+  hiyori = join(sdk, 'CubismSdkForWeb-5-r.5/Samples/Resources/Hiyori')
 const assetsReady =
   existsSync(join(sdk, 'runtime/framework.js')) &&
-  existsSync(join(haru, 'Haru.model3.json'))
+  existsSync(join(hiyori, 'Hiyori.model3.json'))
 async function launch(root: string) {
   const env = Object.fromEntries(
     Object.entries(process.env).filter(
@@ -46,12 +46,12 @@ async function picker(app: ElectronApplication, path: string) {
   }, path)
 }
 async function install(app: ElectronApplication, page: Page) {
-  await picker(app, haru)
+  await picker(app, hiyori)
   const chosen = await page.evaluate(() => window.memo.pet.openImportDialog())
   if (!chosen.ok || !('sessionId' in chosen.data))
     throw Error('PET_CHOOSE_FAILED')
   const imported = await page.evaluate(
-    (sessionId) => window.memo.pet.importChosen(sessionId, 'Haru.model3.json'),
+    (sessionId) => window.memo.pet.importChosen(sessionId, 'Hiyori.model3.json'),
     chosen.data.sessionId,
   )
   if (!imported.ok || imported.data.status === 'invalid')
@@ -97,7 +97,7 @@ async function bounds(app: ElectronApplication) {
 test('pet preferences, scale and position survive restart; primary window can always disable click-through', async () => {
   test.skip(
     !assetsReady,
-    'Licensed local runtime/Haru absent; no assets downloaded by tests',
+    'Licensed local runtime/Hiyori absent; no assets downloaded by tests',
   )
   test.setTimeout(150000)
   const root = await realpath(
@@ -284,7 +284,7 @@ test('native pointer crosses transparent pet pixels but not the character', asyn
     process.platform !== 'darwin' || process.env.PET_OS_POINTER_TEST !== '1',
     'Opt-in OS pointer test; synthetic events do not prove click-through',
   )
-  test.skip(!assetsReady, 'Licensed local runtime/Haru absent')
+  test.skip(!assetsReady, 'Licensed local runtime/Hiyori absent')
   test.setTimeout(180000)
   const root = await realpath(
     await mkdtemp(join(tmpdir(), 'bugu-pet-os-pointer-')),
@@ -456,7 +456,7 @@ test('native pointer crosses transparent pet pixels but not the character', asyn
         {
           platform: process.platform,
           arch: process.arch,
-          model: 'Haru',
+          model: 'Hiyori',
           injection: 'CoreGraphics',
           transparentClicks: 1,
           characterClicksPassedThrough: 0,

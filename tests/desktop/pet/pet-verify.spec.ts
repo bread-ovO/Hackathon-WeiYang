@@ -51,14 +51,14 @@ async function startServer() {
     [
       ['/sdk/core/', join(zipDir, 'Core')],
       ['/shaders/', join(zipDir, 'Framework/Shaders/WebGL')],
-      ['/model/', join(zipDir, 'Samples/Resources/Haru')],
+      ['/model/', join(zipDir, 'Samples/Resources/Hiyori')],
     ],
   )
 }
 
 test.describe('PET01 Cubism SDK compatibility', () => {
   for (const variant of ['strict', 'wasm'] as const) {
-    test(`loads and animates Haru under ${variant} CSP`, async ({}, testInfo) => {
+    test(`loads and animates Hiyori under ${variant} CSP`, async ({}, testInfo) => {
       testInfo.setTimeout(60_000)
       const profile = await realpath(
         await mkdtemp(join(tmpdir(), 'bugu-pet-verify-')),
