@@ -766,6 +766,12 @@ blockquote {
   place-items: center;
   color: var(--muted);
 }
+.evidence-toggle {
+  width: 16px;
+  flex-shrink: 0;
+  text-align: center;
+  color: var(--muted);
+}
 .evidence-content {
   font-size: 14px;
   line-height: 1.8;
@@ -894,8 +900,18 @@ blockquote {
 .runtime h2 {
   font-size: 16px;
 }
+.status-chip {
+  font-size: 12px;
+  line-height: 18px;
+  padding: 0 8px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  color: var(--muted);
+  white-space: nowrap;
+}
 .health-status {
   color: var(--text-color-kumo-success) !important;
+  border-color: var(--text-color-kumo-success);
 }
 dl {
   display: grid;
@@ -1092,10 +1108,13 @@ dd {
   color: var(--text-color-kumo-success);
 }
 
-.real-create { padding: 0 16px 12px; display: flex; flex-wrap: wrap; gap: 8px; }
-.real-create form, .real-editor form { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.real-create { padding: 0 16px 12px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.real-create form { display: contents; }
+.real-create .app-input { flex: 1 1 140px; min-width: 120px; }
+.real-create select { flex: 0 1 auto; min-width: 0; }
+.real-editor form { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .real-create select, .real-editor select { background: var(--color-kumo-base, white); border: 1px solid var(--color-kumo-line, #ddd); border-radius: 8px; padding: 8px; max-width: 200px; }
-.real-message { margin: 0; padding: 8px 16px; }
+.real-message { margin: 0; padding: 4px 16px 8px; font-size: 12px; line-height: 1.6; color: var(--muted); }
 .real-editor { padding: 16px; display: flex; flex-direction: column; gap: 16px; }
 .real-editor h2 { font-size: 20px; overflow-wrap: anywhere; }
 .real-editor label { display: flex; align-items: center; gap: 8px; }
@@ -1168,7 +1187,6 @@ dd {
 .app-control { display: inline-flex; align-items: center; justify-content: center; gap: 8px; vertical-align: middle; line-height: 20px; }
 .app-control svg { display: block; width: 16px; height: 16px; flex: 0 0 16px; align-self: center; }
 .nav-item.app-control, .project.app-control { justify-content: flex-start; }
-.task-row.app-control { display: grid; }
 .icon-button.app-control { display: inline-flex; padding: 0; }
 .detail-close { margin-left: auto; }
 .real-editor { min-height: 0; overflow-y: auto; flex: 1; gap: 12px; }

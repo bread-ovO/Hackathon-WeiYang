@@ -662,7 +662,9 @@ function App() {
                                   {e.app} · {e.time}
                                 </small>
                               </span>
-                              <span>{evidence === i ? '−' : '+'}</span>
+                              <span className="evidence-toggle" aria-hidden="true">
+                                {evidence === i ? '−' : '+'}
+                              </span>
                             </AppButton>
                             {evidence === i && (
                               <div className="evidence-content">
@@ -721,25 +723,13 @@ function App() {
                 setPage('跟进')
               }}
             />
-            <Disclosure
-              id="preset-feishu"
-              title="飞书连接"
-              description="配置会话与读取范围"
-            >
+            <Disclosure id="preset-feishu" title="飞书连接">
               <FeishuPanel />
             </Disclosure>
-            <Disclosure
-              id="preset-github"
-              title="GitHub 连接"
-              description="配置仓库与读取凭据"
-            >
+            <Disclosure id="preset-github" title="GitHub 连接">
               <GithubPanel />
             </Disclosure>
-            <Disclosure
-              id="preset-local"
-              title="本地记录"
-              description="选择导出文件与所属项目"
-            >
+            <Disclosure id="preset-local" title="本地记录">
               <SourceImport />
             </Disclosure>
             <Disclosure
@@ -806,7 +796,9 @@ function App() {
                         ? '核心暂不可用，正在重试'
                         : '正在连接核心'}
                   </h2>
-                  <span className={health ? 'health-status' : 'muted'}>
+                  <span
+                    className={`status-chip ${health ? 'health-status' : ''}`}
+                  >
                     {health ? '本地核心已就绪' : '等待连接'}
                   </span>
                 </div>

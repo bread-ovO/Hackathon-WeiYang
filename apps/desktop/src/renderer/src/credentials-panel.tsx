@@ -68,6 +68,7 @@ export function CredentialsPanel() {
       <div className="section-heading">
         <h2 id="credentials-heading">凭据</h2>
         <AppButton
+          className="text-button"
           disabled={busy}
           onClick={() =>
             void run(() => window.memo.credentials.list(), '已刷新。')

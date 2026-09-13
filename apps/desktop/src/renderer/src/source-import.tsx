@@ -85,7 +85,6 @@ export function SourceImport() {
   }
   return (
     <section className="source-import" aria-label="本地导出导入">
-      <h2>本地 JSONL 导出</h2>
       <p>
         只读导入所选文件，每次最多 100
         条。正文保存在本机，当前尚未加密；不会发送给模型。
