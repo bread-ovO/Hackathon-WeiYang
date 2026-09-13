@@ -1,3 +1,4 @@
+import { createRevisionReview } from '../packages/storage/src/revision-review'
 import { prepareEventProcessing } from '@memo/application'
 import { openStore, type StoredTask, type TaskExpectation } from '@memo/storage'
 import Database from 'better-sqlite3'
@@ -70,7 +71,7 @@ try {
       includeSourceText: true,
     }
     const full = rules.exports.build(ruleScope)
-    assert.equal(full.schemaVersion, 3)
+    assert.equal(full.schemaVersion, 4)
     assert.equal(full.decisions.length, 0)
     assert.equal(full.ruleDecisions.length, 2)
     assert.deepEqual(
@@ -216,7 +217,7 @@ try {
   store.sources.revoke(source.id)
   const scope = { projectId: 'p', includeSourceText: false }
   const exported = store.exports.build(scope)
-  assert.equal(exported.schemaVersion, 3)
+  assert.equal(exported.schemaVersion, 4)
   assert.deepEqual(exported.selection, { mode: 'project' })
   assert.deepEqual(
     store.exports.build({ ...scope, taskIds: ['t'] }).selection,
@@ -483,6 +484,7 @@ try {
         const eventId = Number(insert.run(String(i), body).lastInsertRowid)
         mapping.run(eventId)
         link.run(`large-${i}`, eventId)
+        createRevisionReview(seed).observe('capacity', eventId)
       }
     })()
     assert.ok(260 * Buffer.byteLength(body) > EXPORT_MAX_BYTES)

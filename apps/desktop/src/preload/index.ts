@@ -102,6 +102,21 @@ const bridge: DesktopBridge = {
       ipcRenderer.invoke('memo:request', { method: 'sources.revoke', id }),
   }),
   workspace: Object.freeze({
+    listReferences: (request) =>
+      ipcRenderer.invoke('memo:request', {
+        ...request,
+        method: 'workspace.listReferences',
+      }),
+    reviewReference: (request) =>
+      ipcRenderer.invoke('memo:request', {
+        ...request,
+        method: 'workspace.reviewReference',
+      }),
+    confirmReference: (request) =>
+      ipcRenderer.invoke('memo:request', {
+        ...request,
+        method: 'workspace.confirmReference',
+      }),
     list: (query) =>
       ipcRenderer.invoke('memo:request', {
         method: 'workspace.list',

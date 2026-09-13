@@ -1,3 +1,4 @@
+import { createRevisionReview, migrateRevisionReview } from './revision-review'
 import { createRetractions, migrateRetractions } from './retractions'
 import {
   createIngestionBudget,
@@ -59,7 +60,7 @@ export function openStore(path: string) {
     db.pragma('synchronous = FULL')
     db.pragma('busy_timeout = 3000')
     const version = db.pragma('user_version', { simple: true }) as number
-    if (version > 10) throw new Error('DATABASE_TOO_NEW')
+    if (version > 11) throw new Error('DATABASE_TOO_NEW')
     if (version < 1)
       db.transaction(() => {
         db.exec(`
@@ -90,6 +91,8 @@ export function openStore(path: string) {
     if (version < 8) migrateProcessing(db)
     if (version < 9) migrateIngestionBudget(db)
     if (version < 10) migrateRetractions(db)
+    if (version < 11) migrateRevisionReview(db)
+    const revisionReview = createRevisionReview(db)
     const retractions = createRetractions(db)
     const ingestion = createIngestionBudget(db)
     const contexts = createEventContexts(db)
@@ -98,10 +101,15 @@ export function openStore(path: string) {
       contexts.record,
       ingestion.assertCanReceive,
     )
-    const sources = createSources(db, receive, retractions.observe)
-    const plugins = createPlugins(db, receive, retractions.observe)
+    const observeEvent = (projectId: string, eventId: number) => {
+      retractions.observe(projectId, eventId)
+      revisionReview.observe(projectId, eventId)
+    }
+    const sources = createSources(db, receive, observeEvent)
+    const plugins = createPlugins(db, receive, observeEvent)
     return {
       ingestion,
+      revisionReview,
       processing: createProcessing(db),
       contexts: { get: contexts.get },
       plugins: {

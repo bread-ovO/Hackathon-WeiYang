@@ -1,3 +1,5 @@
+import { createRevisionReview } from './revision-review'
+import type { ReferenceReview } from '@memo/contracts'
 import { createRetractions, type RetractionProof } from './retractions'
 import type Database from 'better-sqlite3'
 import type { StoredTask } from './task-model'
@@ -10,7 +12,7 @@ export interface ExportScope {
 }
 export interface ExportBundle {
   selection: { mode: 'project' } | { mode: 'tasks'; taskIds: string[] }
-  schemaVersion: 3
+  schemaVersion: 4
   exportedAt: string
   project: { id: string; name: string }
   sourceBodiesIncluded: boolean
@@ -69,6 +71,28 @@ export interface ExportBundle {
     quote?: string
     referenceStatus: 'available' | 'invalidated'
     retraction: RetractionProof | null
+  }[]
+  referenceReviews: {
+    taskId: string
+    reference: ReferenceReview['reference']
+    knownContentSetDigest: string
+    confirmation:
+      | null
+      | (Omit<NonNullable<ReferenceReview['confirmation']>, 'text'> & {
+          text?: string
+        })
+  }[]
+  referenceDecisions: {
+    id: number
+    taskId: string
+    referenceKind: 'processing' | 'manual'
+    referenceId: string
+    referenceVersion: number
+    chosenEventId: number
+    contentDigest: string
+    actorId: string
+    reason: string
+    createdAt: string
   }[]
   retractionImpacts: {
     eventId: number
@@ -299,7 +323,7 @@ export function createExports(db: Database.Database) {
       if (scope.taskIds && tasks.length !== scope.taskIds.length)
         throw new Error('EXPORT_TASK_NOT_IN_PROJECT')
       const bundle: ExportBundle = {
-        schemaVersion: 3,
+        schemaVersion: 4,
         selection: scope.taskIds
           ? { mode: 'tasks', taskIds: [...scope.taskIds].sort() }
           : { mode: 'project' },
@@ -313,6 +337,8 @@ export function createExports(db: Database.Database) {
         ruleDecisions: [],
         candidateEvidence: [],
         retractionImpacts: [],
+        referenceReviews: [],
+        referenceDecisions: [],
         revisions: [],
         manualOverrides: [],
         events: [],
@@ -325,6 +351,7 @@ export function createExports(db: Database.Database) {
       const addRef = (v: unknown) => {
         num(v, 1)
         refs.add(v)
+        if (refs.size > MAX_ROWS) throw new Error('EXPORT_LIMIT_EXCEEDED')
         return v
       }
       const retractions = createRetractions(db)
@@ -533,6 +560,104 @@ export function createExports(db: Database.Database) {
             quoteEnd: r.quoteEnd,
             ...(scope.includeSourceText ? { quote: r.quote } : {}),
           } as ExportBundle['candidateEvidence'][number]
+        },
+      )
+      const revisionReview = createRevisionReview(db)
+      const reviewMap = new Map<
+        string,
+        ExportBundle['referenceReviews'][number]
+      >()
+      for (const [kind, links] of [
+        ['processing', bundle.candidateEvidence],
+        ['manual', bundle.evidence],
+      ] as const) {
+        for (const link of links) {
+          let view: ReferenceReview
+          try {
+            view = revisionReview.reviewReference({
+              projectId: scope.projectId,
+              taskId: link.taskId,
+              referenceKind: kind,
+              referenceId: String(link.id),
+              limit: 1,
+            })
+          } catch {
+            return fail()
+          }
+          link.referenceStatus = view.reference.originalReferenceStatus
+          const { text: confirmedText, ...confirmation } =
+            view.confirmation ?? { text: undefined }
+          const item: ExportBundle['referenceReviews'][number] = {
+            taskId: link.taskId,
+            reference: view.reference,
+            knownContentSetDigest: view.knownContentSetDigest,
+            confirmation: view.confirmation
+              ? ({
+                  ...confirmation,
+                  ...(scope.includeSourceText ? { text: confirmedText } : {}),
+                } as NonNullable<
+                  ExportBundle['referenceReviews'][number]['confirmation']
+                >)
+              : null,
+          }
+          if (item.confirmation) addRef(item.confirmation.eventId)
+          // Export all known variants supporting the conflict, with the same global row budget.
+          for (const row of db
+            .prepare(
+              `SELECT e.id FROM source_events e JOIN event_projects ep ON ep.event_id=e.id WHERE ep.project_id=? AND e.source_id=? AND e.external_id=? ORDER BY e.id`,
+            )
+            .iterate(
+              scope.projectId,
+              view.reference.sourceInstanceId,
+              view.reference.externalId,
+            ))
+            addRef((row as { id: number }).id)
+          account(item)
+          bundle.referenceReviews.push(item)
+          reviewMap.set(
+            JSON.stringify([link.taskId, kind, String(link.id)]),
+            item,
+          )
+        }
+      }
+      bundle.referenceDecisions = rows(
+        `SELECT id,task_id AS taskId,reference_kind AS referenceKind,reference_id AS referenceId,reference_version AS referenceVersion,chosen_event_id AS chosenEventId,content_digest AS contentDigest,actor_id AS actorId,reason,created_at AS createdAt FROM reference_revision_decisions WHERE project_id=? AND task_id IN (${selected}) ORDER BY id`,
+        [scope.projectId, ...ids],
+        (r) => {
+          num(r.id, 1)
+          str(r.taskId, 256)
+          one(r.referenceKind, ['processing', 'manual'])
+          str(r.referenceId, 256)
+          num(r.referenceVersion, 1)
+          addRef(r.chosenEventId)
+          str(r.contentDigest, 64)
+          str(r.actorId, 256)
+          str(r.reason, 512)
+          str(r.createdAt, 32)
+          if (
+            !/^[0-9a-f]{64}$/.test(r.contentDigest) ||
+            !Number.isFinite(Date.parse(r.createdAt))
+          )
+            fail()
+          const review = reviewMap.get(
+            JSON.stringify([r.taskId, r.referenceKind, r.referenceId]),
+          )
+          if (!review || r.referenceVersion > review.reference.version) fail()
+          const event = db
+            .prepare(
+              `SELECT e.source_id,e.external_id,e.operation FROM source_events e JOIN event_projects ep ON ep.event_id=e.id WHERE ep.project_id=? AND e.id=?`,
+            )
+            .get(scope.projectId, r.chosenEventId) as
+            | { source_id: string; external_id: string; operation: string }
+            | undefined
+          if (
+            !event ||
+            event.operation !== 'upsert' ||
+            event.source_id !== review.reference.sourceInstanceId ||
+            event.external_id !== review.reference.externalId
+          )
+            fail()
+          return r as ExportBundle['referenceDecisions'][number]
         },
       )
       const citedRuleLinks = new Set(

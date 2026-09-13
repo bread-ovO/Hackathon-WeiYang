@@ -1,3 +1,4 @@
+import { ReferenceList } from './reference-list'
 import './candidate-provenance.css'
 import { useEffect, useRef, useState } from 'react'
 import type {
@@ -148,7 +149,11 @@ export function TaskEditor({
               <details key={`${item.eventId}:${item.quoteStart}`}>
                 <summary>
                   {item.referenceStatus === 'invalidated' && (
-                    <strong>原记录已撤回 · 引用已失效 · </strong>
+                    <strong>
+                      {item.eventStatus === 'retracted'
+                        ? '原记录已撤回 · 引用已失效 · '
+                        : '记录内容已编辑 · 引用待复核 · '}
+                    </strong>
                   )}
                   {item.reason === 'source_retracted'
                     ? '查看撤回依据'
@@ -200,6 +205,13 @@ export function TaskEditor({
               </details>
             ))}
           </section>
+        )}
+        {task.projectId && (
+          <ReferenceList
+            projectId={task.projectId}
+            taskId={task.id}
+            onConfirmed={() => void refreshEvidence()}
+          />
         )}
         {task.projectId ? (
           <>

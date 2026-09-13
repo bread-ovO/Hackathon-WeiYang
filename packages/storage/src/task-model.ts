@@ -1,3 +1,4 @@
+import { createRevisionReview } from './revision-review'
 import { createRetractions } from './retractions'
 import type Database from 'better-sqlite3'
 import {
@@ -691,6 +692,7 @@ export function createTaskModel(db: Database.Database) {
           evidence.validity,
           evidence.reason,
         )
+        createRevisionReview(db).observe(input.projectId, evidence.eventId)
         bump(task.id)
         return record(task.id, by, `evidence:${evidence.id}`, evidence, [
           evidence.eventId,
