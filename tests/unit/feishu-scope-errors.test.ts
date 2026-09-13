@@ -48,6 +48,62 @@ function reader(
 }
 const signal = () => new AbortController().signal
 describe('Feishu selected-chat scope and fixed errors', () => {
+  it('preserves explicit ID type and direct reply without names or root guesses', async () => {
+    const result = await reader([
+      {
+        ...message,
+        sender: {
+          sender_type: 'user',
+          id: 'ou_person',
+          id_type: 'open_id',
+          sender_name: '同名',
+        },
+        parent_id: 'om_parent',
+        root_id: 'om_root',
+        thread_id: 'omt_thread',
+      },
+    ]).pull('', signal())
+    expect(result.events[0]?.metadata).toEqual({
+      author: { namespace: 'feishu:open_id', subjectId: 'ou_person' },
+      replyToExternalId: 'om_parent',
+    })
+    expect(result.events[0]?.revision).toBe(`${start + 1000}:context-v1`)
+    const legacy = await reader([message]).pull('', signal())
+    expect(legacy.events[0]?.metadata).toBeUndefined()
+    expect(legacy.events[0]?.revision).toBe(String(start + 1000))
+    const changed = await reader([
+      {
+        ...message,
+        sender: { sender_type: 'user', id: 'ou_other', id_type: 'open_id' },
+      },
+    ]).pull('', signal())
+    // Metadata must not choose its own new revision to bypass immutable ingress.
+    expect(changed.events[0]?.revision).toBe(result.events[0]?.revision)
+  })
+  it('keeps incomplete identity unknown and does not use a thread root as direct reply', async () => {
+    for (const sender of [
+      { sender_type: 'user', id: 'ou_person' },
+      { sender_type: 'user', id_type: 'open_id' },
+      { sender_type: 'anonymous', id: '', id_type: '' },
+    ]) {
+      const result = await reader([
+        { ...message, sender, root_id: 'om_root', parent_id: '' },
+      ]).pull('', signal())
+      expect(result.events[0]?.metadata).toBeUndefined()
+    }
+  })
+  it('rejects malformed explicit identity and direct reply before emitting the page', async () => {
+    for (const patch of [
+      { sender: { sender_type: 'user', id: 'bad id', id_type: 'open_id' } },
+      { sender: { sender_type: 'user', id: 123, id_type: 'open_id' } },
+      { sender: { sender_type: 'user', id: 'ou_a', id_type: 'x'.repeat(129) } },
+      { parent_id: 'bad id' },
+      { parent_id: 123 },
+    ])
+      await expect(
+        reader([{ ...message, ...patch }]).pull('', signal()),
+      ).rejects.toThrow('INVALID_FEISHU_RESPONSE')
+  })
   it('requires explicit selected chat on every item including retractions', async () => {
     for (const patch of [
       { chat_id: undefined },

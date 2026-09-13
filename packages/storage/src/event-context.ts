@@ -1,3 +1,4 @@
+import { eventMetadataFields } from './event-metadata'
 import type Database from 'better-sqlite3'
 import type { SourceEvent } from '@memo/contracts'
 import {
@@ -9,6 +10,7 @@ import {
 
 export interface StoredEventContext {
   eventId: number
+  metadata?: SourceEvent['metadata']
   identity: NormalizedIdentity | null
   identityStatus: 'available' | 'invalid_source_identity'
   revision: string
@@ -96,7 +98,7 @@ export function createEventContexts(db: Database.Database) {
         throw new Error('INVALID_EVENT_CONTEXT')
       const row = db
         .prepare(
-          `SELECT e.source_id,e.external_id,e.revision,c.time_json,c.status
+          `SELECT e.source_id,e.external_id,e.revision,e.metadata_json,c.time_json,c.status
         FROM event_projects p JOIN source_events e ON e.id=p.event_id
         JOIN event_contexts c ON c.event_id=e.id WHERE p.project_id=? AND e.id=?`,
         )
@@ -105,6 +107,7 @@ export function createEventContexts(db: Database.Database) {
             source_id: string
             external_id: string
             revision: string
+            metadata_json: string | null
             time_json: string | null
             status: StoredEventContext['status']
           }
@@ -137,6 +140,7 @@ export function createEventContexts(db: Database.Database) {
       }
       return {
         eventId,
+        ...eventMetadataFields(row.metadata_json),
         identity,
         identityStatus: identity ? 'available' : 'invalid_source_identity',
         revision: row.revision,

@@ -114,6 +114,8 @@ test('real IPC rejects foreign windows and malformed requests; source text stays
     expect(
       await page.evaluate(() => Object.keys(window.memo.workspace)),
     ).toEqual([
+      'planChanges',
+      'confirmPlanChange',
       'timeline',
       'listReferences',
       'reviewReference',
@@ -194,7 +196,29 @@ test('real IPC rejects foreign windows and malformed requests; source text stays
       expectedReferenceVersion: 0,
       reason: '明确选择已知版本',
     }
+    const planConfirmation = {
+      method: 'workspace.confirmPlanChange',
+      projectId: 'p',
+      taskId: 't',
+      proposalId: 1,
+      expectedVersion: 1,
+      expectedCriteriaVersion: 0,
+      expectedManualVersion: 0,
+      reason: '确认新的计划',
+    }
     for (const args of [
+      [{ ...planConfirmation, actorId: 'forged-admin' }],
+      [{ ...planConfirmation, patch: { dueAt: '2026-09-20T00:00:00Z' } }],
+      [{ ...planConfirmation, expectedVersion: 0 }],
+      [{ ...planConfirmation, proposalId: 1.5 }],
+      [
+        {
+          method: 'workspace.planChanges',
+          projectId: 'p',
+          taskId: 't',
+          limit: 51,
+        },
+      ],
       [{ ...referenceConfirmation, actorId: 'forged-admin' }],
       [{ ...referenceConfirmation, actor: 'rule' }],
       [{ ...referenceConfirmation, patch: { status: 'completed' } }],

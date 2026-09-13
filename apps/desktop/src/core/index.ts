@@ -70,6 +70,9 @@ parentPort.on('message', async ({ data }) => {
     reply = {
       ok: false,
       error:
+        code === 'PLAN_CHANGE_INVALID_INPUT' ||
+        code === 'PLAN_CHANGE_NOT_FOUND' ||
+        code === 'PLAN_CHANGE_NOT_APPLICABLE' ||
         code === 'TIMELINE_INVALID_CURSOR' ||
         code === 'TIMELINE_CORRUPT_DATA' ||
         code === 'FEISHU_PAGE_LOOP' ||

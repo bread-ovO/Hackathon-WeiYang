@@ -17,6 +17,8 @@ export interface FeishuMessage {
   messageId: string
   createTime: string
   senderId?: string
+  senderIdType?: string
+  parentId?: string
   senderType?: 'user' | 'app' | 'bot' | 'anonymous' | 'unknown'
   content: string
   deleted?: boolean
@@ -29,7 +31,8 @@ export type FeishuPageFetcher = (
 export interface FeishuApiMessage {
   message_id?: string
   create_time?: string
-  sender?: { sender_type?: string; id?: string }
+  sender?: { sender_type?: string; id?: string; id_type?: string }
+  parent_id?: string
   body?: { content?: string }
   deleted?: boolean
   update_time?: string
@@ -288,6 +291,14 @@ export function createFeishuMessagesFetcher(
           type !== 'unknown'
         )
           invalid()
+        const senderId = own(sender, 'id')
+        const senderIdType = own(sender, 'id_type')
+        const parentId = own(item, 'parent_id')
+        // Missing identity remains unknown; never derive it from sender names.
+        if (senderId !== undefined && senderId !== '') identifier(senderId, 256)
+        if (senderIdType !== undefined && senderIdType !== '')
+          identifier(senderIdType, 128)
+        if (parentId !== undefined && parentId !== '') identifier(parentId, 256)
         const deleted = own(item, 'deleted')
         if (deleted !== undefined && typeof deleted !== 'boolean') invalid()
         const content =
@@ -300,6 +311,13 @@ export function createFeishuMessagesFetcher(
           messageId: identifier(own(item, 'message_id'), 256),
           createTime: created,
           senderType: type,
+          ...(senderId && senderIdType
+            ? {
+                senderId: senderId as string,
+                senderIdType: senderIdType as string,
+              }
+            : {}),
+          ...(parentId ? { parentId: parentId as string } : {}),
           content: decodeFeishuContent(text(content, 65536, true)),
           ...(deleted !== undefined ? { deleted } : {}),
           ...(update !== undefined ? { revision: text(update, 32) } : {}),
@@ -319,6 +337,16 @@ async function retractRevision(base: string): Promise<string> {
     new TextEncoder().encode(JSON.stringify(base)),
   )
   return `sha256:${Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('')}:retract`
+}
+/** Fixed envelope version preserves old immutable observations on upgrade.
+ * The metadata itself is deliberately not hashed into the revision. */
+async function contextRevision(base: string): Promise<string> {
+  if (base.length <= 117) return `${base}:context-v1`
+  const digest = await crypto.subtle.digest(
+    'SHA-256',
+    new TextEncoder().encode(JSON.stringify(base)),
+  )
+  return `sha256:${Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('')}:context-v1`
 }
 /** Only the provider's explicit deleted flag creates a retraction event. */
 export class FeishuHistoryAdapter implements SourceAdapter {
@@ -375,17 +403,45 @@ export class FeishuHistoryAdapter implements SourceAdapter {
         const occurredAt = timestamp(own(message, 'createTime'))
         const revision = own(message, 'revision')
         const content = text(own(message, 'content'), 65536, true)
+        const senderId = own(message, 'senderId')
+        const senderIdType = own(message, 'senderIdType')
+        const parentId = own(message, 'parentId')
+        if (senderId !== undefined) identifier(senderId, 256)
+        if (senderIdType !== undefined) identifier(senderIdType, 128)
+        if (parentId !== undefined) identifier(parentId, 256)
+        const author =
+          senderId !== undefined && senderIdType !== undefined
+            ? {
+                namespace: `feishu:${identifier(senderIdType, 128)}`,
+                subjectId: identifier(senderId, 256),
+              }
+            : undefined
+        const metadata =
+          author || parentId !== undefined
+            ? {
+                ...(author ? { author } : {}),
+                ...(parentId !== undefined
+                  ? { replyToExternalId: identifier(parentId, 256) }
+                  : {}),
+              }
+            : undefined
+        const baseRevision =
+          revision === undefined
+            ? deleted
+              ? 'deleted'
+              : occurredAt
+            : identifier(revision, 128)
+        const observedRevision = metadata
+          ? await contextRevision(baseRevision)
+          : baseRevision
         const event: SourceEvent = {
           schemaVersion: 1,
           sourceInstanceId: this.sourceInstanceId,
           externalId: identifier(own(message, 'messageId'), 256),
           revision: deleted
-            ? await retractRevision(
-                revision === undefined ? 'deleted' : identifier(revision, 128),
-              )
-            : revision === undefined
-              ? occurredAt
-              : identifier(revision, 128),
+            ? await retractRevision(observedRevision)
+            : observedRevision,
+          ...(metadata ? { metadata } : {}),
           occurredAt,
           role:
             type === 'user'

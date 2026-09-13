@@ -7,6 +7,8 @@ import type {
   ReferenceList,
   ReferenceReview,
   TimelinePage,
+  PlanChangesPage,
+  PlanChangeResult,
 } from '@memo/contracts'
 export function handleWorkspace(
   store: ReturnType<typeof openStore>,
@@ -16,9 +18,19 @@ export function handleWorkspace(
   | WorkspaceDetail
   | ReferenceList
   | ReferenceReview
-  | TimelinePage {
+  | TimelinePage
+  | PlanChangesPage
+  | PlanChangeResult {
   const by = { actorId: 'local-user', reason: '用户在我的工作区手动操作' }
   switch (request.method) {
+    case 'workspace.planChanges': {
+      const { method: _, ...input } = request
+      return store.planChanges.list(input)
+    }
+    case 'workspace.confirmPlanChange': {
+      const { method: _, ...input } = request
+      return { task: store.planChanges.confirm(input, 'local-user') }
+    }
     case 'workspace.timeline': {
       const { method: _, ...input } = request
       return store.timeline.list(input)

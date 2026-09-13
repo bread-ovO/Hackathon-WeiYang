@@ -1,3 +1,5 @@
+import { planChangeRequestSchemas } from './plan-changes'
+export * from './plan-changes'
 import { timelineRequestSchema } from './task-timeline'
 export * from './task-timeline'
 import { referenceReviewRequestSchemas } from './reference-review'
@@ -54,6 +56,7 @@ export const workspaceQuerySchema = {
 export type WorkspaceQuery = FromSchema<typeof workspaceQuerySchema>
 export const workspaceRequestSchema = {
   oneOf: [
+    ...planChangeRequestSchemas,
     timelineRequestSchema,
     ...referenceReviewRequestSchemas,
     {

@@ -1,3 +1,4 @@
+import { storedMetadataMatches } from './event-metadata'
 import type Database from 'better-sqlite3'
 import { randomUUID } from 'node:crypto'
 import { basename, isAbsolute, normalize } from 'node:path'
@@ -175,14 +176,22 @@ export function createSources(
         for (const event of events) {
           const prior = db
             .prepare(
-              'SELECT content,role,occurred_at FROM source_events WHERE source_id=? AND external_id=? AND revision=?',
+              'SELECT content,role,occurred_at,operation,metadata_json FROM source_events WHERE source_id=? AND external_id=? AND revision=?',
             )
             .get(sourceId, event.externalId, event.revision) as
-            | { content: string; role: string; occurred_at: string }
+            | {
+                content: string
+                role: string
+                occurred_at: string
+                operation: string
+                metadata_json: string | null
+              }
             | undefined
           if (
             prior &&
-            (prior.content !== event.text ||
+            (!storedMetadataMatches(prior.metadata_json, event.metadata) ||
+              prior.operation !== (event.operation ?? 'upsert') ||
+              prior.content !== event.text ||
               prior.role !== event.role ||
               prior.occurred_at !== event.occurredAt)
           )
