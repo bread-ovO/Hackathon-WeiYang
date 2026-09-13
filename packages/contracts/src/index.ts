@@ -1,3 +1,4 @@
+import type { DeliverySummary } from './delivery'
 import type { PetVoiceState, PetVoicePreferences } from './pet-voice'
 export * from './pet-voice'
 export * from './pet-voice-pcm'
@@ -599,6 +600,10 @@ export interface DesktopBridge {
     revoke(id: string): Promise<CoreReply<SourcesSnapshot>>
   }
   workspace: {
+    delivery(projectId:string,taskId:string):Promise<CoreReply<DeliverySummary>>
+    startDelivery(input:Omit<Extract<CoreRequest,{method:'workspace.startDelivery'}>,'method'>):Promise<CoreReply<DeliverySummary>>
+    resolveDelivery(input:Omit<Extract<CoreRequest,{method:'workspace.resolveDelivery'}>,'method'>):Promise<CoreReply<DeliverySummary>>
+    completeDelivery(input:Omit<Extract<CoreRequest,{method:'workspace.completeDelivery'}>,'method'>):Promise<CoreReply<DeliverySummary>>
     sourceEvents(
       request: Omit<
         Extract<CoreRequest, { method: 'workspace.sourceEvents' }>,

@@ -1,3 +1,4 @@
+import { createDelivery } from './delivery'
 import { createSourceAssociations } from './source-associations'
 import { createPlanChanges } from './plan-changes'
 import { eventMetadataFields } from './event-metadata'
@@ -223,6 +224,9 @@ export function createProcessing(db: Database.Database) {
       })
       if (!isDeepStrictEqual(expected, proposal))
         throw Error('INVALID_PROCESSING_PROPOSAL')
+      const delivery = createDelivery(db)
+      delivery.observe(actual.projectId, actual.eventId)
+      const deliveryMatch = delivery.associatedTaskIds(actual.projectId, actual.eventId).length > 0
       const origin = db
         .prepare(
           'SELECT DISTINCT task_id AS id FROM processing_origins WHERE project_id=? AND source_id=? AND external_id=?',
@@ -268,7 +272,7 @@ export function createProcessing(db: Database.Database) {
       const outcome =
         retraction || origin.length || proposal.outcome === 'needs_review'
           ? 'review_required'
-          : proposal.outcome === 'candidates'
+          : proposal.outcome === 'candidates' && !deliveryMatch
             ? 'created'
             : 'ignored'
       const ids = origin.map((row) => row.id),

@@ -5,6 +5,7 @@ import { resolve } from 'node:path'
 const require = createRequire(resolve('apps/desktop/package.json'))
 const selected = process.argv.slice(2)
 const names = [
+  'delivery-integration',
   'five-requirements-integration',
   'storage-integration',
   'event-context-integration',

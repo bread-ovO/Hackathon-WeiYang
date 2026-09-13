@@ -1,0 +1,106 @@
+.delivery-panel {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.delivery-panel header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 14px;
+}
+.delivery-conditions {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.delivery-conditions li {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  align-items: start;
+  gap: 0 8px;
+  font-size: 14px;
+  line-height: 20px;
+}
+.delivery-conditions svg {
+  flex: none;
+  color: var(--muted);
+}
+.delivery-conditions [data-met='true'] svg {
+  color: var(--color-kumo-success, #28844b);
+}
+.delivery-conditions small {
+  font-size: 12px;
+  color: var(--muted);
+  grid-column: 2;
+}
+.delivery-panel .delivery-next {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  font-size: 14px;
+  line-height: 20px;
+  margin: 0;
+}
+.delivery-next svg {
+  flex: none;
+  margin-top: 2px;
+}
+.delivery-panel p,
+.delivery-panel blockquote {
+  font-size: 12px;
+  line-height: 20px;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.delivery-panel blockquote {
+  white-space: pre-wrap;
+  padding: 8px;
+  border-left: 2px solid var(--line);
+  max-height: 160px;
+  overflow: auto;
+}
+.delivery-panel .disclosure {
+  border: 0;
+}
+.delivery-panel .disclosure summary {
+  padding: 4px 0;
+}
+.delivery-panel .disclosure-body {
+  gap: 8px;
+  padding: 8px 0 0;
+}
+.real-editor .delivery-panel label {
+  flex-direction: column;
+  align-items: stretch;
+  font-size: 12px;
+}
+.delivery-panel details > summary {
+  font-size: 12px;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+.delivery-pending {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+}
+.delivery-pending strong {
+  font-size: 14px;
+}
+.delivery-pending > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.delivery-target {
+  color: var(--muted);
+}

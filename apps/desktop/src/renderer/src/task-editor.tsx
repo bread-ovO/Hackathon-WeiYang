@@ -1,3 +1,4 @@
+import { DeliveryPanel } from './delivery-panel'
 import { TaskMerge } from './task-merge'
 import { Disclosure } from './ui/disclosure'
 import { X } from '@phosphor-icons/react'
@@ -229,6 +230,7 @@ export function TaskEditor({
       </div>
       <div className="real-editor">
         <h2>{task.title}</h2>
+        <DeliveryPanel task={task} disabled={busy} onUpdated={onPlanApplied}/>
         {merge.mergedInto && (
           <p>
             此事项已合并，历史记录只读。

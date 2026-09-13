@@ -17,7 +17,7 @@ const expected = (task: StoredTask): TaskExpectation => ({
 try {
   const store = openStore(path)
   const tasks = store.tasks
-  assert.equal(store.health().schemaVersion, 21)
+  assert.equal(store.health().schemaVersion, 22)
   store.registerSource('fixture')
   for (let i = 1; i <= 3; i++)
     store.receive(
@@ -174,7 +174,7 @@ try {
   raw.close()
   store.close()
   const reopened = openStore(path)
-  assert.equal(reopened.health().schemaVersion, 21)
+  assert.equal(reopened.health().schemaVersion, 22)
   assert.equal(
     reopened.tasks.splitParent('alpha', child.id)?.taskId,
     parent.id,

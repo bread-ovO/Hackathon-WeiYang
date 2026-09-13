@@ -98,3 +98,13 @@ describe('selected repository GitHub PR connector',()=>{
     expect(()=>createGithubPullRequestsFetcher('token','org','repo','https://private' as never)).toThrow('INVALID_GITHUB_CLIENT_CONFIG')
   })
 })
+
+it('retains bounded PR descriptions for explicit issue association',async()=>{
+ const body='Fix https://github.com/org/project/issues/3'
+ const {fetch}=client(vi.fn().mockResolvedValue(response([{...pr(),body}])))
+ expect(JSON.parse((await fetch('',signal())).events[0]!.text).body).toBe(body)
+ for(const body of ['x'.repeat(40001),{url:'https://github.com/org/project/issues/3'},'bad\0body']){
+  const {fetch}=client(vi.fn().mockResolvedValue(response([{...pr(),body}])))
+  await expect(fetch('',signal())).rejects.toThrow()
+ }
+})

@@ -803,16 +803,17 @@ export function createTaskModel(db: Database.Database) {
       if (input.sourceInstanceId !== undefined) {
         text(input.sourceInstanceId)
         where.push(
-          `(EXISTS(SELECT 1 FROM processing_evidence e JOIN source_events s ON s.id=e.event_id WHERE e.task_id=tasks.id AND e.project_id=tasks.project_id AND s.source_id=?) OR EXISTS(SELECT 1 FROM evidence_links e JOIN source_events s ON s.id=e.event_id WHERE e.task_id=tasks.id AND e.project_id=tasks.project_id AND s.source_id=?) OR EXISTS(SELECT 1 FROM source_object_bindings b WHERE b.task_id=tasks.id AND b.project_id=tasks.project_id AND b.source_id=? AND b.active=1))`,
+          `(EXISTS(SELECT 1 FROM processing_evidence e JOIN source_events s ON s.id=e.event_id WHERE e.task_id=tasks.id AND e.project_id=tasks.project_id AND s.source_id=?) OR EXISTS(SELECT 1 FROM evidence_links e JOIN source_events s ON s.id=e.event_id WHERE e.task_id=tasks.id AND e.project_id=tasks.project_id AND s.source_id=?) OR EXISTS(SELECT 1 FROM source_object_bindings b WHERE b.task_id=tasks.id AND b.project_id=tasks.project_id AND b.source_id=? AND b.active=1) OR EXISTS(SELECT 1 FROM delivery_links l JOIN source_events e ON e.id=l.event_id WHERE l.task_id=tasks.id AND l.decision IN('auto','confirm') AND e.source_id=?))`,
         )
         params.push(
+          input.sourceInstanceId,
           input.sourceInstanceId,
           input.sourceInstanceId,
           input.sourceInstanceId,
         )
       }
       // Activity is recorded changes, never a completion inference.
-      const activity = `max(coalesce((SELECT max(created_at) FROM decisions d WHERE d.task_id=tasks.id),''),coalesce((SELECT max(created_at) FROM processing_decisions d WHERE d.task_id=tasks.id),''),coalesce((SELECT max(recorded_at) FROM source_association_audit d WHERE d.task_id=tasks.id),''),coalesce((SELECT max(recorded_at) FROM reference_revision_audit d WHERE d.task_id=tasks.id),''),coalesce((SELECT max(created_at) FROM reference_revision_decisions d WHERE d.task_id=tasks.id),''),coalesce((SELECT max(recorded_at) FROM plan_change_assessments d WHERE d.task_id=tasks.id),''))`
+      const activity = `max(coalesce((SELECT max(created_at) FROM decisions d WHERE d.task_id=tasks.id),''),coalesce((SELECT max(created_at) FROM processing_decisions d WHERE d.task_id=tasks.id),''),coalesce((SELECT max(recorded_at) FROM source_association_audit d WHERE d.task_id=tasks.id),''),coalesce((SELECT max(recorded_at) FROM reference_revision_audit d WHERE d.task_id=tasks.id),''),coalesce((SELECT max(created_at) FROM reference_revision_decisions d WHERE d.task_id=tasks.id),''),coalesce((SELECT max(recorded_at) FROM plan_change_assessments d WHERE d.task_id=tasks.id),''),coalesce((SELECT max(recorded_at) FROM delivery_audit d WHERE d.task_id=tasks.id),''))`
       for (const [value, op] of [
         [input.updatedSince, '>='],
         [input.updatedBefore, '<'],

@@ -211,6 +211,7 @@ export function createGithub(
       'url',
       'state',
       'title',
+      'body',
       'draft',
       'updatedAt',
       'mergedAt',
@@ -257,6 +258,7 @@ export function createGithub(
     if (
       Object.keys(payload).some((k) => !keys.includes(k)) ||
       !bounded(payload.title, 2048) ||
+      ('body' in payload && (typeof payload.body !== 'string' || payload.body.length > 40000 || /\0/.test(payload.body))) ||
       typeof payload.draft !== 'boolean' ||
       payload.updatedAt !== e.occurredAt ||
       !date(payload.updatedAt) ||
