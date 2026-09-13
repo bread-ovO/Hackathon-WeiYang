@@ -12,9 +12,11 @@ export class ExportFileError extends Error {
 const MAX_EXPORT_BYTES = 16 * 1024 * 1024
 const failed = () => new ExportFileError('EXPORT_WRITE_FAILED')
 type FileIdentity = Awaited<ReturnType<typeof lstat>>
+// Windows NTFS file ids routinely exceed 2^53 where Number(ino)+1 === itself;
+// compare as strings so every distinct 64-bit id stays distinct.
 const sameIdentity = (a: FileIdentity, b: FileIdentity) =>
   a.dev === b.dev &&
-  a.ino === b.ino &&
+  String(a.ino) === String(b.ino) &&
   a.size === b.size &&
   a.mtimeMs === b.mtimeMs &&
   a.ctimeMs === b.ctimeMs

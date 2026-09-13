@@ -4,21 +4,21 @@ import {
   mkdir,
   realpath,
   rm,
-  symlink,
   writeFile,
 } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { request } from 'node:http'
 import { startAssetServer } from '../desktop/pet/asset-server'
+import { symlinkOrSkip } from './helpers/symlink-or-skip'
 let root: string, service: Awaited<ReturnType<typeof startAssetServer>>
-beforeEach(async () => {
+beforeEach(async (ctx) => {
   root = await realpath(await mkdtemp(join(tmpdir(), 'pet-assets-')))
   await mkdir(join(root, 'public'))
   await writeFile(join(root, 'public', 'model.json'), '{}')
   await writeFile(join(root, 'private.txt'), 'private')
-  await symlink(join(root, 'private.txt'), join(root, 'public', 'link.json'))
-  await symlink(root, join(root, 'public', 'linked-directory'))
+  await symlinkOrSkip(ctx, join(root, 'private.txt'), join(root, 'public', 'link.json'))
+  await symlinkOrSkip(ctx, root, join(root, 'public', 'linked-directory'))
   service = await startAssetServer(
     { '/verify.js': join(root, 'public', 'model.json') },
     [['/model/', join(root, 'public')]],
