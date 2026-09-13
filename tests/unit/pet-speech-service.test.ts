@@ -1,10 +1,13 @@
 import { describe, it, expect } from 'vitest'
 import { createPetSpeechState, type PetSpeechState } from '@memo/domain'
-import { createPetSpeechService } from '../../apps/desktop/src/main/pet/speech-service'
+import {
+  createPetSpeechService,
+  type PetSpeechServiceDeps,
+} from '../../apps/desktop/src/main/pet/speech-service'
 const flush = async () => {
   for (let i = 0; i < 30; i++) await Promise.resolve()
 }
-function fixture() {
+function fixture(extra: Partial<PetSpeechServiceDeps> = {}) {
   let now = Date.parse('2026-09-13T10:00:00Z')
   const clock = {
     now: () => now,
@@ -50,6 +53,7 @@ function fixture() {
         if (callback === next) callback = undefined
       }
     },
+    ...extra,
   })
   return {
     service,
@@ -227,6 +231,78 @@ describe('durable pet speech service', () => {
     expect(await f.service.configure({ frequency: 'low' })).toBe(false)
     expect(f.timer).toBe(false)
     expect(f.monitors.at(-1)).toBe(false)
+    f.service.dispose()
+  })
+})
+
+describe('asynchronous context speech in the durable scheduler', () => {
+  it('reserves once before preparing and cancels late contextual output on disable', async () => {
+    let resolve!: (v: { text: string; contextId: string }) => void
+    let signal: AbortSignal | undefined
+    let preparedCount = 0,
+      sent = 0
+    const f = fixture({
+      prepare: async (_text, incoming) => {
+        signal = incoming
+        preparedCount++
+        expect(f.saved?.count).toBe(1)
+        return new Promise((r) => {
+          resolve = r
+        })
+      },
+      deliverPrepared: async () => {
+        sent++
+        return 'context-1'
+      },
+    })
+    await f.service.ready
+    await f.service.configure({ enabled: true })
+    for (let i = 0; i < 45; i++) await f.advance()
+    expect(preparedCount).toBe(1)
+    const disabling = f.service.configure({ enabled: false })
+    expect(signal?.aborted).toBe(true)
+    resolve({ text: 'context', contextId: 'private' })
+    await disabling
+    await flush()
+    expect(sent).toBe(0)
+    expect(f.delivered).toEqual([])
+    expect(f.saved?.count).toBe(1)
+    f.service.dispose()
+  })
+  it('rechecks quiet time at the final asynchronous enqueue boundary', async () => {
+    let emitted = false
+    const f = fixture({
+      prepare: async (text) => ({ text }),
+      deliverPrepared: async (_input, _signal, guard) => {
+        f.setNow(Date.parse('2026-09-13T22:00:00Z'))
+        emitted = await guard()
+        return emitted ? 'late' : null
+      },
+    })
+    await f.service.ready
+    await f.service.configure({ enabled: true })
+    for (let i = 0; i < 45; i++) await f.advance()
+    expect(emitted).toBe(false)
+    expect(f.saved?.count).toBe(1)
+    expect(f.delivered).toEqual([])
+    f.service.dispose()
+  })
+  it('a model failure fallback uses the existing reservation and only one delivery', async () => {
+    let emitted = 0
+    const f = fixture({
+      prepare: async (text) => ({ text }),
+      deliverPrepared: async (_input, _signal, guard) => {
+        if (!(await guard())) return null
+        emitted++
+        return 'fallback-1'
+      },
+    })
+    await f.service.ready
+    await f.service.configure({ enabled: true })
+    for (let i = 0; i < 45; i++) await f.advance()
+    expect(emitted).toBe(1)
+    expect(f.saved?.count).toBe(1)
+    expect(f.delivered).toEqual([])
     f.service.dispose()
   })
 })

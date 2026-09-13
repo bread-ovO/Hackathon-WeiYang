@@ -1,6 +1,26 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import type { DesktopBridge } from '@memo/contracts'
 const bridge: DesktopBridge = {
+  onOpenTask(callback) {
+    const listener = (_event: unknown, value: unknown) => {
+      if (!value || typeof value !== 'object' || Array.isArray(value)) return
+      const v = value as Record<string, unknown>
+      if (
+        Object.keys(v).sort().join(',') !== 'projectId,taskId' ||
+        [v.projectId, v.taskId].some(
+          (x) =>
+            typeof x !== 'string' ||
+            !x.length ||
+            x.length > 256 ||
+            /[\s\u0000-\u001f\u007f]/u.test(x),
+        )
+      )
+        return
+      callback({ projectId: v.projectId as string, taskId: v.taskId as string })
+    }
+    ipcRenderer.on('memo:open-task', listener)
+    return () => ipcRenderer.removeListener('memo:open-task', listener)
+  },
   feishu: Object.freeze({
     list: () => ipcRenderer.invoke('memo:request', { method: 'feishu.list' }),
     connect: (input) =>
@@ -53,6 +73,19 @@ const bridge: DesktopBridge = {
       }),
   }),
   pet: Object.freeze({
+    contextState: () =>
+      ipcRenderer.invoke('memo:request', { method: 'pet.contextState' }),
+    configureContext: (input) =>
+      ipcRenderer.invoke('memo:request', {
+        ...input,
+        method: 'pet.configureContext',
+      }),
+    previewContext: () =>
+      ipcRenderer.invoke('memo:request', { method: 'pet.previewContext' }),
+    cancelContext: () =>
+      ipcRenderer.invoke('memo:request', { method: 'pet.cancelContext' }),
+    showContext: (id) =>
+      ipcRenderer.invoke('memo:request', { method: 'pet.showContext', id }),
     configureSpeech: (patch) =>
       ipcRenderer.invoke('memo:request', {
         method: 'pet.configureSpeech',

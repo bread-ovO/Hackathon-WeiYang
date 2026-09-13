@@ -13,6 +13,7 @@ import type {
   ProjectSourceEvents,
   SourceBindings,
   IdentityMappings,
+  PetContextFacts,
 } from '@memo/contracts'
 export function handleWorkspace(
   store: ReturnType<typeof openStore>,
@@ -28,9 +29,15 @@ export function handleWorkspace(
   | PlanChangeProposal
   | ProjectSourceEvents
   | SourceBindings
-  | IdentityMappings {
+  | IdentityMappings
+  | PetContextFacts
+  | { valid: boolean } {
   const by = { actorId: 'local-user', reason: '用户在我的工作区手动操作' }
   switch (request.method) {
+    case 'workspace.petContextFacts':
+      return store.petContext.facts(request.projectIds)
+    case 'workspace.validatePetContextFact':
+      return { valid: store.petContext.validate(request.fact) }
     case 'workspace.sourceEvents': {
       const { method: _, ...input } = request
       return store.sourceAssociations.sourceEvents(input)

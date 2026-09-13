@@ -12,6 +12,7 @@ import {
   type RuntimeModel,
 } from './pet-live2d'
 interface PetInput {
+  openContext(input: { id: string }): Promise<boolean>
   state(): Promise<{
     model: RuntimeModel | null
     visible: boolean
@@ -50,6 +51,26 @@ const canvas = document.getElementById('stage-gl') as HTMLCanvasElement
 const message = document.getElementById('pet-status') as HTMLDivElement
 const bubble = document.getElementById('pet-bubble') as HTMLDivElement
 const bubbleText = document.getElementById('pet-bubble-text') as HTMLDivElement
+const contextButton = document.createElement('button')
+contextButton.type = 'button'
+contextButton.hidden = true
+contextButton.id = 'pet-context-link'
+bubbleText.after(contextButton)
+let contextId: string | null = null
+contextButton.addEventListener('click', async () => {
+  const id = contextId
+  if (!id || !input) return
+  contextButton.disabled = true
+  try {
+    const opened = await input.openContext({ id })
+    if (contextId === id && !opened)
+      contextButton.textContent = '依据已变化，请在主窗口复核'
+  } catch {
+    if (contextId === id) contextButton.textContent = '暂不能打开事项'
+  } finally {
+    if (contextId === id) contextButton.disabled = false
+  }
+})
 const bubbleClose = document.getElementById(
   'pet-bubble-close',
 ) as HTMLButtonElement
@@ -265,13 +286,21 @@ const report = (
     })
 }
 const presentation = createPetPresentationPlayer({
-  show(text, close) {
+  show(text, close, context) {
+    contextId = context?.id ?? null
+    contextButton.hidden = !context
+    contextButton.disabled = false
+    contextButton.textContent = context?.label ?? ''
+    contextButton.title = context?.reason ?? ''
+
     bubbleText.textContent = text
     closeBubble = close
     bubble.hidden = false
     refreshHit()
   },
   hide() {
+    contextId = null
+    contextButton.hidden = true
     bubble.hidden = true
     bubbleText.textContent = ''
     closeBubble = undefined

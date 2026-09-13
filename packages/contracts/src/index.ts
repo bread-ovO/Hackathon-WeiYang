@@ -1,3 +1,10 @@
+import type {
+  PetContextState,
+  PetContextConfig,
+  PetContextPreview,
+} from './pet-context'
+export * from './pet-context'
+export * from './pet-context-facts'
 import {
   feishuRequestSchema,
   createFeishuHostRequestSchema,
@@ -312,6 +319,11 @@ export function parseHostRequest(value: unknown): HostRequest {
     request.method === 'github.revoke' ||
     request.method === 'github.sync' ||
     request.method === 'github.records' ||
+    request.method === 'pet.contextState' ||
+    request.method === 'pet.configureContext' ||
+    request.method === 'pet.previewContext' ||
+    request.method === 'pet.cancelContext' ||
+    request.method === 'pet.showContext' ||
     request.method === 'pet.play' ||
     request.method === 'pet.speak' ||
     request.method === 'pet.dismissBubble' ||
@@ -375,6 +387,19 @@ export type CoreReply<T = Health> =
         | 'GITHUB_FAILED'
         | 'CORE_UNAVAILABLE'
         | 'INVALID_REQUEST'
+        | 'PET_MODEL_OFFLINE'
+        | 'PET_MODEL_TIMEOUT'
+        | 'PET_MODEL_INVALID_RESPONSE'
+        | 'PET_MODEL_CANCELLED'
+        | 'PET_MODEL_UNAVAILABLE'
+        | 'PET_MODEL_BUSY'
+        | 'PET_CONTEXT_STORAGE_ERROR'
+        | 'PET_CONTEXT_CONFLICT'
+        | 'PET_CONTEXT_EXPIRED'
+        | 'PET_CONTEXT_BUDGET'
+        | 'PET_CONTEXT_COOLDOWN'
+        | 'PET_CONTEXT_INVALID_INPUT'
+        | 'PET_CONTEXT_UNAVAILABLE'
         | 'INTERNAL_ERROR'
         | 'ASSOCIATION_INVALID_INPUT'
         | 'ASSOCIATION_NOT_FOUND'
@@ -416,6 +441,10 @@ export type CoreReply<T = Health> =
         | 'INGESTION_PROBE_UNAVAILABLE'
     }
 export interface DesktopBridge {
+  onOpenTask(
+    callback: (target: { projectId: string; taskId: string }) => void,
+  ): () => void
+
   feishu: {
     list(): Promise<CoreReply<FeishuSnapshot>>
     connect(
@@ -462,6 +491,15 @@ export interface DesktopBridge {
     configure(enabled: boolean): Promise<CoreReply<ProcessingStatus>>
   }
   pet: {
+    contextState(): Promise<CoreReply<PetContextState>>
+    configureContext(input: {
+      expectedVersion: number
+      config: Omit<PetContextConfig, 'version'>
+    }): Promise<CoreReply<PetContextState>>
+    previewContext(): Promise<CoreReply<PetContextPreview>>
+    cancelContext(): Promise<CoreReply<PetContextState>>
+    showContext(id: string): Promise<CoreReply<PetContextState>>
+
     configureSpeech(patch: PetSpeechPatch): Promise<CoreReply<PetState>>
     play(actionId: string): Promise<CoreReply<PetState>>
     speak(input: {

@@ -1145,3 +1145,17 @@ dd {
 .plugin-fields{display:flex;gap:12px;flex-wrap:wrap;margin:12px 0}.plugin-fields label{display:flex;flex-direction:column;gap:4px;font-size:12px;min-width:160px}
 .plugin-fields select{border:1px solid var(--line);border-radius:8px;background:var(--color-kumo-base);padding:8px;font-size:14px;max-width:280px}
 .plugin-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px}.plugin-row{padding:12px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}.plugin-row>div{min-width:0}.plugin-row strong{overflow-wrap:anywhere}
+
+.pet-context-settings {display:grid;gap:8px;padding:16px 0;border-top:1px solid var(--color-kumo-line)}
+.pet-context-settings h2,.pet-context-settings p {margin:0}
+.pet-context-settings p {font-size:12px;line-height:1.6}
+.pet-context-settings fieldset {display:grid;gap:8px;border:1px solid var(--color-kumo-line);border-radius:8px;padding:12px}
+.pet-context-settings label {display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.pet-context-settings blockquote {margin:0;padding:12px;overflow-wrap:anywhere;border-left:2px solid var(--color-kumo-line)}
+.pet-navigation-prompt {padding:12px 16px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:var(--color-kumo-tint)}
+.pet-navigation-prompt p {margin:0;font-size:12px}
+
+.pet-context-data-scope {font-size:12px;color:var(--muted)}
+.pet-context-data-scope summary {cursor:pointer;padding:4px 0}
+.pet-context-data-scope p {margin-top:8px;max-width:720px}
+.pet-context-settings fieldset legend {font-size:12px;padding:0 4px;color:var(--muted)}
