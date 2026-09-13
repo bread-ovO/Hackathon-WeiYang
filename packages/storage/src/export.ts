@@ -1,3 +1,9 @@
+import {
+  referenceAuditProjection,
+  validateReferenceAudit,
+  type ReferenceConflictAudit,
+} from './reference-audit'
+import { getSourceStatus } from './source-status'
 import { createRevisionReview } from './revision-review'
 import type { ReferenceReview } from '@memo/contracts'
 import { createRetractions, type RetractionProof } from './retractions'
@@ -12,7 +18,7 @@ export interface ExportScope {
 }
 export interface ExportBundle {
   selection: { mode: 'project' } | { mode: 'tasks'; taskIds: string[] }
-  schemaVersion: 4
+  schemaVersion: 5
   exportedAt: string
   project: { id: string; name: string }
   sourceBodiesIncluded: boolean
@@ -82,6 +88,7 @@ export interface ExportBundle {
           text?: string
         })
   }[]
+  referenceConflictAudit: ReferenceConflictAudit[]
   referenceDecisions: {
     id: number
     taskId: string
@@ -115,7 +122,7 @@ export interface ExportBundle {
     occurredAt: string
     receivedAt: string
     role: 'user' | 'assistant' | 'tool' | 'system'
-    sourceStatus: 'active' | 'revoked' | 'unmanaged'
+    sourceStatus: ReturnType<typeof getSourceStatus>
     operation: 'upsert' | 'retract'
     eventStatus: 'present' | 'retracted'
     retraction: RetractionProof | null
@@ -323,7 +330,7 @@ export function createExports(db: Database.Database) {
       if (scope.taskIds && tasks.length !== scope.taskIds.length)
         throw new Error('EXPORT_TASK_NOT_IN_PROJECT')
       const bundle: ExportBundle = {
-        schemaVersion: 4,
+        schemaVersion: 5,
         selection: scope.taskIds
           ? { mode: 'tasks', taskIds: [...scope.taskIds].sort() }
           : { mode: 'project' },
@@ -339,6 +346,7 @@ export function createExports(db: Database.Database) {
         retractionImpacts: [],
         referenceReviews: [],
         referenceDecisions: [],
+        referenceConflictAudit: [],
         revisions: [],
         manualOverrides: [],
         events: [],
@@ -660,6 +668,20 @@ export function createExports(db: Database.Database) {
           return r as ExportBundle['referenceDecisions'][number]
         },
       )
+      bundle.referenceConflictAudit = rows(
+        `SELECT ${referenceAuditProjection} FROM reference_revision_audit WHERE project_id=? AND task_id IN (${selected}) ORDER BY id`,
+        [scope.projectId, ...ids],
+        (r) => {
+          let item: ReferenceConflictAudit
+          try {
+            item = validateReferenceAudit(db, r)
+          } catch {
+            fail()
+          }
+          if (item!.triggerEventId !== null) addRef(item!.triggerEventId)
+          return item!
+        },
+      )
       const citedRuleLinks = new Set(
         bundle.candidateEvidence.map((e) =>
           JSON.stringify([e.taskId, e.eventId]),
@@ -833,6 +855,15 @@ export function createExports(db: Database.Database) {
           str(r[key])
         one(r.role, ['user', 'assistant', 'tool', 'system'])
         one(r.operation, ['upsert', 'retract'])
+        try {
+          r.sourceStatus = getSourceStatus(
+            db,
+            scope.projectId,
+            r.sourceInstanceId as string,
+          )
+        } catch {
+          fail()
+        }
         const retraction = retractionFor(eventId)
         r.eventStatus = retraction ? 'retracted' : 'present'
         r.retraction = retraction

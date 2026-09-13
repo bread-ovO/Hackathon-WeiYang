@@ -1,3 +1,4 @@
+import { getSourceStatus } from '../packages/storage/src/source-status'
 import { HTTP_JSON_MANIFEST_EXAMPLE } from '../packages/plugin-host/src/manifest'
 import { openStore } from '@memo/storage'
 import { prepareEventProcessing } from '@memo/application'
@@ -278,6 +279,8 @@ try {
     ],
   })
   store.plugins.disable(installed.id)
+  assert.equal(getSourceStatus(raw, 'b', plugin.sourceInstanceId), 'paused')
+  assert.equal(getSourceStatus(raw, 'a', plugin.sourceInstanceId), 'unknown')
   assert.equal(store.processing.claim(now), undefined)
   store.plugins.activate(pluginInput)
   job = store.processing.claim(now)!
@@ -294,6 +297,10 @@ try {
   job = store.processing.claim(now)!
   context = store.processing.load(job, now)!
   store.plugins.uninstall(installed.id)
+  assert.equal(
+    getSourceStatus(raw, 'b', plugin.sourceInstanceId),
+    'uninstalled',
+  )
   assert.equal(
     store.processing.fail(job, 'EXECUTION_FAILED', false, now),
     false,

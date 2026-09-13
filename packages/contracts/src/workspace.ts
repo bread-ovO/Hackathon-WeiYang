@@ -1,3 +1,5 @@
+import { timelineRequestSchema } from './task-timeline'
+export * from './task-timeline'
 import { referenceReviewRequestSchemas } from './reference-review'
 export * from './reference-review'
 import type { FromSchema } from 'json-schema-to-ts'
@@ -52,6 +54,7 @@ export const workspaceQuerySchema = {
 export type WorkspaceQuery = FromSchema<typeof workspaceQuerySchema>
 export const workspaceRequestSchema = {
   oneOf: [
+    timelineRequestSchema,
     ...referenceReviewRequestSchemas,
     {
       type: 'object',
@@ -172,7 +175,7 @@ export interface CandidateProvenance {
   policyVersion: string
   actor: 'rule'
   outcome: 'created' | 'review_required'
-  sourceStatus: 'active' | 'revoked' | 'uninstalled' | 'unknown'
+  sourceStatus: 'active' | 'paused' | 'revoked' | 'uninstalled' | 'unknown'
   revisionStatus: 'current' | 'review_required'
   eventId: number
   sourceInstanceId: string

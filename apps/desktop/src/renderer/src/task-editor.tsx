@@ -1,3 +1,4 @@
+import { TaskTimeline } from './task-timeline'
 import { ReferenceList } from './reference-list'
 import './candidate-provenance.css'
 import { useEffect, useRef, useState } from 'react'
@@ -143,7 +144,8 @@ export function TaskEditor({
           <section className="candidate-provenance" aria-label="候选来源依据">
             <h3>候选来源依据</h3>
             <p>
-              由本地有限规则整理。引用用于说明候选来源，不代表交付已经完成。
+              由本地有限规则整理。此处最多预览 100
+              条依据，完整变化请查看事项时间线；引用不代表交付已经完成。
             </p>
             {provenance.map((item) => (
               <details key={`${item.eventId}:${item.quoteStart}`}>
@@ -193,7 +195,8 @@ export function TaskEditor({
                     {
                       (
                         {
-                          revoked: '来源已停用，原引用仍保留。',
+                          paused: '来源采集已暂停，原引用仍保留。',
+                          revoked: '来源授权已撤销，原引用仍保留。',
                           uninstalled: '来源插件已卸载，原引用仍保留。',
                           unknown: '来源授权状态不可确认，引用需复核。',
                         } as const
@@ -211,6 +214,13 @@ export function TaskEditor({
             projectId={task.projectId}
             taskId={task.id}
             onConfirmed={() => void refreshEvidence()}
+          />
+        )}
+        {task.projectId && (
+          <TaskTimeline
+            key={`${task.projectId}:${task.id}`}
+            projectId={task.projectId}
+            taskId={task.id}
           />
         )}
         {task.projectId ? (

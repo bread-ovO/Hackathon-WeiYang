@@ -99,7 +99,7 @@ try {
   const changed = '我会提交经过修改的版本报告。'
   ingest('2', changed)
   const conflict = store.exports.build(scope)
-  assert.equal(conflict.schemaVersion, 4)
+  assert.equal(conflict.schemaVersion, 5)
   assert.ok(
     conflict.referenceReviews.every(
       (r) => r.reference.status === 'review_required',

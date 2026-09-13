@@ -1,3 +1,5 @@
+import { recordReferenceConflict } from './reference-audit'
+import { getSourceStatus } from './source-status'
 import { createHash } from 'node:crypto'
 import type Database from 'better-sqlite3'
 import { createRetractions } from './retractions'
@@ -17,6 +19,7 @@ export interface RevisionReview {
     eventId: number
     sourceInstanceId: string
     externalId: string
+    sourceStatus: ReturnType<typeof getSourceStatus>
     originalReferenceStatus: 'available' | 'invalidated'
     status: 'available' | 'review_required' | 'confirmed' | 'invalidated'
   }
@@ -49,7 +52,7 @@ export function migrateRevisionReview(db: Database.Database) {
  CREATE TABLE reference_revision_decisions(id INTEGER PRIMARY KEY,project_id TEXT NOT NULL,task_id TEXT NOT NULL,reference_kind TEXT NOT NULL,reference_id TEXT NOT NULL,reference_version INTEGER NOT NULL,chosen_event_id INTEGER NOT NULL REFERENCES source_events(id),content_digest TEXT NOT NULL,actor_id TEXT NOT NULL,reason TEXT NOT NULL,created_at TEXT NOT NULL,FOREIGN KEY(task_id,project_id) REFERENCES tasks(id,project_id));
  PRAGMA user_version=11;`)
     // Existing references are conservatively reconciled from the full known set.
-    const api = createRevisionReview(db)
+    const api = createRevisionReview(db, { audit: false })
     for (let offset = 0; ; offset += 500) {
       const rows = db
         .prepare(
@@ -61,7 +64,10 @@ export function migrateRevisionReview(db: Database.Database) {
     }
   })()
 }
-export function createRevisionReview(db: Database.Database) {
+export function createRevisionReview(
+  db: Database.Database,
+  options: { audit?: boolean } = {},
+) {
   function validate(i: ReferenceInput) {
     if (
       !i ||
@@ -160,7 +166,7 @@ export function createRevisionReview(db: Database.Database) {
       throw Error('INVALID_REFERENCE_REVIEW')
     return row
   }
-  function reconcile(i: ReferenceInput) {
+  function reconcile(i: ReferenceInput, triggerEventId: number) {
     const ref = reference(i),
       set = contents(i.projectId, ref.sourceId, ref.externalId),
       old = stored(i)
@@ -178,6 +184,21 @@ export function createRevisionReview(db: Database.Database) {
       ref.validity,
       status,
     )
+    if (status === 'review_required' && options.audit !== false)
+      recordReferenceConflict(db, {
+        projectId: i.projectId,
+        taskId: i.taskId,
+        referenceKind: i.referenceKind,
+        referenceId: i.referenceId,
+        referenceVersion: (old?.version ?? 0) + 1,
+        triggerEventId,
+        previousStatus: old?.status ?? null,
+        newStatus: 'review_required',
+        previousDigest: old?.content_digest ?? null,
+        newDigest: set.digest,
+        recordedAt: new Date().toISOString(),
+        origin: 'observed',
+      })
     if (status === 'review_required' && i.referenceKind === 'manual')
       db.prepare(
         "UPDATE evidence_links SET validity='invalid' WHERE project_id=? AND task_id=? AND id=?",
@@ -204,7 +225,7 @@ export function createRevisionReview(db: Database.Database) {
         referenceId: string
       }[]
       for (const ref of refs)
-        reconcile({ projectId, ...ref, referenceKind: kind })
+        reconcile({ projectId, ...ref, referenceKind: kind }, eventId)
     }
   }
   function reviewReference(
@@ -286,6 +307,7 @@ export function createRevisionReview(db: Database.Database) {
       (row?.status === 'confirmed' && !selectedSameContent)
     return {
       reference: {
+        sourceStatus: getSourceStatus(db, i.projectId, ref.sourceId),
         originalReferenceStatus: originalInvalid ? 'invalidated' : 'available',
         kind: i.referenceKind,
         id: i.referenceId,
