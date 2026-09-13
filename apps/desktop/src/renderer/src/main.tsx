@@ -111,11 +111,13 @@ function App() {
   const [filter, setFilter] = useState<string>('全部'),
     [project, setProject] = useState('全部项目'),
     [query, setQuery] = useState(''),
-    [selected, setSelected] = useState<string | null>('01')
+    [selected, setSelected] = useState<string | null>(null)
   const [detailTab, setDetailTab] = useState('概览'),
     [evidence, setEvidence] = useState<number | null>(null),
     [modal, setModal] = useState(false),
     [draft, setDraft] = useState(''),
+    [draftProject, setDraftProject] = useState('日常协作'),
+    [draftDue, setDraftDue] = useState(''),
     [notice, setNotice] = useState('')
   const [undo, setUndo] = useState<Task[] | null>(null)
   const [realCount, setRealCount] = useState(0)
@@ -213,10 +215,10 @@ function App() {
       {
         id,
         title: draft.trim(),
-        project: '日常协作',
+        project: draftProject,
         status: '进行中',
         next: '手动添加，等待补充完成条件',
-        date: '待定',
+        date: draftDue ? new Date(draftDue).toLocaleString() : '待定',
         source: '手动添加',
         person: '我',
         quote: '手动添加的示例事项，尚未关联来源记录。',
@@ -229,6 +231,7 @@ function App() {
     setProject('全部项目')
     setSelected(id)
     setDraft('')
+    setDraftDue('')
     setModal(false)
     setUndo(null)
     setNotice('示例事项已添加，仅在本次预览中保留。')
@@ -818,6 +821,7 @@ function App() {
             >
               <CredentialsPanel />
             </Disclosure>
+            <p className="settings-group-label">诊断与说明</p>
             <Disclosure
               id="settings-runtime"
               title="运行状态"
@@ -941,6 +945,29 @@ function App() {
             placeholder="例如：确认接口联调时间"
             autoFocus
             required
+          />
+          <label className="form-label" htmlFor="demo-task-project">
+            项目
+          </label>
+          <select
+            id="demo-task-project"
+            aria-label="示例事项项目"
+            value={draftProject}
+            onChange={(e) => setDraftProject(e.target.value)}
+          >
+            <option>工作台改版</option>
+            <option>开放平台</option>
+            <option>日常协作</option>
+          </select>
+          <label className="form-label" htmlFor="demo-task-due">
+            截止时间（可不填）
+          </label>
+          <AppInput
+            id="demo-task-due"
+            type="datetime-local"
+            aria-label="示例截止时间"
+            value={draftDue}
+            onChange={(e) => setDraftDue(e.target.value)}
           />
           <div className="modal-actions">
             <AppButton
