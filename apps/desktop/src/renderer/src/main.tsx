@@ -1,4 +1,6 @@
-import {PetVoiceSettings} from './pet-voice-settings'
+import { Disclosure } from './ui/disclosure'
+import { SourcePresets } from './source-presets'
+import { PetVoiceSettings } from './pet-voice-settings'
 import { PetContextSettings } from './pet-context-settings'
 import { FeishuPanel } from './feishu-panel'
 import { GithubPanel } from './github-panel'
@@ -706,106 +708,131 @@ function App() {
             </div>
           </>
         ) : page === '连接' ? (
-          <div className="standalone">
+          <div className="standalone" key="connections">
             <h1>
               应用与文件<span className="heading-dot">.</span>
             </h1>
             <p className="page-description">
               把工作发生的地方连接起来。你决定读取哪些内容。
             </p>
-            <IngestionPanel />
-            <ProcessingPanel />
-            <SourceImport />
-            <FeishuPanel />
-            <GithubPanel />
-            <PluginManager />
-            <div className="connection-summary">
-              <Icon name="link" />
-              <span>可手动导入本地 JSONL 导出</span>
-              <small>
-                已支持指定 GitHub 仓库的 PR
-                采样；已支持选定飞书会话的分窗历史采样
-              </small>
-            </div>
-            <div className="section-heading">
-              <h3>后续接入方向</h3>
-              <span>2 种来源</span>
-            </div>
-            {[
-              [
-                'terminal',
-                '本地 AI 会话',
-                '关联执行过程、工具结果和验证记录',
-                'ink',
-              ],
-              ['folder', '本地文件', '从选定的文件夹中关联文档变化', 'amber'],
-            ].map(([symbol, name, desc, color]) => (
-              <div className="connection-row" key={name}>
-                <span className={`app-icon ${color}`}>
-                  <Icon name={symbol as IconName} size={20} />
-                </span>
-                <div>
-                  <h3>{name}</h3>
-                  <p>{desc}</p>
-                </div>
-                <span className="connection-status">未连接</span>
-                <AppButton disabled className="secondary">
-                  即将支持
-                </AppButton>
-              </div>
-            ))}
-            <div className="connection-note">
-              <h3>每个连接，都有明确范围</h3>
-              <p>
-                接入时查看读取范围与数据处理方式；断开后，已有事项仍可查看。
-              </p>
-            </div>
+            <SourcePresets
+              onDemoReady={() => {
+                setDemo(false)
+                setPage('跟进')
+              }}
+            />
+            <Disclosure
+              id="preset-feishu"
+              title="飞书连接"
+              description="配置会话与读取范围"
+            >
+              <FeishuPanel />
+            </Disclosure>
+            <Disclosure
+              id="preset-github"
+              title="GitHub 连接"
+              description="配置仓库与读取凭据"
+            >
+              <GithubPanel />
+            </Disclosure>
+            <Disclosure
+              id="preset-local"
+              title="本地记录"
+              description="选择导出文件与所属项目"
+            >
+              <SourceImport />
+            </Disclosure>
+            <Disclosure
+              id="preset-plugins"
+              title="扩展插件"
+              description="安装和管理其他来源"
+            >
+              <PluginManager />
+            </Disclosure>
+            <Disclosure
+              id="preset-processing"
+              title="采集与整理"
+              description="后台状态、暂停与存储预算"
+            >
+              <ProcessingPanel />
+              <IngestionPanel />
+            </Disclosure>
           </div>
         ) : (
-          <div className="standalone">
+          <div className="standalone" key="settings">
             <h1>
               设置<span className="heading-dot">.</span>
             </h1>
-            <p className="page-description">查看当前设备的运行状态。</p>
-            <section className="runtime">
-              <div className="section-heading">
-                <h2>
-                  {health
-                    ? '基础链路已连通'
-                    : error
-                      ? '核心暂不可用，正在重试'
-                      : '正在连接核心'}
-                </h2>
-                <span className={health ? 'health-status' : 'muted'}>
-                  {health ? '本地核心已就绪' : '等待连接'}
-                </span>
-              </div>
-              <dl>
-                <dt>桌面与核心通信</dt>
-                <dd>{health ? '已连接' : '等待连接'}</dd>
-                <dt>SQLite 版本</dt>
-                <dd>{health?.sqliteVersion ?? '—'}</dd>
-                <dt>数据结构版本</dt>
-                <dd>{health?.schemaVersion ?? '—'}</dd>
-                <dt>已接收事件 / 作业总数</dt>
-                <dd>
-                  {health ? `${health.eventCount} / ${health.jobCount}` : '—'}
-                </dd>
-              </dl>
-              <p className="muted">
-                当前为开发版本，事项数据库尚未加密；凭据使用独立的系统加密存储。
-              </p>
-            </section>
-            <CredentialsPanel />
-            <PetContextSettings />
-            <PetVoiceSettings />
-            <PetModels />
-            <div className="connection-note">
-              <h3>关于设计预览</h3>
+            <p className="page-description">管理桌宠、连接凭据与本机偏好。</p>
+            <Disclosure
+              id="settings-pet"
+              title="桌宠外观"
+              description="模型、动作与桌面显示"
+            >
+              <PetModels />
+            </Disclosure>
+            <Disclosure
+              id="settings-context"
+              title="事项提醒"
+              description="允许桌宠提醒哪些项目"
+            >
+              <PetContextSettings />
+            </Disclosure>
+            <Disclosure
+              id="settings-voice"
+              title="桌宠声音"
+              description="系统声音、语速与音量"
+            >
+              <PetVoiceSettings />
+            </Disclosure>
+            <Disclosure
+              id="settings-credentials"
+              title="连接凭据"
+              description="管理来源的访问令牌"
+            >
+              <CredentialsPanel />
+            </Disclosure>
+            <Disclosure
+              id="settings-runtime"
+              title="运行状态"
+              description="本地数据与故障诊断"
+            >
+              <section className="runtime">
+                <div className="section-heading">
+                  <h2>
+                    {health
+                      ? '基础链路已连通'
+                      : error
+                        ? '核心暂不可用，正在重试'
+                        : '正在连接核心'}
+                  </h2>
+                  <span className={health ? 'health-status' : 'muted'}>
+                    {health ? '本地核心已就绪' : '等待连接'}
+                  </span>
+                </div>
+                <dl>
+                  <dt>桌面与核心通信</dt>
+                  <dd>{health ? '已连接' : '等待连接'}</dd>
+                  <dt>SQLite 版本</dt>
+                  <dd>{health?.sqliteVersion ?? '—'}</dd>
+                  <dt>数据结构版本</dt>
+                  <dd>{health?.schemaVersion ?? '—'}</dd>
+                  <dt>已接收事件 / 作业总数</dt>
+                  <dd>
+                    {health ? `${health.eventCount} / ${health.jobCount}` : '—'}
+                  </dd>
+                </dl>
+                <p className="muted">
+                  当前为开发版本，事项数据库尚未加密；凭据使用独立的系统加密存储。
+                </p>
+              </section>
+            </Disclosure>
+            <Disclosure title="关于示例体验">
+              <h3 className="sr-only">关于设计预览</h3>
               <p>
                 示例体验中的事项均为虚构。添加、确认与完成只在本次窗口中保留，不会写入数据库或修改外部应用。
               </p>
-            </div>
+            </Disclosure>
           </div>
         )}
       </WorkspacePanel>

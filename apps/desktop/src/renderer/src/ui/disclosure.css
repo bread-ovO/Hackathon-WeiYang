@@ -1,0 +1,67 @@
+.disclosure {
+  border-bottom: 1px solid var(--line);
+  scroll-margin-top: 16px;
+}
+.disclosure > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 0;
+  cursor: pointer;
+  list-style: none;
+}
+.disclosure > summary::-webkit-details-marker {
+  display: none;
+}
+.disclosure > summary:focus-visible {
+  outline: 2px solid var(--color-kumo-focus);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+.disclosure > summary > svg {
+  display: block;
+  flex: 0 0 16px;
+  color: var(--muted);
+}
+.disclosure[open] > summary > svg {
+  transform: rotate(90deg);
+}
+.disclosure-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.disclosure-title {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+}
+.disclosure-description {
+  font-size: 12px;
+  line-height: 20px;
+  color: var(--muted);
+}
+.disclosure-body {
+  padding: 0 0 16px;
+}
+.disclosure-body > section {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+}
+.disclosure-body > section + section {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+.disclosure-body > section > .section-heading h2,
+.disclosure-body > section > h2 {
+  font-size: 16px;
+}
+.real-editor .disclosure {
+  border-top: 1px solid var(--line);
+  border-bottom: 0;
+}

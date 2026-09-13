@@ -86,6 +86,7 @@ for (const scenario of ['settings', 'manual', 'automatic'])
             fixture,
           )
         await page.getByRole('button', { name: '设置', exact: true }).click()
+    await page.locator('#settings-context > summary').click()
         const panel = page.getByRole('region', { name: '基于事项的话语' })
         await expect(
           panel.getByRole('checkbox', {

@@ -56,6 +56,7 @@ test('task timeline paginates all manual changes while preserving unsaved drafts
       .click()
     const draft = page.getByLabel('编辑事项标题')
     await draft.fill('未保存的时间线验收草稿')
+    await page.getByText('关联、改期与历史', { exact: true }).click()
     const timeline = page.getByRole('region', {
       name: '事项时间线',
       exact: true,

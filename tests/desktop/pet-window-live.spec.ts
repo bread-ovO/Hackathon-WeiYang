@@ -319,6 +319,7 @@ test('installed Haru renders through isolated pet bridge and stops on hide, swit
         .show(),
     )
     await page.getByRole('button', { name: '设置', exact: true }).click()
+    await page.locator('#settings-pet > summary').click()
     const panel = page.getByRole('region', { name: '桌宠模型管理' })
     await expect(panel.getByText('运行库已就绪', { exact: true })).toBeVisible()
     await expect(

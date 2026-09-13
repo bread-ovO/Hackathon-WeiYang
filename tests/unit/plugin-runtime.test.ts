@@ -142,3 +142,15 @@ describe('plugin runtime confirmation and cancellation boundaries',()=>{
     expect(request.mock.calls.some(([req])=>req.method==='pluginHost.receiveBatch')).toBe(false)
   })
 })
+
+it('built-in setup fences competing install operations without opening a picker', async () => {
+  let finish!: (value: { file: string; directory: string }) => void
+  runtime = createPluginRuntime({ choose, request, readCredential, prepareDemo: () => new Promise(resolve => { finish = resolve }) })
+  const setup = handle({ method: 'plugins.startDemo' })
+  await vi.waitFor(() => expect(finish).toBeTypeOf('function'))
+  expect(await handle({ method: 'plugins.inspect' })).toEqual({ ok: false, error: 'PLUGIN_UNAVAILABLE' })
+  expect(await handle({ method: 'plugins.startDemo' })).toEqual({ ok: false, error: 'PLUGIN_UNAVAILABLE' })
+  finish({ file: path.join(root, 'missing.json'), directory: root })
+  expect((await setup).ok).toBe(false)
+  expect(choose).not.toHaveBeenCalled()
+})

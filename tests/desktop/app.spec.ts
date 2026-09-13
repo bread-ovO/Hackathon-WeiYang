@@ -24,6 +24,7 @@ test('packaged renderer connects to isolated SQLite core without exposing Node',
       page.getByRole('heading', { name: '跟进', exact: true }),
     ).toBeVisible()
     await page.getByRole('button', { name: '设置', exact: true }).click()
+    await page.locator('#settings-runtime > summary').click()
     await expect(page.getByText('本地核心已就绪')).toBeVisible({
       timeout: 15000,
     })
@@ -93,7 +94,9 @@ test('packaged renderer connects to isolated SQLite core without exposing Node',
     await page.evaluate(() => window.open('https://example.com'))
     expect(app.windows()).toHaveLength(1)
     await page.getByRole('button', { name: '连接', exact: true }).click()
-    await expect(page.getByRole('button', { name: '即将支持' })).toHaveCount(2)
+    await expect(page.getByRole('button', { name: '即将支持' })).toHaveCount(0)
+    await page.getByRole('button', { name: '配置飞书', exact: true }).click()
+    await page.getByRole('button', { name: '配置 GitHub', exact: true }).click()
     await expect(
       page.getByRole('region', { name: '飞书会话连接' }),
     ).toBeVisible()

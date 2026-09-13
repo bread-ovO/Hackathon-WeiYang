@@ -281,6 +281,7 @@ export function PetModels() {
         支持 .model3.json 及其配套资源；不支持 .cmo3
         编辑工程。选择当前模型后，可在桌面显示。
       </p>
+      {data.models.some(model => model.entry === 'Haru.model3.json') && <p className="pet-models-note">Haru © Live2D Inc. · 本机演示角色，非 BUGU 原创默认角色。可直接显示，或导入自己的 Live2D 模型。</p>}
       <div className="pet-models-runtime">
         <div>
           <strong>

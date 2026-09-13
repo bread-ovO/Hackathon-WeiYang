@@ -53,6 +53,7 @@ test('plugin installation requires trial, preserves history and fences disabled 
       return r.data.projects[0]!.id
     })
     await page.getByRole('button', { name: '连接', exact: true }).click()
+    await page.locator('#preset-plugins > summary').click()
     const choose = async (path: string | null) =>
       app.evaluate(({ dialog }, path) => {
         Object.defineProperty(dialog, 'showOpenDialog', {
@@ -115,6 +116,7 @@ test('plugin installation requires trial, preserves history and fences disabled 
       .poll(() => page.evaluate(async () => (await window.memo.health()).ok))
       .toBe(true)
     await page.getByRole('button', { name: '连接', exact: true }).click()
+    await page.locator('#preset-plugins > summary').click()
     await expect(
       page.getByRole('region', { name: '声明式插件管理' }),
     ).toContainText('已停用')

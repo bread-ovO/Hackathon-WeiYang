@@ -97,6 +97,7 @@ test('Haru plays one-shot motions and expressions, serializes plain-text bubbles
     expect(expression).toBeTruthy()
     expect(motion).toBeTruthy()
     await main.getByRole('button', { name: '设置', exact: true }).click()
+    await main.locator('#settings-pet > summary').click()
     await expect(main.getByLabel('表情与动作', { exact: true })).toBeVisible()
     await main.getByLabel('表情与动作', { exact: true }).selectOption(motion.id)
     await main.getByRole('button', { name: '播放动作', exact: true }).click()

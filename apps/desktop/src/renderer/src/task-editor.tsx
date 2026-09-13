@@ -1,3 +1,5 @@
+import { Disclosure } from './ui/disclosure'
+import { X } from '@phosphor-icons/react'
 import { SourceAssociations } from './source-associations'
 import { PlanChanges } from './plan-changes'
 import { TaskTimeline } from './task-timeline'
@@ -202,7 +204,14 @@ export function TaskEditor({
   return (
     <section className="detail" aria-label="事项详情">
       <div className="detail-top">
-        <AppButton onClick={close}>关闭详情</AppButton>
+        <span>事项详情</span>
+        <AppButton
+          className="icon-button detail-close"
+          aria-label="关闭详情"
+          onClick={close}
+        >
+          <X size={16} aria-hidden="true" />
+        </AppButton>
       </div>
       <div className="real-editor">
         <h2>{task.title}</h2>
@@ -256,10 +265,7 @@ export function TaskEditor({
         {!loading && provenance.length > 0 && (
           <section className="candidate-provenance" aria-label="候选来源依据">
             <h3>候选来源依据</h3>
-            <p>
-              由本地有限规则整理。此处最多预览 100
-              条依据，完整变化请查看事项时间线；引用不代表交付已经完成。
-            </p>
+            <p>根据原文整理，收录前请核对。引用不代表已完成。</p>
             {provenance.map((item) => (
               <details key={`${item.eventId}:${item.quoteStart}`}>
                 <summary>
@@ -321,41 +327,6 @@ export function TaskEditor({
               </details>
             ))}
           </section>
-        )}
-        {task.projectId && (
-          <SourceAssociations
-            task={task}
-            busy={busy}
-            onChanged={() => setAssociationRefresh((value) => value + 1)}
-          />
-        )}
-        {task.projectId && (
-          <PlanChanges
-            refreshVersion={associationRefresh}
-            task={task}
-            busy={busy}
-            onApplied={(next) => {
-              setDue((old) =>
-                old === localDate(task.dueAt) ? localDate(next.dueAt) : old,
-              )
-              preservePlanDrafts.current = next.version
-              onPlanApplied(next)
-            }}
-          />
-        )}
-        {task.projectId && (
-          <ReferenceList
-            projectId={task.projectId}
-            taskId={task.id}
-            onConfirmed={() => void refreshEvidence()}
-          />
-        )}
-        {task.projectId && (
-          <TaskTimeline
-            key={`${task.projectId}:${task.id}`}
-            projectId={task.projectId}
-            taskId={task.id}
-          />
         )}
         {task.projectId ? (
           <>
@@ -569,6 +540,43 @@ export function TaskEditor({
         ) : (
           <p>旧事项尚未分配项目，暂不可编辑。</p>
         )}
+        <Disclosure title="关联、改期与历史">
+          {task.projectId && (
+            <SourceAssociations
+              task={task}
+              busy={busy}
+              onChanged={() => setAssociationRefresh((value) => value + 1)}
+            />
+          )}
+          {task.projectId && (
+            <PlanChanges
+              refreshVersion={associationRefresh}
+              task={task}
+              busy={busy}
+              onApplied={(next) => {
+                setDue((old) =>
+                  old === localDate(task.dueAt) ? localDate(next.dueAt) : old,
+                )
+                preservePlanDrafts.current = next.version
+                onPlanApplied(next)
+              }}
+            />
+          )}
+          {task.projectId && (
+            <ReferenceList
+              projectId={task.projectId}
+              taskId={task.id}
+              onConfirmed={() => void refreshEvidence()}
+            />
+          )}
+          {task.projectId && (
+            <TaskTimeline
+              key={`${task.projectId}:${task.id}`}
+              projectId={task.projectId}
+              taskId={task.id}
+            />
+          )}
+        </Disclosure>
       </div>
     </section>
   )

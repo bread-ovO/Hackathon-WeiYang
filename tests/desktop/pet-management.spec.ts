@@ -93,6 +93,7 @@ test('pet model management imports chosen entries, preserves selection, removes 
         })
       }, directory)
     await page.getByRole('button', { name: '设置', exact: true }).click()
+    await page.locator('#settings-pet > summary').click()
     const panel = page.getByRole('region', { name: '桌宠模型管理' })
     await choose(source)
     // Native choice, visible entry selection, confirmation and import all use the real bridge/worker.
@@ -191,6 +192,7 @@ test('pet model management imports chosen entries, preserves selection, removes 
       })
       .toBe(id)
     await page.getByRole('button', { name: '设置', exact: true }).click()
+    await page.locator('#settings-pet > summary').click()
     const restarted = page.getByRole('region', { name: '桌宠模型管理' })
     await expect(restarted).toContainText('one.model3.json')
     await restarted.scrollIntoViewIfNeeded()

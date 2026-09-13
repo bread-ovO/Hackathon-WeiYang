@@ -41,6 +41,7 @@ type Inspection = {
   view: PluginInspection
   manifest: SourceManifest
   created: number
+  demoDirectory?: string
 }
 type Trial = {
   view: PluginTrial
@@ -56,6 +57,7 @@ export interface PluginRuntimeDependencies {
     id: string,
     scope: { domain: string; purpose: 'source' },
   ): Promise<string>
+  prepareDemo?(): Promise<{ file: string; directory: string }>
   transport?: HttpTransport
   now?: () => number
 }
@@ -71,6 +73,8 @@ const isPressure = (code: string): code is PressureCode =>
 /** Main-process capability owner. Neither trials nor network responses can directly write tasks. */
 export function createPluginRuntime(deps: PluginRuntimeDependencies) {
   const now = deps.now ?? Date.now
+  let startingDemo = false
+  let demoSelection: { file: string; directory: string } | undefined
   let inspection: Inspection | undefined,
     trial: Trial | undefined,
     choosing = false
@@ -294,22 +298,81 @@ export function createPluginRuntime(deps: PluginRuntimeDependencies) {
   }
   async function handle(
     request: Extract<CoreRequest, { method: `plugins.${string}` }>,
+    internal = false,
   ): Promise<CoreReply<PluginSnapshot>> {
+    if (startingDemo && !internal && request.method !== 'plugins.list')
+      return { ok: false, error: 'PLUGIN_UNAVAILABLE' }
     request = structuredClone(request)
     try {
+      if (request.method === 'plugins.startDemo') {
+        if (startingDemo || choosing || !deps.prepareDemo)
+          throw new Error('PLUGIN_UNAVAILABLE')
+        startingDemo = true
+        try {
+          const existing = (await list()).find(
+            (p) => p.id === 'bugu-builtin-demo',
+          )
+          if (existing?.status === 'active')
+            return existing.eventCount > 0
+              ? { ok: true, data: await snapshot() }
+              : handle({ method: 'plugins.sync', id: existing.id }, true)
+          demoSelection = await deps.prepareDemo()
+          const inspected = await handle({ method: 'plugins.inspect' }, true)
+          if (!inspected.ok || !inspected.data.inspection) return inspected
+          const workspace = await call<{
+            projects: { id: string; name: string }[]
+          }>({ method: 'workspace.list' })
+          let project = workspace.projects.find(
+            (p) => p.name === '不咕上手体验（虚构数据）',
+          )
+          if (!project) {
+            const created = await call<typeof workspace>({
+              method: 'workspace.createProject',
+              name: '不咕上手体验（虚构数据）',
+            })
+            project = created.projects.find(
+              (p) => p.name === '不咕上手体验（虚构数据）',
+            )
+          }
+          if (!project) throw new Error('PLUGIN_UNAVAILABLE')
+          const tried = await handle(
+            {
+              method: 'plugins.trial',
+              inspectionId: inspected.data.inspection.inspectionId,
+              projectId: project.id,
+            },
+            true,
+          )
+          if (!tried.ok || !tried.data.trial) return tried
+          const activated = await handle(
+            { method: 'plugins.activate', trialId: tried.data.trial.trialId },
+            true,
+          )
+          if (!activated.ok) return activated
+          return await handle(
+            { method: 'plugins.sync', id: 'bugu-builtin-demo' },
+            true,
+          )
+        } finally {
+          startingDemo = false
+          demoSelection = undefined
+        }
+      }
       if (request.method === 'plugins.inspect') {
         if (choosing) throw new Error('PLUGIN_UNAVAILABLE')
         choosing = true
         inspection = undefined
         trial = undefined
         try {
-          const file = await deps.choose('manifest')
+          const file = demoSelection?.file ?? (await deps.choose('manifest'))
           if (!file)
             return {
               ok: true,
               data: { ...(await snapshot()), cancelled: true },
             }
           const { manifest, digest } = await readPluginManifestFile(file)
+          if (manifest.id === 'bugu-builtin-demo' && !demoSelection)
+            throw new Error('PLUGIN_INVALID')
           const existing = (await list()).find((x) => x.id === manifest.id)
           const prior = existing
             ? await call<Binding>({ method: 'pluginHost.get', id: manifest.id })
@@ -343,7 +406,14 @@ export function createPluginRuntime(deps: PluginRuntimeDependencies) {
               ? { domain: manifest.permissions.domains[0] }
               : { file: manifest.transport.file }),
           }
-          inspection = { view, manifest, created: now() }
+          inspection = {
+            view,
+            manifest,
+            created: now(),
+            ...(demoSelection
+              ? { demoDirectory: demoSelection.directory }
+              : {}),
+          }
         } finally {
           choosing = false
         }
@@ -365,7 +435,8 @@ export function createPluginRuntime(deps: PluginRuntimeDependencies) {
           let grant: Grant
           if (manifest.kind === 'local-jsonl') {
             if (request.credentialId) throw new Error('PLUGIN_INVALID')
-            const directory = await deps.choose('directory')
+            const directory =
+              selected.demoDirectory ?? (await deps.choose('directory'))
             if (!directory)
               return {
                 ok: true,

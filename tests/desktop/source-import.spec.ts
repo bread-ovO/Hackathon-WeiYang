@@ -51,6 +51,7 @@ test('selected JSONL import resumes, deduplicates and revokes without exposing f
       })
     }, file)
     await page.getByRole('button', { name: '连接', exact: true }).click()
+    await page.getByRole('button', { name: '导入本地记录', exact: true }).click()
     await page.getByLabel('导入项目').selectOption(project)
     await page
       .getByRole('button', { name: '选择 JSONL 文件', exact: true })

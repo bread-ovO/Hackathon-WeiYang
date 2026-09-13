@@ -47,6 +47,8 @@ for (const rendering of [false, true])
           ),
         ).toBe(true)
         await main.getByRole('button', { name: '设置', exact: true }).click()
+    await main.locator('#settings-voice > summary').click()
+    await main.locator('#settings-pet > summary').click()
         const panel = main.getByRole('region', { name: '桌宠声音' })
         await expect(
           panel.getByRole('checkbox', { name: '允许桌宠播音' }),

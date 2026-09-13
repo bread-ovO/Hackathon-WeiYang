@@ -320,7 +320,7 @@ export function PluginManager() {
         ))}
       </div>
       {!data.plugins.length && !selected && (
-        <p className="muted">尚未安装插件。请选择 manifest JSON 文件开始。</p>
+        <p className="muted">需要更多来源？可以安装自定义插件；飞书、GitHub 和本地 JSONL 已预置。</p>
       )}
       <div className="plugin-actions">
         <AppButton

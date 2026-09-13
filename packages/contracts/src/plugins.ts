@@ -18,6 +18,7 @@ export const pluginTrialInputSchema = {
 export type PluginTrialInput = FromSchema<typeof pluginTrialInputSchema>
 export const pluginsRequestSchema = {
   oneOf: [
+    { type: 'object', additionalProperties: false, required: ['method'], properties: { method: { const: 'plugins.startDemo' } } },
     {
       type: 'object',
       additionalProperties: false,

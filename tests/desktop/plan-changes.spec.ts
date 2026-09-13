@@ -68,6 +68,7 @@ test('Feishu explicit reply becomes a human-confirmed plan change and preserves 
       tokenFile,
     )
     await page.getByRole('button', { name: '设置', exact: true }).click()
+    await page.locator('#settings-credentials > summary').click()
     await page.getByLabel('凭据名称').fill('合成 飞书 凭据')
     await page.getByLabel('凭据授权域名').fill('open.feishu.cn')
     await page.getByRole('button', { name: '导入凭据文件' }).click()
@@ -78,6 +79,7 @@ test('Feishu explicit reply becomes a human-confirmed plan change and preserves 
     if (!credentials.ok) throw Error('VAULT_FAILED')
     const credentialId = credentials.data.credentials[0]!.id
     await page.getByRole('button', { name: '连接', exact: true }).click()
+    await page.getByRole('button', { name: '配置飞书', exact: true }).click()
     const panel = page.getByRole('region', { name: '飞书会话连接' })
     await panel.getByLabel('飞书项目').selectOption(projectId)
     await panel.getByLabel('飞书会话ID').fill('oc_desktop')
@@ -130,6 +132,7 @@ test('Feishu explicit reply becomes a human-confirmed plan change and preserves 
     await page.getByRole('button', { name: '我的工作区', exact: true }).click()
     await page.getByRole('button', { name: '刷新', exact: true }).click()
     await page.getByText('完成周报验收', { exact: true }).click()
+    await page.getByText('关联、改期与历史', { exact: true }).click()
     const detail = page.getByRole('region', { name: '事项详情' })
     const plans = detail.getByRole('region', { name: '计划变更建议' })
     await expect(

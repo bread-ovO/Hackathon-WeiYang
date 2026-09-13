@@ -68,6 +68,7 @@ test('GitHub form verifies scope using vault and actual transport, persists PR o
       tokenFile,
     )
     await page.getByRole('button', { name: '设置', exact: true }).click()
+    await page.locator('#settings-credentials > summary').click()
     await page.getByLabel('凭据名称').fill('合成 GitHub 凭据')
     await page.getByLabel('凭据授权域名').fill('api.github.com')
     await page.getByRole('button', { name: '导入凭据文件' }).click()
@@ -78,6 +79,7 @@ test('GitHub form verifies scope using vault and actual transport, persists PR o
     if (!credentials.ok) throw Error('VAULT_FAILED')
     const credentialId = credentials.data.credentials[0]!.id
     await page.getByRole('button', { name: '连接', exact: true }).click()
+    await page.getByRole('button', { name: '配置 GitHub', exact: true }).click()
     const panel = page.getByRole('region', { name: 'GitHub仓库连接' })
     await panel.getByLabel('GitHub项目').selectOption(projectId)
     await panel.getByLabel('GitHub所有者').fill('fictional')
