@@ -87,6 +87,8 @@ function Icon({ name, size = 18 }: { name: IconName; size?: number }) {
   return <Component size={size} weight="regular" aria-hidden="true" />
 }
 const filters = ['全部', '进行中', '等待反馈', '待确认', '已完成'] as const
+/** 无演示构建（VITE_MEMO_NO_DEMO=1）隐藏示例体验，只保留真实工作区 */
+const DEMO_ENABLED = import.meta.env.VITE_MEMO_NO_DEMO !== '1'
 function App() {
   const [pendingPetTask, setPendingPetTask] = useState<{
     projectId: string
@@ -105,7 +107,7 @@ function App() {
   const [health, setHealth] = useState<Health | null>(null),
     [error, setError] = useState(false)
   const [page, setPage] = useState('跟进'),
-    [demo, setDemo] = useState(true),
+    [demo, setDemo] = useState(DEMO_ENABLED),
     [tasks, setTasks] = useState(demoTasks)
   const [filter, setFilter] = useState<string>('全部'),
     [project, setProject] = useState('全部项目'),
@@ -339,33 +341,35 @@ function App() {
             个人空间<span>/</span>
             <strong>{page}</strong>
           </div>
-          <div className="mode-switch" aria-label="数据模式">
-            <AppButton
-              aria-pressed={demo}
-              className={demo ? 'selected' : ''}
-              onClick={() => {
-                setDemo(true)
-                setSelected('01')
-              }}
-            >
-              示例体验
-            </AppButton>
-            <AppButton
-              aria-pressed={!demo}
-              className={!demo ? 'selected' : ''}
-              onClick={() => {
-                setDemo(false)
-                setProject('全部项目')
-                setQuery('')
-                setFilter('全部')
-                setSelected(null)
-                setNotice('')
-                setUndo(null)
-              }}
-            >
-              我的工作区
-            </AppButton>
-          </div>
+          {DEMO_ENABLED && (
+            <div className="mode-switch" aria-label="数据模式">
+              <AppButton
+                aria-pressed={demo}
+                className={demo ? 'selected' : ''}
+                onClick={() => {
+                  setDemo(true)
+                  setSelected('01')
+                }}
+              >
+                示例体验
+              </AppButton>
+              <AppButton
+                aria-pressed={!demo}
+                className={!demo ? 'selected' : ''}
+                onClick={() => {
+                  setDemo(false)
+                  setProject('全部项目')
+                  setQuery('')
+                  setFilter('全部')
+                  setSelected(null)
+                  setNotice('')
+                  setUndo(null)
+                }}
+              >
+                我的工作区
+              </AppButton>
+            </div>
+          )}
         </header>
         {page === '跟进' && !demo ? (
           <RealWorkspace
@@ -857,12 +861,14 @@ function App() {
                 </ul>
               </section>
             </Disclosure>
-            <Disclosure title="关于示例体验">
-              <h3 className="sr-only">关于设计预览</h3>
-              <p>
-                示例体验中的事项均为虚构。添加、确认与完成只在本次窗口中保留，不会写入数据库或修改外部应用。
-              </p>
-            </Disclosure>
+            {DEMO_ENABLED && (
+              <Disclosure title="关于示例体验">
+                <h3 className="sr-only">关于设计预览</h3>
+                <p>
+                  示例体验中的事项均为虚构。添加、确认与完成只在本次窗口中保留，不会写入数据库或修改外部应用。
+                </p>
+              </Disclosure>
+            )}
           </div>
         )}
       </WorkspacePanel>
