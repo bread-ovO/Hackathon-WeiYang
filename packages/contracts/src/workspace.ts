@@ -1,3 +1,5 @@
+import { referenceReviewRequestSchemas } from './reference-review'
+export * from './reference-review'
 import type { FromSchema } from 'json-schema-to-ts'
 const id = {
   type: 'string',
@@ -50,6 +52,7 @@ export const workspaceQuerySchema = {
 export type WorkspaceQuery = FromSchema<typeof workspaceQuerySchema>
 export const workspaceRequestSchema = {
   oneOf: [
+    ...referenceReviewRequestSchemas,
     {
       type: 'object',
       additionalProperties: false,

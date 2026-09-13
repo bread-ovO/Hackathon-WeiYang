@@ -95,6 +95,9 @@ test('real IPC rejects foreign windows and malformed requests; source text stays
     expect(
       await page.evaluate(() => Object.keys(window.memo.workspace)),
     ).toEqual([
+      'listReferences',
+      'reviewReference',
+      'confirmReference',
       'list',
       'detail',
       'replaceCriteria',
@@ -157,7 +160,42 @@ test('real IPC rejects foreign windows and malformed requests; source text stays
       expectedManualVersion: 0,
       patch: { status: 'completed' },
     }
+    const referenceScope = {
+      projectId: 'p',
+      taskId: 't',
+      referenceKind: 'processing',
+      referenceId: '1',
+    }
+    const referenceConfirmation = {
+      method: 'workspace.confirmReference',
+      ...referenceScope,
+      chosenEventId: 1,
+      knownContentSetDigest: 'a'.repeat(64),
+      expectedReferenceVersion: 0,
+      reason: '明确选择已知版本',
+    }
     for (const args of [
+      [{ ...referenceConfirmation, actorId: 'forged-admin' }],
+      [{ ...referenceConfirmation, actor: 'rule' }],
+      [{ ...referenceConfirmation, patch: { status: 'completed' } }],
+      [{ ...referenceConfirmation, chosenEventId: 0 }],
+      [{ ...referenceConfirmation, expectedReferenceVersion: 1.5 }],
+      [{ ...referenceConfirmation, knownContentSetDigest: 'invalid' }],
+      [
+        {
+          method: 'workspace.reviewReference',
+          ...referenceScope,
+          path: '/private',
+        },
+      ],
+      [
+        {
+          method: 'workspace.listReferences',
+          projectId: 'p',
+          taskId: 't',
+          limit: 51,
+        },
+      ],
       [],
       [null],
       [{ method: 'readFile', path: '/private' }],
@@ -457,6 +495,14 @@ test('real IPC rejects foreign windows and malformed requests; source text stays
       },
     })
     for (const request of [
+      { method: 'workspace.listReferences', projectId: 'p', taskId: 't' },
+      { method: 'workspace.reviewReference', ...referenceScope },
+      referenceConfirmation,
+      {
+        ...referenceConfirmation,
+        referenceKind: 'manual',
+        referenceId: 'evidence-1',
+      },
       { method: 'workspace.detail', projectId: 'p', id: 't' },
       {
         method: 'workspace.replaceCriteria',

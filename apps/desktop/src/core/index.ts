@@ -65,6 +65,10 @@ parentPort.on('message', async ({ data }) => {
     reply = {
       ok: false,
       error:
+        code === 'INVALID_REFERENCE_REVIEW' ||
+        code === 'REFERENCE_REVIEW_CONFLICT' ||
+        code === 'REFERENCE_RETRACTED' ||
+        code === 'REFERENCE_ALREADY_INVALID' ||
         code === 'INGESTION_QUEUE_LIMIT' ||
         code === 'INGESTION_DATABASE_LIMIT' ||
         code === 'INGESTION_DISK_LOW' ||

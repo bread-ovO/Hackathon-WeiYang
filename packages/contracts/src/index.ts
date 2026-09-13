@@ -53,6 +53,8 @@ import {
   type WorkspaceSnapshot,
   type WorkspaceQuery,
   type WorkspaceDetail,
+  type ReferenceList,
+  type ReferenceReview,
 } from './workspace'
 export * from './workspace'
 import Ajv from 'ajv'
@@ -278,6 +280,10 @@ export type CoreReply<T = Health> =
   | {
       ok: false
       error:
+        | 'INVALID_REFERENCE_REVIEW'
+        | 'REFERENCE_REVIEW_CONFLICT'
+        | 'REFERENCE_RETRACTED'
+        | 'REFERENCE_ALREADY_INVALID'
         | 'CORE_UNAVAILABLE'
         | 'INVALID_REQUEST'
         | 'INTERNAL_ERROR'
@@ -369,6 +375,24 @@ export interface DesktopBridge {
     revoke(id: string): Promise<CoreReply<SourcesSnapshot>>
   }
   workspace: {
+    listReferences(
+      request: Omit<
+        Extract<CoreRequest, { method: 'workspace.listReferences' }>,
+        'method'
+      >,
+    ): Promise<CoreReply<ReferenceList>>
+    reviewReference(
+      request: Omit<
+        Extract<CoreRequest, { method: 'workspace.reviewReference' }>,
+        'method'
+      >,
+    ): Promise<CoreReply<ReferenceReview>>
+    confirmReference(
+      request: Omit<
+        Extract<CoreRequest, { method: 'workspace.confirmReference' }>,
+        'method'
+      >,
+    ): Promise<CoreReply<ReferenceReview>>
     list(query?: WorkspaceQuery): Promise<CoreReply<WorkspaceSnapshot>>
     detail(
       projectId: string,

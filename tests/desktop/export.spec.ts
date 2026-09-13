@@ -76,7 +76,7 @@ test('export saves a scoped snapshot with explicit body choice and cancellation 
       '已导出 1 条事项、0 条引用。',
     )
     const bundle = JSON.parse(await readFile(destination, 'utf8'))
-    expect(bundle.schemaVersion).toBe(3)
+    expect(bundle.schemaVersion).toBe(4)
     expect(bundle.project.id).toBe(projectId)
     expect(bundle.sourceBodiesIncluded).toBe(false)
     expect(bundle.tasks).toHaveLength(1)

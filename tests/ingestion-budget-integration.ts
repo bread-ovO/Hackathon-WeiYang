@@ -223,7 +223,7 @@ try {
     createIngestionBudget(db, { probe }).getStatus().limits.maxQueuedJobs,
     100,
   )
-  assert.equal(db.pragma('user_version', { simple: true }), 10)
+  assert.equal(db.pragma('user_version', { simple: true }), 11)
   // Exercise production openStore wrappers too, not only the injected assembly.
   const production = openStore(join(root, 'production.sqlite'))
   try {
