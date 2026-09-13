@@ -123,15 +123,29 @@ test('Haru plays one-shot motions and expressions, serializes plain-text bubbles
       })
       .toBe('idle')
     // Includes markup-looking text: the bubble must contain text, never executable DOM.
-    const focused = await app.evaluate(({ BrowserWindow }) => {
+    const focused = await app.evaluate(({ BrowserWindow, app }) => {
       const main = BrowserWindow.getAllWindows().find(
         (w) => w.webContents.getURL() === 'memo://app/index.html',
       )!
+      app.focus({ steal: true })
       main.focus()
       return main.id
     })
+    // Establish actual native focus before testing that a bubble preserves it.
+    // BrowserWindow.focus() alone need not activate a background macOS app.
+    await expect
+      .poll(() =>
+        app!.evaluate(
+          ({ BrowserWindow }) => BrowserWindow.getFocusedWindow()?.id,
+        ),
+      )
+      .toBe(focused)
     const hostile = '<img src=x onerror=window.__bubbleInjected=true> 普通文字'
-    await main.getByLabel('气泡文字', { exact: true }).fill(hostile)
+    const speechInput = main.getByLabel('气泡文字', { exact: true })
+    await speechInput.fill('')
+    await expect(speechInput).toHaveValue('')
+    await speechInput.fill(hostile)
+    await expect(speechInput).toHaveValue(hostile)
     await main.getByRole('button', { name: '显示气泡', exact: true }).click()
     expect(
       (await main.evaluate(() => window.memo.pet.speak({ text: '第二条气泡' })))
