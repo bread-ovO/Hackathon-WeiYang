@@ -1,5 +1,6 @@
 import { defineConfig } from 'electron-vite'
 import react from '@vitejs/plugin-react'
+import { rmSync } from 'node:fs'
 import { resolve } from 'node:path'
 const alias = {
   '@memo/contracts/pet-voice-pcm': resolve(
@@ -36,6 +37,17 @@ const alias = {
 }
 export default defineConfig({
   main: {
+    plugins: [
+      {
+        name: 'clear-local-demo-assets',
+        buildStart() {
+          rmSync(resolve(__dirname, 'out/bundled-pet'), {
+            recursive: true,
+            force: true,
+          })
+        },
+      },
+    ],
     resolve: { alias },
     build: {
       externalizeDeps: false,

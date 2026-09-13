@@ -7,6 +7,7 @@ const trial = {
   projectId: 'project-1',
 }
 const publicRequests = [
+  { method: 'plugins.startDemo' },
   { method: 'plugins.list' },
   { method: 'plugins.inspect' },
   trial,
@@ -76,6 +77,7 @@ const invalidPublic = [
   { method: 'plugins.inspect', path: '/tmp/manifest.json' },
   { method: 'plugins.activate', trialId: 'trial-1', manifest: {} },
   { method: 'plugins.activate', trialId: '' },
+  { method: 'plugins.startDemo', path: '/private/forged.jsonl' },
   { method: 'plugins.list', token: 'forged' },
   { method: 'plugins.sync', id: '\0' },
   { method: 'plugins.disable', id: 'plugin-1', grantVersion: 999 },

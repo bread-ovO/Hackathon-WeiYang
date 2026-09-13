@@ -1,3 +1,4 @@
+import { SourcePresets } from './source-presets'
 import {PetVoiceSettings} from './pet-voice-settings'
 import { PetContextSettings } from './pet-context-settings'
 import { FeishuPanel } from './feishu-panel'
@@ -713,12 +714,13 @@ function App() {
             <p className="page-description">
               把工作发生的地方连接起来。你决定读取哪些内容。
             </p>
-            <IngestionPanel />
-            <ProcessingPanel />
-            <SourceImport />
-            <FeishuPanel />
-            <GithubPanel />
+            <SourcePresets onDemoReady={() => { setDemo(false); setPage('跟进') }} />
+            <div id="preset-feishu" tabIndex={-1} className="source-config-target"><FeishuPanel /></div>
+            <div id="preset-github" tabIndex={-1} className="source-config-target"><GithubPanel /></div>
+            <div id="preset-local" tabIndex={-1} className="source-config-target"><SourceImport /></div>
             <PluginManager />
+            <ProcessingPanel />
+            <IngestionPanel />
             <div className="connection-summary">
               <Icon name="link" />
               <span>可手动导入本地 JSONL 导出</span>

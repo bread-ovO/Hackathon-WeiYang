@@ -16,6 +16,12 @@ BUGU 不咕：把分散在工作上下文里的承诺、进展与依据整理成
 
 ERD 入口沿用此前创建的「技术方案」，尚无单独命名的 ERD 文档；历史文档中原项目名后续统一称为 BUGU 不咕。最新新增范围见 [Live2D 桌宠需求与架构增补](docs/product/BUGU_桌宠需求与架构增补.md)，对应多维表 PET01–PET16。
 
+## 安装后开始体验
+
+连接页已预置 **飞书、GitHub、本地 JSONL**，无需先安装插件；配置读取范围与凭据即可使用。点击 **一键体验** 可用三条虚构记录运行真实插件采集与候选整理流程，生成独立体验项目，不访问个人数据。
+
+本机录制演示使用 `pnpm package:demo`，输出 `release/demo/mac-arm64/BUGU 不咕.app`。新用户目录首次启动自动准备运行库、导入并显示 **Haru © Live2D Inc.**；已有模型选择不覆盖。Haru 仅作为用户指定的本机演示角色，正式默认 Live2D 角色后补。普通构建不包含样例模型；演示构建需预先运行 `node scripts/fetch-pet-sdk.mjs` 准备资源。见[预置来源与本机演示桌宠](docs/engineering/预置来源与本机演示桌宠_2026-09-13.md)。
+
 ## 当前能力
 
 - pnpm workspace、严格 TypeScript、包边界检查和 macOS CI 配置。

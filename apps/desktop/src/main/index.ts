@@ -1,3 +1,5 @@
+import { initializeBundledPet } from './pet/bundled-demo'
+import { prepareBuiltinDemo } from './builtin-demo'
 import { createPetVoiceService } from './pet/voice-service'
 import { blocksPetPresentation } from './pet/environment-block'
 import { createPetVoiceStore } from './pet/voice-store'
@@ -139,6 +141,11 @@ else {
         join(data, 'pet-models'),
       )
       petWorker.start()
+      const bundledPetRoot = app.isPackaged
+        ? join(process.resourcesPath, 'app.asar.unpacked/out/bundled-pet')
+        : join(__dirname, '../bundled-pet')
+      const showBundledPet = await initializeBundledPet(bundledPetRoot, data, petWorker)
+        .catch(() => { console.error('BUNDLED_PET_INIT_FAILED'); return false })
       const pets = createPetImportFlow({
         worker: petWorker,
         pickDirectory: async () => {
@@ -335,6 +342,7 @@ else {
         github.stop()
       })
       const plugins = createPluginRuntime({
+        prepareDemo: () => prepareBuiltinDemo(data),
         request: (request) =>
           core
             ? core.request(request)
@@ -503,6 +511,7 @@ else {
             if (request.method === 'pet.remove')
               return petDesktop.remove(request.modelId)
             if (
+              request.method === 'plugins.startDemo' ||
               request.method === 'plugins.list' ||
               request.method === 'plugins.inspect' ||
               request.method === 'plugins.trial' ||
@@ -625,6 +634,7 @@ else {
         electronTrayPlatform({ Tray, Menu, nativeImage }),
       )
       createWindow()
+      if (showBundledPet) void petDesktop.show()
       app.on('activate', () => trayHost.restoreWindow())
     })
     .catch(() => {

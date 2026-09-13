@@ -253,6 +253,7 @@ export type HostRequest =
           | 'credentials.importFile'
           | 'credentials.remove'
           | 'plugins.list'
+          | 'plugins.startDemo'
           | 'plugins.inspect'
           | 'plugins.trial'
           | 'plugins.activate'
@@ -351,6 +352,7 @@ export function parseHostRequest(value: unknown): HostRequest {
     request.method === 'credentials.importFile' ||
     request.method === 'credentials.remove' ||
     request.method === 'plugins.list' ||
+    request.method === 'plugins.startDemo' ||
     request.method === 'plugins.inspect' ||
     request.method === 'plugins.trial' ||
     request.method === 'plugins.activate' ||
@@ -538,6 +540,7 @@ export interface DesktopBridge {
   }
   health(): Promise<CoreReply>
   plugins: {
+    startDemo(): Promise<CoreReply<PluginSnapshot>>
     list(): Promise<CoreReply<PluginSnapshot>>
     inspect(): Promise<CoreReply<PluginSnapshot>>
     trial(input: PluginTrialInput): Promise<CoreReply<PluginSnapshot>>

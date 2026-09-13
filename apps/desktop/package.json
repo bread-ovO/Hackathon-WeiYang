@@ -9,7 +9,8 @@
     "dev": "node ../../scripts/build-pet-native.mjs && electron-vite dev",
     "build": "node ../../scripts/build-pet-native.mjs && electron-vite build",
     "rebuild:native": "electron-builder install-app-deps",
-    "package:dir": "node ../../scripts/build-pet-native.mjs && electron-vite build && electron-builder --dir"
+    "package:dir": "node ../../scripts/build-pet-native.mjs && electron-vite build && electron-builder --dir",
+    "package:demo": "node ../../scripts/build-pet-native.mjs && electron-vite build && node ../../scripts/bundle-demo-pet.mjs && electron-builder --dir --config.directories.output=../../release/demo"
   },
   "dependencies": {
     "@cloudflare/kumo": "2.13.2",
@@ -42,7 +43,8 @@
     "asar": true,
     "asarUnpack": [
       "**/*.node",
-      "out/native/**"
+      "out/native/**",
+      "out/bundled-pet/**"
     ],
     "mac": {
       "category": "public.app-category.productivity",

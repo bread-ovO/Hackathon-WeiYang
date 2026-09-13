@@ -144,6 +144,7 @@ const bridge: DesktopBridge = {
   }),
   health: () => ipcRenderer.invoke('memo:request', { method: 'health' }),
   plugins: Object.freeze({
+    startDemo: () => ipcRenderer.invoke('memo:request', { method: 'plugins.startDemo' }),
     list: () => ipcRenderer.invoke('memo:request', { method: 'plugins.list' }),
     inspect: () =>
       ipcRenderer.invoke('memo:request', { method: 'plugins.inspect' }),

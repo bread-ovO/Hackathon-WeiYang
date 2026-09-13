@@ -1,0 +1,78 @@
+.source-presets {
+  margin: 16px 0;
+}
+.source-starter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px;
+  background: var(--surface, #fff);
+  border: 1px solid var(--line, #e5e5e5);
+  border-radius: 12px;
+}
+.source-starter h2 {
+  margin: 4px 0 8px;
+  font-size: 18px;
+}
+.source-starter p,
+.source-preset-grid p {
+  margin: 0;
+  color: var(--muted, #666);
+  line-height: 1.6;
+  font-size: 13px;
+}
+.source-starter button {
+  flex-shrink: 0;
+}
+.source-eyebrow {
+  color: var(--muted, #666);
+  font-size: 12px;
+}
+.source-preset-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+.source-preset-grid article {
+  border: 1px solid var(--line, #e5e5e5);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: flex-start;
+}
+.source-preset-grid p {
+  flex: 1;
+}
+.source-preset-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.source-preset-title h3 {
+  font-size: 14px;
+  margin: 0;
+}
+.source-preset-title span,
+.source-preset-note {
+  color: var(--muted, #666);
+  font-size: 12px;
+}
+.source-preset-note {
+  margin: 12px 0 0;
+}
+.source-config-target {
+  scroll-margin-top: 16px;
+  outline: none;
+}
+@media (max-width: 940px) {
+  .source-preset-grid {
+    grid-template-columns: 1fr;
+  }
+  .source-preset-grid article {
+    gap: 8px;
+  }
+}

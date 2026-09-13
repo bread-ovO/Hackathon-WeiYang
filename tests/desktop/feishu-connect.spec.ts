@@ -88,7 +88,7 @@ test('飞书 form verifies scope using vault and actual transport, persists pagi
     )
       .toISOString()
       .slice(0, 19)
-    await panel.getByLabel('飞书历史起点').fill(localStart)
+    await panel.getByLabel('飞书历史起点').fill(localStart.replace(/:00$/, ''))
     await panel.getByLabel('飞书读取凭据').selectOption(credentialId)
     await panel.getByRole('button', { name: '验证并启用会话' }).click()
     await expect
