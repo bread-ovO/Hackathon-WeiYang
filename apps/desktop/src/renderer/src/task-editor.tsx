@@ -1,7 +1,7 @@
 import { DeliveryPanel } from './delivery-panel'
 import { TaskMerge } from './task-merge'
 import { Disclosure } from './ui/disclosure'
-import { X } from '@phosphor-icons/react'
+import { X, ArrowClockwise, FloppyDisk } from '@phosphor-icons/react'
 import { SourceAssociations } from './source-associations'
 import { PlanChanges } from './plan-changes'
 import { TaskTimeline } from './task-timeline'
@@ -13,7 +13,7 @@ import type {
   WorkspaceTask,
   CandidateProvenance,
 } from '@memo/contracts'
-import { AppButton, AppInput } from './ui'
+import { IconButton, AppButton, AppInput } from './ui'
 export const taskLabels = {
   todo: '待办',
   in_progress: '进行中',
@@ -64,7 +64,9 @@ export function TaskEditor({
     items: { id: string; description: string; originEventId?: number }[],
     baseline?: EditorBaseline,
   ) => Promise<void>
-  split: (children: { title: string; criterionIds: string[] }[]) => Promise<void>
+  split: (
+    children: { title: string; criterionIds: string[] }[],
+  ) => Promise<void>
   onPlanApplied: (task: WorkspaceTask) => void
   openRelated: (id: string) => void
   close: () => void
@@ -220,17 +222,13 @@ export function TaskEditor({
     <section className="detail" aria-label="事项详情">
       <div className="detail-top">
         <span>事项详情</span>
-        <AppButton
-          className="icon-button detail-close"
-          aria-label="关闭详情"
-          onClick={close}
-        >
+        <IconButton className="detail-close" label="关闭详情" onClick={close}>
           <X size={16} aria-hidden="true" />
-        </AppButton>
+        </IconButton>
       </div>
       <div className="real-editor">
         <h2>{task.title}</h2>
-        <DeliveryPanel task={task} disabled={busy} onUpdated={onPlanApplied}/>
+        <DeliveryPanel task={task} disabled={busy} onUpdated={onPlanApplied} />
         {merge.mergedInto && (
           <p>
             此事项已合并，历史记录只读。
@@ -283,30 +281,54 @@ export function TaskEditor({
           </section>
         )}
 
-        <p>业务状态：{taskLabels[task.status]}</p>
-        <p>
-          证据：
-          {
-            {
-              unknown: '尚未核验',
-              partial: '部分充分',
-              sufficient: '充分',
-              conflict: '存在冲突',
-            }[task.evidenceStatus]
-          }
-        </p>
-        {task.projectId && (
-          <div className="source-import-actions">
-            <AppButton
-              disabled={loading || evidenceLoading}
-              onClick={() => void refreshEvidence()}
+        <div className="task-state-control">
+          {' '}
+          <label>
+            手动状态
+            <select
+              aria-label="手动状态"
+              disabled={busy || !task.projectId}
+              value={task.status}
+              onChange={(e) =>
+                void update({
+                  status: e.target.value as WorkspaceTask['status'],
+                })
+              }
             >
-              刷新依据
-            </AppButton>
-            {evidenceLoading && <span>正在读取依据…</span>}
-            {evidenceError && <p role="alert">{evidenceError}</p>}
-          </div>
-        )}
+              {Object.entries(taskLabels).map(([v, l]) => (
+                <option key={v} value={v}>
+                  {l}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+        <div className="evidence-summary">
+          <p>
+            证据：
+            {
+              {
+                unknown: '尚未核验',
+                partial: '部分充分',
+                sufficient: '充分',
+                conflict: '存在冲突',
+              }[task.evidenceStatus]
+            }
+          </p>
+          {task.projectId && (
+            <div className="source-import-actions">
+              <IconButton
+                label="刷新依据"
+                disabled={loading || evidenceLoading}
+                onClick={() => void refreshEvidence()}
+              >
+                <ArrowClockwise aria-hidden />
+              </IconButton>
+              {evidenceLoading && <span>正在读取依据…</span>}
+              {evidenceError && <p role="alert">{evidenceError}</p>}
+            </div>
+          )}
+        </div>
         {!loading && provenance.length > 0 && (
           <section className="candidate-provenance" aria-label="候选来源依据">
             <h3>候选来源依据</h3>
@@ -375,220 +397,209 @@ export function TaskEditor({
         )}
         {task.projectId ? (
           <>
-            <div className="editor-group">
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault()
-                  if (!staleDraft)
-                    void update({ title: title.trim() }, baseline)
-                }}
-              >
-                <AppInput
-                  aria-label="编辑事项标题"
-                  value={title}
-                  maxLength={512}
-                  onChange={(e) => setTitle(e.target.value)}
-                />
-                <AppButton
-                  type="submit"
-                  className="secondary"
-                  disabled={busy || staleDraft || !title.trim()}
-                >
-                  保存标题
-                </AppButton>
-              </form>
-              <label>
-                手动状态
-                <select
-                  aria-label="手动状态"
-                  disabled={busy}
-                  value={task.status}
-                  onChange={(e) =>
-                    void update({
-                      status: e.target.value as WorkspaceTask['status'],
-                    })
-                  }
-                >
-                  {Object.entries(taskLabels).map(([v, l]) => (
-                    <option key={v} value={v}>
-                      {l}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault()
-                  const date = due ? new Date(due) : null
-                  if (
-                    date &&
-                    (!Number.isFinite(date.getTime()) ||
-                      localDate(date.toISOString()) !== due)
-                  ) {
-                    setError('该本地时间不存在或无效，请选择明确时间。')
-                    return
-                  }
-                  if (!staleDraft)
-                    void update(
-                      { dueAt: date?.toISOString() ?? null },
-                      baseline,
-                    )
-                }}
-              >
-                <label htmlFor="task-due">截止时间（本机时区）</label>
-                <AppInput
-                  id="task-due"
-                  type="datetime-local"
-                  value={due}
-                  onChange={(e) => setDue(e.target.value)}
-                />
-                <AppButton
-                  type="submit"
-                  className="secondary"
-                  disabled={busy || staleDraft}
-                >
-                  保存截止时间
-                </AppButton>
-                <AppButton
-                  className="secondary"
-                  disabled={busy || staleDraft}
-                  onClick={() => {
-                    if (staleDraft) return
-                    setDue('')
-                    if (!staleDraft) void update({ dueAt: null }, baseline)
+            <Disclosure title="编辑事项与完成条件">
+              <div className="editor-group">
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault()
+                    if (!staleDraft)
+                      void update({ title: title.trim() }, baseline)
                   }}
                 >
-                  清除截止时间
-                </AppButton>
-              </form>
-              <label>
-                收录决定
-                <select
-                  aria-label="收录决定"
-                  value={task.admission}
-                  disabled={busy}
-                  onChange={(e) =>
-                    void update({
-                      admission: e.target.value as
-                        | 'candidate'
-                        | 'accepted'
-                        | 'ignored',
-                    })
-                  }
+                  <AppInput
+                    aria-label="编辑事项标题"
+                    value={title}
+                    maxLength={512}
+                    onChange={(e) => setTitle(e.target.value)}
+                  />
+                  <IconButton
+                    label="保存标题"
+                    type="submit"
+                    className="secondary"
+                    disabled={busy || staleDraft || !title.trim()}
+                  >
+                    <FloppyDisk aria-hidden />
+                  </IconButton>
+                </form>
+
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault()
+                    const date = due ? new Date(due) : null
+                    if (
+                      date &&
+                      (!Number.isFinite(date.getTime()) ||
+                        localDate(date.toISOString()) !== due)
+                    ) {
+                      setError('该本地时间不存在或无效，请选择明确时间。')
+                      return
+                    }
+                    if (!staleDraft)
+                      void update(
+                        { dueAt: date?.toISOString() ?? null },
+                        baseline,
+                      )
+                  }}
                 >
-                  <option value="candidate">待确认</option>
-                  <option value="accepted">已收录</option>
-                  <option value="ignored">已忽略</option>
-                </select>
-              </label>
-            </div>
-            <div className="criteria-editor">
-              <label>
-                完成条件
-                <select
-                  aria-label="条件版本"
-                  value={version}
-                  disabled={loading}
-                  onChange={(e) => setVersion(Number(e.target.value))}
-                >
-                  {Array.from({ length: task.criteriaVersion + 1 }, (_, i) => (
-                    <option key={i} value={i}>
-                      版本 {i}
-                      {i === task.criteriaVersion ? '（当前）' : '（历史）'}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              {error ? (
-                <p role="alert">{error}</p>
-              ) : loading ? (
-                <p>读取条件…</p>
-              ) : (
-                <>
-                  <p>
-                    {readonly
-                      ? '历史版本只读，原证据仍属于原条件版本。'
-                      : '编辑会生成新版本；旧证据不会自动满足新条件。'}
-                  </p>
-                  {items.map((item, index) => (
-                    <div className="criterion-row" key={item.id}>
-                      <AppInput
-                        aria-label={`条件 ${index + 1}`}
-                        value={item.description}
-                        maxLength={512}
-                        disabled={readonly || busy}
-                        onChange={(e) =>
-                          setItems(
-                            items.map((x, i) =>
-                              i === index
-                                ? { ...x, description: e.target.value }
-                                : x,
-                            ),
-                          )
-                        }
-                      />
-                      {!readonly && (
+                  <label htmlFor="task-due">截止时间（本机时区）</label>
+                  <AppInput
+                    id="task-due"
+                    type="datetime-local"
+                    value={due}
+                    onChange={(e) => setDue(e.target.value)}
+                  />
+                  <IconButton
+                    label="保存截止时间"
+                    type="submit"
+                    className="secondary"
+                    disabled={busy || staleDraft}
+                  >
+                    <FloppyDisk aria-hidden />
+                  </IconButton>
+                  <AppButton
+                    className="secondary"
+                    disabled={busy || staleDraft}
+                    onClick={() => {
+                      if (staleDraft) return
+                      setDue('')
+                      if (!staleDraft) void update({ dueAt: null }, baseline)
+                    }}
+                  >
+                    清除截止时间
+                  </AppButton>
+                </form>
+                <label>
+                  收录决定
+                  <select
+                    aria-label="收录决定"
+                    value={task.admission}
+                    disabled={busy}
+                    onChange={(e) =>
+                      void update({
+                        admission: e.target.value as
+                          | 'candidate'
+                          | 'accepted'
+                          | 'ignored',
+                      })
+                    }
+                  >
+                    <option value="candidate">待确认</option>
+                    <option value="accepted">已收录</option>
+                    <option value="ignored">已忽略</option>
+                  </select>
+                </label>
+              </div>
+              <div className="criteria-editor">
+                <label>
+                  完成条件
+                  <select
+                    aria-label="条件版本"
+                    value={version}
+                    disabled={loading}
+                    onChange={(e) => setVersion(Number(e.target.value))}
+                  >
+                    {Array.from(
+                      { length: task.criteriaVersion + 1 },
+                      (_, i) => (
+                        <option key={i} value={i}>
+                          版本 {i}
+                          {i === task.criteriaVersion ? '（当前）' : '（历史）'}
+                        </option>
+                      ),
+                    )}
+                  </select>
+                </label>
+                {error ? (
+                  <p role="alert">{error}</p>
+                ) : loading ? (
+                  <p>读取条件…</p>
+                ) : (
+                  <>
+                    <p>
+                      {readonly
+                        ? '历史版本只读，原证据仍属于原条件版本。'
+                        : '编辑会生成新版本；旧证据不会自动满足新条件。'}
+                    </p>
+                    {items.map((item, index) => (
+                      <div className="criterion-row" key={item.id}>
+                        <AppInput
+                          aria-label={`条件 ${index + 1}`}
+                          value={item.description}
+                          maxLength={512}
+                          disabled={readonly || busy}
+                          onChange={(e) =>
+                            setItems(
+                              items.map((x, i) =>
+                                i === index
+                                  ? { ...x, description: e.target.value }
+                                  : x,
+                              ),
+                            )
+                          }
+                        />
+                        {!readonly && (
+                          <AppButton
+                            aria-label={`删除条件 ${index + 1}`}
+                            disabled={busy}
+                            onClick={() =>
+                              setItems(items.filter((_, i) => i !== index))
+                            }
+                          >
+                            删除
+                          </AppButton>
+                        )}
+                      </div>
+                    ))}
+                    {!readonly && (
+                      <div className="criterion-actions">
                         <AppButton
-                          aria-label={`删除条件 ${index + 1}`}
-                          disabled={busy}
+                          className="secondary"
+                          disabled={busy || items.length >= 32}
                           onClick={() =>
-                            setItems(items.filter((_, i) => i !== index))
+                            setItems([
+                              ...items,
+                              { id: crypto.randomUUID(), description: '' },
+                            ])
                           }
                         >
-                          删除
+                          添加条件
                         </AppButton>
-                      )}
-                    </div>
-                  ))}
-                  {!readonly && (
-                    <div className="criterion-actions">
-                      <AppButton
-                        className="secondary"
-                        disabled={busy || items.length >= 32}
-                        onClick={() =>
-                          setItems([
-                            ...items,
-                            { id: crypto.randomUUID(), description: '' },
-                          ])
-                        }
-                      >
-                        添加条件
-                      </AppButton>
-                      <AppButton
-                        className="secondary"
-                        disabled={
-                          busy ||
-                          staleDraft ||
-                          items.some((x) => !x.description.trim())
-                        }
-                        onClick={() =>
-                          !staleDraft &&
-                          void replace(
-                            items.map((x) => ({
-                              ...x,
-                              description: x.description.trim(),
-                            })),
-                            baseline,
-                          )
-                        }
-                      >
-                        保存条件
-                      </AppButton>
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
-            <div className="editor-group editor-secondary">
-              <AppButton
-                className="secondary"
-                disabled={busy}
-                onClick={() => void update({ archived: !task.archivedAt })}
-              >
-                {task.archivedAt ? '恢复显示' : '归档事项'}
-              </AppButton>
-              <p>归档只改变显示范围；手动完成不改变证据核验结果。</p>
-            </div>
+                        <AppButton
+                          className="secondary"
+                          disabled={
+                            busy ||
+                            staleDraft ||
+                            items.some((x) => !x.description.trim())
+                          }
+                          onClick={() =>
+                            !staleDraft &&
+                            void replace(
+                              items.map((x) => ({
+                                ...x,
+                                description: x.description.trim(),
+                              })),
+                              baseline,
+                            )
+                          }
+                        >
+                          保存条件
+                        </AppButton>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+              <div className="editor-group editor-secondary">
+                <AppButton
+                  className="secondary"
+                  disabled={busy}
+                  onClick={() => void update({ archived: !task.archivedAt })}
+                >
+                  {task.archivedAt ? '恢复显示' : '归档事项'}
+                </AppButton>
+                <p>归档只改变显示范围；手动完成不改变证据核验结果。</p>
+              </div>
+            </Disclosure>
           </>
         ) : (
           <p>旧事项尚未分配项目，暂不可编辑。</p>
@@ -628,7 +639,9 @@ export function TaskEditor({
                           <input
                             type="checkbox"
                             checked={splitSelection.has(item.id)}
-                            disabled={splitBusy || busy || !item.description.trim()}
+                            disabled={
+                              splitBusy || busy || !item.description.trim()
+                            }
                             onChange={(e) => {
                               const next = new Set(splitSelection)
                               if (e.target.checked) next.add(item.id)
@@ -655,7 +668,10 @@ export function TaskEditor({
                         return
                       setSplitBusy(true)
                       void split([
-                        { title: splitTitle.trim(), criterionIds: [...splitSelection] },
+                        {
+                          title: splitTitle.trim(),
+                          criterionIds: [...splitSelection],
+                        },
                       ])
                         .catch(() => undefined)
                         .finally(() => setSplitBusy(false))

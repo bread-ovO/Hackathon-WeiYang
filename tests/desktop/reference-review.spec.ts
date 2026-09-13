@@ -122,6 +122,7 @@ test('known version confirmation is reference-scoped, expires on new content and
       .getByRole('button')
       .filter({ has: page.locator('.task-title', { hasText: task.title }) })
       .click()
+    await page.getByText('编辑事项与完成条件',{exact:true}).click()
     const draft = page.getByLabel('编辑事项标题')
     await draft.fill('未保存的版本复核草稿')
     await page.getByText('关联、改期与历史', { exact: true }).click()

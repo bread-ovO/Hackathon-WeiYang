@@ -145,6 +145,7 @@ test('local background processing preserves pause, citations, project scope and 
     await evidence.locator('summary').click()
     await expect(evidence.locator('blockquote')).toHaveText(commitment)
     await page.screenshot({ path: 'test-results/processing-citation.png' })
+    await page.getByText('编辑事项与完成条件',{exact:true}).click()
     await page.getByLabel('编辑事项标题').fill('人工保留的标题')
     await page.getByRole('button', { name: '保存标题', exact: true }).click()
     await expect

@@ -6,7 +6,23 @@ import type {
   WorkspaceQuery,
   WorkspaceTask,
 } from '@memo/contracts'
-import { AppButton, AppInput } from './ui'
+import {
+  Plus,
+  SlidersHorizontal,
+  ArrowClockwise,
+  X,
+  MagnifyingGlass,
+} from '@phosphor-icons/react'
+import { TooltipProvider } from '@cloudflare/kumo/components/tooltip'
+import './workspace-simple.css'
+import {
+  IconButton,
+  AppDialog,
+  DialogTitle,
+  DialogDescription,
+  AppButton,
+  AppInput,
+} from './ui'
 import { Badge } from '@cloudflare/kumo/components/badge'
 import { TaskEditor, taskLabels, type EditorBaseline } from './task-editor'
 import { TaskExport } from './task-export'
@@ -72,7 +88,10 @@ export function RealWorkspace({
           ...(github.ok
             ? github.data.connections.map((s) => ({
                 id: s.id,
-                name: s.mode === 'account' ? `GitHub · ${s.owner}（账户）` : `GitHub · ${s.owner}/${s.repo}`,
+                name:
+                  s.mode === 'account'
+                    ? `GitHub · ${s.owner}（账户）`
+                    : `GitHub · ${s.owner}/${s.repo}`,
                 projectId: s.projectId,
               }))
             : []),
@@ -97,6 +116,21 @@ export function RealWorkspace({
       active = false
     }
   }, [])
+  const [createOpen, setCreateOpen] = useState(false),
+    [filtersOpen, setFiltersOpen] = useState(false),
+    [createProject, setCreateProject] = useState('')
+  const filterButton = useRef<HTMLButtonElement>(null)
+  const filterCount = [project, status, admission, source, activity].filter(
+    Boolean,
+  ).length
+  function clearFilters() {
+    setProject('')
+    setStatus('')
+    setAdmission('')
+    setSource('')
+    setActivity('')
+    setQuery('')
+  }
   const [selected, setSelected] = useState<string | null>(null)
   const seq = useRef(0),
     mutating = useRef(false)
@@ -302,13 +336,13 @@ export function RealWorkspace({
     )
   }
   return (
-    <>
-      <div className="page-heading">
+    <TooltipProvider delay={300}>
+      <div className="page-heading compact-heading">
         <div>
           <h1>
             跟进<span className="heading-dot">.</span>
           </h1>
-          <p>本地事项 · 人工状态与证据充分度分开记录</p>
+          <p>选择一件事，查看进展与下一步。</p>
         </div>
         <div className="workspace-actions">
           <TaskExport
@@ -316,107 +350,240 @@ export function RealWorkspace({
             selected={current}
             disabled={saving || busy}
           />
-          <AppButton
-            className="secondary"
+          <IconButton
+            label="刷新"
             disabled={saving || busy}
             onClick={() => void load()}
           >
-            刷新
-          </AppButton>
+            <ArrowClockwise aria-hidden />
+          </IconButton>
+          <IconButton
+            label="新建事项"
+            variant="primary"
+            onClick={() => {
+              setCreateProject(project || data.projects[0]?.id || '')
+              setMessage('')
+              setCreateOpen(true)
+            }}
+          >
+            <Plus aria-hidden />
+          </IconButton>
         </div>
       </div>
-      <div className="real-create">
-        <form
-          onSubmit={(e) => {
-            e.preventDefault()
-            if (name.trim())
-              void run(
-                () => window.memo.workspace.createProject(name.trim()),
-                '项目已创建。',
-                (r) => {
-                  setName('')
-                  const created = (
-                    r.data as { projects?: { id: string }[] } | undefined
-                  )?.projects?.[0]
-                  if (created) setProject(created.id)
-                },
-              )
-          }}
-        >
-          <AppInput
-            aria-label="新项目名称"
-            placeholder="新项目名称"
-            maxLength={128}
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
-          <AppButton
-            type="submit"
-            className="secondary"
-            disabled={saving || busy || !name.trim()}
+      <AppDialog
+        open={createOpen}
+        onOpenChange={(open) => {
+          if (!saving) setCreateOpen(open)
+        }}
+      >
+        <div className="create-dialog-content">
+          <DialogTitle>新建事项</DialogTitle>
+          <DialogDescription>
+            记下需要跟进的事，放进一个项目。
+          </DialogDescription>
+          {message && <p role="status">{message}</p>}
+
+          <form
+            onSubmit={(e) => {
+              e.preventDefault()
+              if (createProject && title.trim())
+                void run(
+                  () =>
+                    window.memo.workspace.createTask(
+                      createProject,
+                      title.trim(),
+                    ),
+                  '事项已保存。',
+                  () => {
+                    setTitle('')
+                    setCreateOpen(false)
+                  },
+                )
+            }}
           >
-            创建项目
+            <select
+              disabled={saving}
+              aria-label="所属项目"
+              value={createProject}
+              onChange={(e) => {
+                setCreateProject(e.target.value)
+              }}
+            >
+              <option value="">选择项目</option>
+              {data.projects.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
+              ))}
+            </select>
+            <AppInput
+              autoFocus
+              aria-label="真实事项标题"
+              placeholder="需要跟进什么？"
+              maxLength={512}
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+            />
+            <AppButton
+              type="submit"
+              className="primary"
+              disabled={saving || busy || !createProject || !title.trim()}
+            >
+              添加事项
+            </AppButton>
+          </form>
+          <details
+            className="create-project-disclosure"
+            open={data.projects.length === 0 ? true : undefined}
+          >
+            <summary>新建项目</summary>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault()
+                if (name.trim())
+                  void run(
+                    () => window.memo.workspace.createProject(name.trim()),
+                    '项目已创建。',
+                    (r) => {
+                      setName('')
+                      const created = (
+                        r.data as { projects?: { id: string }[] } | undefined
+                      )?.projects?.[0]
+                      if (created) setCreateProject(created.id)
+                    },
+                  )
+              }}
+            >
+              <AppInput
+                aria-label="新项目名称"
+                placeholder="新项目名称"
+                maxLength={128}
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+              />
+              <AppButton
+                type="submit"
+                className="secondary"
+                disabled={saving || busy || !name.trim()}
+              >
+                创建项目
+              </AppButton>
+            </form>
+          </details>
+        </div>
+        <IconButton
+          label="关闭新建事项"
+          className="create-dialog-close"
+          disabled={saving}
+          onClick={() => setCreateOpen(false)}
+        >
+          <X aria-hidden />
+        </IconButton>
+      </AppDialog>
+      <div className="workspace-toolbar">
+        <div className="workspace-tabs">
+          <AppButton
+            aria-label="未归档"
+            aria-pressed={!archive}
+            disabled={saving}
+            onClick={() => setArchive(false)}
+          >
+            跟进清单
           </AppButton>
-        </form>
-        <form
-          onSubmit={(e) => {
-            e.preventDefault()
-            if (project && title.trim())
-              void run(
-                () => window.memo.workspace.createTask(project, title.trim()),
-                '事项已保存。',
-                () => setTitle(''),
-              )
+          <AppButton
+            aria-pressed={archive}
+            disabled={saving}
+            onClick={() => setArchive(true)}
+          >
+            已归档
+          </AppButton>
+        </div>
+        <div className="workspace-search">
+          <MagnifyingGlass aria-hidden />
+          <AppInput
+            disabled={saving}
+            aria-label="搜索本地事项"
+            placeholder="搜索事项与条件"
+            maxLength={256}
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+        </div>
+        <IconButton
+          ref={filterButton}
+          label="筛选事项"
+          aria-expanded={filtersOpen}
+          aria-controls="workspace-filter-panel"
+          aria-pressed={filterCount > 0}
+          onClick={() => setFiltersOpen(!filtersOpen)}
+        >
+          <SlidersHorizontal aria-hidden />
+        </IconButton>
+        {filterCount > 0 && (
+          <span
+            className="filter-count"
+            aria-label={`${filterCount} 项筛选已启用`}
+          >
+            {filterCount}
+          </span>
+        )}
+      </div>
+      {filterCount > 0 && !filtersOpen && (
+        <div className="active-filter-summary">
+          <span>
+            {[
+              data.projects.find((p) => p.id === project)?.name,
+              status ? taskLabels[status as keyof typeof taskLabels] : null,
+              admission
+                ? {
+                    accepted: '已收录',
+                    candidate: '待确认',
+                    ignored: '已忽略',
+                  }[admission]
+                : null,
+              source ? sourceOptions.find((s) => s.id === source)?.name : null,
+              activity === 'recent'
+                ? '最近 7 天更新'
+                : activity === 'quiet'
+                  ? '30 天无更新'
+                  : null,
+            ]
+              .filter(Boolean)
+              .join(' · ')}
+          </span>
+          <IconButton label="清除筛选" disabled={saving} onClick={clearFilters}>
+            <X aria-hidden />
+          </IconButton>
+        </div>
+      )}
+      {filtersOpen && (
+        <section
+          id="workspace-filter-panel"
+          className="workspace-filter-panel"
+          aria-label="事项筛选"
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') {
+              setFiltersOpen(false)
+              filterButton.current?.focus()
+            }
           }}
         >
           <select
-            disabled={saving}
-            aria-label="所属项目"
+            aria-label="项目筛选"
             value={project}
+            disabled={saving}
             onChange={(e) => {
               setProject(e.target.value)
               setSource('')
             }}
           >
-            <option value="">全部项目 / 请选择</option>
+            <option value="">全部项目</option>
             {data.projects.map((p) => (
               <option key={p.id} value={p.id}>
                 {p.name}
               </option>
             ))}
-          </select>
-          <AppInput
-            aria-label="真实事项标题"
-            placeholder="需要跟进什么？"
-            maxLength={512}
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-          />
-          <AppButton
-            type="submit"
-            className="primary"
-            disabled={saving || busy || !project || !title.trim()}
-          >
-            添加事项
-          </AppButton>
-        </form>
-      </div>
-      <div className="list-tools real-filters">
-        <div className="filters">
-          <AppButton
-            disabled={saving}
-            aria-pressed={!archive}
-            onClick={() => setArchive(false)}
-          >
-            未归档
-          </AppButton>
-          <AppButton
-            disabled={saving}
-            aria-pressed={archive}
-            onClick={() => setArchive(true)}
-          >
-            已归档
-          </AppButton>
+          </select>{' '}
           <select
             disabled={saving}
             aria-label="业务状态筛选"
@@ -466,17 +633,21 @@ export function RealWorkspace({
             <option value="recent">最近7天有更新</option>
             <option value="quiet">30天无更新</option>
           </select>
-        </div>
-        <AppInput
-          disabled={saving}
-          aria-label="搜索本地事项"
-          placeholder="搜索事项与条件"
-          maxLength={256}
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-        />
-      </div>
-      {message && (
+          <AppButton disabled={saving || !filterCount} onClick={clearFilters}>
+            重置
+          </AppButton>
+          <IconButton
+            label="收起筛选"
+            onClick={() => {
+              setFiltersOpen(false)
+              filterButton.current?.focus()
+            }}
+          >
+            <X aria-hidden />
+          </IconButton>
+        </section>
+      )}
+      {message && !createOpen && (
         <p role="status" className="real-message">
           {message}
         </p>
@@ -560,7 +731,7 @@ export function RealWorkspace({
                 source ||
                 activity
                   ? '可以调整筛选条件再试。'
-                  : '可以创建项目并添加真实事项，或先连接来源自动收录。'}
+                  : '记下第一件事，或连接来源，让承诺自动进入这里。'}
               </p>
               {project ||
               query ||
@@ -584,11 +755,23 @@ export function RealWorkspace({
                   清除筛选
                 </AppButton>
               ) : (
-                onConnect && (
-                  <AppButton className="secondary" onClick={onConnect}>
-                    去连接来源
+                <div className="empty-actions">
+                  <AppButton
+                    variant="primary"
+                    onClick={() => {
+                      setCreateProject(data.projects[0]?.id || '')
+                      setMessage('')
+                      setCreateOpen(true)
+                    }}
+                  >
+                    新建第一件事
                   </AppButton>
-                )
+                  {onConnect && (
+                    <AppButton className="secondary" onClick={onConnect}>
+                      去连接来源
+                    </AppButton>
+                  )}
+                </div>
               )}
             </div>
           )}
@@ -601,10 +784,6 @@ export function RealWorkspace({
               加载更多
             </AppButton>
           )}
-          <div className="list-foot">
-            事项保存在本机 · 已支持规则候选、会话导入与 GitHub
-            观察记录；模型语义识别尚未接通
-          </div>
         </section>
         {current && (
           <TaskEditor
@@ -641,6 +820,6 @@ export function RealWorkspace({
           />
         )}
       </div>
-    </>
+    </TooltipProvider>
   )
 }

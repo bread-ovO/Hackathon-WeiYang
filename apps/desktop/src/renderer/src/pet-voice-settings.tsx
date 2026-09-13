@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { Checkbox } from '@cloudflare/kumo/components/checkbox'
+import { Switch } from '@cloudflare/kumo/components/switch'
+import { Disclosure } from './ui/disclosure'
 import type { PetVoiceState, PetVoicePreferences } from '@memo/contracts'
 import { AppButton, AppInput } from './ui'
 const errors: Record<string, string> = {
@@ -95,115 +96,123 @@ export function PetVoiceSettings() {
     state?.status === 'playing'
   return (
     <section className="pet-voice-settings" aria-label="桌宠声音">
-      <h2>桌宠声音</h2>
-      <p>
-        让桌宠用系统声音读出话语。默认关闭，选好声音后，从下一条话语开始播音。
-      </p>
-      <Checkbox
-        label="允许桌宠播音"
-        checked={draft.enabled}
-        disabled={busy || !state || (!state.available && !draft.enabled)}
-        onCheckedChange={(enabled) => setDraft({ ...draft, enabled })}
-      />
-      {!state?.available && (
+      <div className="setting-card-heading">
+        <div>
+          <h2>桌宠声音</h2>
+          <p>用系统声音读出话语。调整后保存生效。</p>
+        </div>{' '}
+        <Switch
+          aria-label="允许桌宠播音"
+          checked={draft.enabled}
+          disabled={busy || !state || (!state.available && !draft.enabled)}
+          onCheckedChange={(enabled) => setDraft({ ...draft, enabled })}
+        />
+      </div>
+      {state && !state.available && (
         <p role="status">当前没有可用的系统声音，桌宠继续显示文字。</p>
       )}
-      <div className="pet-voice-fields">
-        <label>
-          系统声音
-          <select
-            aria-label="系统声音"
-            disabled={busy || !state?.available}
-            value={draft.voiceId ?? ''}
-            onChange={(e) =>
-              setDraft({ ...draft, voiceId: e.target.value || null })
+      <Disclosure title="声音、音量与语速">
+        {' '}
+        <div className="pet-voice-fields">
+          <label>
+            系统声音
+            <select
+              aria-label="系统声音"
+              disabled={busy || !state?.available}
+              value={draft.voiceId ?? ''}
+              onChange={(e) =>
+                setDraft({ ...draft, voiceId: e.target.value || null })
+              }
+            >
+              <option value="">请选择系统声音</option>
+              {state?.voices.map((v) => (
+                <option value={v.id} key={v.id}>
+                  {v.name} · {v.language}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            音量
+            <AppInput
+              aria-label="桌宠音量"
+              type="number"
+              min={0}
+              max={1}
+              step={0.1}
+              value={draft.volume}
+              disabled={busy}
+              onChange={(e) =>
+                setDraft({ ...draft, volume: Number(e.target.value) })
+              }
+            />
+          </label>
+          <label>
+            语速
+            <AppInput
+              aria-label="桌宠语速"
+              type="number"
+              min={0.75}
+              max={1.25}
+              step={0.05}
+              value={draft.rate}
+              disabled={busy}
+              onChange={(e) =>
+                setDraft({ ...draft, rate: Number(e.target.value) })
+              }
+            />
+          </label>
+        </div>
+        <details>
+          <summary>声音与数据范围</summary>
+          <p>
+            使用 macOS 已安装的系统声音，在本机合成当前气泡文字。每段最多 12
+            秒，生成失败时保留文字；系统声音不可用的平台仅显示文字。
+          </p>
+        </details>
+      </Disclosure>
+      {(dirty || draft.enabled || active) && (
+        <div className="source-import-actions">
+          <AppButton
+            disabled={
+              busy ||
+              !state ||
+              !dirty ||
+              (draft.enabled &&
+                !state.voices.some((v) => v.id === draft.voiceId)) ||
+              !Number.isFinite(draft.volume) ||
+              draft.volume < 0 ||
+              draft.volume > 1 ||
+              !Number.isFinite(draft.rate) ||
+              draft.rate < 0.75 ||
+              draft.rate > 1.25
+            }
+            onClick={() => void save()}
+          >
+            保存声音设置
+          </AppButton>
+          <AppButton
+            disabled={!active}
+            onClick={() =>
+              void window.memo.pet
+                .stopVoice()
+                .then((r) => {
+                  if (!live.current) return
+                  if (r.ok) {
+                    setState(r.data)
+                    setMessage('已停止播音，文字继续保留。')
+                  } else setMessage(errors[r.error] ?? '停止失败，请重试。')
+                })
+                .catch(() => {
+                  if (live.current) setMessage('本地核心暂不可用。')
+                })
             }
           >
-            <option value="">请选择系统声音</option>
-            {state?.voices.map((v) => (
-              <option value={v.id} key={v.id}>
-                {v.name} · {v.language}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
-          音量
-          <AppInput
-            aria-label="桌宠音量"
-            type="number"
-            min={0}
-            max={1}
-            step={0.1}
-            value={draft.volume}
-            disabled={busy}
-            onChange={(e) =>
-              setDraft({ ...draft, volume: Number(e.target.value) })
-            }
-          />
-        </label>
-        <label>
-          语速
-          <AppInput
-            aria-label="桌宠语速"
-            type="number"
-            min={0.75}
-            max={1.25}
-            step={0.05}
-            value={draft.rate}
-            disabled={busy}
-            onChange={(e) =>
-              setDraft({ ...draft, rate: Number(e.target.value) })
-            }
-          />
-        </label>
-      </div>
-      <div className="source-import-actions">
-        <AppButton
-          disabled={
-            busy ||
-            !state ||
-            !dirty ||
-            (draft.enabled &&
-              !state.voices.some((v) => v.id === draft.voiceId)) ||
-            !Number.isFinite(draft.volume) ||
-            draft.volume < 0 ||
-            draft.volume > 1 ||
-            !Number.isFinite(draft.rate) ||
-            draft.rate < 0.75 ||
-            draft.rate > 1.25
-          }
-          onClick={() => void save()}
-        >
-          保存声音设置
-        </AppButton>
-        <AppButton
-          disabled={!active}
-          onClick={() =>
-            void window.memo.pet
-              .stopVoice()
-              .then((r) => {
-                if (!live.current) return
-                if (r.ok) {
-                  setState(r.data)
-                  setMessage('已停止播音，文字继续保留。')
-                } else setMessage(errors[r.error] ?? '停止失败，请重试。')
-              })
-              .catch(() => {
-                if (live.current) setMessage('本地核心暂不可用。')
-              })
-          }
-        >
-          停止当前播音
-        </AppButton>
-      </div>
-      <details>
-        <summary>声音与数据范围</summary>
-        <p>
-          使用 macOS 已安装的系统声音，在本机合成当前气泡文字。每段最多 12
-          秒，生成失败时保留文字；系统声音不可用的平台仅显示文字。
-        </p>
-      </details>
+            停止当前播音
+          </AppButton>
+        </div>
+      )}
+
       {state?.error && (
         <p role="status">
           {errors[state.error] ?? '声音暂不可用，文字仍保留。'}

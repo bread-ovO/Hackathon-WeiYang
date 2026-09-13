@@ -140,6 +140,7 @@ test('Feishu explicit reply becomes a human-confirmed plan change and preserves 
         exact: true,
       }),
     ).toBeVisible()
+    await detail.getByText('编辑事项与完成条件',{exact:true}).click()
     await detail.getByLabel('编辑事项标题').fill('尚未保存的改期草稿')
     await detail.getByLabel('截止时间（本机时区）').fill('2026-10-01T12:00')
     await detail.getByRole('button', { name: '添加条件', exact: true }).click()

@@ -108,6 +108,7 @@ test('explicit source retraction invalidates citation without overwriting manual
       .getByRole('button')
       .filter({ has: page.locator('.task-title', { hasText: manual.title }) })
       .click()
+    await page.getByText('编辑事项与完成条件',{exact:true}).click()
     const title = page.getByLabel('编辑事项标题')
     await title.fill('尚未保存的标题草稿')
     const due = page.getByLabel('截止时间（本机时区）')

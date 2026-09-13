@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { PetSpeechPatch, PetSpeechState } from '@memo/contracts'
+import { Switch } from '@cloudflare/kumo/components/switch'
 import { AppButton } from './ui'
 const time = (minutes: number) =>
   `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`
@@ -44,14 +45,12 @@ export function PetSpeechSettings({
           <h3>自动话语</h3>
           <p>开启后，桌宠偶尔显示一句文字气泡；没有声音，不会改变事项状态。</p>
         </div>
-        <AppButton
-          type="button"
+        <Switch
+          aria-label="自动话语"
           disabled={disabled}
-          aria-pressed={prefs?.enabled ?? false}
-          onClick={() => void onConfigure({ enabled: !prefs?.enabled })}
-        >
-          {prefs?.enabled ? '关闭自动话语' : '开启自动话语'}
-        </AppButton>
+          checked={prefs?.enabled ?? false}
+          onCheckedChange={(enabled) => void onConfigure({ enabled })}
+        />
       </div>
       <div className="pet-speech-fields">
         <label htmlFor="pet-speech-frequency">出现频率</label>

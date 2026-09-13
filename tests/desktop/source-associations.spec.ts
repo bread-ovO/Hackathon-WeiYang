@@ -145,6 +145,7 @@ test('manual task source picker and direct identity mapping fence real plan conf
     await page.getByText('人工关联验收事项', { exact: true }).click()
     await page.getByText('关联、改期与历史', { exact: true }).click()
     const detail = page.getByRole('region', { name: '事项详情' })
+    await detail.getByText('编辑事项与完成条件',{exact:true}).click()
     await detail.getByLabel('编辑事项标题').fill('保留身份确认时的标题草稿')
     await detail.getByLabel('截止时间（本机时区）').fill('2026-10-02T12:00')
     await detail.getByRole('button', { name: '添加条件', exact: true }).click()
