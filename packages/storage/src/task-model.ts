@@ -189,6 +189,38 @@ export function migrateTaskMerges(db: Database.Database) {
   )()
 }
 
+export interface TaskSplitChildInput {
+  title: string
+  criterionIds: string[]
+}
+export interface TaskSplitInput {
+  projectId: string
+  taskId: string
+  expectedVersion: number
+  expectedCriteriaVersion: number
+  expectedManualVersion: number
+  children: TaskSplitChildInput[]
+}
+export interface TaskSplitLink {
+  taskId: string
+  title: string
+  splitAt: string
+}
+export interface TaskSplitOutcome {
+  parent: StoredTask
+  children: StoredTask[]
+}
+export function migrateTaskSplits(db: Database.Database) {
+  db.transaction(() =>
+    db.exec(`
+    CREATE TABLE task_splits(task_id TEXT NOT NULL,child_id TEXT NOT NULL,decision_id INTEGER NOT NULL,created_at TEXT NOT NULL,
+      PRIMARY KEY(task_id,child_id),FOREIGN KEY(task_id) REFERENCES tasks(id),FOREIGN KEY(child_id) REFERENCES tasks(id));
+    CREATE INDEX task_splits_child ON task_splits(child_id);
+    PRAGMA user_version=21;
+  `),
+  )()
+}
+
 export function createTaskModel(db: Database.Database) {
   const search = createCandidateSearch(db)
   function read(taskId: string): StoredTask | undefined {
@@ -370,6 +402,211 @@ export function createTaskModel(db: Database.Database) {
       const task = read(taskId)
       return task?.projectId === projectId ? task : undefined
     },
+    splitChildren(projectId: string, taskId: string): TaskSplitLink[] {
+      text(projectId)
+      text(taskId)
+      if (read(taskId)?.projectId !== projectId)
+        throw new Error('TASK_NOT_IN_PROJECT')
+      return db
+        .prepare(
+          'SELECT s.child_id AS taskId,t.title,s.created_at AS splitAt FROM task_splits s JOIN tasks t ON t.id=s.child_id WHERE s.task_id=? ORDER BY s.created_at,s.child_id',
+        )
+        .all(taskId) as TaskSplitLink[]
+    },
+    splitParent(projectId: string, taskId: string): TaskSplitLink | null {
+      text(projectId)
+      text(taskId)
+      if (read(taskId)?.projectId !== projectId)
+        throw new Error('TASK_NOT_IN_PROJECT')
+      const row = db
+        .prepare(
+          'SELECT s.task_id AS taskId,t.title,s.created_at AS splitAt FROM task_splits s JOIN tasks t ON t.id=s.task_id WHERE s.child_id=?',
+        )
+        .get(taskId) as TaskSplitLink | undefined
+      return row ?? null
+    },
+    /** Move selected criteria (and their evidence) out of a task into fresh
+     * child tasks. The parent keeps the remaining criteria at a new version;
+     * both directions of the split stay queryable for history. */
+    split: db.transaction(
+      (input: TaskSplitInput, by: ManualActor): TaskSplitOutcome => {
+        actor(by)
+        const task = requireTask({
+          projectId: input.projectId,
+          taskId: input.taskId,
+          expectedVersion: input.expectedVersion,
+          expectedCriteriaVersion: input.expectedCriteriaVersion,
+          expectedManualVersion: input.expectedManualVersion,
+        })
+        if (task.archivedAt !== null) throw new Error('INVALID_TASK_SPLIT')
+        if (
+          !Array.isArray(input.children) ||
+          input.children.length < 1 ||
+          input.children.length > 4
+        )
+          throw new Error('INVALID_TASK_SPLIT')
+        const parentCriteria = db
+          .prepare(
+            'SELECT criterion_id,description,origin_event_id FROM criteria WHERE task_id=? AND version=? ORDER BY criterion_id',
+          )
+          .all(task.id, task.criteriaVersion) as {
+          criterion_id: string
+          description: string
+          origin_event_id: number | null
+        }[]
+        const parentMap = new Map(
+          parentCriteria.map((c) => [c.criterion_id, c]),
+        )
+        for (const child of input.children) {
+          text(child.title, 512)
+          if (
+            !Array.isArray(child.criterionIds) ||
+            child.criterionIds.length < 1 ||
+            child.criterionIds.length > 32
+          )
+            throw new Error('INVALID_TASK_SPLIT')
+          for (const criterionId of child.criterionIds) {
+            text(criterionId)
+            if (!parentMap.has(criterionId))
+              throw new Error('INVALID_TASK_SPLIT')
+          }
+        }
+        const assigned = new Set(
+          input.children.flatMap((child) => child.criterionIds),
+        )
+        if (assigned.size !==
+          input.children.reduce((n, child) => n + child.criterionIds.length, 0))
+          throw new Error('INVALID_TASK_SPLIT')
+        const now = new Date().toISOString()
+        const parentEvidence = db
+          .prepare(
+            'SELECT criterion_id,event_id,relation,validity,reason FROM evidence_links WHERE task_id=? AND criterion_version=?',
+          )
+          .all(task.id, task.criteriaVersion) as {
+          criterion_id: string
+          event_id: number
+          relation: string
+          validity: string
+          reason: string
+        }[]
+        const created: StoredTask[] = []
+        const insertCriterion = db.prepare(
+          'INSERT INTO criteria(task_id,project_id,version,criterion_id,description,origin_event_id) VALUES(?,?,?,?,?,?)',
+        )
+        const insertEvidence = db.prepare(
+          'INSERT INTO evidence_links(id,task_id,project_id,criterion_version,criterion_id,event_id,relation,validity,reason) VALUES(?,?,?,?,?,?,?,?,?)',
+        )
+        for (const child of input.children) {
+          const childId = randomUUID()
+          db.prepare(
+            "INSERT INTO tasks(id,project_id,title,owner,status,evidence_status,manual_version,admission,due_at) VALUES(?,?,?,?,'todo','unknown',1,?,NULL)",
+          ).run(
+            childId,
+            input.projectId,
+            child.title.trim(),
+            task.owner,
+            task.admission,
+          )
+          db.prepare(
+            'INSERT INTO criterion_sets(task_id,version) VALUES(?,1)',
+          ).run(childId)
+          for (const criterionId of child.criterionIds) {
+            const criterion = parentMap.get(criterionId)!
+            insertCriterion.run(
+              childId,
+              input.projectId,
+              1,
+              criterion.criterion_id,
+              criterion.description,
+              criterion.origin_event_id,
+            )
+          }
+          for (const link of parentEvidence) {
+            if (!child.criterionIds.includes(link.criterion_id)) continue
+            insertEvidence.run(
+              randomUUID(),
+              childId,
+              input.projectId,
+              1,
+              link.criterion_id,
+              link.event_id,
+              link.relation,
+              link.validity,
+              link.reason,
+            )
+          }
+          db.prepare(
+            "UPDATE tasks SET criteria_version=1,evidence_status='unknown' WHERE id=?",
+          ).run(childId)
+          created.push(record(childId, by, 'create', { title: child.title }))
+        }
+        const staying = parentCriteria.filter(
+          (c) => !assigned.has(c.criterion_id),
+        )
+        const parentVersion = task.criteriaVersion + 1
+        db.prepare(
+          'INSERT INTO criterion_sets(task_id,version) VALUES(?,?)',
+        ).run(task.id, parentVersion)
+        for (const criterion of staying)
+          insertCriterion.run(
+            task.id,
+            input.projectId,
+            parentVersion,
+            criterion.criterion_id,
+            criterion.description,
+            criterion.origin_event_id,
+          )
+        const carryEvidence = db.prepare(
+          'INSERT INTO evidence_links(id,task_id,project_id,criterion_version,criterion_id,event_id,relation,validity,reason) SELECT ?,?,?,?,?,?,?,?,? WHERE NOT EXISTS(SELECT 1 FROM evidence_links WHERE task_id=? AND criterion_version=? AND criterion_id=? AND event_id=? AND relation=?)',
+        )
+        for (const link of parentEvidence) {
+          if (assigned.has(link.criterion_id)) continue
+          carryEvidence.run(
+            randomUUID(),
+            task.id,
+            input.projectId,
+            parentVersion,
+            link.criterion_id,
+            link.event_id,
+            link.relation,
+            link.validity,
+            link.reason,
+            task.id,
+            parentVersion,
+            link.criterion_id,
+            link.event_id,
+            link.relation,
+          )
+        }
+        db.prepare(
+          "UPDATE tasks SET criteria_version=?,evidence_status='unknown' WHERE id=?",
+        ).run(parentVersion, task.id)
+        bump(task.id)
+        const parentResult = record(
+          task.id,
+          by,
+          'split',
+          {
+            children: created.map((child) => ({
+              taskId: child.id,
+              title: child.title,
+            })),
+          },
+          parentEvidence.map((l) => l.event_id),
+        )
+        const decision = db
+          .prepare(
+            'SELECT decision_id AS id FROM task_revisions WHERE task_id=? AND version=?',
+          )
+          .get(task.id, parentResult.version) as { id: number }
+        const insertSplit = db.prepare(
+          'INSERT INTO task_splits(task_id,child_id,decision_id,created_at) VALUES(?,?,?,?)',
+        )
+        for (const child of created)
+          insertSplit.run(task.id, child.id, decision.id, now)
+        return { parent: parentResult, children: created }
+      },
+    ),
     mergeInfo(projectId: string, taskId: string) {
       if (read(taskId)?.projectId !== projectId)
         throw Error('TASK_NOT_IN_PROJECT')

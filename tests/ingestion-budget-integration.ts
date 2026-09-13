@@ -12,7 +12,7 @@ import { createJobQueue } from '../packages/storage/src/jobs'
 import { HTTP_JSON_MANIFEST_EXAMPLE } from '../packages/plugin-host/src/manifest'
 import type { SourceEvent } from '@memo/contracts'
 import Database from 'better-sqlite3'
-import { mkdtempSync, rmSync, lstatSync, symlinkSync } from 'node:fs'
+import { mkdtempSync, rmSync, lstatSync, symlinkSync, existsSync } from 'node:fs'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
 import assert from 'node:assert/strict'
@@ -212,11 +212,19 @@ try {
     () => probeIngestionDisk(join(root, 'missing.sqlite')),
     /INGESTION_PROBE_UNAVAILABLE/,
   )
-  symlinkSync(path, join(root, 'linked.sqlite'))
-  assert.throws(
-    () => probeIngestionDisk(join(root, 'linked.sqlite')),
-    /INGESTION_PROBE_UNAVAILABLE/,
-  )
+  // Windows without Developer Mode denies symlink creation with EPERM; the
+  // rejection path itself is only observable where the OS allows the link.
+  try {
+    symlinkSync(path, join(root, 'linked.sqlite'))
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== 'EPERM') throw error
+    console.log('symlink probe skipped: OS denies link creation')
+  }
+  if (existsSync(join(root, 'linked.sqlite')))
+    assert.throws(
+      () => probeIngestionDisk(join(root, 'linked.sqlite')),
+      /INGESTION_PROBE_UNAVAILABLE/,
+    )
   db.close()
   db = new Database(path)
   assert.equal(

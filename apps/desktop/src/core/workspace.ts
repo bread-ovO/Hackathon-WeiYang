@@ -14,6 +14,7 @@ import type {
   SourceBindings,
   IdentityMappings,
   PetContextFacts,
+  TaskSplitResult,
 } from '@memo/contracts'
 export function handleWorkspace(
   store: ReturnType<typeof openStore>,
@@ -31,6 +32,7 @@ export function handleWorkspace(
   | SourceBindings
   | IdentityMappings
   | PetContextFacts
+  | TaskSplitResult
   | { valid: boolean } {
   const mutating = [
     'workspace.updateTask',
@@ -134,6 +136,11 @@ export function handleWorkspace(
           request.id,
           request.criteriaVersion,
         ),
+        splitChildren: store.tasks.splitChildren(
+          request.projectId,
+          request.id,
+        ),
+        splitFrom: store.tasks.splitParent(request.projectId, request.id),
       }
     }
     case 'workspace.mergeTasks':
@@ -183,6 +190,18 @@ export function handleWorkspace(
         by,
       )
       break
+    case 'workspace.splitTask':
+      return store.tasks.split(
+        {
+          projectId: request.projectId,
+          taskId: request.taskId,
+          expectedVersion: request.expectedVersion,
+          expectedCriteriaVersion: request.expectedCriteriaVersion,
+          expectedManualVersion: request.expectedManualVersion,
+          children: request.children,
+        },
+        by,
+      )
   }
   const page = store.tasks.listPage(
     request.method === 'workspace.list' ? request.query : undefined,

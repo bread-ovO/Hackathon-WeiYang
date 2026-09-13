@@ -107,11 +107,13 @@ parentPort.on('message', async ({ data }) => {
                   : code === 'EXPORT_TASK_NOT_IN_PROJECT' ||
                       code === 'EXPORT_UNKNOWN_PROJECT'
                     ? 'NOT_FOUND'
-                    : code === 'VERSION_CONFLICT'
-                      ? 'VERSION_CONFLICT'
-                      : code === 'TASK_NOT_IN_PROJECT' || code === 'NOT_FOUND'
-                        ? 'NOT_FOUND'
-                        : 'INVALID_REQUEST',
+                      : code === 'VERSION_CONFLICT'
+                        ? 'VERSION_CONFLICT'
+                        : code === 'INVALID_TASK_SPLIT'
+                          ? code
+                          : code === 'TASK_NOT_IN_PROJECT' || code === 'NOT_FOUND'
+                            ? 'NOT_FOUND'
+                            : 'INVALID_REQUEST',
     }
   }
   parentPort.postMessage({ id: data.id, reply })

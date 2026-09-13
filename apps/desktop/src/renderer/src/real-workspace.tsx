@@ -286,6 +286,21 @@ export function RealWorkspace({
         '条件新版本已保存，旧证据仍保留在原版本。',
       )
   }
+  async function split(children: { title: string; criterionIds: string[] }[]) {
+    if (!current?.projectId) return
+    await run(
+      () =>
+        window.memo.workspace.splitTask({
+          projectId: current.projectId!,
+          taskId: current.id,
+          expectedVersion: current.version,
+          expectedCriteriaVersion: current.criteriaVersion,
+          expectedManualVersion: current.manualVersion,
+          children,
+        }),
+      '已拆分：所选条件与证据移入新事项。',
+    )
+  }
   return (
     <>
       <div className="page-heading">
@@ -621,6 +636,7 @@ export function RealWorkspace({
             busy={busy || saving}
             update={update}
             replace={replace}
+            split={split}
             close={() => setSelected(null)}
           />
         )}

@@ -12,7 +12,7 @@ const names = [
   'ingestion-budget-integration',
   'job-queue-integration',
   'search-integration',
-  'task-model-integration',
+  'task-model-integration', 'task-structure-integration',
   'source-import-integration',
   'export-integration',
   'retraction-export-integration',
