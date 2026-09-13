@@ -157,6 +157,17 @@ function App() {
     window.addEventListener('keydown', key)
     return () => window.removeEventListener('keydown', key)
   }, [modal])
+  function goCredentials() {
+    setPage('设置')
+    // Expand and focus the credentials group once the settings page has rendered.
+    requestAnimationFrame(() => {
+      const target = document.getElementById('settings-credentials')
+      if (!(target instanceof HTMLDetailsElement)) return
+      target.open = true
+      target.scrollIntoView({ block: 'start' })
+      target.querySelector('summary')?.focus({ preventScroll: true })
+    })
+  }
   const visible = (demo ? tasks : []).filter(
     (t) =>
       (filter === '全部' || t.status === filter) &&
@@ -724,10 +735,10 @@ function App() {
               }}
             />
             <Disclosure id="preset-feishu" title="飞书连接">
-              <FeishuPanel />
+              <FeishuPanel onGoCredentials={goCredentials} />
             </Disclosure>
             <Disclosure id="preset-github" title="GitHub 连接">
-              <GithubPanel />
+              <GithubPanel onGoCredentials={goCredentials} />
             </Disclosure>
             <Disclosure id="preset-local" title="本地记录">
               <SourceImport />
@@ -817,6 +828,29 @@ function App() {
                 <p className="muted">
                   当前为开发版本，事项数据库尚未加密；凭据使用独立的系统加密存储。
                 </p>
+              </section>
+            </Disclosure>
+            <Disclosure
+              id="settings-privacy"
+              title="数据与隐私"
+              description="本机存储与外部访问说明"
+            >
+              <section className="runtime privacy-notes">
+                <ul>
+                  <li>
+                    事项、来源记录与凭据都保存在本机；凭据由系统加密服务单独保护。
+                  </li>
+                  <li>
+                    只有你主动连接的飞书会话、GitHub
+                    仓库与本地文件会按你授权的范围读取，不发现其他会话或仓库。
+                  </li>
+                  <li>
+                    当前版本不接入云模型推理服务：候选建议由本机规则生成，不会把你的内容发送给模型服务商。
+                  </li>
+                  <li>
+                    本机可选的 Ollama 模型默认关闭，启用前不会进行任何模型调用。
+                  </li>
+                </ul>
               </section>
             </Disclosure>
             <Disclosure title="关于示例体验">

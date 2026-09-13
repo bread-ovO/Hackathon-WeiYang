@@ -172,7 +172,11 @@ function GithubRecordList({ connection }: { connection: GithubConnection }) {
     </section>
   )
 }
-export function GithubPanel() {
+export function GithubPanel({
+  onGoCredentials,
+}: {
+  onGoCredentials?: () => void
+}) {
   const [data, setData] = useState<GithubSnapshot>({ connections: [] }),
     [projects, setProjects] = useState<{ id: string; name: string }[]>([]),
     [credentials, setCredentials] = useState<CredentialSummary[]>([])
@@ -337,9 +341,11 @@ export function GithubPanel() {
         </div>
       </form>
       {!credentials.length && (
-        <p>
-          请先在设置中导入用途为来源、域名为 api.github.com
-          的凭据，再刷新此列表。
+        <p className="credential-hint">
+          需要先导入用途为来源、域名为 api.github.com 的凭据。
+          <AppButton className="text-button" onClick={onGoCredentials}>
+            前往设置导入凭据
+          </AppButton>
         </p>
       )}
       {message && <p role="status">{message}</p>}

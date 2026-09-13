@@ -131,7 +131,11 @@ function FeishuRecordList({ connection }: { connection: FeishuConnection }) {
     </section>
   )
 }
-export function FeishuPanel() {
+export function FeishuPanel({
+  onGoCredentials,
+}: {
+  onGoCredentials?: () => void
+}) {
   const [data, setData] = useState<FeishuSnapshot>({ connections: [] }),
     [projects, setProjects] = useState<{ id: string; name: string }[]>([]),
     [credentials, setCredentials] = useState<CredentialSummary[]>([])
@@ -316,8 +320,11 @@ export function FeishuPanel() {
         </div>
       </form>
       {!credentials.length && (
-        <p>
-          请先在设置中导入用途为来源、域名为 open.feishu.cn 的凭据，再刷新列表。
+        <p className="credential-hint">
+          需要先导入用途为来源、域名为 open.feishu.cn 的凭据。
+          <AppButton className="text-button" onClick={onGoCredentials}>
+            前往设置导入凭据
+          </AppButton>
         </p>
       )}
       {message && <p role="status">{message}</p>}
