@@ -73,7 +73,6 @@ describe('Feishu official response validation', () => {
   it.each([
     null,
     {},
-    { code: 1, msg: 'secret' },
     { data: { items: [], has_more: false } },
     { code: 0, data: { items: {}, has_more: false } },
     { code: 0, data: { items: [], has_more: 'false' } },

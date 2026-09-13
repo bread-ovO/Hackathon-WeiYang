@@ -1,4 +1,14 @@
 import {
+  feishuRequestSchema,
+  createFeishuHostRequestSchema,
+  type FeishuRequest,
+  type FeishuHostRequest,
+  type FeishuSnapshot,
+  type FeishuRecords,
+  type FeishuConnectionError,
+} from './feishu'
+export * from './feishu'
+import {
   githubRequestSchema,
   createGithubHostRequestSchema,
   type GithubRequest,
@@ -167,6 +177,7 @@ const coreRequestSchema = {
   oneOf: [
     healthRequestSchema,
     githubRequestSchema,
+    feishuRequestSchema,
     processingRequestSchema,
     ingestionRequestSchema,
     workspaceRequestSchema,
@@ -197,6 +208,7 @@ export type HostRequest =
         method:
           | PetRequest['method']
           | GithubRequest['method']
+          | FeishuRequest['method']
           | 'sources.chooseFile'
           | 'exports.save'
           | 'credentials.list'
@@ -221,6 +233,7 @@ export type HostRequest =
   | ExportBuildRequest
   | PluginHostRequest
   | GithubHostRequest
+  | FeishuHostRequest
 const validateImportFile = ajv.compile<ImportFileRequest>(
   importFileRequestSchema,
 )
@@ -234,7 +247,11 @@ const validatePluginHost = ajv.compile<PluginHostRequest>(
 const validateGithubHost = ajv.compile<GithubHostRequest>(
   createGithubHostRequestSchema(sourceEventSchema),
 )
+const validateFeishuHost = ajv.compile<FeishuHostRequest>(
+  createFeishuHostRequestSchema(sourceEventSchema),
+)
 export function parseHostRequest(value: unknown): HostRequest {
+  if (validateFeishuHost(value)) return value
   if (validateGithubHost(value)) return value
   if (validatePluginHost(value)) {
     if (value.method === 'pluginHost.activate') {
@@ -254,6 +271,13 @@ export function parseHostRequest(value: unknown): HostRequest {
   if (validateImportFile(value)) return value
   const request = parseCoreRequest(value)
   if (
+    request.method === 'feishu.list' ||
+    request.method === 'feishu.connect' ||
+    request.method === 'feishu.setEnabled' ||
+    request.method === 'feishu.revoke' ||
+    request.method === 'feishu.sync' ||
+    request.method === 'feishu.restartWindow' ||
+    request.method === 'feishu.records' ||
     request.method === 'github.list' ||
     request.method === 'github.connect' ||
     request.method === 'github.setEnabled' ||
@@ -307,6 +331,13 @@ export type CoreReply<T = Health> =
         | 'REFERENCE_REVIEW_CONFLICT'
         | 'REFERENCE_RETRACTED'
         | 'REFERENCE_ALREADY_INVALID'
+        | FeishuConnectionError
+        | 'FEISHU_CANCELLED'
+        | 'FEISHU_BUSY'
+        | 'FEISHU_NOT_DUE'
+        | 'FEISHU_INVALID'
+        | 'FEISHU_UNAVAILABLE'
+        | 'FEISHU_FAILED'
         | GithubConnectionError
         | 'GITHUB_CANCELLED'
         | 'GITHUB_BUSY'
@@ -345,6 +376,25 @@ export type CoreReply<T = Health> =
         | 'INGESTION_PROBE_UNAVAILABLE'
     }
 export interface DesktopBridge {
+  feishu: {
+    list(): Promise<CoreReply<FeishuSnapshot>>
+    connect(
+      input: Omit<
+        Extract<FeishuRequest, { method: 'feishu.connect' }>,
+        'method'
+      >,
+    ): Promise<CoreReply<FeishuSnapshot>>
+    setEnabled(id: string, enabled: boolean): Promise<CoreReply<FeishuSnapshot>>
+    revoke(id: string): Promise<CoreReply<FeishuSnapshot>>
+    sync(id: string): Promise<CoreReply<FeishuSnapshot>>
+    restartWindow(id: string): Promise<CoreReply<FeishuSnapshot>>
+    records(
+      input: Omit<
+        Extract<FeishuRequest, { method: 'feishu.records' }>,
+        'method'
+      >,
+    ): Promise<CoreReply<FeishuRecords>>
+  }
   github: {
     list(): Promise<CoreReply<GithubSnapshot>>
     connect(

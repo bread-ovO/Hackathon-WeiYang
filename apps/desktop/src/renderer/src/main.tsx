@@ -1,3 +1,4 @@
+import { FeishuPanel } from './feishu-panel'
 import { GithubPanel } from './github-panel'
 import { IngestionPanel } from './ingestion-panel'
 import { ProcessingPanel } from './processing-panel'
@@ -678,19 +679,19 @@ function App() {
             <IngestionPanel />
             <ProcessingPanel />
             <SourceImport />
+            <FeishuPanel />
             <GithubPanel />
             <PluginManager />
             <div className="connection-summary">
               <Icon name="link" />
               <span>可手动导入本地 JSONL 导出</span>
-              <small>已支持指定 GitHub 仓库的 PR 采样；飞书专用连接仍在开发</small>
+              <small>已支持指定 GitHub 仓库的 PR 采样；已支持选定飞书会话的分窗历史采样</small>
             </div>
             <div className="section-heading">
               <h3>后续接入方向</h3>
-              <span>3 种来源</span>
+              <span>2 种来源</span>
             </div>
             {[
-              ['chat', '飞书', '从授权对话中发现承诺、变更与反馈', 'blue'],
               [
                 'terminal',
                 '本地 AI 会话',

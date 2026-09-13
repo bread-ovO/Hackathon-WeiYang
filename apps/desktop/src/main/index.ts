@@ -1,3 +1,4 @@
+import { createFeishuRuntime } from './feishu-runtime'
 import { createGithubRuntime } from './github-runtime'
 import { createPetSpeechService } from './pet/speech-service'
 import { createPetSpeechStore } from './pet/speech-store'
@@ -182,6 +183,21 @@ else {
         petWorker.stop()
       })
       const vault = createSystemCredentialVault(join(data, 'credentials'))
+      const feishu = createFeishuRuntime({
+        request: (request) =>
+          core
+            ? core.request(request)
+            : Promise.resolve({ ok: false, error: 'CORE_UNAVAILABLE' }),
+        readCredential: (id, scope) => vault.read(id, scope),
+      })
+      const feishuTimer = setInterval(() => {
+        void feishu.tick().catch(() => {})
+      }, 1000)
+      feishuTimer.unref()
+      app.once('before-quit', () => {
+        clearInterval(feishuTimer)
+        feishu.stop()
+      })
       const github = createGithubRuntime({
         request: (request) =>
           core
@@ -291,10 +307,20 @@ else {
               request.method === 'github.records'
             )
               return github.handle(request)
+            if (
+              request.method === 'feishu.list' ||
+              request.method === 'feishu.connect' ||
+              request.method === 'feishu.sync' ||
+              request.method === 'feishu.records' ||
+              request.method === 'feishu.setEnabled' ||
+              request.method === 'feishu.revoke' ||
+              request.method === 'feishu.restartWindow'
+            )
+              return feishu.handle(request)
             if (request.method === 'credentials.remove') {
               plugins.cancel()
               return github.removeCredential(request.id, () =>
-                credentials(request),
+                feishu.removeCredential(request.id, () => credentials(request)),
               )
             }
             if (
