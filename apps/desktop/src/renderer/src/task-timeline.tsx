@@ -9,6 +9,9 @@ const kinds = {
   reference_conflict: '引用状态变化',
   reference_confirmation: '人工确认引用版本',
   retraction: '消息撤回影响',
+  source_binding: '来源对象关联',
+  identity_mapping: '发送者身份确认',
+  plan_assessment: '计划建议评估',
 } as const
 const roles = {
   user: '人类发送者',
@@ -40,6 +43,12 @@ const fields: Record<TimelineEntry['changes'][number]['field'], string> = {
   confirmedEventId: '确认使用的事件',
   evidenceRelation: '证据关系',
   evidenceValidity: '证据有效性',
+  bindingStatus: '来源关联状态',
+  mappingStatus: '身份映射状态',
+  associationVersion: '关系版本',
+  assessmentVersion: '评估版本',
+  baselineEventId: '计划基准事件',
+  proposalTaskVersion: '评估时事项版本',
 }
 const values: Record<string, string> = {
   todo: '待办',
@@ -64,6 +73,8 @@ const values: Record<string, string> = {
   contradicts: '反证',
   opposes: '反证',
   related: '相关',
+  active: '有效',
+  revoked: '已撤销',
 }
 const reasons: Record<string, string> = {
   explicit_commitment: '发现明确承诺，仅创建候选',
@@ -88,6 +99,8 @@ function display(field: string, value: string | null) {
     'referenceStatus',
     'evidenceRelation',
     'evidenceValidity',
+    'bindingStatus',
+    'mappingStatus',
   ].includes(field)
     ? (values[value] ?? value)
     : value
@@ -100,6 +113,10 @@ function Entry({ entry }: { entry: TimelineEntry }) {
     'criteriaVersion',
     'projectId',
     'confirmedEventId',
+    'associationVersion',
+    'assessmentVersion',
+    'baselineEventId',
+    'proposalTaskVersion',
   ]
   const visibleChanges = entry.changes.filter(
     (c) => !technicalFields.includes(c.field),

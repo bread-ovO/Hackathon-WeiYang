@@ -1,3 +1,5 @@
+import { validateAssociationAudit } from './source-associations'
+import { createPlanChanges } from './plan-changes'
 import type Database from 'better-sqlite3'
 import {
   parseSourceEvent,
@@ -13,10 +15,18 @@ import {
   validateReferenceAudit,
 } from './reference-audit'
 
+function checkedAudit<T>(read: () => T): T {
+  try {
+    return read()
+  } catch {
+    return fail()
+  }
+}
+
 type Row = Record<string, unknown>
 type Position = { at: string; rank: number; id: number }
 type Cursor = {
-  v: 1
+  v: 1 | 2
   projectId: string
   taskId: string
   ceil: number[]
@@ -103,6 +113,8 @@ const families = [
   'reference_conflict',
   'reference_confirmation',
   'retraction',
+  'source_binding',
+  'plan_assessment',
 ] as const
 /** All row enumeration stays in bounded SQL. Snapshot ceilings exclude even backdated concurrent inserts. */
 export function createTimeline(db: Database.Database) {
@@ -449,7 +461,7 @@ export function createTimeline(db: Database.Database) {
   ): TimelineEntry {
     const rank = num(position.rank),
       rowId = num(position.id, 1)
-    if (rank > 4) fail()
+    if (rank > 6) fail()
     const base: TimelineEntry = {
       key: `${families[rank]}:${rowId}`,
       kind: families[rank]!,
@@ -464,6 +476,100 @@ export function createTimeline(db: Database.Database) {
       evidence: null,
     }
     if (rank === 0) return manual(rowId, projectId, taskId, base)
+    if (rank === 5) {
+      const row = db
+        .prepare(
+          'SELECT * FROM source_association_audit WHERE id=? AND project_id=?',
+        )
+        .get(rowId, projectId)
+      if (!row) fail()
+      const audit = checkedAudit(() => validateAssociationAudit(db, row))
+      if (
+        audit.id !== rowId ||
+        audit.projectId !== projectId ||
+        (audit.taskId !== taskId &&
+          !(
+            audit.kind === 'identity_mapping' && audit.after.taskId === taskId
+          )) ||
+        audit.recordedAt !== base.recordedAt
+      )
+        fail()
+      const eventIds = [
+        ...new Set(
+          [audit.before, audit.after].flatMap((snapshot) =>
+            !snapshot
+              ? []
+              : 'baselineEventId' in snapshot
+                ? [snapshot.baselineEventId]
+                : [snapshot.leftEventId, snapshot.rightEventId],
+          ),
+        ),
+      ]
+      eventIds.forEach((id) => event(projectId, id))
+      return {
+        ...base,
+        kind: audit.kind,
+        actor: { kind: 'manual', id: str(audit.actorId, 256) },
+        reason: str(audit.reason, 512),
+        relatedEventIds: eventIds,
+        evidence: eventIds.length ? event(projectId, eventIds[0]) : null,
+        changes: [
+          {
+            field:
+              audit.kind === 'source_binding'
+                ? 'bindingStatus'
+                : 'mappingStatus',
+            before: audit.before
+              ? audit.before.active
+                ? 'active'
+                : 'revoked'
+              : null,
+            after: audit.after.active ? 'active' : 'revoked',
+          },
+          {
+            field: 'associationVersion',
+            before: audit.before ? String(audit.before.version) : null,
+            after: String(audit.version),
+          },
+        ],
+      }
+    }
+    if (rank === 6) {
+      const audit = checkedAudit(() =>
+        createPlanChanges(db).getAudit(projectId, taskId, rowId),
+      )
+      if (audit.id !== rowId || audit.recordedAt !== base.recordedAt) fail()
+      audit.eventIds.forEach((id) => event(projectId, id))
+      return {
+        ...base,
+        actor: { kind: audit.actorKind, id: str(audit.actorId, 256) },
+        reason: str(audit.reason, 512),
+        taskVersion: audit.after.taskVersion,
+        relatedEventIds: audit.eventIds,
+        evidence: audit.eventIds.length
+          ? event(projectId, audit.eventIds[0])
+          : null,
+        changes: [
+          {
+            field: 'assessmentVersion',
+            before: audit.before
+              ? String(audit.before.assessmentVersion)
+              : null,
+            after: String(audit.after.assessmentVersion),
+          },
+          {
+            field: 'baselineEventId',
+            before: audit.before ? String(audit.before.baselineEventId) : null,
+            after: String(audit.after.baselineEventId),
+          },
+          {
+            field: 'proposalTaskVersion',
+            before: audit.before ? String(audit.before.taskVersion) : null,
+            after: String(audit.after.taskVersion),
+          },
+        ],
+      }
+    }
     if (rank === 1) {
       const r = db
         .prepare(
@@ -633,12 +739,16 @@ export function createTimeline(db: Database.Database) {
     'reference_revision_audit',
     'reference_revision_decisions',
     'retraction_impacts',
+    'source_association_audit',
+    'plan_change_assessments',
   ]
   const union = `SELECT d.id AS id,0 AS rank,d.created_at AS at FROM decisions d WHERE d.task_id=@task AND d.id<=@c0
  UNION ALL SELECT d.id,1,d.created_at FROM processing_decisions d WHERE d.project_id=@project AND d.task_id=@task AND d.id<=@c1
  UNION ALL SELECT d.id,2,d.recorded_at FROM reference_revision_audit d WHERE d.project_id=@project AND d.task_id=@task AND d.id<=@c2
  UNION ALL SELECT d.id,3,d.created_at FROM reference_revision_decisions d WHERE d.project_id=@project AND d.task_id=@task AND d.id<=@c3
- UNION ALL SELECT i.rowid,4,e.received_at FROM retraction_impacts i LEFT JOIN source_events e ON e.id=i.retraction_event_id WHERE i.project_id=@project AND i.rowid<=@c4 AND ((i.kind='processing' AND EXISTS(SELECT 1 FROM processing_evidence p WHERE CAST(p.id AS TEXT)=i.evidence_id AND p.project_id=@project AND p.task_id=@task)) OR (i.kind='manual' AND EXISTS(SELECT 1 FROM evidence_links p WHERE p.id=i.evidence_id AND p.project_id=@project AND p.task_id=@task)))`
+ UNION ALL SELECT i.rowid,4,e.received_at FROM retraction_impacts i LEFT JOIN source_events e ON e.id=i.retraction_event_id WHERE i.project_id=@project AND i.rowid<=@c4 AND ((i.kind='processing' AND EXISTS(SELECT 1 FROM processing_evidence p WHERE CAST(p.id AS TEXT)=i.evidence_id AND p.project_id=@project AND p.task_id=@task)) OR (i.kind='manual' AND EXISTS(SELECT 1 FROM evidence_links p WHERE p.id=i.evidence_id AND p.project_id=@project AND p.task_id=@task)))
+ UNION ALL SELECT a.id,5,a.recorded_at FROM source_association_audit a WHERE a.project_id=@project AND a.id<=@c5 AND (a.task_id=@task OR (a.kind='identity_mapping' AND EXISTS(SELECT 1 FROM explicit_identity_mappings m WHERE m.id=a.entity_id AND m.project_id=@project AND m.task_id=@task)))
+ UNION ALL SELECT a.id,6,a.recorded_at FROM plan_change_assessments a WHERE a.project_id=@project AND a.task_id=@task AND a.id<=@c6`
   return {
     list: db.transaction((input: TimelineQuery): TimelinePage => {
       if (
@@ -682,18 +792,18 @@ export function createTimeline(db: Database.Database) {
             ['v', 'projectId', 'taskId', 'ceil', 'after'],
           )
           if (
-            parsed.v !== 1 ||
+            ![1, 2].includes(parsed.v as number) ||
             parsed.projectId !== projectId ||
             parsed.taskId !== taskId ||
             !Array.isArray(parsed.ceil) ||
-            parsed.ceil.length !== 5
+            parsed.ceil.length !== (parsed.v === 1 ? 5 : 7)
           )
             invalid()
           parsed.ceil.forEach((x) => num(x))
           if (parsed.after === null) invalid()
           const after = obj(parsed.after, ['at', 'rank', 'id'])
           date(after.at)
-          if (num(after.rank) > 4) invalid()
+          if (num(after.rank) > (parsed.v === 1 ? 4 : 6)) invalid()
           num(after.id, 1)
           state = parsed as unknown as Cursor
         } catch {
@@ -701,7 +811,7 @@ export function createTimeline(db: Database.Database) {
         }
       } else
         state = {
-          v: 1,
+          v: 2,
           projectId,
           taskId,
           ceil: tables.map((table) =>
@@ -723,6 +833,8 @@ export function createTimeline(db: Database.Database) {
         c2: state.ceil[2]!,
         c3: state.ceil[3]!,
         c4: state.ceil[4]!,
+        c5: state.ceil[5] ?? 0,
+        c6: state.ceil[6] ?? 0,
         at: state.after?.at ?? '',
         rank: state.after?.rank ?? 0,
         id: state.after?.id ?? 0,

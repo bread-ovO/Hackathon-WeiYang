@@ -37,6 +37,9 @@ export interface TimelineEntry {
     | 'reference_conflict'
     | 'reference_confirmation'
     | 'retraction'
+    | 'source_binding'
+    | 'identity_mapping'
+    | 'plan_assessment'
   recordedAt: string
   timeBasis: 'recorded' | 'event_received' | 'migration_snapshot'
   actor: { kind: 'manual' | 'rule' | 'system'; id: string | null }
@@ -66,6 +69,12 @@ export interface TimelineEntry {
       | 'confirmedEventId'
       | 'evidenceRelation'
       | 'evidenceValidity'
+      | 'bindingStatus'
+      | 'mappingStatus'
+      | 'associationVersion'
+      | 'assessmentVersion'
+      | 'baselineEventId'
+      | 'proposalTaskVersion'
     before: string | null
     after: string | null
   }[]

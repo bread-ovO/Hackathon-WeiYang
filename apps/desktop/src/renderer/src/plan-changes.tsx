@@ -4,9 +4,12 @@ import { AppButton, AppInput } from './ui'
 import './plan-changes.css'
 const guards = {
   ready: '可人工确认',
+  association_changed: '来源关联已撤销或变化，请核实后重新评估',
+  mapping_changed: '身份映射已撤销或变化，不能直接应用',
   identity_unknown: '发送者身份尚未核实，不能应用该建议',
   identity_mismatch: '发送者与原始承诺不同，需要进一步核实关联',
-  reference_invalidated: '依据存在不同版本，此建议不能直接应用，请核实后手动调整',
+  reference_invalidated:
+    '依据存在不同版本，此建议不能直接应用，请核实后手动调整',
   unknown_revision_order: '来源修订顺序不可确认，请先核实原始计划',
   late_occurrence: '存在更晚的来源计划，此建议不能直接应用',
   simultaneous_conflict: '同一来源时间存在冲突，请先核实计划',
@@ -27,9 +30,11 @@ export function PlanChanges({
   task,
   busy,
   onApplied,
+  refreshVersion = 0,
 }: {
   task: WorkspaceTask
   busy: boolean
+  refreshVersion?: number
   onApplied: (task: WorkspaceTask) => void
 }) {
   const [rows, setRows] = useState<PlanChangeProposal[]>([]),
@@ -39,6 +44,7 @@ export function PlanChanges({
     [selected, setSelected] = useState<number | null>(null),
     [reason, setReason] = useState(''),
     [notice, setNotice] = useState('')
+  const lastRefresh = useRef(0)
   const epoch = useRef(0),
     flight = useRef(false)
   async function load(after?: string) {
@@ -70,7 +76,14 @@ export function PlanChanges({
           : reply.data.proposals,
       )
       setCursor(reply.data.nextCursor)
-      setSelected(null)
+      if (!after)
+        setSelected((old) =>
+          reply.data.proposals.some(
+            (p) => p.id === old && p.status === 'pending',
+          )
+            ? old
+            : null,
+        )
     } catch {
       if (generation === epoch.current) setError('本地核心暂不可用。')
     } finally {
@@ -94,6 +107,12 @@ export function PlanChanges({
       epoch.current++
     }
   }, [task.id, task.projectId])
+  useEffect(() => {
+    if (refreshVersion > lastRefresh.current && !flight.current) {
+      lastRefresh.current = refreshVersion
+      void load()
+    }
+  }, [refreshVersion, pending])
   async function confirm(proposal: PlanChangeProposal) {
     if (flight.current || busy || !task.projectId || !reason.trim()) return
     flight.current = true
@@ -105,6 +124,7 @@ export function PlanChanges({
         projectId: task.projectId,
         taskId: task.id,
         proposalId: proposal.id,
+        expectedAssessmentVersion: proposal.assessmentVersion,
         expectedVersion: proposal.taskVersion,
         expectedCriteriaVersion: proposal.criteriaVersion,
         expectedManualVersion: proposal.manualVersion,
@@ -149,7 +169,7 @@ export function PlanChanges({
         </AppButton>
       </div>
       <p>
-        仅关联同一来源的原始候选记录或明确回复。绝对时间改期需要你确认；不会按标题或到达顺序覆盖事项。
+        仅使用已明确关联的来源对象与经确认的直接身份映射。改期需要你确认；不会按标题或记录到达顺序覆盖事项。
       </p>
       <p>
         当前已保存截止时间：<strong>{time(task.dueAt)}</strong>
@@ -223,7 +243,7 @@ export function PlanChanges({
       {!rows.length && !pending && !error && (
         <p>
           暂无已关联的明确改期建议。仅识别包含时区的明确表达，例如“截止时间改为
-          2026-09-20T18:00:00+08:00”。人工事项的来源关联仍待接入。
+          2026-09-20T18:00:00+08:00”。可在来源关联区选择已收录记录并重新评估。
         </p>
       )}
       {cursor && (

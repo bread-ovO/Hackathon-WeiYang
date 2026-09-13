@@ -111,6 +111,7 @@ try {
         projectId: 'a',
         taskId: task.id,
         proposalId: p.id,
+        expectedAssessmentVersion: p.assessmentVersion,
         expectedVersion: p.taskVersion,
         expectedCriteriaVersion: p.criteriaVersion,
         expectedManualVersion: p.manualVersion,

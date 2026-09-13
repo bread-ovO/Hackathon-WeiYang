@@ -1,3 +1,5 @@
+import { sourceAssociationRequestSchemas } from './source-associations'
+export * from './source-associations'
 import { planChangeRequestSchemas } from './plan-changes'
 export * from './plan-changes'
 import { timelineRequestSchema } from './task-timeline'
@@ -57,6 +59,7 @@ export type WorkspaceQuery = FromSchema<typeof workspaceQuerySchema>
 export const workspaceRequestSchema = {
   oneOf: [
     ...planChangeRequestSchemas,
+    ...sourceAssociationRequestSchemas,
     timelineRequestSchema,
     ...referenceReviewRequestSchemas,
     {

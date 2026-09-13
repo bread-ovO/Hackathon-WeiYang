@@ -153,6 +153,47 @@ const bridge: DesktopBridge = {
       ipcRenderer.invoke('memo:request', { method: 'sources.revoke', id }),
   }),
   workspace: Object.freeze({
+    sourceEvents: (request) =>
+      ipcRenderer.invoke('memo:request', {
+        ...request,
+        method: 'workspace.sourceEvents',
+      }),
+    sourceBindings: (request) =>
+      ipcRenderer.invoke('memo:request', {
+        ...request,
+        method: 'workspace.sourceBindings',
+      }),
+    bindSourceObject: (request) =>
+      ipcRenderer.invoke('memo:request', {
+        ...request,
+        method: 'workspace.bindSourceObject',
+      }),
+    revokeSourceBinding: (request) =>
+      ipcRenderer.invoke('memo:request', {
+        ...request,
+        method: 'workspace.revokeSourceBinding',
+      }),
+    identityMappings: (request) =>
+      ipcRenderer.invoke('memo:request', {
+        ...request,
+        method: 'workspace.identityMappings',
+      }),
+    confirmIdentityMapping: (request) =>
+      ipcRenderer.invoke('memo:request', {
+        ...request,
+        method: 'workspace.confirmIdentityMapping',
+      }),
+    revokeIdentityMapping: (request) =>
+      ipcRenderer.invoke('memo:request', {
+        ...request,
+        method: 'workspace.revokeIdentityMapping',
+      }),
+
+    reevaluatePlanChange: (request) =>
+      ipcRenderer.invoke('memo:request', {
+        ...request,
+        method: 'workspace.reevaluatePlanChange',
+      }),
     planChanges: (request) =>
       ipcRenderer.invoke('memo:request', {
         ...request,

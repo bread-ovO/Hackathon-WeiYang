@@ -75,7 +75,7 @@ try {
     taskIds: [task.id],
     includeSourceText: false,
   })
-  assert.equal(redacted.schemaVersion, 6)
+  assert.equal(redacted.schemaVersion, 7)
   assert.equal(redacted.planChangeProposals.length, 1)
   const row = redacted.planChangeProposals[0]!
   assert.equal(row.status, 'pending')
@@ -103,6 +103,7 @@ try {
       expectedVersion: proposed.taskVersion,
       expectedCriteriaVersion: proposed.criteriaVersion,
       expectedManualVersion: proposed.manualVersion,
+      expectedAssessmentVersion: proposed.assessmentVersion,
       reason: 'Adopt this explicit deadline',
     },
     'local-user',
