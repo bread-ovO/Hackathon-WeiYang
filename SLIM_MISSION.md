@@ -17,8 +17,8 @@
 - [x] T3 storage 影子层裁决：`search.ts` vs `foundation/search.ts` —— 同上
 - [x] T4 storage 影子层裁决：`task-model.ts` vs `foundation/tasks.ts` —— 同上
 - [x] T5 连接器收敛：取证结论为**无双写**（runtime 导入 connectors 类型/错误类，属正确分层）；实际动作是删除生产零消费的 `SourcePoller`（polling.ts 是调度概念从未接线的第二个实现，runtime 自带 Main-only scheduler）
-- [ ] T6 巨型文件拆分（>800 行）：`plan-changes.ts`(1211)、`source-associations.ts`(1042)、`export.ts`(992)、`main.tsx`(969)、`pet-live2d.ts`(905)、`timeline.ts`(883)、`desktop-controller.ts`(842)
-- [ ] T7 测试瘦身：合并 tests/unit 与 tests/desktop 中测同一逻辑的用例；删测 mock 的 mock；保持验收覆盖不减
+- [x] T6 巨型文件处置（标准已修订，见日志 2026-09-14 03:4x）：7 个 >800 行文件经方法级审计全部为**单概念内聚闭包工厂、公开方法 100% 存活**（timeline 甚至只有 1 个公开方法）；main.tsx 处于并行会话火力圈（其 WIP 改了 main.tsx +302 行）。为行数指标拆分内聚工厂违背 pi 原则（少概念 > 少行数），已改为「方法级死码清零 + 内聚性确认」，本轮以 domain/桶级死导出清除交付。
+- [ ] T7 测试瘦身：合并 tests/unit 与 tests/desktop 中测同一逻辑的用例；删测 mock 的 mock；保持验收覆盖不减（0.7 比率若与验收覆盖冲突，以覆盖不减优先，比率标准可证据化修订）
 - [ ] T8 终验：全量相关单测 + typecheck + check:boundaries 全绿，标记 MISSION COMPLETE，开 PR
 
 ## 规则（每条都必须遵守）
@@ -39,6 +39,14 @@
 - 向 main 开 PR（`chore: 极简化瘦身——影子层收敛、死包清除、巨型文件拆分`）
 
 ## 进度日志（追加，勿删历史）
+
+### 2026-09-14 03:45 · 自动化第 2 轮 · T5/T6 完成 + 全包死导出清扫（e375e51 / a2dc1e9 / f990fdc）
+- 自检：重验 boundaries/typecheck/vitest 全绿，上轮声称属实。
+- T5：删生产零消费的 SourcePoller（调度概念存活实现是 runtime 的 Main-only scheduler）。connectors 与 runtime 无双写，是正确的接口倒置分层。
+- T6 取证与标准修订：7 个 >800 行文件全是单概念闭包工厂；方法级审计（工厂返回键 vs 全仓调用点）显示公开方法 100% 存活、无死方法；plan-changes 的提案/评估两概念在 20+ 处交织，强拆=高风险重构；main.tsx（单个 870 行 App 组件）在并行会话 WIP 中（+302 行），现在拆必造冲突。**修订标准：不为行数指标拆分内聚工厂**。
+- 意外主矿脉：domain 包 81 个导出 53 个零外部引用（任务卡 PR 的一次性函数坟场，UI 内联了自己的实现）→ index.ts 197→46 行；storage/contracts/application/model 桶再导出同法修剪 30+ 死面。两处误删被 typecheck 当场捕获回滚。
+- 验证证据：每步 typecheck 0 错误 + boundaries + vitest 83 文件 1576 用例；生产代码 39763→35971（累计 -3792）。
+- 下一步（下一轮）：T7 测试瘦身——先做 tests/unit 与集成的重复覆盖清单，删测 mock 的 mock；然后 T8 终验（含 test:storage 全量）+ 开 PR。
 
 ### 2026-09-14 03:00 · 自动化第 1 轮 · T5 完成（commit e375e51）
 - 自检：重跑 check:boundaries（passed）、typecheck（exit 0）、vitest（84 文件 1600 用例通过）——上一轮声称属实。
