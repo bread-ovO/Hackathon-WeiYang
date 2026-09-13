@@ -1,12 +1,12 @@
 import { afterEach, beforeEach, expect, it } from 'vitest'
 import { createHash } from 'node:crypto'
+import { symlinkOrSkip } from './helpers/symlink-or-skip'
 import {
   mkdtemp,
   mkdir,
   readFile,
   realpath,
   rm,
-  symlink,
   writeFile,
 } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
@@ -87,21 +87,21 @@ it('ignores any user-supplied manifest and rejects changed installed bytes', asy
   await store.install(source)
   expect(await store.status()).toBe(true)
 })
-it('rejects source and installed symlinks, including ancestor links', async () => {
+it('rejects source and installed symlinks, including ancestor links', async (ctx) => {
   const original = join(source, pins.files[0]!.path)
   await rm(original)
-  await symlink(join(source, pins.files[1]!.path), original)
+  await symlinkOrSkip(ctx, join(source, pins.files[1]!.path), original)
   const store = createRuntimeStore(privateRoot, pins)
   await expect(store.install(source)).rejects.toThrow('PET_RUNTIME_INVALID')
   await rm(original)
   await writeFile(original, 'core.js')
   await store.install(source)
   await rm(join(privateRoot, 'v1', 'core.js'))
-  await symlink(original, join(privateRoot, 'v1', 'core.js'))
+  await symlinkOrSkip(ctx, original, join(privateRoot, 'v1', 'core.js'))
   expect(await store.read('core.js')).toBeNull()
   expect(await store.status()).toBe(false)
   const linked = join(root, 'linked')
-  await symlink(privateRoot, linked)
+  await symlinkOrSkip(ctx, privateRoot, linked)
   expect(await createRuntimeStore(linked, pins).status()).toBe(false)
 })
 it('serializes concurrent installs and snapshots trusted pins', async () => {
@@ -172,7 +172,7 @@ it('serves exact model resource descriptors and refuses executable content even 
   ])
     expect(await readModelResource(root, descriptor, path)).toBeNull()
 })
-it('rejects corrupted, truncated, duplicate or linked model resources', async () => {
+it('rejects corrupted, truncated, duplicate or linked model resources', async (ctx) => {
   const { descriptor, directory } = await modelFixture()
   await writeFile(join(directory, 'texture.png'), 'BAD')
   expect(await readModelResource(root, descriptor, 'texture.png')).toBeNull()
@@ -189,7 +189,7 @@ it('rejects corrupted, truncated, duplicate or linked model resources', async ()
     ),
   ).toBeNull()
   await rm(join(directory, 'm.model3.json'))
-  await symlink(join(directory, 'evil.js'), join(directory, 'm.model3.json'))
+  await symlinkOrSkip(ctx, join(directory, 'evil.js'), join(directory, 'm.model3.json'))
   expect(await readModelResource(root, descriptor, 'm.model3.json')).toBeNull()
   expect(await readFile(join(directory, 'evil.js'), 'utf8')).toBe('alert(1)')
 })
