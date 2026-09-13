@@ -10,6 +10,7 @@ import { PluginManager } from './plugin-manager'
 import { PetModels } from './pet-models'
 import { CredentialsPanel } from './credentials-panel'
 import { SourceImport } from './source-import'
+import { SessionSources } from './session-sources'
 import { RealWorkspace } from './real-workspace'
 import React, { useEffect, useRef, useState } from 'react'
 import { createRoot } from 'react-dom/client'
@@ -750,6 +751,20 @@ function App() {
             </Disclosure>
             <Disclosure id="preset-local" title="本地记录">
               <SourceImport />
+            </Disclosure>
+            <Disclosure
+              id="preset-claude"
+              title="Claude Code 会话"
+              description="收录本机 Claude Code 会话"
+            >
+              <SessionSources kind="claude-code" />
+            </Disclosure>
+            <Disclosure
+              id="preset-codex"
+              title="Codex 会话"
+              description="收录本机 Codex 会话"
+            >
+              <SessionSources kind="codex" />
             </Disclosure>
             <Disclosure
               id="preset-plugins"

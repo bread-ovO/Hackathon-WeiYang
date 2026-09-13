@@ -40,6 +40,12 @@ export interface LocalJsonlInput {
   sourceInstanceId: string
   cursor?: LocalJsonlCursor | null
   manifest?: unknown
+  /** Optional pure normalizer applied to each parsed record before manifest
+   * mapping; returning null skips the line without consuming batch budget. */
+  normalizeRecord?: (record: Record<string, unknown>) => unknown
+  /** Stable versioned identity of normalizeRecord, mixed into the mapping
+   * fingerprint so a changed normalizer rescans instead of resuming stale. */
+  normalizerId?: string
 }
 export interface LocalJsonlBatch {
   events: SourceEvent[]
@@ -146,6 +152,15 @@ export async function readLocalJsonl(
     input.sourceInstanceId.length > 128
   )
     throw new LocalJsonlError('INVALID_SOURCE_EVENT')
+  if (
+    (input.normalizeRecord == null) !== (input.normalizerId == null) ||
+    (input.normalizerId != null &&
+      (typeof input.normalizerId !== 'string' ||
+        input.normalizerId.length < 1 ||
+        input.normalizerId.length > 128)) ||
+    (input.normalizeRecord != null && typeof input.normalizeRecord !== 'function')
+  )
+    throw new LocalJsonlError('INVALID_MANIFEST')
   if (input.cursor != null && !validCursor(input.cursor))
     throw new LocalJsonlError('INVALID_CURSOR')
   if (
@@ -161,10 +176,20 @@ export async function readLocalJsonl(
   const selectedPath = nodePath.resolve(input.path)
   const selectionSha256 = hash(selectedPath)
   const mappingSha256 = hash(
-    JSON.stringify({
-      mapping: manifest.mapping,
-      sourceInstanceId: input.sourceInstanceId,
-    }),
+    JSON.stringify(
+      // Without a normalizer the fingerprint keeps its exact legacy shape so
+      // existing cursors stay valid.
+      input.normalizerId == null
+        ? {
+            mapping: manifest.mapping,
+            sourceInstanceId: input.sourceInstanceId,
+          }
+        : {
+            mapping: manifest.mapping,
+            sourceInstanceId: input.sourceInstanceId,
+            normalizerId: input.normalizerId,
+          },
+    ),
   )
   const fileLimit = Math.min(16 * 1024 * 1024, manifest.transport.maxFileBytes)
   const lineLimit = Math.min(128 * 1024, manifest.transport.maxLineBytes)
@@ -263,6 +288,19 @@ export async function readLocalJsonl(
         record = JSON.parse(text)
       } catch {
         throw new LocalJsonlError('INVALID_JSONL')
+      }
+      if (input.normalizeRecord) {
+        if (!ownObject(record)) throw new LocalJsonlError('INVALID_JSONL')
+        try {
+          record = input.normalizeRecord(record)
+        } catch {
+          throw new LocalJsonlError('INVALID_SOURCE_EVENT')
+        }
+        // A skipped line is still confirmed consumed: it never enters a batch.
+        if (record === null) {
+          offset = newline + 1
+          continue
+        }
       }
       const event = mapRecord(
         record,

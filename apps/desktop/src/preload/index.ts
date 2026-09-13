@@ -184,6 +184,12 @@ const bridge: DesktopBridge = {
         method: 'sources.chooseFile',
         projectId,
       }),
+    authorizeDirectory: (projectId, kind) =>
+      ipcRenderer.invoke('memo:request', {
+        method: 'sources.authorizeDirectory',
+        projectId,
+        kind,
+      }),
     sync: (id) =>
       ipcRenderer.invoke('memo:request', { method: 'sources.sync', id }),
     revoke: (id) =>

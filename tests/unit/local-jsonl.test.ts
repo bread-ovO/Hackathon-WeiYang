@@ -368,3 +368,89 @@ describe('explicit JSONL retraction mapping', () => {
     })
   })
 })
+
+describe('normalizeRecord hook', () => {
+  const uppercase = (record: Record<string, unknown>) => ({
+    ...record,
+    content: `${record.content}!`,
+  })
+  it('normalizes records before mapping and skips null results without batch budget', async () => {
+    await fs.writeFile(
+      file,
+      line(event('keep-1')) + line(event('skip')) + line(event('keep-2')),
+    )
+    const result = await readLocalJsonl({
+      ...input(),
+      normalizerId: 'test-normalizer@1',
+      normalizeRecord: (record) =>
+        record.id === 'skip' ? null : uppercase(record),
+    })
+    expect(result.events.map((value) => value.externalId)).toEqual([
+      'keep-1',
+      'keep-2',
+    ])
+    expect(result.events.every((value) => value.text.endsWith('!'))).toBe(true)
+    expect(result.done).toBe(true)
+  })
+  it('requires normalizeRecord and normalizerId as a pair', async () => {
+    await expect(
+      readLocalJsonl({ ...input(), normalizerId: 'test-normalizer@1' }),
+    ).rejects.toMatchObject({ code: 'INVALID_MANIFEST' })
+    await expect(
+      readLocalJsonl({ ...input(), normalizeRecord: uppercase }),
+    ).rejects.toMatchObject({ code: 'INVALID_MANIFEST' })
+  })
+  it('maps normalizer failures to INVALID_SOURCE_EVENT', async () => {
+    await fs.writeFile(file, line(event()))
+    await expect(
+      readLocalJsonl({
+        ...input(),
+        normalizerId: 'test-normalizer@1',
+        normalizeRecord: () => {
+          throw new Error('bug')
+        },
+      }),
+    ).rejects.toMatchObject({ code: 'INVALID_SOURCE_EVENT' })
+  })
+  it('leaves the legacy mapping fingerprint untouched without a normalizer', async () => {
+    await fs.writeFile(file, line(event()))
+    const plain = await readLocalJsonl(input())
+    const normalized = await readLocalJsonl({
+      ...input(),
+      normalizerId: 'test-normalizer@1',
+      normalizeRecord: uppercase,
+    })
+    expect(normalized.cursor.mappingSha256).not.toBe(
+      plain.cursor.mappingSha256,
+    )
+  })
+  it('a changed normalizerId rescans from the start instead of resuming', async () => {
+    await fs.writeFile(file, line(event('one')) + line(event('two')))
+    const first = await readLocalJsonl({
+      ...input(),
+      normalizerId: 'test-normalizer@1',
+      normalizeRecord: uppercase,
+    })
+    expect(first.events).toHaveLength(2)
+    await fs.appendFile(file, line(event('three')))
+    const rescanned = await readLocalJsonl({
+      ...input(),
+      normalizerId: 'test-normalizer@2',
+      normalizeRecord: uppercase,
+      cursor: first.cursor,
+    })
+    expect(rescanned.events.map((value) => value.externalId)).toEqual([
+      'one',
+      'two',
+      'three',
+    ])
+    const resumed = await readLocalJsonl({
+      ...input(),
+      normalizerId: 'test-normalizer@2',
+      normalizeRecord: uppercase,
+      cursor: rescanned.cursor,
+    })
+    expect(resumed.events).toHaveLength(0)
+    expect(resumed.done).toBe(true)
+  })
+})
