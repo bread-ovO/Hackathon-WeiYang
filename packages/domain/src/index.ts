@@ -46,3 +46,4 @@ export interface StoredTask extends Omit<Task, 'status'> {
 export { extractExplicitPlanChange } from './plan-change'
 
 export { resolveDeadline } from './deadline'
+export {githubObjectUrl,githubObjectLinks,describesFeedback} from './delivery'

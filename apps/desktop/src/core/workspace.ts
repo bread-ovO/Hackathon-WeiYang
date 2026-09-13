@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto'
 import type { openStore } from '@memo/storage'
 import type {
   WorkspaceRequest,
+  DeliverySummary,
   WorkspaceSnapshot,
   WorkspaceDetail,
   ReferenceList,
@@ -20,6 +21,7 @@ export function handleWorkspace(
   store: ReturnType<typeof openStore>,
   request: WorkspaceRequest,
 ):
+  | DeliverySummary
   | WorkspaceSnapshot
   | WorkspaceDetail
   | ReferenceList
@@ -57,6 +59,13 @@ export function handleWorkspace(
     throw Error('TASK_MERGED')
   const by = { actorId: 'local-user', reason: '用户在我的工作区手动操作' }
   switch (request.method) {
+    case 'workspace.delivery': return store.delivery.view(request.projectId,request.taskId)
+    case 'workspace.startDelivery':
+      return store.delivery.start(request)
+    case 'workspace.resolveDelivery':
+      return store.delivery.resolve(request)
+    case 'workspace.completeDelivery':
+      return store.delivery.complete(request)
     case 'workspace.petContextFacts':
       return store.petContext.facts(request.projectIds)
     case 'workspace.validatePetContextFact':

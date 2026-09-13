@@ -1,3 +1,5 @@
+import { deliveryRequestSchemas } from './delivery'
+export * from './delivery'
 import { petContextFactsRequestSchemas } from './pet-context-facts'
 export * from './pet-context-facts'
 import { sourceAssociationRequestSchemas } from './source-associations'
@@ -78,6 +80,7 @@ export const workspaceRequestSchema = {
         },
       },
     },
+    ...deliveryRequestSchemas,
     ...petContextFactsRequestSchemas,
     ...planChangeRequestSchemas,
     ...sourceAssociationRequestSchemas,

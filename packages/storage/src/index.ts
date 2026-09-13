@@ -1,3 +1,4 @@
+import { createDelivery, migrateDelivery } from './delivery'
 import { createPetContext } from './pet-context'
 import {
   migratePlanChanges,
@@ -90,7 +91,7 @@ export function openStore(path: string) {
     db.pragma('synchronous = FULL')
     db.pragma('busy_timeout = 3000')
     const version = db.pragma('user_version', { simple: true }) as number
-    if (version > 21) throw new Error('DATABASE_TOO_NEW')
+    if (version > 22) throw new Error('DATABASE_TOO_NEW')
     if (version < 1)
       db.transaction(() => {
         db.exec(`
@@ -132,6 +133,7 @@ export function openStore(path: string) {
     if (version < 19) migrateTaskMerges(db)
     if (version < 20) migrateGithubAccount(db)
     if (version < 21) migrateTaskSplits(db)
+    if (version < 22) migrateDelivery(db)
     const revisionReview = createRevisionReview(db)
     const retractions = createRetractions(db)
     const ingestion = createIngestionBudget(db)
@@ -150,6 +152,7 @@ export function openStore(path: string) {
     const github = createGithub(db, receive, observeEvent)
     const feishu = createFeishu(db, receive, observeEvent)
     return {
+      delivery:createDelivery(db),
       petContext: createPetContext(db),
       timeline: createTimeline(db),
       planChanges: createPlanChanges(db),

@@ -408,7 +408,7 @@ try {
     cursor = next.nextCursor
   }
   assert.equal(seen.size, 100)
-  assert.equal(store.health().schemaVersion, 21)
+  assert.equal(store.health().schemaVersion, 22)
   console.log('GitHub storage integration passed')
 } finally {
   db.close()

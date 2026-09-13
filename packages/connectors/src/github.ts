@@ -274,8 +274,10 @@ export function createGithubPullRequestsFetcher(
           : 'GITHUB_REPOSITORY_CHANGED',
       )
     repositoryId = Number(value.base.repo.id)
+    if(value.body !== undefined && value.body !== null && (typeof value.body !== 'string' || value.body.length > 40000 || /\0/.test(value.body)))fail('INVALID_GITHUB_RESPONSE')
     const text = JSON.stringify({
       kind: 'github-pull-request',
+      ...(typeof value.body === 'string' ? {body:value.body} : {}),
       repository: selected,
       repositoryId: value.base.repo.id,
       number: value.number,
