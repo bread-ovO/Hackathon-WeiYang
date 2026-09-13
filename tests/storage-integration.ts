@@ -7,7 +7,7 @@ import assert from 'node:assert/strict'
 import Database from 'better-sqlite3'
 const folder=mkdtempSync(join(tmpdir(),'memo-storage-'));const path=join(folder,'test.sqlite')
 try {
- let store=openStore(path);store.registerSource('sample')
+ let store=openStore(path);store.registerSource('sample');store.grantSource('sample',['legacy'],1)
  const event={schemaVersion:1,sourceInstanceId:'sample',externalId:'m1',revision:'1',occurredAt:'2026-09-12T09:00:00Z',role:'user',text:'测试承诺'}
  for(let i=0;i<10;i++)receiveEvent(store,event,'page1')
  assert.equal(store.health().eventCount,1);assert.equal(store.health().jobCount,1);assert.equal(store.cursor('sample'),'page1')

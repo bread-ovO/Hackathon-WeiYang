@@ -1091,3 +1091,6 @@ dd {
 .toast > svg {
   color: var(--text-color-kumo-success);
 }
+/* Capacity settings retain the existing compact workspace rhythm. */
+.capacity-form { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+.capacity-form input { width: 112px; }

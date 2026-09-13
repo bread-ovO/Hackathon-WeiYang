@@ -1,0 +1,131 @@
+
+> bugu@0.1.0 check <workspace>
+> pnpm check:boundaries && pnpm typecheck && pnpm test && pnpm build && pnpm test:storage && pnpm test:desktop
+
+
+> bugu@0.1.0 check:boundaries <workspace>
+> node scripts/check-boundaries.mjs
+
+Package boundaries passed
+
+> bugu@0.1.0 typecheck <workspace>
+> tsc --noEmit
+
+
+> bugu@0.1.0 test <workspace>
+> vitest run
+
+
+ RUN  v3.2.4 <workspace>
+
+ ✓ tests/unit/transport-hardening.test.ts (4 tests) 3ms
+ ✓ tests/unit/foundation.test.ts (7 tests) 5ms
+ ✓ tests/unit/data-foundation.test.ts (11 tests) 23ms
+
+ Test Files  3 passed (3)
+      Tests  22 passed (22)
+   Start at  09:04:10
+   Duration  378ms (transform 76ms, setup 0ms, collect 301ms, tests 30ms, environment 0ms, prepare 141ms)
+
+
+> bugu@0.1.0 build <workspace>
+> pnpm --filter @memo/desktop build
+
+
+> @memo/desktop@0.1.0 build <workspace>/apps/desktop
+> electron-vite build
+
+vite v7.3.1 building ssr environment for production...
+transforming...
+✓ 157 modules transformed.
+rendering chunks...
+out/main/index.js                         6.13 kB
+out/main/core.js                         81.92 kB
+out/main/chunks/operations-DIG58MLO.js  269.42 kB
+✓ built in 374ms
+vite v7.3.1 building ssr environment for production...
+transforming...
+✓ 1 modules transformed.
+rendering chunks...
+out/preload/index.js  0.45 kB
+✓ built in 7ms
+vite v7.3.1 building client environment for production...
+transforming...
+✓ 4660 modules transformed.
+rendering chunks...
+../../out/renderer/index.html                     0.58 kB
+../../out/renderer/assets/index-t9Up5AXY.css    146.84 kB
+../../out/renderer/assets/index-BVKgeP0C.js   1,214.22 kB
+✓ built in 2.09s
+
+> bugu@0.1.0 test:storage <workspace>
+> node scripts/test-storage.mjs
+
+Storage integration passed: {
+  status: 'ready',
+  schemaVersion: 2,
+  sqliteVersion: '3.53.4',
+  eventCount: 2,
+  jobCount: 2,
+  processingStatus: 'paused',
+  searchReady: true,
+  queue: { depth: 2, running: 0, dead: 0, oldestAgeMs: 11 },
+  resources: {
+    usedBytes: 323584,
+    availableBytes: 48397668352,
+    maxBytes: 536870912,
+    queueHigh: 10000,
+    queueLow: 8000
+  },
+  pauses: [ { sourceId: null, code: 'NO_HANDLER' } ]
+}
+PASS S03/S04: whole-page atomicity, stable receipts and conflict detection
+PASS S03: independent streams, stale CAS, input scope and revoked in-flight pages
+PASS S01/S04/S07: equivalent facts, A-B-A revisions and tombstone ordering
+PASS S03: process kill during page transaction and after durable commit
+PASS S02: four dimensions, criterion references, manual protection and rollback
+PASS S02/V05 substrate: sufficient evidence, criteria revision and source withdrawal
+PASS S05: atomic claim, fencing, expired lease and crash budget
+PASS S05: repeated real process crashes stop at maxAttempts
+PASS S04/S05: business and job completion survive transaction and post-commit kills
+PASS S05 runner: real handler commit, validated output, timeout and no handler
+PASS S07: mapping versions and late plan facts cannot override a newer plan
+PASS S08: UTF-8 budgets, duplicate receipts, queue hysteresis and persistent pause
+PASS S08: unavailable disk, automatic result admission, actual SQLITE_FULL and recovery
+PASS S08: WAL growth is measured and checkpoint reports a long reader
+PASS S02: v1 consistent backup, conservative migration and repeated open
+PASS S02: migration fails closed at backup:before
+PASS S02: migration fails closed at backup:after
+PASS S02: migration fails closed at migration:before
+PASS S02: migration fails closed at migration:copied
+PASS S02: migration fails closed at migration:verified
+PASS S02: failed backup path and future database never start writers
+PASS S05/S08: paused work resumes with capacity, clock pause requires explicit resume
+PASS S05: lease expires during business transaction and rolls back all writes
+PASS S03/S08: receipt retention and queue hysteresis survive restart
+PASS S06: project/scope before LIMIT, consistent index, fallback and deletion
+PASS S05: stopping runner preserves retryable work and exhaustion is terminal
+PASS S02 hardening: backup includes committed WAL with another connection open
+PASS S02 hardening: invalid old foreign keys abort migration and preserve v1
+PASS S03 hardening: four independent processes contend for one checkpoint
+PASS S05 hardening: four independent processes cannot share a lease
+PASS S01 hardening: missing envelope/provenance fields never persist
+PASS S05 hardening: saved proposal survives process death without rerunning handler
+PASS S05/H01 hardening: waiting handler cannot overwrite an intervening manual decision
+PASS S05/Q03 hardening: in-flight handler result stays cancelled after revoke and regrant
+PASS S07 hardening: mapping source revocation is checked even without a direct event input
+PASS S05 hardening: wall clock rollback before first heartbeat pauses a fast result
+PASS S05 hardening: storage fencing rejects clock rollback without runner
+PASS S06 hardening: tokenizer upgrade rebuilds and failed rebuild stays degraded
+PASS S06: frozen 120-case recall and 10k-task cold/warm baseline
+Data foundation integration passed: 39 scenarios
+
+> bugu@0.1.0 test:desktop <workspace>
+> playwright test
+
+
+Running 1 test using 1 worker
+
+  ✓  1 tests/desktop/app.spec.ts:7:5 › packaged renderer connects to isolated SQLite core without exposing Node (4.2s)
+
+  1 passed (4.8s)

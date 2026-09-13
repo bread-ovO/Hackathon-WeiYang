@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "main": "./out/main/index.js",
-  "description": "BUGU 不咕 · 工作事项与桌面陪伴助手",
+  "description": "BUGU \u4e0d\u5495 \u00b7 \u5de5\u4f5c\u4e8b\u9879\u4e0e\u684c\u9762\u966a\u4f34\u52a9\u624b",
   "author": "Project contributors",
   "scripts": {
     "dev": "electron-vite dev",
@@ -19,7 +19,8 @@
     "ajv": "8.17.1",
     "better-sqlite3": "13.0.3",
     "react": "19.3.0",
-    "react-dom": "19.3.0"
+    "react-dom": "19.3.0",
+    "@memo/application": "workspace:*"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "4.7.0",
@@ -30,7 +31,7 @@
   },
   "build": {
     "appId": "dev.multisource.memo",
-    "productName": "BUGU 不咕",
+    "productName": "BUGU \u4e0d\u5495",
     "directories": {
       "output": "../../release"
     },

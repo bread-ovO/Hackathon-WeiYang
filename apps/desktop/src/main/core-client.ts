@@ -1,6 +1,6 @@
 import { utilityProcess, type UtilityProcess } from 'electron'
 import { randomUUID } from 'node:crypto'
-import type { CoreReply, CoreRequest } from '@memo/contracts'
+import { parseCoreReply, type CoreReply, type CoreRequest } from '@memo/contracts'
 export class CoreClient {
   private child:UtilityProcess|null = null
   private ready = false
@@ -18,7 +18,10 @@ export class CoreClient {
       if ('ready' in message && message.ready === true) { this.ready=true; return }
       if ('id' in message && typeof message.id === 'string' && 'reply' in message) {
         const pending=this.pending.get(message.id)
-        if (pending) {clearTimeout(pending.timer);this.pending.delete(message.id);pending.resolve(message.reply as CoreReply)}
+        if (pending) {
+          clearTimeout(pending.timer);this.pending.delete(message.id)
+          try {pending.resolve(parseCoreReply(message.reply))}catch{pending.resolve({ok:false,error:'INTERNAL_ERROR'})}
+        }
       }
     })
     child.on('exit',() => {

@@ -1,0 +1,44 @@
+
+> bugu@0.1.0 package:dir <workspace>
+> pnpm --filter @memo/desktop package:dir
+
+
+> @memo/desktop@0.1.0 package:dir <workspace>/apps/desktop
+> electron-vite build && electron-builder --dir
+
+vite v7.3.1 building ssr environment for production...
+transforming...
+✓ 157 modules transformed.
+rendering chunks...
+out/main/index.js                         6.13 kB
+out/main/core.js                         81.92 kB
+out/main/chunks/operations-DIG58MLO.js  269.42 kB
+✓ built in 398ms
+vite v7.3.1 building ssr environment for production...
+transforming...
+✓ 1 modules transformed.
+rendering chunks...
+out/preload/index.js  0.45 kB
+✓ built in 8ms
+vite v7.3.1 building client environment for production...
+transforming...
+✓ 4660 modules transformed.
+rendering chunks...
+../../out/renderer/index.html                     0.58 kB
+../../out/renderer/assets/index-t9Up5AXY.css    146.84 kB
+../../out/renderer/assets/index-BVKgeP0C.js   1,214.22 kB
+✓ built in 2.09s
+  • electron-builder  version=26.8.1 os=25.6.0
+  • loaded configuration  file=package.json ("build" field)
+  • packageManager not detected by file, falling back to environment detection  resolvedPackageManager=pnpm detected=<workspace>/apps/desktop
+  • detected workspace root for project using packageManager field  pm=pnpm config=pnpm@10.34.5 resolved=<workspace> projectDir=<workspace>/apps/desktop
+  • executing @electron/rebuild  electronVersion=44.3.0 arch=arm64 buildFromSource=false workspaceRoot=<workspace> projectDir=./ appDir=./
+  • installing native dependencies  arch=arm64
+  • preparing       moduleName=better-sqlite3 arch=arm64
+  • finished        moduleName=better-sqlite3 arch=arm64
+  • completed installing native dependencies
+  • packaging       platform=darwin arch=arm64 electron=44.3.0 appOutDir=<workspace>/release/mac-arm64
+  • searching for node modules  pm=pnpm searchDir=<workspace>/apps/desktop
+  • default Electron icon is used  reason=application icon is not set
+  • skipped macOS code signing  reason=identity explicitly is set to null
+  • arm64 requires signing, but identity is set to null and signing is being skipped
