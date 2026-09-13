@@ -1,6 +1,6 @@
 import {readdir,readFile} from 'node:fs/promises'
 import {join} from 'node:path'
-const allowed={domain:[],contracts:[],application:['domain','contracts'],storage:['domain','contracts','application'],connectors:['contracts'], 'plugin-host':['contracts'],model:['contracts'],evals:['contracts','domain','application']}
+const allowed={domain:[],contracts:[],application:['domain','contracts'],storage:['domain','contracts','application'],connectors:['contracts'], 'plugin-host':['contracts'],model:['contracts']}
 async function walk(dir){const entries=await readdir(dir,{withFileTypes:true});return (await Promise.all(entries.map(e=>e.isDirectory()?walk(join(dir,e.name)):[join(dir,e.name)]))).flat()}
 const errors=[]
 for(const [name,dependencies] of Object.entries(allowed))for(const file of await walk(`packages/${name}/src`)){

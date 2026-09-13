@@ -90,13 +90,6 @@ import type { SourceEvent, Health } from '@memo/contracts'
 export function openStore(path: string) {
   const db = new Database(path)
   try {
-    // The opt-in foundation store uses a different v2 schema. Never migrate it as production.
-    if (
-      (db.pragma('table_info(source_events)') as { name: string }[]).some(
-        (column) => column.name === 'envelope',
-      )
-    )
-      throw new Error('INCOMPATIBLE_DATABASE_FORMAT')
     db.pragma('foreign_keys = ON')
     db.pragma('journal_mode = WAL')
     db.pragma('synchronous = FULL')

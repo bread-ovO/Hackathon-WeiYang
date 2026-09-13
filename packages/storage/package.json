@@ -4,8 +4,7 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/index.ts",
-    "./foundation": "./src/foundation/index.ts"
+    ".": "./src/index.ts"
   },
   "dependencies": {
     "better-sqlite3": "13.0.3",

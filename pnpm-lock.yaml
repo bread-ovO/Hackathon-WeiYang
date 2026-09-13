@@ -105,18 +105,6 @@ importers:
 
   packages/domain: {}
 
-  packages/evals:
-    dependencies:
-      '@memo/application':
-        specifier: workspace:*
-        version: link:../application
-      '@memo/contracts':
-        specifier: workspace:*
-        version: link:../contracts
-      '@memo/domain':
-        specifier: workspace:*
-        version: link:../domain
-
   packages/model: {}
 
   packages/plugin-host:
