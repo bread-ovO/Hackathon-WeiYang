@@ -330,107 +330,109 @@ export function TaskEditor({
         )}
         {task.projectId ? (
           <>
-            <form
-              onSubmit={(e) => {
-                e.preventDefault()
-                if (!staleDraft) void update({ title: title.trim() }, baseline)
-              }}
-            >
-              <AppInput
-                aria-label="编辑事项标题"
-                value={title}
-                maxLength={512}
-                onChange={(e) => setTitle(e.target.value)}
-              />
-              <AppButton
-                type="submit"
-                className="secondary"
-                disabled={busy || staleDraft || !title.trim()}
-              >
-                保存标题
-              </AppButton>
-            </form>
-            <label>
-              手动状态
-              <select
-                aria-label="手动状态"
-                disabled={busy}
-                value={task.status}
-                onChange={(e) =>
-                  void update({
-                    status: e.target.value as WorkspaceTask['status'],
-                  })
-                }
-              >
-                {Object.entries(taskLabels).map(([v, l]) => (
-                  <option key={v} value={v}>
-                    {l}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <form
-              onSubmit={(e) => {
-                e.preventDefault()
-                const date = due ? new Date(due) : null
-                if (
-                  date &&
-                  (!Number.isFinite(date.getTime()) ||
-                    localDate(date.toISOString()) !== due)
-                ) {
-                  setError('该本地时间不存在或无效，请选择明确时间。')
-                  return
-                }
-                if (!staleDraft)
-                  void update({ dueAt: date?.toISOString() ?? null }, baseline)
-              }}
-            >
-              <label htmlFor="task-due">截止时间（本机时区）</label>
-              <AppInput
-                id="task-due"
-                type="datetime-local"
-                value={due}
-                onChange={(e) => setDue(e.target.value)}
-              />
-              <AppButton
-                type="submit"
-                className="secondary"
-                disabled={busy || staleDraft}
-              >
-                保存截止时间
-              </AppButton>
-              <AppButton
-                className="secondary"
-                disabled={busy || staleDraft}
-                onClick={() => {
-                  if (staleDraft) return
-                  setDue('')
-                  if (!staleDraft) void update({ dueAt: null }, baseline)
+            <div className="editor-group">
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault()
+                  if (!staleDraft) void update({ title: title.trim() }, baseline)
                 }}
               >
-                清除截止时间
-              </AppButton>
-            </form>
-            <label>
-              收录决定
-              <select
-                aria-label="收录决定"
-                value={task.admission}
-                disabled={busy}
-                onChange={(e) =>
-                  void update({
-                    admission: e.target.value as
+                <AppInput
+                  aria-label="编辑事项标题"
+                  value={title}
+                  maxLength={512}
+                  onChange={(e) => setTitle(e.target.value)}
+                />
+                <AppButton
+                  type="submit"
+                  className="secondary"
+                  disabled={busy || staleDraft || !title.trim()}
+                >
+                  保存标题
+                </AppButton>
+              </form>
+              <label>
+                手动状态
+                <select
+                  aria-label="手动状态"
+                  disabled={busy}
+                  value={task.status}
+                  onChange={(e) =>
+                    void update({
+                      status: e.target.value as WorkspaceTask['status'],
+                    })
+                  }
+                >
+                  {Object.entries(taskLabels).map(([v, l]) => (
+                    <option key={v} value={v}>
+                      {l}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault()
+                  const date = due ? new Date(due) : null
+                  if (
+                    date &&
+                    (!Number.isFinite(date.getTime()) ||
+                      localDate(date.toISOString()) !== due)
+                  ) {
+                    setError('该本地时间不存在或无效，请选择明确时间。')
+                    return
+                  }
+                  if (!staleDraft)
+                    void update({ dueAt: date?.toISOString() ?? null }, baseline)
+                }}
+              >
+                <label htmlFor="task-due">截止时间（本机时区）</label>
+                <AppInput
+                  id="task-due"
+                  type="datetime-local"
+                  value={due}
+                  onChange={(e) => setDue(e.target.value)}
+                />
+                <AppButton
+                  type="submit"
+                  className="secondary"
+                  disabled={busy || staleDraft}
+                >
+                  保存截止时间
+                </AppButton>
+                <AppButton
+                  className="secondary"
+                  disabled={busy || staleDraft}
+                  onClick={() => {
+                    if (staleDraft) return
+                    setDue('')
+                    if (!staleDraft) void update({ dueAt: null }, baseline)
+                  }}
+                >
+                  清除截止时间
+                </AppButton>
+              </form>
+              <label>
+                收录决定
+                <select
+                  aria-label="收录决定"
+                  value={task.admission}
+                  disabled={busy}
+                  onChange={(e) =>
+                    void update({
+                      admission: e.target.value as
                       | 'candidate'
                       | 'accepted'
                       | 'ignored',
-                  })
-                }
-              >
-                <option value="candidate">待确认</option>
-                <option value="accepted">已收录</option>
-                <option value="ignored">已忽略</option>
-              </select>
-            </label>
+                    })
+                  }
+                >
+                  <option value="candidate">待确认</option>
+                  <option value="accepted">已收录</option>
+                  <option value="ignored">已忽略</option>
+                </select>
+              </label>
+            </div>
             <div className="criteria-editor">
               <label>
                 完成条件
@@ -528,14 +530,16 @@ export function TaskEditor({
                 </>
               )}
             </div>
-            <AppButton
-              className="secondary"
-              disabled={busy}
-              onClick={() => void update({ archived: !task.archivedAt })}
-            >
-              {task.archivedAt ? '恢复显示' : '归档事项'}
-            </AppButton>
-            <p>归档只改变显示范围；手动完成不改变证据核验结果。</p>
+            <div className="editor-group editor-secondary">
+              <AppButton
+                className="secondary"
+                disabled={busy}
+                onClick={() => void update({ archived: !task.archivedAt })}
+              >
+                {task.archivedAt ? '恢复显示' : '归档事项'}
+              </AppButton>
+              <p>归档只改变显示范围；手动完成不改变证据核验结果。</p>
+            </div>
           </>
         ) : (
           <p>旧事项尚未分配项目，暂不可编辑。</p>

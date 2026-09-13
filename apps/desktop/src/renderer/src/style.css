@@ -1211,3 +1211,18 @@ dd {
 /* Kumo wraps child content in display:contents; selectors must include that wrapper. */
 .app-control > .relative.flex { gap: 8px; min-width: 0; }
 #preset-feishu:not([open]), #preset-github:not([open]), #preset-local:not([open]) { display: none; }
+
+/* Task editor density: semantic groups with compact label-control rows. */
+.editor-group { display: flex; flex-direction: column; gap: 8px; width: 100%; padding: 12px 0 4px; border-top: 1px solid var(--line); }
+.editor-group > form { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; width: 100%; }
+.editor-group > form > .app-input { flex: 1 1 140px; min-width: 0; }
+.editor-group > form > label { font-size: 12px; color: var(--muted); white-space: nowrap; }
+.editor-group > label { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; font-size: 12px; color: var(--muted); }
+.editor-group > label > select { flex: 0 1 auto; min-width: 0; }
+.editor-group .app-control { height: 32px; padding-inline: 10px; font-size: 12px; }
+.editor-secondary { border-top-style: dashed; align-items: flex-start; }
+.editor-secondary > p { margin: 0; font-size: 12px; line-height: 1.6; color: var(--muted); }
+.real-editor .criteria-editor { padding: 12px 0 4px; border-top: 1px solid var(--line); }
+.criteria-editor > label { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12px; color: var(--muted); }
+.criteria-editor > p { margin: 0; font-size: 12px; line-height: 1.6; color: var(--muted); }
+.criterion-actions .app-control { height: 32px; padding-inline: 10px; font-size: 12px; }
