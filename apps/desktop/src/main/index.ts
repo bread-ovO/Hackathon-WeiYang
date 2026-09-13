@@ -85,6 +85,9 @@ if (!app.isPackaged && process.env.MEMO_TEST_USER_DATA)
   app.setPath('userData', resolve(process.env.MEMO_TEST_USER_DATA))
 const devURL = !app.isPackaged ? process.env.ELECTRON_RENDERER_URL : undefined
 const pageURL = devURL || 'memo://app/index.html'
+// Windows taskbar identity: pins notifications and the icon to this app
+// instead of generic Electron (matters in unpackaged dev runs).
+app.setAppUserModelId('dev.multisource.memo')
 if (!app.requestSingleInstanceLock()) app.quit()
 else {
   app.on('second-instance', () => trayHost.restoreWindow())
@@ -411,6 +414,9 @@ function createWindow() {
     titleBarStyle: 'hiddenInset',
     trafficLightPosition: { x: 16, y: 18 },
     backgroundColor: '#faf9f6',
+    // Taskbar/titlebar identity; resolved from the packaged renderer root so
+    // it works identically in dev and production builds.
+    icon: join(__dirname, '../renderer/icon.png'),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: true,
