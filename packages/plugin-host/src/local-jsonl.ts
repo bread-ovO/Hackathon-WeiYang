@@ -42,7 +42,10 @@ export interface LocalJsonlInput {
   manifest?: unknown
   /** Optional pure normalizer applied to each parsed record before manifest
    * mapping; returning null skips the line without consuming batch budget. */
-  normalizeRecord?: (record: Record<string, unknown>) => unknown
+  normalizeRecord?: (
+    record: Record<string, unknown>,
+    context: { byteOffset: number },
+  ) => unknown
   /** Stable versioned identity of normalizeRecord, mixed into the mapping
    * fingerprint so a changed normalizer rescans instead of resuming stale. */
   normalizerId?: string
@@ -158,7 +161,8 @@ export async function readLocalJsonl(
       (typeof input.normalizerId !== 'string' ||
         input.normalizerId.length < 1 ||
         input.normalizerId.length > 128)) ||
-    (input.normalizeRecord != null && typeof input.normalizeRecord !== 'function')
+    (input.normalizeRecord != null &&
+      typeof input.normalizeRecord !== 'function')
   )
     throw new LocalJsonlError('INVALID_MANIFEST')
   if (input.cursor != null && !validCursor(input.cursor))
@@ -292,7 +296,7 @@ export async function readLocalJsonl(
       if (input.normalizeRecord) {
         if (!ownObject(record)) throw new LocalJsonlError('INVALID_JSONL')
         try {
-          record = input.normalizeRecord(record)
+          record = input.normalizeRecord(record, { byteOffset: offset })
         } catch {
           throw new LocalJsonlError('INVALID_SOURCE_EVENT')
         }

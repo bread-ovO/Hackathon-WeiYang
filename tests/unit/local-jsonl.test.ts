@@ -1,3 +1,4 @@
+import { codexSessionMapper } from '../../packages/plugin-host/src/session-mappers'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import * as fs from 'node:fs/promises'
 import path from 'node:path'
@@ -420,9 +421,7 @@ describe('normalizeRecord hook', () => {
       normalizerId: 'test-normalizer@1',
       normalizeRecord: uppercase,
     })
-    expect(normalized.cursor.mappingSha256).not.toBe(
-      plain.cursor.mappingSha256,
-    )
+    expect(normalized.cursor.mappingSha256).not.toBe(plain.cursor.mappingSha256)
   })
   it('a changed normalizerId rescans from the start instead of resuming', async () => {
     await fs.writeFile(file, line(event('one')) + line(event('two')))
@@ -453,4 +452,51 @@ describe('normalizeRecord hook', () => {
     expect(resumed.events).toHaveLength(0)
     expect(resumed.done).toBe(true)
   })
+})
+
+it('reader offsets survive UTF-8, metadata, batch boundaries, append and a v1 cursor upgrade', async () => {
+  const row = (ordinal?: number) => ({
+    timestamp: '2026-09-14T00:00:00Z',
+    type: 'response_item',
+    ...(ordinal === undefined ? {} : { ordinal }),
+    payload: {
+      type: 'message',
+      role: 'user',
+      content: [{ type: 'input_text', text: '我会提交中文报告。' }],
+    },
+  })
+  const meta = line({ type: 'session_meta', payload: { note: '中文' } })
+  const raw =
+    meta +
+    Array.from({ length: 101 }, () => line(row())).join('') +
+    line(row(500))
+  await fs.writeFile(file, raw)
+  const settings = {
+    ...input(),
+    normalizeRecord: codexSessionMapper,
+    normalizerId: 'codex-session@2',
+  }
+  const first = await readLocalJsonl(settings)
+  expect(first.events).toHaveLength(100)
+  expect(first.events[0]?.externalId).toBe(`offset:${Buffer.byteLength(meta)}`)
+  const second = await readLocalJsonl({ ...settings, cursor: first.cursor })
+  expect(second.events).toHaveLength(2)
+  expect(second.events[1]?.externalId).toBe('500')
+  expect(
+    new Set([...first.events, ...second.events].map((e) => e.externalId)).size,
+  ).toBe(102)
+  await fs.appendFile(file, line(row()))
+  const third = await readLocalJsonl({ ...settings, cursor: second.cursor })
+  expect(third.events[0]?.externalId).toBe(`offset:${Buffer.byteLength(raw)}`)
+  const replay = await readLocalJsonl(settings)
+  expect(replay.events).toEqual(first.events)
+  // v1 confirmed even missing-ordinal messages as skipped; v2 must rescan.
+  const old = await readLocalJsonl({
+    ...input(),
+    normalizerId: 'codex-session@1',
+    normalizeRecord: () => null,
+  })
+  expect(
+    (await readLocalJsonl({ ...settings, cursor: old.cursor })).events,
+  ).toEqual(first.events)
 })

@@ -1,5 +1,5 @@
 import { test, expect, _electron as electron } from '@playwright/test'
-import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, rm, writeFile, appendFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { resolve, join } from 'node:path'
 import { createRequire } from 'node:module'
@@ -12,7 +12,7 @@ const claudeSession = [
     uuid: 'c-uuid-1',
     timestamp: '2026-09-12T08:30:00.000Z',
     sessionId: 'claude-session-1',
-    message: { role: 'user', content: '周五前把接口文档发给小王' },
+    message: { role: 'user', content: '我会提交 Claude 验收报告。' },
   }),
   line({
     type: 'assistant',
@@ -44,12 +44,11 @@ const codexSession = [
   }),
   line({
     timestamp: '2026-09-12T09:00:01.000Z',
-    ordinal: 0,
     type: 'response_item',
     payload: {
       type: 'message',
       role: 'user',
-      content: [{ type: 'input_text', text: '下周评审前完成联调' }],
+      content: [{ type: 'input_text', text: '我会提交 Codex 验收报告。' }],
     },
   }),
   line({
@@ -60,7 +59,6 @@ const codexSession = [
   }),
   line({
     timestamp: '2026-09-12T09:00:03.000Z',
-    ordinal: 2,
     type: 'response_item',
     payload: {
       type: 'message',
@@ -98,8 +96,17 @@ test('built-in Claude Code and Codex session directories import without exposing
   await mkdir(codexDir, { recursive: true })
   await mkdir(emptyDir, { recursive: true })
   await writeFile(join(claudeDir, 'session-one.jsonl'), claudeSession)
-  await writeFile(join(claudeDir, 'subagents', 'session-two.jsonl'), claudeSession)
-  await writeFile(join(codexDir, 'rollout-2026-09-12-session.jsonl'), codexSession)
+  await writeFile(
+    join(claudeDir, 'subagents', 'session-two.jsonl'),
+    claudeSession,
+  )
+  const codexFile = join(codexDir, 'rollout-2026-09-12-session.jsonl')
+  await writeFile(codexFile, codexSession)
+  await writeFile(join(claudeDir, 'broken.jsonl'), '{broken\n')
+  await writeFile(
+    join(codexDir, 'unknown.jsonl'),
+    line({ type: 'future_format' }),
+  )
   const env = Object.fromEntries(
     Object.entries(process.env).filter(
       (x): x is [string, string] => x[1] !== undefined,
@@ -107,13 +114,15 @@ test('built-in Claude Code and Codex session directories import without exposing
   )
   env.MEMO_TEST_USER_DATA = join(data, 'profile')
   delete env.ELECTRON_RUN_AS_NODE
-  const app = await electron.launch({
-    executablePath: require('electron'),
-    args: [resolve('apps/desktop/out/main/index.js')],
-    env,
-  })
+  const launch = () =>
+    electron.launch({
+      executablePath: require('electron'),
+      args: [resolve('apps/desktop/out/main/index.js')],
+      env,
+    })
+  let app = await launch()
   try {
-    const page = await app.firstWindow()
+    let page = await app.firstWindow()
     await expect(
       page.getByRole('heading', { name: '跟进', exact: true }),
     ).toBeVisible()
@@ -146,9 +155,10 @@ test('built-in Claude Code and Codex session directories import without exposing
       .getByRole('button', { name: '授权会话目录', exact: true })
       .click()
     await expect(claudePanel.getByRole('status')).toContainText(
-      '发现 2 个会话文件，已收录 2 个',
+      '发现 3 个会话文件，已收录 2 个，跳过 1 个',
     )
     await expect(claudePanel).toContainText('已接收 2 条')
+    await expect(claudePanel).toContainText('完整行不是有效JSON')
 
     // Codex directory import; the Claude panel keeps listing only its own kind.
     await patchDialog(app, codexDir)
@@ -159,10 +169,12 @@ test('built-in Claude Code and Codex session directories import without exposing
       .getByRole('button', { name: '授权会话目录', exact: true })
       .click()
     await expect(codexPanel.getByRole('status')).toContainText(
-      '发现 1 个会话文件，已收录 1 个',
+      '发现 2 个会话文件，已收录 1 个，跳过 1 个',
     )
     await expect(codexPanel).toContainText('已接收 2 条')
     await expect(claudePanel).toContainText('已接收 2 条')
+
+    await expect(codexPanel).toContainText('会话格式不兼容')
 
     // Empty directories are a normal outcome, not an error.
     await patchDialog(app, emptyDir)
@@ -182,7 +194,7 @@ test('built-in Claude Code and Codex session directories import without exposing
 
     const listed = await page.evaluate(() => window.memo.sources.list())
     if (!listed.ok) throw new Error('SOURCE_FAILED')
-    expect(listed.data.sources).toHaveLength(3)
+    expect(listed.data.sources).toHaveLength(5)
     for (const source of listed.data.sources) {
       expect(JSON.stringify(source)).not.toContain(data)
       expect(Object.keys(source)).not.toContain('path')
@@ -190,39 +202,116 @@ test('built-in Claude Code and Codex session directories import without exposing
     }
     // Imported events stay queryable through the normal workspace chain.
     const seen: string[] = []
-    for (const source of listed.data.sources) {
-      const events = await page.evaluate(async (input) => {
-        const r = await window.memo.workspace.sourceEvents(input)
-        if (!r.ok) throw new Error('EVENTS_FAILED')
-        return r.data.events.map((event) => event.excerpt)
-      }, {
-        projectId: project,
-        sourceInstanceId: source.id,
-      })
+    for (const source of listed.data.sources.filter(
+      (s) => s.status !== 'error',
+    )) {
+      const events = await page.evaluate(
+        async (input) => {
+          const r = await window.memo.workspace.sourceEvents(input)
+          if (!r.ok) throw new Error('EVENTS_FAILED')
+          return r.data.events.map((event) => event.excerpt)
+        },
+        {
+          projectId: project,
+          sourceInstanceId: source.id,
+        },
+      )
       expect(events.length).toBe(2)
       seen.push(...events)
     }
-    expect(seen.some((text) => text.includes('周五前把接口文档发给小王'))).toBe(
-      true,
-    )
-    expect(seen.some((text) => text.includes('下周评审前完成联调'))).toBe(true)
+    expect(
+      seen.some((text) => text.includes('我会提交 Claude 验收报告。')),
+    ).toBe(true)
+    expect(
+      seen.some((text) => text.includes('我会提交 Codex 验收报告。')),
+    ).toBe(true)
     // No path leaks into the rendered page text either.
     const bodyText = await page.evaluate(() => document.body.innerText)
     expect(bodyText).not.toContain(data)
 
-    // Sync and revoke keep working for session sources.
-    await claudePanel
-      .getByRole('button', { name: '继续同步', exact: true })
-      .first()
-      .click()
-    await expect(claudePanel.getByRole('status')).toContainText(
-      '本批记录已接收',
+    // Wait for real background candidate creation, then inspect exact citations.
+    const candidates = () =>
+      page.evaluate(async (projectId) => {
+        const r = await window.memo.workspace.list({
+          projectId,
+          admission: 'candidate',
+        })
+        if (!r.ok) throw new Error('LIST_FAILED')
+        return r.data.tasks
+      }, project)
+    await expect.poll(async () => (await candidates()).length).toBe(3)
+    for (const task of await candidates()) {
+      const detail = await page.evaluate(
+        async ({ projectId, id }) => {
+          const r = await window.memo.workspace.detail(projectId, id)
+          if (!r.ok) throw new Error('DETAIL_FAILED')
+          return r.data
+        },
+        { projectId: project, id: task.id },
+      )
+      expect(JSON.stringify(detail.provenance)).toContain(
+        task.title.includes('Codex')
+          ? '我会提交 Codex 验收报告。'
+          : '我会提交 Claude 验收报告。',
+      )
+      expect(detail.task.admission).toBe('candidate')
+    }
+    // Repeat a successful import, including upgraded normalizers: no new tasks.
+    const validCodex = listed.data.sources.find(
+      (s) => s.status !== 'error' && s.displayName.startsWith('Codex'),
+    )!
+    const sync = () =>
+      page.evaluate((id) => window.memo.sources.sync(id), validCodex.id)
+    expect((await sync()).ok).toBe(true)
+    expect(await candidates()).toHaveLength(3)
+    // Append a message without ordinal and prove the new candidate/citation path.
+    await appendFile(
+      codexFile,
+      line({
+        timestamp: '2026-09-12T10:00:00Z',
+        type: 'response_item',
+        payload: {
+          type: 'message',
+          role: 'user',
+          content: [{ type: 'input_text', text: '我会修复新增导入问题。' }],
+        },
+      }),
     )
-    await claudePanel
-      .getByRole('button', { name: '撤销授权', exact: true })
-      .first()
-      .click()
-    await expect(claudePanel.getByRole('status')).toContainText('授权已撤销')
+    expect((await sync()).ok).toBe(true)
+    await expect.poll(async () => (await candidates()).length).toBe(4)
+    await app.evaluate(({ app }) => app.quit()).catch(() => {})
+    await app.close().catch(() => {})
+    app = await launch()
+    page = await app.firstWindow()
+    await expect(
+      page.getByRole('heading', { name: '跟进', exact: true }),
+    ).toBeVisible()
+    await expect
+      .poll(() => page.evaluate(async () => (await window.memo.health()).ok))
+      .toBe(true)
+    expect((await sync()).ok).toBe(true)
+    expect(await candidates()).toHaveLength(4)
+    // A corrupt appended message leaves all previously accepted events intact.
+    await appendFile(
+      codexFile,
+      line({ type: 'response_item', payload: { type: 'message' } }),
+    )
+    expect((await sync()).ok).toBe(false)
+    const snapshot = await page.evaluate(() => window.memo.sources.list())
+    if (!snapshot.ok) throw new Error('SOURCE_FAILED')
+    expect(
+      snapshot.data.sources.find((s) => s.id === validCodex.id),
+    ).toMatchObject({ eventCount: 3, status: 'error' })
+    expect(await candidates()).toHaveLength(4)
+    expect(
+      (
+        await page.evaluate(
+          (id) => window.memo.sources.revoke(id),
+          validCodex.id,
+        )
+      ).ok,
+    ).toBe(true)
+    expect((await sync()).ok).toBe(false)
     await page.screenshot({ path: 'test-results/session-import-wide.png' })
     await app.evaluate(({ BrowserWindow }) =>
       BrowserWindow.getAllWindows()[0]!.setSize(860, 700),

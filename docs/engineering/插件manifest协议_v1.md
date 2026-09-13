@@ -1,6 +1,6 @@
 # Source 插件 manifest 协议 v1
 
-2026-09-13 · P01。本文定义声明式插件的安装前契约。后续已新增 local-jsonl 和 HTTPS JSON 读取模块，见 [HTTP 运行时](HTTP声明式来源运行时_2026-09-13.md)；安装、持久授权与 HTTP 界面仍未接入。它不会加载插件代码。
+2026-09-13 · P01。本文定义声明式插件的安装前契约。后续已新增 local-jsonl 和 HTTPS JSON 读取模块，见 [HTTP 运行时](HTTP声明式来源运行时_2026-09-13.md)；安装、持久授权、试运行与 HTTP 界面已接入；当前使用步骤见 [插件开发指南](../plugins/README.md)。它不会加载插件代码。
 
 ## 唯一字段定义与 API
 
@@ -11,7 +11,7 @@
 - `isHostApiCompatible(range, hostVersion?)` 判断宿主稳定版本是否落在区间内。
 - 当前宿主 API 版本为 `1.0.0`；仅支持 `schemaVersion: 1`、`sourceType: "source"`，未知 kind、未知字段和不兼容版本均拒绝。
 
-调用者应先将包内 manifest 按严格 UTF-8 JSON 解码，并限制文本大小（建议 256 KiB），再传入此 API。校验器接收 JSON 值，不读取文件，不解析可执行对象或字符串模板。
+调用者应先将包内 manifest 按严格 UTF-8 JSON 解码，并限制文本大小（上限 128 KiB），再传入此 API。校验器接收 JSON 值，不读取文件，不解析可执行对象或字符串模板。
 
 ## 共同字段
 
@@ -32,7 +32,7 @@
 
 `permissions` 始终包含 domains、directories、credentials，禁止把实际 token、真实用户目录或环境变量写入 manifest。声明只是申请，不能替代用户授权。
 
-`http-json` 首版只支持一个明确 ASCII DNS 域名和 HTTPS GET，不支持通配域、IP 字面量、localhost、用户信息、非 443 端口、fragment 或静态查询串。URL 域名必须与声明完全一致。可申请一个凭据槽位，用 id 和 purpose 说明；`credentialId` 必须对应该槽位。传输中没有秘密字段，后续由宿主代理注入 Bearer 凭据。无需凭据时，credentials 为空且省略 credentialId。
+`http-json` 首版只支持一个明确 ASCII DNS 域名和 HTTPS GET，不支持通配域、IP 字面量、localhost、用户信息、非 443 端口、fragment 或静态查询串。URL 域名必须与声明完全一致。可申请一个凭据槽位，用 id 和 purpose 说明；`credentialId` 必须对应该槽位。传输中没有秘密字段，由宿主代理注入 Bearer 凭据。无需凭据时，credentials 为空且省略 credentialId。
 
 HTTP 响应最多 2 MiB，每轮最多 20 页，最多 60 次/分钟；`recordsPointer` 指向响应事件数组。多页读取必须声明 `pagination.cursorPointer` 和 `cursorParameter`。执行器应把服务端游标作为参数值编码，不把它解释为 URL；空游标结束，重复游标终止，不能无限翻页。
 
@@ -44,7 +44,7 @@ P02 运行时仍必须检查 DNS 解析后私网地址、每次重定向目标�
 
 选择器是 `{ "pointer": "/field" }`，采用 JSON Pointer 的 `/` 分段以及 `~0`、`~1` 转义，长度最多 256；不是 JSONPath、JavaScript、正则或模板。role 额外支持 `{ "constant": "user" }`，枚举为 user/assistant/tool/system。
 
-对 HTTP，映射相对于 recordsPointer 选中的每个记录；对 JSONL，映射相对于每行 JSON 对象。后续解释器只访问 JSON 自有属性，不访问原型链；不做隐式字符串转换、时间猜测或任意格式化。缺失/类型错误记录须拒绝并报告。
+对 HTTP，映射相对于 recordsPointer 选中的每个记录；对 JSONL，映射相对于每行 JSON 对象。解释器只访问 JSON 自有属性，不访问原型链；不做隐式字符串转换、时间猜测或任意格式化。缺失/类型错误记录须拒绝并报告。
 
 宿主注入 `schemaVersion: 1` 和已授权安装实例的 `sourceInstanceId`，不能由插件覆写。映射结果必须再次通过 `@memo/contracts` 的 `parseSourceEvent`。插件无法映射事项状态、完成条件或数据库字段。
 
