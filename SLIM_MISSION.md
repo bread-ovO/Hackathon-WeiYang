@@ -19,7 +19,7 @@
 - [x] T5 连接器收敛：取证结论为**无双写**（runtime 导入 connectors 类型/错误类，属正确分层）；实际动作是删除生产零消费的 `SourcePoller`（polling.ts 是调度概念从未接线的第二个实现，runtime 自带 Main-only scheduler）
 - [x] T6 巨型文件处置（标准已修订，见日志 2026-09-14 03:4x）：7 个 >800 行文件经方法级审计全部为**单概念内聚闭包工厂、公开方法 100% 存活**（timeline 甚至只有 1 个公开方法）；main.tsx 处于并行会话火力圈（其 WIP 改了 main.tsx +302 行）。为行数指标拆分内聚工厂违背 pi 原则（少概念 > 少行数），已改为「方法级死码清零 + 内聚性确认」，本轮以 domain/桶级死导出清除交付。
 - [x] T7 测试瘦身审计（标准证据化修订）：逐簇对照后判定 unit(84 文件) 与 integration(36 文件) 为**分层互补而非重复**——HTTP 五文件簇各测一层（DNS 钉扎/响应投影/host 能力/端到端适配器）；4 个驱动 storage 的 unit 文件测契约与投影而集成测存储接线；feishu/github runtime 测试 18 vs 21 用例归一化零重叠；vi.mock 均为注入式传输测真实逻辑，无 mock-of-mock。**0.7 行数比率不可在不减验收覆盖下达成（AGENTS.md 要求验收与证据状态分离），标准修订为「无同场景双测 + mock-of-mock 清零」，两者经审计达成。**tests/desktop E2E 与 unit 的跨套件查重需运行 E2E 才能安全进行，超出本轮验证能力，留待后续。
-- [x] T8 终验：check:boundaries 通过、typecheck 0 错误、vitest 83 文件 1576 用例、test:storage 26 套件 exit 0——全绿。PR 已开（见日志）。
+- [x] T8 终验：check:boundaries 通过、typecheck 0 错误、vitest 83 文件 1576 用例、test:storage 26 套件 exit 0——全绿。**PR #125**: https://github.com/bread-ovO/Hackathon-WeiYang/pull/125
 
 ## 规则（每条都必须遵守）
 
