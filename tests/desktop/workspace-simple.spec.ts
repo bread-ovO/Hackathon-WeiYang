@@ -74,7 +74,9 @@ test('compact actions are centered, labeled and settings cards work at both size
     await page.getByRole('button', { name: '刷新', exact: true }).focus()
     await page.keyboard.press('Tab')
     await page.keyboard.press('Shift+Tab')
-    await expect(page.locator('.kumo-tooltip-popup')).toHaveText('刷新')
+    await expect(
+      page.locator('.kumo-tooltip-popup[data-open]'),
+    ).toHaveText('刷新')
     await page.getByRole('button', { name: /提交登录修复.*已收录/ }).click()
     await expect(page.getByLabel('编辑事项标题')).not.toBeVisible()
     await page.screenshot({ path: '/tmp/bugu-simple-workspace-wide.png' })
