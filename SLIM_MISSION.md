@@ -12,10 +12,10 @@
 
 ## 任务清单
 
-- [ ] T1 删 `packages/evals` 占位包（3 行接口+注释），连同 workspace 引用
-- [ ] T2 storage 影子层裁决：`jobs.ts` vs `foundation/jobs.ts` 二选一，迁移调用点后删另一个
-- [ ] T3 storage 影子层裁决：`search.ts` vs `foundation/search.ts`
-- [ ] T4 storage 影子层裁决：`task-model.ts` vs `foundation/tasks.ts`（注意 task-model 已被重构到 753 行，可能已是存活方）
+- [x] T1 删 `packages/evals` 占位包（3 行接口+注释），连同 workspace 引用
+- [x] T2 storage 影子层裁决：`jobs.ts` vs `foundation/jobs.ts` —— **整体删 v2**（见下方裁决记录）
+- [x] T3 storage 影子层裁决：`search.ts` vs `foundation/search.ts` —— 同上
+- [x] T4 storage 影子层裁决：`task-model.ts` vs `foundation/tasks.ts` —— 同上
 - [ ] T5 连接器收敛：`packages/connectors`（feishu/github/http/polling）与 `apps/desktop/src/main/{feishu,github}-runtime.ts`、`source-http.ts` 的源逻辑双写收敛；desktop 只留 IPC 接线
 - [ ] T6 巨型文件拆分（>800 行）：`plan-changes.ts`(1211)、`source-associations.ts`(1042)、`export.ts`(992)、`main.tsx`(969)、`pet-live2d.ts`(905)、`timeline.ts`(883)、`desktop-controller.ts`(842)
 - [ ] T7 测试瘦身：合并 tests/unit 与 tests/desktop 中测同一逻辑的用例；删测 mock 的 mock；保持验收覆盖不减
@@ -39,6 +39,13 @@
 - 向 main 开 PR（`chore: 极简化瘦身——影子层收敛、死包清除、巨型文件拆分`）
 
 ## 进度日志（追加，勿删历史）
+
+### 2026-09-14 02:30 · T1-T4 完成（commit 1644eea）
+- 裁决记录：foundation v2 不是影子层而是**从未接线的平行重写**。desktop 全部走 v1 `openStore`；v2 仅 vite 别名+专属测试可达。S05 已验收需求（租约恢复）的实现在 v1 顶层 jobs.ts，tests/job-queue-integration.ts（含 SIGKILL 恢复）全绿佐证。故整体删除 v2 岛屿（storage/foundation + contracts 的 events/ipc/operations/validation/foundation + application 的 jobs/search + tests/data-foundation + evals 死包）。
+- 环境备注：Windows 无开发者模式时符号链接 EPERM，已移植 feat/task-merge-split WIP 的跳过修复（未带其 user_version 19 改动）。`pnpm install --ignore-scripts` + prebuilds 自带原生二进制即可跑全部测试，无需 gyp。
+- 验证证据：check:boundaries passed；typecheck passed；vitest 84 文件 1600 用例通过；test:storage 27 项集成全绿。
+- 行数：生产 39763→36296（-3467），测试 34103→32102（-2001），合计 -5468。
+- 下一步：T5 连接器收敛。取证要点：对比 packages/connectors 与 apps/desktop/src/main/{feishu,github}-runtime.ts、source-http.ts 的重复度，保留 connectors 为唯一源逻辑，desktop 收成 IPC 接线。
 
 ### 2026-09-14（会话启动）
 - 建立工作树 `../slim-work`（分支 chore/slim @ fda1ee5），写作战文件。
