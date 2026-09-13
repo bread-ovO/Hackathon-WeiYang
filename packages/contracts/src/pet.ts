@@ -1,3 +1,5 @@
+import { petContextRequestSchemas } from './pet-context'
+export * from './pet-context'
 import type { PetActionCatalog, PetPresentation } from './pet-actions'
 import Ajv from 'ajv'
 import type { FromSchema } from 'json-schema-to-ts'
@@ -37,6 +39,7 @@ export interface PetSpeechState {
   status: 'disabled' | 'paused' | 'quiet' | 'suppressed' | 'waiting' | 'error'
 }
 export const petRequestSchemas = [
+  ...petContextRequestSchemas,
   {
     type: 'object',
     properties: {

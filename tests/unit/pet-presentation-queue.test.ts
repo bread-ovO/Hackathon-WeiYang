@@ -72,3 +72,13 @@ it('preserves multiline and tab text while rejecting other control characters', 
       q.enqueue('m', { kind: 'bubble', text: 'a' + char + 'b' }, new Set()),
     ).toBe(false)
 })
+
+it('copies trusted reference metadata and never accepts navigation IDs',()=>{
+ const q=createPresentationQueue();q.bind('m');const reference={label:'查看事项',reason:'当前有效引用'}
+ expect(q.enqueue('m',{kind:'bubble',text:'看看事项',reference},new Set())).toBe(true)
+ reference.reason='mutated'
+ expect(q.current()?.reference?.reason).toBe('当前有效引用')
+ q.current()!.reference!.reason='other mutation'
+ expect(q.current()?.reference?.reason).toBe('当前有效引用')
+ expect(q.enqueue('m',{kind:'bubble',text:'x',reference:{label:'x',reason:'x',taskId:'injected'} as any},new Set())).toBe(false)
+})

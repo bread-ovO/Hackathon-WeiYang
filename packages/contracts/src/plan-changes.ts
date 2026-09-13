@@ -31,6 +31,7 @@ export const planChangeRequestSchemas = [
       'projectId',
       'taskId',
       'proposalId',
+      'expectedAssessmentVersion',
       'expectedVersion',
       'expectedCriteriaVersion',
       'expectedManualVersion',
@@ -41,6 +42,37 @@ export const planChangeRequestSchemas = [
       projectId: id,
       taskId: id,
       proposalId: { ...version, minimum: 1 },
+      expectedAssessmentVersion: version,
+      expectedVersion: { ...version, minimum: 1 },
+      expectedCriteriaVersion: version,
+      expectedManualVersion: version,
+      reason: {
+        type: 'string',
+        minLength: 1,
+        maxLength: 512,
+        pattern:
+          '^[^\\u0000-\\u001f\\u007f]*[^\\s\\u0000-\\u001f\\u007f][^\\u0000-\\u001f\\u007f]*$',
+      },
+    },
+  },
+  {
+    type: 'object',
+    additionalProperties: false,
+    required: [
+      'method',
+      'projectId',
+      'taskId',
+      'eventId',
+      'expectedVersion',
+      'expectedCriteriaVersion',
+      'expectedManualVersion',
+      'reason',
+    ],
+    properties: {
+      method: { const: 'workspace.reevaluatePlanChange' },
+      projectId: id,
+      taskId: id,
+      eventId: { ...version, minimum: 1 },
       expectedVersion: { ...version, minimum: 1 },
       expectedCriteriaVersion: version,
       expectedManualVersion: version,
@@ -56,6 +88,7 @@ export const planChangeRequestSchemas = [
 ] as const
 export interface PlanChangeProposal {
   id: number
+  assessmentVersion: number
   taskId: string
   dueAt: string
   quote: string
@@ -79,6 +112,8 @@ export interface PlanChangeProposal {
     | 'source_unavailable'
     | 'retracted'
     | 'task_changed'
+    | 'association_changed'
+    | 'mapping_changed'
   sourceStatus: 'active' | 'paused' | 'revoked' | 'uninstalled' | 'unknown'
   taskVersion: number
   criteriaVersion: number

@@ -101,7 +101,7 @@ console.log(`zip ok (sha256 ${actual.slice(0, 16)}…)`)
 // Recreate the extracted tree from the pinned archive, never trust a stale cache.
 const staging = mkdtempSync(join(target, '.extract-'))
 try {
-  const members = execFileSync('tar', ['-tf', zipPath], {
+  const members = execFileSync(process.platform === 'win32' ? 'C:/Windows/System32/tar.exe' : 'tar', ['-tf', zipPath], {
     encoding: 'utf8',
     maxBuffer: 8 * 1024 * 1024,
   })
@@ -117,7 +117,7 @@ try {
     )
   )
     throw new Error('SDK_ARCHIVE_PATH_INVALID')
-  execFileSync('tar', ['-xf', zipPath, '-C', staging], { stdio: 'inherit' })
+  execFileSync(process.platform === 'win32' ? 'C:/Windows/System32/tar.exe' : 'tar', ['-xf', zipPath, '-C', staging], { stdio: 'inherit' })
   const incoming = join(staging, 'CubismSdkForWeb-5-r.5')
   for (const file of [
     'Core/live2dcubismcore.min.js',

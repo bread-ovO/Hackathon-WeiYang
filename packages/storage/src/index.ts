@@ -1,4 +1,13 @@
-import { migratePlanChanges, createPlanChanges } from './plan-changes'
+import { createPetContext } from './pet-context'
+import {
+  migratePlanChanges,
+  migratePlanAssessments,
+  createPlanChanges,
+} from './plan-changes'
+import {
+  migrateSourceAssociations,
+  createSourceAssociations,
+} from './source-associations'
 import { migrateEventMetadata } from './event-metadata'
 export { eventMetadataFields } from './event-metadata'
 import { migrateReferenceAudit } from './reference-audit'
@@ -82,14 +91,18 @@ export function openStore(path: string) {
   const db = new Database(path)
   try {
     // The opt-in foundation store uses a different v2 schema. Never migrate it as production.
-    if ((db.pragma('table_info(source_events)') as { name: string }[]).some(column => column.name === 'envelope'))
+    if (
+      (db.pragma('table_info(source_events)') as { name: string }[]).some(
+        (column) => column.name === 'envelope',
+      )
+    )
       throw new Error('INCOMPATIBLE_DATABASE_FORMAT')
     db.pragma('foreign_keys = ON')
     db.pragma('journal_mode = WAL')
     db.pragma('synchronous = FULL')
     db.pragma('busy_timeout = 3000')
     const version = db.pragma('user_version', { simple: true }) as number
-    if (version > 16) throw new Error('DATABASE_TOO_NEW')
+    if (version > 18) throw new Error('DATABASE_TOO_NEW')
     if (version < 1)
       db.transaction(() => {
         db.exec(`
@@ -126,6 +139,8 @@ export function openStore(path: string) {
     if (version < 14) migrateReferenceAudit(db)
     if (version < 15) migrateEventMetadata(db)
     if (version < 16) migratePlanChanges(db)
+    if (version < 17) migrateSourceAssociations(db)
+    if (version < 18) migratePlanAssessments(db)
     const revisionReview = createRevisionReview(db)
     const retractions = createRetractions(db)
     const ingestion = createIngestionBudget(db)
@@ -144,8 +159,10 @@ export function openStore(path: string) {
     const github = createGithub(db, receive, observeEvent)
     const feishu = createFeishu(db, receive, observeEvent)
     return {
+      petContext: createPetContext(db),
       timeline: createTimeline(db),
       planChanges: createPlanChanges(db),
+      sourceAssociations: createSourceAssociations(db),
       feishu: {
         ...feishu,
         receiveBatch: (input: Parameters<typeof feishu.receiveBatch>[0]) =>

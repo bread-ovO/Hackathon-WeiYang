@@ -164,7 +164,9 @@ describe('native-selected atomic JSON export', () => {
     vi.spyOn(fs, 'lstat').mockImplementation(async (...args) => {
       const stat = await original(...args)
       if (String(args[0]) === directory && ++parentReads > 1) {
-        Object.defineProperty(stat, 'ino', { value: Number(stat.ino) + 1 })
+        // Windows NTFS ids exceed 2^53 where +1 === itself in float64;
+        // mutate as a string suffix so every id size stays detectable.
+        Object.defineProperty(stat, 'ino', { value: `${stat.ino}7` })
       }
       return stat
     })

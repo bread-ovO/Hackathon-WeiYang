@@ -4,14 +4,14 @@ import {
   rm,
   readFile,
   writeFile,
-  symlink,
   stat,
 } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { createPetSpeechState } from '@memo/domain'
 import { createPetSpeechStore } from '../../apps/desktop/src/main/pet/speech-store'
-it('persists validated quota and preferences, rejects corrupt, oversized and symlink states', async () => {
+import { symlinkOrSkip } from './helpers/symlink-or-skip'
+it('persists validated quota and preferences, rejects corrupt, oversized and symlink states', async (ctx) => {
   const root = await mkdtemp(join(tmpdir(), 'bugu-speech-store-'))
   try {
     const file = join(root, 'speech.json'),
@@ -25,7 +25,9 @@ it('persists validated quota and preferences, rejects corrupt, oversized and sym
     state.recent = ['water', 'eyes']
     await store.save(state)
     expect(await createPetSpeechStore(file).load()).toEqual(state)
-    expect((await stat(file)).mode & 0o777).toBe(0o600)
+    // POSIX enforces the 0o600 write; Windows collapses create modes to 0o666
+    // unless the readonly bit is set, so accept both instead of failing.
+    expect((await stat(file)).mode & 0o777).toBe(process.platform === 'win32' ? 0o666 : 0o600)
     const valid = await readFile(file, 'utf8')
     await writeFile(file, 'x'.repeat(16385))
     await expect(store.load()).rejects.toThrow()
@@ -33,7 +35,7 @@ it('persists validated quota and preferences, rejects corrupt, oversized and sym
     await expect(store.load()).rejects.toThrow()
     await writeFile(join(root, 'target'), valid)
     await rm(file)
-    await symlink(join(root, 'target'), file)
+    await symlinkOrSkip(ctx, join(root, 'target'), file)
     await expect(store.load()).rejects.toThrow()
   } finally {
     await rm(root, { recursive: true, force: true })

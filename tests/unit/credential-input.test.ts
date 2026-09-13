@@ -3,6 +3,7 @@ import * as fs from 'node:fs/promises'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
 import { readCredentialFile } from '../../apps/desktop/src/main/credential-input'
+import { symlinkOrSkip } from './helpers/symlink-or-skip'
 vi.mock('node:fs/promises', async (original) => ({
   ...(await original<typeof import('node:fs/promises')>()),
 }))
@@ -64,10 +65,10 @@ describe('host selected credential token file', () => {
       new Error('VAULT_INVALID_DATA'),
     )
   })
-  it('rejects relative paths, missing files, directories and symlinks', async () => {
+  it('rejects relative paths, missing files, directories and symlinks', async (ctx) => {
     await fs.writeFile(file, 'SYNTHETIC')
     const link = join(folder, 'link.txt')
-    await fs.symlink(file, link)
+    await symlinkOrSkip(ctx, file, link)
     for (const path of ['relative.txt', join(folder, 'missing'), folder, link])
       await expect(readCredentialFile(path)).rejects.toEqual(
         new Error('VAULT_INVALID_DATA'),

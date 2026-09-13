@@ -231,10 +231,10 @@ try {
   store.close()
   // v4 existing unmanaged source data stays intact and is never silently authorized.
   const prior = new Database(path)
-  prior.exec('DROP TABLE plan_change_proposals; ALTER TABLE source_events DROP COLUMN metadata_json; DROP TABLE reference_revision_audit; DROP TABLE feishu_page_tokens; DROP TABLE feishu_credential_cooldowns; DROP TABLE feishu_connections; DROP TABLE github_credential_cooldowns; DROP TABLE github_connections; DROP TABLE reference_revision_decisions; DROP TABLE reference_revision_reviews; DROP TABLE retraction_impacts; DROP TABLE object_retractions; ALTER TABLE source_events DROP COLUMN operation; DROP TABLE ingestion_limits; DROP TABLE processing_decisions; DROP TABLE processing_evidence; DROP TABLE processing_origins; DROP TABLE processing_results; DROP TABLE processing_preferences; ALTER TABLE jobs DROP COLUMN processing_skips; DROP TABLE event_contexts; DROP TABLE plugin_source_history; DROP TABLE plugin_bindings; DROP TABLE source_grants;PRAGMA user_version=4;')
+  prior.exec('DROP TABLE plan_change_assessments; DROP TABLE source_association_audit; DROP TABLE explicit_identity_mappings; DROP TABLE task_source_anchors; DROP TABLE source_object_bindings; DROP TABLE plan_change_proposals; ALTER TABLE source_events DROP COLUMN metadata_json; DROP TABLE reference_revision_audit; DROP TABLE feishu_page_tokens; DROP TABLE feishu_credential_cooldowns; DROP TABLE feishu_connections; DROP TABLE github_credential_cooldowns; DROP TABLE github_connections; DROP TABLE reference_revision_decisions; DROP TABLE reference_revision_reviews; DROP TABLE retraction_impacts; DROP TABLE object_retractions; ALTER TABLE source_events DROP COLUMN operation; DROP TABLE ingestion_limits; DROP TABLE processing_decisions; DROP TABLE processing_evidence; DROP TABLE processing_origins; DROP TABLE processing_results; DROP TABLE processing_preferences; ALTER TABLE jobs DROP COLUMN processing_skips; DROP TABLE event_contexts; DROP TABLE plugin_source_history; DROP TABLE plugin_bindings; DROP TABLE source_grants;PRAGMA user_version=4;')
   prior.close()
   store = openStore(path)
-  assert.equal(store.health().schemaVersion, 16)
+  assert.equal(store.health().schemaVersion, 18)
   assert.equal(store.health().eventCount, 3)
   assert.deepEqual(store.sources.list(), [])
   store.close()

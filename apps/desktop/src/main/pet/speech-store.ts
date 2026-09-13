@@ -62,9 +62,15 @@ export function createPetSpeechStore(file: string) {
           await handle.close()
         }
         await rename(staging, file)
+        // Directory fsync anchors the rename on POSIX; Windows rejects
+        // directory fsync with EPERM, where NTFS metadata journaling makes
+        // it unnecessary anyway. Treat EPERM as success rather than failing
+        // every save on Windows.
         const directory = await open(dirname(file), 'r')
         try {
           await directory.sync()
+        } catch (error) {
+          if ((error as NodeJS.ErrnoException).code !== 'EPERM') throw error
         } finally {
           await directory.close()
         }

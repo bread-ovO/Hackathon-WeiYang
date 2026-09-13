@@ -103,9 +103,11 @@ function create(
   stateReader?: () => Promise<any>,
   mutations: { select?: () => Promise<any>; remove?: () => Promise<any> } = {},
   onDisplayChanged?: () => void,
+  openContext?: (id:string)=>Promise<boolean>,
 ) {
   return createPetDesktopController({
     onDisplayChanged,
+    openContext,
     worker: { request: mock.model } as any,
     flow: {
       state:
@@ -468,4 +470,21 @@ it('a renderer that never completes recovery is destroyed on a bounded host dead
     host.dispose()
     vi.useRealTimers()
   }
+})
+
+it('opens only the current trusted contextual bubble from the actual pet sender',async()=>{
+ const open=vi.fn(async()=>true),host=create(undefined,{},undefined,open)
+ await host.show();const win=mock.windows[0],event={sender:win.webContents,senderFrame:win.webContents.mainFrame}
+ mock.handlers.get('memo-pet:report')!(event,{modelId:id,status:'ready'})
+ const presentationId=host.enqueueContext('查看事项','有效依据')!
+ expect(presentationId).toBeTruthy();expect(host.isContextCurrent(presentationId)).toBe(true)
+ const handler=mock.handlers.get('memo-pet:openContext')!
+ await expect(handler({...event,sender:{}},{id:presentationId})).rejects.toThrow()
+ await expect(handler(event,{id:presentationId,taskId:'forged'})).rejects.toThrow()
+ expect(open).not.toHaveBeenCalled()
+ await expect(handler(event,{id:presentationId})).resolves.toBe(true)
+ expect(open).toHaveBeenCalledWith(presentationId)
+ host.dismissBubble();expect(host.isContextCurrent(presentationId)).toBe(false)
+ await expect(handler(event,{id:presentationId})).rejects.toThrow()
+ host.dispose()
 })

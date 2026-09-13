@@ -6,7 +6,7 @@ export default defineConfig({
     alias: {
       '@memo/contracts/foundation': resolve('packages/contracts/src/foundation.ts'),
       ...Object.fromEntries(
-        ['domain', 'contracts', 'application', 'plugin-host', 'connectors'].map(name => [
+        ['domain', 'contracts', 'application', 'plugin-host', 'connectors', 'model'].map(name => [
           `@memo/${name}`, resolve(`packages/${name}/src/index.ts`),
         ]),
       ),

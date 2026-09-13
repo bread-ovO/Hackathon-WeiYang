@@ -1,4 +1,6 @@
+import { createSourceAssociations } from './source-associations'
 import type Database from 'better-sqlite3'
+import { createHash } from 'node:crypto'
 import { parseSourceEvent } from '@memo/contracts'
 import {
   comparePlanUpdates,
@@ -11,6 +13,7 @@ import { createTaskModel } from './task-model'
 import { createRetractions } from './retractions'
 export interface PlanChangeProposal {
   id: number
+  assessmentVersion: number
   taskId: string
   dueAt: string
   quote: string
@@ -34,6 +37,8 @@ export interface PlanChangeProposal {
     | 'reference_invalidated'
     | 'identity_unknown'
     | 'identity_mismatch'
+    | 'association_changed'
+    | 'mapping_changed'
   sourceStatus: CurrentSourceStatus
   taskVersion: number
   criteriaVersion: number
@@ -41,6 +46,7 @@ export interface PlanChangeProposal {
   appliedAt: string | null
 }
 type Row = {
+  assessment_version: number
   id: number
   project_id: string
   task_id: string
@@ -75,8 +81,48 @@ export function migratePlanChanges(db: Database.Database) {
  PRAGMA user_version=16;`),
   )()
 }
+export function migratePlanAssessments(db: Database.Database) {
+  db.transaction(() =>
+    db.exec(`ALTER TABLE plan_change_proposals ADD COLUMN assessment_version INTEGER NOT NULL DEFAULT 0 CHECK(assessment_version>=0);
+ CREATE TABLE plan_change_assessments(id INTEGER PRIMARY KEY, project_id TEXT NOT NULL,task_id TEXT NOT NULL,proposal_id INTEGER NOT NULL REFERENCES plan_change_proposals(id),version INTEGER NOT NULL CHECK(version>=1),recorded_at TEXT NOT NULL,actor_id TEXT NOT NULL,actor_kind TEXT NOT NULL CHECK(actor_kind IN('manual','rule')),reason TEXT NOT NULL,before_snapshot TEXT,after_snapshot TEXT NOT NULL,proof TEXT NOT NULL,UNIQUE(proposal_id,version),FOREIGN KEY(task_id,project_id) REFERENCES tasks(id,project_id));
+ CREATE INDEX plan_assessment_scope ON plan_change_assessments(project_id,task_id,id);
+ PRAGMA user_version=18;`),
+  )()
+}
+type AssessmentSnapshot = {
+  baselineEventId: number
+  taskVersion: number
+  criteriaVersion: number
+  manualVersion: number
+  assessmentVersion: number
+}
+type AssessmentProof = {
+  bindings: { id: string; version: number; eventId: number }[]
+  authorLinks: {
+    leftEventId: number
+    rightEventId: number
+    matched: boolean
+    mappingId: string | null
+    mappingVersion: number | null
+  }[]
+  currentEventId: number
+}
+export interface PlanAssessmentAudit {
+  id: number
+  proposalId: number
+  version: number
+  recordedAt: string
+  actorId: string
+  actorKind: 'manual' | 'rule'
+  reason: string
+  before: AssessmentSnapshot | null
+  after: AssessmentSnapshot
+  proof: AssessmentProof
+  eventIds: number[]
+}
 export function createPlanChanges(db: Database.Database) {
   const tasks = createTaskModel(db)
+  const associations = createSourceAssociations(db)
   const invalid = () => {
     throw Error('PLAN_CHANGE_INVALID_INPUT')
   }
@@ -122,20 +168,21 @@ export function createPlanChanges(db: Database.Database) {
     return e
   }
   function linked(project: string, e: Event) {
-    const metadata = eventMetadataFields(e.metadata_json).metadata
-    const target = metadata?.replyToExternalId ?? e.external_id
-    return db
-      .prepare(
-        'SELECT DISTINCT task_id FROM processing_origins WHERE project_id=? AND source_id=? AND external_id=? LIMIT 2',
-      )
-      .all(project, e.source_id, target) as { task_id: string }[]
+    const target =
+      eventMetadataFields(e.metadata_json).metadata?.replyToExternalId ??
+      e.external_id
+    try {
+      const binding = associations.resolveObject(project, e.source_id, target)
+      return binding ? [{ task_id: binding.taskId }] : []
+    } catch (error) {
+      if (error instanceof Error && error.message === 'ASSOCIATION_CONFLICT')
+        return []
+      throw error
+    }
   }
   function baseline(project: string, taskId: string) {
-    return db
-      .prepare(
-        `SELECT e.id FROM processing_evidence p JOIN source_events e ON e.id=p.event_id WHERE p.project_id=? AND p.task_id=? ORDER BY p.id LIMIT 1`,
-      )
-      .get(project, taskId) as { id: number } | undefined
+    const value = associations.primaryEventId(project, taskId)
+    return value === null ? undefined : { id: value }
   }
   function order(
     project: string,
@@ -154,7 +201,9 @@ export function createPlanChanges(db: Database.Database) {
     return comparePlanUpdates(
       {
         identity,
-        eventId: current.external_id,
+        eventId: createHash('sha256')
+          .update(JSON.stringify([current.source_id, current.external_id]))
+          .digest('hex'),
         revision: current.revision,
         time: {
           occurredAt: current.occurred_at,
@@ -164,7 +213,9 @@ export function createPlanChanges(db: Database.Database) {
       },
       {
         identity,
-        eventId: incoming.external_id,
+        eventId: createHash('sha256')
+          .update(JSON.stringify([incoming.source_id, incoming.external_id]))
+          .digest('hex'),
         revision: incoming.revision,
         time: {
           occurredAt: incoming.occurred_at,
@@ -178,8 +229,8 @@ export function createPlanChanges(db: Database.Database) {
     ;[row.id, row.event_id, row.baseline_event_id, row.task_version].forEach(
       (value) => number(value, 1),
     )
-    ;[row.criteria_version, row.manual_version].forEach((value) =>
-      number(value),
+    ;[row.criteria_version, row.manual_version, row.assessment_version].forEach(
+      (value) => number(value),
     )
     id(row.project_id)
     id(row.task_id)
@@ -261,8 +312,417 @@ export function createPlanChanges(db: Database.Database) {
           canonical(metadata),
     )
   }
+  function snapshot(row: Row): AssessmentSnapshot {
+    return {
+      baselineEventId: row.baseline_event_id,
+      taskVersion: row.task_version,
+      criteriaVersion: row.criteria_version,
+      manualVersion: row.manual_version,
+      assessmentVersion: row.assessment_version,
+    }
+  }
+  function makeProof(
+    projectId: string,
+    taskId: string,
+    e: Event,
+    original: Event,
+  ): AssessmentProof {
+    const target =
+      eventMetadataFields(e.metadata_json).metadata?.replyToExternalId ??
+      e.external_id
+    const incomingBinding = associations.resolveObject(
+        projectId,
+        e.source_id,
+        target,
+      ),
+      primaryBinding = associations.resolveObject(
+        projectId,
+        original.source_id,
+        original.external_id,
+      )
+    if (
+      !incomingBinding ||
+      !primaryBinding ||
+      incomingBinding.taskId !== taskId ||
+      primaryBinding.taskId !== taskId
+    )
+      throw Error('PLAN_CHANGE_NOT_APPLICABLE')
+    const latest = db
+      .prepare(
+        'SELECT * FROM plan_change_proposals WHERE project_id=? AND task_id=? AND applied_at IS NOT NULL ORDER BY decision_id DESC LIMIT 1',
+      )
+      .get(projectId, taskId) as Row | undefined
+    if (latest) validateRow(latest)
+    const current = latest ? event(projectId, latest.event_id) : original
+    const currentBinding =
+      current.id === original.id
+        ? primaryBinding
+        : associations.resolveObject(
+            projectId,
+            current.source_id,
+            eventMetadataFields(current.metadata_json).metadata
+              ?.replyToExternalId ?? current.external_id,
+          )
+    if (!currentBinding || currentBinding.taskId !== taskId)
+      throw Error('PLAN_CHANGE_NOT_APPLICABLE')
+    const authorLinks = [...new Set([original.id, current.id])].map(
+      (leftEventId) => ({
+        leftEventId,
+        rightEventId: e.id,
+        ...associations.matchAuthors(projectId, leftEventId, e.id),
+      }),
+    )
+    return {
+      bindings: [
+        {
+          id: incomingBinding.id,
+          version: incomingBinding.version,
+          eventId: e.id,
+        },
+        {
+          id: primaryBinding.id,
+          version: primaryBinding.version,
+          eventId: original.id,
+        },
+        ...(current.id === original.id
+          ? []
+          : [
+              {
+                id: currentBinding.id,
+                version: currentBinding.version,
+                eventId: current.id,
+              },
+            ]),
+      ],
+      authorLinks,
+      currentEventId: current.id,
+    }
+  }
+  function readAudit(
+    projectId: string,
+    taskId: string,
+    auditId: number,
+  ): PlanAssessmentAudit {
+    scope(projectId, taskId)
+    number(auditId, 1)
+    const r = db
+      .prepare(
+        'SELECT * FROM plan_change_assessments WHERE id=? AND project_id=? AND task_id=?',
+      )
+      .get(auditId, projectId, taskId) as
+      | {
+          id: number
+          proposal_id: number
+          version: number
+          recorded_at: string
+          actor_id: string
+          actor_kind: 'manual' | 'rule'
+          reason: string
+          before_snapshot: string | null
+          after_snapshot: string
+          proof: string
+        }
+      | undefined
+    if (!r) throw Error('PLAN_CHANGE_NOT_FOUND')
+    const proposal = db
+      .prepare(
+        'SELECT * FROM plan_change_proposals WHERE id=? AND project_id=? AND task_id=?',
+      )
+      .get(r.proposal_id, projectId, taskId) as Row | undefined
+    if (!proposal) throw Error('PLAN_CHANGE_NOT_APPLICABLE')
+    validateRow(proposal)
+    const before =
+        r.before_snapshot === null
+          ? null
+          : (JSON.parse(r.before_snapshot) as AssessmentSnapshot),
+      after = JSON.parse(r.after_snapshot) as AssessmentSnapshot,
+      proof = JSON.parse(r.proof) as AssessmentProof
+    number(r.version, 1)
+    id(r.actor_id)
+    if (
+      !['manual', 'rule'].includes(r.actor_kind) ||
+      (r.actor_kind === 'rule' && r.actor_id !== 'explicit-plan-change-v1') ||
+      (r.actor_kind === 'manual' && r.actor_id === 'explicit-plan-change-v1')
+    )
+      throw Error('PLAN_CHANGE_NOT_APPLICABLE')
+    if (
+      typeof r.reason !== 'string' ||
+      !r.reason.length ||
+      r.reason.length > 512 ||
+      new Date(r.recorded_at).toISOString() !== r.recorded_at
+    )
+      throw Error('PLAN_CHANGE_NOT_APPLICABLE')
+    for (const value of [before, after])
+      if (value) {
+        if (
+          Object.keys(value).sort().join(',') !==
+          'assessmentVersion,baselineEventId,criteriaVersion,manualVersion,taskVersion'
+        )
+          throw Error('PLAN_CHANGE_NOT_APPLICABLE')
+        number(value.baselineEventId, 1)
+        number(value.taskVersion, 1)
+        number(value.criteriaVersion)
+        number(value.manualVersion)
+        number(value.assessmentVersion)
+        event(projectId, value.baselineEventId)
+        const revision = db
+          .prepare(
+            'SELECT snapshot FROM task_revisions WHERE task_id=? AND version=?',
+          )
+          .get(taskId, value.taskVersion) as { snapshot: string } | undefined
+        if (!revision) throw Error('PLAN_CHANGE_NOT_APPLICABLE')
+        const stored = JSON.parse(revision.snapshot)
+        if (
+          stored.id !== taskId ||
+          stored.projectId !== projectId ||
+          stored.criteriaVersion !== value.criteriaVersion ||
+          stored.manualVersion !== value.manualVersion
+        )
+          throw Error('PLAN_CHANGE_NOT_APPLICABLE')
+        if (
+          associations.primaryEventId(projectId, taskId) !==
+          value.baselineEventId
+        )
+          throw Error('PLAN_CHANGE_NOT_APPLICABLE')
+      }
+    if (
+      after.assessmentVersion !== r.version ||
+      (before && before.assessmentVersion !== r.version - 1)
+    )
+      throw Error('PLAN_CHANGE_NOT_APPLICABLE')
+    if (
+      !proof ||
+      Object.keys(proof).sort().join(',') !==
+        'authorLinks,bindings,currentEventId' ||
+      !Array.isArray(proof.bindings) ||
+      proof.bindings.length < 2 ||
+      proof.bindings.length > 3 ||
+      !Array.isArray(proof.authorLinks) ||
+      proof.authorLinks.length < 1 ||
+      proof.authorLinks.length > 2
+    )
+      throw Error('PLAN_CHANGE_NOT_APPLICABLE')
+    const historicalCurrent = db
+      .prepare(
+        'SELECT * FROM plan_change_proposals WHERE project_id=? AND task_id=? AND applied_at IS NOT NULL AND task_version+1<=? ORDER BY decision_id DESC LIMIT 1',
+      )
+      .get(projectId, taskId, after.taskVersion) as Row | undefined
+    if (historicalCurrent) validateRow(historicalCurrent)
+    if (
+      proof.currentEventId !==
+      (historicalCurrent?.event_id ?? after.baselineEventId)
+    )
+      throw Error('PLAN_CHANGE_NOT_APPLICABLE')
+    const bindings = associations.sourceBindings({ projectId, taskId }).bindings
+    const authorizedVersion = (
+      kind: 'source_binding' | 'identity_mapping',
+      entityId: string,
+      version: number,
+    ) => {
+      const stored = db
+        .prepare(
+          'SELECT id FROM source_association_audit WHERE project_id=? AND kind=? AND entity_id=? AND version=?',
+        )
+        .get(projectId, kind, entityId, version) as { id: number } | undefined
+      if (!stored) throw Error('PLAN_CHANGE_NOT_APPLICABLE')
+      const audit = associations.audit(stored.id)
+      if (!audit.after.active) throw Error('PLAN_CHANGE_NOT_APPLICABLE')
+    }
+    const eventIds = new Set<number>([
+      proposal.event_id,
+      after.baselineEventId,
+      proof.currentEventId,
+    ])
+    for (const [fenceIndex, fence] of proof.bindings.entries()) {
+      if (Object.keys(fence).sort().join(',') !== 'eventId,id,version')
+        throw Error('PLAN_CHANGE_NOT_APPLICABLE')
+      id(fence.id)
+      number(fence.version, 1)
+      number(fence.eventId, 1)
+      const known = bindings.find((b) => b.id === fence.id),
+        e = event(projectId, fence.eventId),
+        target =
+          fenceIndex === 1
+            ? e.external_id
+            : (eventMetadataFields(e.metadata_json).metadata
+                ?.replyToExternalId ?? e.external_id)
+      if (
+        !known ||
+        known.version < fence.version ||
+        known.sourceInstanceId !== e.source_id ||
+        known.externalId !== target
+      )
+        throw Error('PLAN_CHANGE_NOT_APPLICABLE')
+      if (known.origin === 'rule') {
+        if (fence.version !== 1) throw Error('PLAN_CHANGE_NOT_APPLICABLE')
+      } else authorizedVersion('source_binding', fence.id, fence.version)
+      eventIds.add(e.id)
+    }
+    if (
+      proof.bindings[0]!.eventId !== proposal.event_id ||
+      proof.bindings[1]!.eventId !== after.baselineEventId ||
+      (proof.currentEventId === after.baselineEventId
+        ? proof.bindings.length !== 2
+        : proof.bindings.length !== 3 ||
+          proof.bindings[2]!.eventId !== proof.currentEventId)
+    )
+      throw Error('PLAN_CHANGE_NOT_APPLICABLE')
+    for (const link of proof.authorLinks) {
+      if (
+        Object.keys(link).sort().join(',') !==
+          'leftEventId,mappingId,mappingVersion,matched,rightEventId' ||
+        typeof link.matched !== 'boolean' ||
+        link.rightEventId !== proposal.event_id ||
+        ![after.baselineEventId, proof.currentEventId].includes(
+          link.leftEventId,
+        )
+      )
+        throw Error('PLAN_CHANGE_NOT_APPLICABLE')
+      eventIds.add(link.leftEventId)
+      eventIds.add(link.rightEventId)
+      if ((link.mappingId === null) !== (link.mappingVersion === null))
+        throw Error('PLAN_CHANGE_NOT_APPLICABLE')
+      if (link.mappingId === null && link.matched) {
+        const l = event(projectId, link.leftEventId),
+          r = event(projectId, link.rightEventId),
+          la = eventMetadataFields(l.metadata_json).metadata?.author,
+          ra = eventMetadataFields(r.metadata_json).metadata?.author
+        if (
+          l.source_id !== r.source_id ||
+          !la ||
+          !ra ||
+          la.namespace !== ra.namespace ||
+          la.subjectId !== ra.subjectId
+        )
+          throw Error('PLAN_CHANGE_NOT_APPLICABLE')
+      }
+      if (link.mappingId !== null) {
+        id(link.mappingId)
+        number(link.mappingVersion, 1)
+        if (!link.matched) throw Error('PLAN_CHANGE_NOT_APPLICABLE')
+        authorizedVersion(
+          'identity_mapping',
+          link.mappingId,
+          link.mappingVersion!,
+        )
+        const known = associations
+          .identityMappings({ projectId, taskId })
+          .mappings.find((m) => m.id === link.mappingId)
+        const left = event(projectId, link.leftEventId),
+          right = event(projectId, link.rightEventId),
+          la = eventMetadataFields(left.metadata_json).metadata?.author,
+          ra = eventMetadataFields(right.metadata_json).metadata?.author
+        const key = (
+          source: string,
+          author: { namespace: string; subjectId: string } | undefined,
+        ) => JSON.stringify([source, author?.namespace, author?.subjectId])
+        if (
+          !known ||
+          known.version < link.mappingVersion! ||
+          !la ||
+          !ra ||
+          !(
+            (key(known.left.sourceInstanceId, known.left) ===
+              key(left.source_id, la) &&
+              key(known.right.sourceInstanceId, known.right) ===
+                key(right.source_id, ra)) ||
+            (key(known.left.sourceInstanceId, known.left) ===
+              key(right.source_id, ra) &&
+              key(known.right.sourceInstanceId, known.right) ===
+                key(left.source_id, la))
+          )
+        )
+          throw Error('PLAN_CHANGE_NOT_APPLICABLE')
+      }
+    }
+    if (
+      new Set(proof.authorLinks.map((x) => x.leftEventId)).size !==
+      new Set([after.baselineEventId, proof.currentEventId]).size
+    )
+      throw Error('PLAN_CHANGE_NOT_APPLICABLE')
+    if (r.version > 1) {
+      const previous = db
+        .prepare(
+          'SELECT after_snapshot FROM plan_change_assessments WHERE proposal_id=? AND version=?',
+        )
+        .get(r.proposal_id, r.version - 1) as
+        | { after_snapshot: string }
+        | undefined
+      if (
+        !previous ||
+        JSON.stringify(before) !==
+          JSON.stringify(JSON.parse(previous.after_snapshot))
+      )
+        throw Error('PLAN_CHANGE_NOT_APPLICABLE')
+    }
+    for (const value of eventIds) {
+      number(value, 1)
+      event(projectId, value)
+    }
+    if (
+      r.version === proposal.assessment_version &&
+      JSON.stringify(after) !== JSON.stringify(snapshot(proposal))
+    )
+      throw Error('PLAN_CHANGE_NOT_APPLICABLE')
+    return {
+      id: r.id,
+      proposalId: r.proposal_id,
+      version: r.version,
+      recordedAt: r.recorded_at,
+      actorId: r.actor_id,
+      actorKind: r.actor_kind,
+      reason: r.reason,
+      before,
+      after,
+      proof,
+      eventIds: [...eventIds],
+    }
+  }
+  function latestAudit(row: Row) {
+    if (row.assessment_version === 0) return null
+    const counts = db
+      .prepare(
+        'SELECT COUNT(*) AS n FROM plan_change_assessments WHERE proposal_id=?',
+      )
+      .get(row.id) as { n: number }
+    if (counts.n !== row.assessment_version)
+      throw Error('PLAN_CHANGE_NOT_APPLICABLE')
+    const r = db
+      .prepare(
+        'SELECT id FROM plan_change_assessments WHERE proposal_id=? AND version=?',
+      )
+      .get(row.id, row.assessment_version) as { id: number } | undefined
+    if (!r) throw Error('PLAN_CHANGE_NOT_APPLICABLE')
+    return readAudit(row.project_id, row.task_id, r.id)
+  }
+  function appendAssessment(
+    row: Row,
+    before: AssessmentSnapshot | null,
+    proof: AssessmentProof,
+    actorId: string,
+    reason: string,
+    now: Date,
+    actorKind: 'manual' | 'rule',
+  ) {
+    db.prepare(
+      'INSERT INTO plan_change_assessments(project_id,task_id,proposal_id,version,recorded_at,actor_id,actor_kind,reason,before_snapshot,after_snapshot,proof) VALUES(?,?,?,?,?,?,?,?,?,?,?)',
+    ).run(
+      row.project_id,
+      row.task_id,
+      row.id,
+      row.assessment_version,
+      now.toISOString(),
+      actorId,
+      actorKind,
+      reason,
+      before ? JSON.stringify(before) : null,
+      JSON.stringify(snapshot(row)),
+      JSON.stringify(proof),
+    )
+  }
   function project(row: Row): PlanChangeProposal {
     validateRow(row)
+    const assessment = latestAudit(row)
     const task = scope(row.project_id, row.task_id),
       e = event(row.project_id, row.event_id),
       original = event(row.project_id, row.baseline_event_id),
@@ -272,13 +732,14 @@ export function createPlanChanges(db: Database.Database) {
         operation: e.operation,
       })
     if (
-      original.source_id !== e.source_id ||
+      (!assessment && original.source_id !== e.source_id) ||
       baseline(row.project_id, row.task_id)?.id !== row.baseline_event_id ||
       !extract ||
       extract.quote !== row.quote ||
       extract.dueAt !== row.due_at ||
-      linked(row.project_id, e).length !== 1 ||
-      linked(row.project_id, e)[0]?.task_id !== row.task_id
+      (!assessment &&
+        (linked(row.project_id, e).length !== 1 ||
+          linked(row.project_id, e)[0]?.task_id !== row.task_id))
     )
       throw Error('PLAN_CHANGE_NOT_APPLICABLE')
     const latest = db
@@ -307,13 +768,45 @@ export function createPlanChanges(db: Database.Database) {
         ?.author,
       incomingAuthor = eventMetadataFields(e.metadata_json).metadata?.author
     let guard: PlanChangeProposal['guard'] = 'ready'
-    if (sourceStatus !== 'active') guard = 'source_unavailable'
+    if (
+      [e, original, current].some(
+        (value) =>
+          getSourceStatus(db, row.project_id, value.source_id) !== 'active',
+      )
+    )
+      guard = 'source_unavailable'
     else if (
       createRetractions(db).forEvent(row.project_id, e.id) ||
       createRetractions(db).forEvent(row.project_id, original.id) ||
       createRetractions(db).forEvent(row.project_id, current.id)
     )
       guard = 'retracted'
+    else if (
+      assessment &&
+      assessment.proof.bindings.some(
+        (f) =>
+          !associations.bindingCurrent(
+            row.project_id,
+            row.task_id,
+            f.id,
+            f.version,
+          ),
+      )
+    )
+      guard = 'association_changed'
+    else if (
+      assessment &&
+      assessment.proof.authorLinks.some(
+        (f) =>
+          f.mappingId !== null &&
+          !associations.mappingCurrent(
+            row.project_id,
+            f.mappingId,
+            f.mappingVersion!,
+          ),
+      )
+    )
+      guard = 'mapping_changed'
     else if (older || decision.reason === 'late_occurrence')
       guard = 'late_occurrence'
     else if (
@@ -329,8 +822,11 @@ export function createPlanChanges(db: Database.Database) {
       guard = 'reference_invalidated'
     else if (!baseAuthor || !incomingAuthor) guard = 'identity_unknown'
     else if (
-      baseAuthor.namespace !== incomingAuthor.namespace ||
-      baseAuthor.subjectId !== incomingAuthor.subjectId
+      assessment
+        ? assessment.proof.authorLinks.some((f) => !f.matched)
+        : original.source_id !== e.source_id ||
+          baseAuthor.namespace !== incomingAuthor.namespace ||
+          baseAuthor.subjectId !== incomingAuthor.subjectId
     )
       guard = 'identity_mismatch'
     else if (
@@ -342,6 +838,7 @@ export function createPlanChanges(db: Database.Database) {
     )
       guard = 'reference_invalidated'
     else if (
+      !assessment &&
       db
         .prepare(
           "SELECT 1 FROM processing_evidence WHERE project_id=? AND task_id=? AND event_id=? AND reference_status='available'",
@@ -350,6 +847,12 @@ export function createPlanChanges(db: Database.Database) {
     )
       guard = 'reference_invalidated'
     else if (
+      assessment &&
+      assessment.proof.currentEventId !== current.id &&
+      row.applied_at === null
+    )
+      guard = 'task_changed'
+    else if (
       task.version !== row.task_version ||
       task.criteriaVersion !== row.criteria_version ||
       task.manualVersion !== row.manual_version
@@ -357,6 +860,7 @@ export function createPlanChanges(db: Database.Database) {
       guard = 'task_changed'
     return {
       id: row.id,
+      assessmentVersion: row.assessment_version,
       taskId: row.task_id,
       dueAt: row.due_at,
       quote: row.quote,
@@ -378,6 +882,20 @@ export function createPlanChanges(db: Database.Database) {
     }
   }
   return {
+    getAudit: readAudit,
+    exportAssessmentsForTasks(projectId: string, taskIds: string[]) {
+      id(projectId)
+      if (!Array.isArray(taskIds) || taskIds.length > 1000) invalid()
+      taskIds.forEach((t) => scope(projectId, t))
+      if (!taskIds.length) return []
+      const rows = db
+        .prepare(
+          `SELECT id,task_id FROM plan_change_assessments WHERE project_id=? AND task_id IN (${taskIds.map(() => '?').join(',')}) ORDER BY id LIMIT 50001`,
+        )
+        .all(projectId, ...taskIds) as { id: number; task_id: string }[]
+      if (rows.length > 50000) throw Error('EXPORT_LIMIT_EXCEEDED')
+      return rows.map((r) => readAudit(projectId, r.task_id, r.id))
+    },
     observe(projectId: string, eventId: number, now: Date) {
       const e = event(projectId, eventId),
         extract = extractExplicitPlanChange({
@@ -391,21 +909,142 @@ export function createPlanChanges(db: Database.Database) {
       const task = scope(projectId, targets[0]!.task_id),
         base = baseline(projectId, task.id)
       if (!base || base.id === e.id) return
-      db.prepare(
-        'INSERT OR IGNORE INTO plan_change_proposals(project_id,task_id,event_id,baseline_event_id,due_at,quote,task_version,criteria_version,manual_version,created_at) VALUES(?,?,?,?,?,?,?,?,?,?)',
-      ).run(
-        projectId,
-        task.id,
-        e.id,
-        base.id,
-        extract.dueAt,
-        extract.quote,
-        task.version,
-        task.criteriaVersion,
-        task.manualVersion,
-        now.toISOString(),
-      )
+      const proof = makeProof(projectId, task.id, e, event(projectId, base.id))
+      const inserted = db
+        .prepare(
+          'INSERT OR IGNORE INTO plan_change_proposals(project_id,task_id,event_id,baseline_event_id,due_at,quote,task_version,criteria_version,manual_version,created_at) VALUES(?,?,?,?,?,?,?,?,?,?)',
+        )
+        .run(
+          projectId,
+          task.id,
+          e.id,
+          base.id,
+          extract.dueAt,
+          extract.quote,
+          task.version,
+          task.criteriaVersion,
+          task.manualVersion,
+          now.toISOString(),
+        )
+      if (inserted.changes) {
+        db.prepare(
+          'UPDATE plan_change_proposals SET assessment_version=1 WHERE id=?',
+        ).run(inserted.lastInsertRowid)
+        const row = db
+          .prepare('SELECT * FROM plan_change_proposals WHERE id=?')
+          .get(inserted.lastInsertRowid) as Row
+        appendAssessment(
+          row,
+          null,
+          proof,
+          'explicit-plan-change-v1',
+          'explicit_plan_change',
+          now,
+          'rule',
+        )
+      }
     },
+    reevaluate: db.transaction(
+      (
+        input: {
+          projectId: string
+          taskId: string
+          eventId: number
+          expectedVersion: number
+          expectedCriteriaVersion: number
+          expectedManualVersion: number
+          reason: string
+        },
+        actorId: string,
+      ) => {
+        const task = scope(input.projectId, input.taskId)
+        number(input.eventId, 1)
+        id(actorId)
+        if (
+          actorId === 'explicit-plan-change-v1' ||
+          typeof input.reason !== 'string' ||
+          !input.reason.trim() ||
+          input.reason.length > 512
+        )
+          invalid()
+        if (
+          task.version !== input.expectedVersion ||
+          task.criteriaVersion !== input.expectedCriteriaVersion ||
+          task.manualVersion !== input.expectedManualVersion
+        )
+          throw Error('VERSION_CONFLICT')
+        const e = event(input.projectId, input.eventId),
+          extract = extractExplicitPlanChange({
+            text: e.content,
+            role: e.role,
+            operation: e.operation,
+          }),
+          base = baseline(input.projectId, input.taskId)
+        if (!extract || !base || e.id === base.id)
+          throw Error('PLAN_CHANGE_NOT_APPLICABLE')
+        const proof = makeProof(
+            input.projectId,
+            input.taskId,
+            e,
+            event(input.projectId, base.id),
+          ),
+          now = new Date()
+        let row = db
+          .prepare(
+            'SELECT * FROM plan_change_proposals WHERE project_id=? AND task_id=? AND event_id=?',
+          )
+          .get(input.projectId, input.taskId, input.eventId) as Row | undefined
+        if (row) {
+          validateRow(row)
+          latestAudit(row)
+          if (row.applied_at) throw Error('PLAN_CHANGE_NOT_APPLICABLE')
+        }
+        const before = row ? snapshot(row) : null
+        if (!row) {
+          const inserted = db
+            .prepare(
+              'INSERT INTO plan_change_proposals(project_id,task_id,event_id,baseline_event_id,due_at,quote,task_version,criteria_version,manual_version,created_at) VALUES(?,?,?,?,?,?,?,?,?,?)',
+            )
+            .run(
+              input.projectId,
+              task.id,
+              e.id,
+              base.id,
+              extract.dueAt,
+              extract.quote,
+              task.version,
+              task.criteriaVersion,
+              task.manualVersion,
+              now.toISOString(),
+            )
+          row = db
+            .prepare('SELECT * FROM plan_change_proposals WHERE id=?')
+            .get(inserted.lastInsertRowid) as Row
+        }
+        db.prepare(
+          'UPDATE plan_change_proposals SET baseline_event_id=?,task_version=?,criteria_version=?,manual_version=?,assessment_version=assessment_version+1 WHERE id=?',
+        ).run(
+          base.id,
+          task.version,
+          task.criteriaVersion,
+          task.manualVersion,
+          row.id,
+        )
+        row = db
+          .prepare('SELECT * FROM plan_change_proposals WHERE id=?')
+          .get(row.id) as Row
+        appendAssessment(
+          row,
+          before,
+          proof,
+          actorId,
+          input.reason,
+          now,
+          'manual',
+        )
+        return project(row)
+      },
+    ),
     exportForTasks(
       projectId: string,
       taskIds: string[],
@@ -507,6 +1146,7 @@ export function createPlanChanges(db: Database.Database) {
           projectId: string
           taskId: string
           proposalId: number
+          expectedAssessmentVersion: number
           expectedVersion: number
           expectedCriteriaVersion: number
           expectedManualVersion: number
@@ -532,6 +1172,8 @@ export function createPlanChanges(db: Database.Database) {
           | undefined
         if (!row) throw Error('PLAN_CHANGE_NOT_FOUND')
         const view = project(row)
+        if (input.expectedAssessmentVersion !== row.assessment_version)
+          throw Error('VERSION_CONFLICT')
         if (view.status !== 'pending' || view.guard !== 'ready')
           throw Error('PLAN_CHANGE_NOT_APPLICABLE')
         if (
