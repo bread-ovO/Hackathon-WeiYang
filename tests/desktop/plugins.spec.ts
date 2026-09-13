@@ -1,29 +1,21 @@
 import { test, expect, _electron as electron } from '@playwright/test'
-import { mkdtemp, realpath, writeFile, rm } from 'node:fs/promises'
+import { mkdtemp, realpath, writeFile, rm, readFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { createRequire } from 'node:module'
-import { LOCAL_JSONL_MANIFEST_EXAMPLE } from '../../packages/plugin-host/src/manifest'
 const require = createRequire(resolve('apps/desktop/package.json'))
 test('plugin installation requires trial, preserves history and fences disabled imports', async () => {
   const root = await realpath(await mkdtemp(join(tmpdir(), 'bugu-plugin-ui-'))),
     manifestPath = join(root, 'plugin.json'),
     file = join(root, 'events.jsonl')
+  // Follow the published guide using its exact installable manifest and data.
   await writeFile(
     manifestPath,
-    JSON.stringify({
-      ...LOCAL_JSONL_MANIFEST_EXAMPLE,
-      displayName: '虚构来源插件',
-    }),
+    await readFile('examples/sources/release-notes/plugin.json'),
   )
   await writeFile(
     file,
-    JSON.stringify({
-      id: 'sample',
-      revision: '1',
-      created_at: '2026-09-13T00:00:00Z',
-      content: '隔离测试样例',
-    }) + '\n',
+    await readFile('examples/sources/release-notes/events.jsonl'),
   )
   const env = Object.fromEntries(
     Object.entries(process.env).filter(
@@ -75,24 +67,34 @@ test('plugin installation requires trial, preserves history and fences disabled 
     ).toEqual({ ok: false, error: 'PLUGIN_CONFLICT' })
     await choose(root)
     await panel.getByRole('button', { name: '选择目录并试运行' }).click()
-    await expect(panel).toContainText('样例 1 条')
+    await expect(panel).toContainText('样例 2 条')
     expect(await page.evaluate(() => window.memo.health())).toEqual(before)
     await panel.getByRole('button', { name: '刷新插件', exact: true }).click()
     await expect(
       panel.getByRole('button', { name: '启用插件', exact: true }),
     ).toHaveCount(0)
     await panel.getByRole('button', { name: '选择目录并试运行' }).click()
-    await expect(panel).toContainText('样例 1 条')
+    await expect(panel).toContainText('样例 2 条')
     await panel.getByRole('button', { name: '启用插件', exact: true }).click()
     await expect(panel).toContainText('已启用')
     await expect(panel).toContainText('尚未成功收录')
     await panel.getByRole('button', { name: '立即同步' }).click()
-    await expect(panel).toContainText('已收录 1 条')
+    await expect(panel).toContainText('已收录 2 条')
     await expect(panel).toContainText('最近成功：')
     await expect(panel).not.toContainText('尚未成功收录')
+    await expect
+      .poll(async () => {
+        const r = await page.evaluate(
+          (projectId) =>
+            window.memo.workspace.list({ projectId, admission: 'candidate' }),
+          project,
+        )
+        return r.ok ? r.data.tasks.map((t) => t.title) : []
+      })
+      .toEqual(['提交发布检查报告'])
     const snapshot = await page.evaluate(() => window.memo.plugins.list())
     expect(JSON.stringify(snapshot)).not.toContain(root)
-    expect(JSON.stringify(snapshot)).not.toContain('隔离测试样例')
+    expect(JSON.stringify(snapshot)).not.toContain('我会提交发布检查报告。')
     await panel.scrollIntoViewIfNeeded()
     await page.screenshot({ path: 'test-results/plugins-wide.png' })
     await app.evaluate(({ BrowserWindow }) =>

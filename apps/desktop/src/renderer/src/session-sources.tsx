@@ -32,7 +32,8 @@ const errors: Record<string, string> = {
   FILE_CHANGED: '文件读取期间发生变化，请重试',
   INVALID_UTF8: '文件不是有效UTF-8',
   INVALID_JSONL: '完整行不是有效JSON',
-  INVALID_SOURCE_EVENT: '缺少事件字段或角色/时间无效',
+  INVALID_SOURCE_EVENT:
+    '会话格式不兼容或消息字段无效，本文件进度未推进；其他文件可继续导入',
   INVALID_CURSOR: '读取进度无效，请重新授权目录',
   INVALID_MANIFEST: '来源格式配置无效',
   SOURCE_REVISION_CONFLICT: '同一修订内容发生变化',

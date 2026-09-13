@@ -15,10 +15,10 @@ export interface NormalizedSessionRecord {
 }
 export type SessionMapper = (
   record: Record<string, unknown>,
+  context?: { byteOffset: number },
 ) => NormalizedSessionRecord | null
 
-/** Matches the source event schema text budget; deterministic truncation keeps
- * revision "1" stable for append-only session files. */
+/** Reject oversize text rather than changing the original quoted message. */
 const TEXT_LIMIT = 65536
 
 const ownObject = (value: unknown): value is Record<string, unknown> =>
@@ -38,52 +38,111 @@ function finish(
   role: 'user' | 'assistant',
   text: string,
 ): NormalizedSessionRecord | null {
-  if (!id || !text.trim()) return null
+  if (!id || id.length > 256 || text.length > TEXT_LIMIT) invalid()
+  if (!text.trim()) return null
   return {
-    id: id.slice(0, 256),
+    id,
     revision: '1',
     created_at: timestamp,
     role,
-    content: text.slice(0, TEXT_LIMIT),
+    content: text,
   }
 }
 
-function blockTexts(blocks: unknown, types: ReadonlySet<string>): string | null {
-  if (!Array.isArray(blocks)) return null
+function invalid(): never {
+  throw new Error('UNSUPPORTED_SESSION_FORMAT')
+}
+const ignoredBlocks = new Set([
+  'thinking',
+  'redacted_thinking',
+  'tool_use',
+  'tool_result',
+  'image',
+  'document',
+  'input_image',
+  'input_audio',
+  'output_audio',
+  'refusal',
+])
+function blockTexts(blocks: unknown, types: ReadonlySet<string>): string {
+  if (!Array.isArray(blocks)) return invalid()
   const parts: string[] = []
   for (const block of blocks) {
-    if (!ownObject(block)) continue
-    if (
-      typeof block.type === 'string' &&
-      types.has(block.type) &&
-      typeof block.text === 'string'
-    )
+    if (!ownObject(block) || typeof block.type !== 'string') invalid()
+    if (types.has(block.type)) {
+      if (typeof block.text !== 'string') invalid()
       parts.push(block.text)
+    } else if (!ignoredBlocks.has(block.type)) invalid()
   }
   return parts.join('\n\n')
 }
+const claudeMetadata = new Set([
+  'permission-mode',
+  'file-history-snapshot',
+  'attachment',
+  'queue-operation',
+  'system',
+  'summary',
+  'progress',
+  'last-prompt',
+  'custom-title',
+  'tag',
+  'agent-name',
+  'agent-color',
+  'agent-setting',
+  'pr-link',
+])
+const codexMetadata = new Set([
+  'session_meta',
+  'event_msg',
+  'turn_context',
+  'compacted',
+  'token_usage_record',
+  'world_state',
+  'retained_context',
+  'inter_agent_communication',
+  'inter_agent_communication_metadata',
+  'realtime_item',
+  'extension_item',
+])
+const codexNonMessages = new Set([
+  'reasoning',
+  'function_call',
+  'function_call_output',
+  'web_search_call',
+  'custom_tool_call',
+  'custom_tool_call_output',
+  'local_shell_call',
+  'image_generation_call',
+  'ghost_snapshot',
+  'compaction',
+  'other',
+  'token_count',
+  'task_started',
+  'task_complete',
+  'item_completed',
+])
 
 const claudeRoles = new Set(['user', 'assistant'])
 const claudeTextBlocks = new Set(['text'])
 
 /** Claude Code session line: keep type user/assistant with a message object;
- * skip permission-mode, file-history-snapshot, attachment, queue-operation,
- * system and any line lacking uuid/timestamp/message. Content arrays keep only
+ * skip known metadata only; malformed messages and unknown record types fail. Content arrays keep only
  * text blocks (thinking/tool_use/tool_result blocks are dropped). */
 export const claudeSessionMapper: SessionMapper = (record) => {
-  if (typeof record.type !== 'string' || !claudeRoles.has(record.type))
-    return null
+  if (typeof record.type !== 'string') invalid()
+  if (claudeMetadata.has(record.type)) return null
+  if (!claudeRoles.has(record.type)) invalid()
   if (typeof record.uuid !== 'string' || !isoTimestamp(record.timestamp))
-    return null
-  if (!ownObject(record.message)) return null
+    invalid()
+  if (!ownObject(record.message)) invalid()
   const role = record.message.role
-  if (typeof role !== 'string' || !claudeRoles.has(role)) return null
+  if (typeof role !== 'string' || role !== record.type) invalid()
   // String content is used directly; block arrays keep text blocks only.
   const text =
     typeof record.message.content === 'string'
       ? record.message.content
       : blockTexts(record.message.content, claudeTextBlocks)
-  if (text === null) return null
   return finish(
     record.uuid,
     record.timestamp,
@@ -92,36 +151,61 @@ export const claudeSessionMapper: SessionMapper = (record) => {
   )
 }
 
-const codexTextBlocks = { user: 'input_text', assistant: 'output_text' } as const
+const codexTextBlocks = {
+  user: 'input_text',
+  assistant: 'output_text',
+} as const
 
 /** Codex rollout line: keep type response_item with payload.type message and
  * payload.role user/assistant; skip session_meta, event_msg, turn_context and
  * reasoning/function_call/web_search_call/token_count/task_* payload items as
- * well as developer messages. The file-local ordinal is the stable row id. */
-export const codexSessionMapper: SessionMapper = (record) => {
-  if (record.type !== 'response_item') return null
-  if (!isoTimestamp(record.timestamp)) return null
-  const ordinal = record.ordinal
-  if (typeof ordinal !== 'number' || !Number.isSafeInteger(ordinal) || ordinal < 0)
-    return null
-  if (!ownObject(record.payload)) return null
-  if (record.payload.type !== 'message') return null
+ * well as developer messages. Ordinals or trusted byte offsets identify rows. */
+export const codexSessionMapper: SessionMapper = (record, context) => {
+  if (typeof record.type !== 'string') invalid()
+  if (codexMetadata.has(record.type)) return null
+  if (record.type !== 'response_item') invalid()
+  if (!isoTimestamp(record.timestamp) || !ownObject(record.payload)) invalid()
+  if (typeof record.payload.type !== 'string') invalid()
+  if (codexNonMessages.has(record.payload.type)) return null
+  if (record.payload.type !== 'message') invalid()
   const role = record.payload.role
-  if (role !== 'user' && role !== 'assistant') return null
+  if (role === 'developer' || role === 'system') return null
+  if (role !== 'user' && role !== 'assistant') invalid()
+  // Keep v1 ordinal IDs so upgrading does not duplicate previously imported events.
+  // Older rollout files have no ordinal. The reader supplies a trusted byte offset,
+  // stable across batches/restarts for an append-only file (never text-supplied).
+  const ordinal = record.ordinal
+  let id: string
+  if (ordinal !== undefined && ordinal !== null) {
+    if (
+      typeof ordinal !== 'number' ||
+      !Number.isSafeInteger(ordinal) ||
+      ordinal < 0
+    )
+      invalid()
+    id = String(ordinal)
+  } else {
+    if (
+      !context ||
+      !Number.isSafeInteger(context.byteOffset) ||
+      context.byteOffset < 0
+    )
+      invalid()
+    id = `offset:${context.byteOffset}`
+  }
   const text = blockTexts(
     record.payload.content,
     new Set([codexTextBlocks[role]]),
   )
-  if (text === null) return null
-  return finish(String(ordinal), record.timestamp, role, text)
+  return finish(id, record.timestamp as string, role, text)
 }
 
 /** Stable normalizer identities mixed into the read cursor's mapping
  * fingerprint; bump the suffix when a mapper's keep/extract rules change so
  * existing sources rescan instead of resuming with stale rules. */
 export const SESSION_NORMALIZER_IDS = {
-  'claude-code': 'claude-code-session@1',
-  codex: 'codex-session@1',
+  'claude-code': 'claude-code-session@2',
+  codex: 'codex-session@2',
 } as const
 export type SessionSourceKind = keyof typeof SESSION_NORMALIZER_IDS
 export const SESSION_MAPPERS: Record<SessionSourceKind, SessionMapper> = {
