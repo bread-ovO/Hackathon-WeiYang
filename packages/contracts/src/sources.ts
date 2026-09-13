@@ -7,7 +7,7 @@ const projectId = {
 } as const
 const id = { ...projectId, maxLength: 128 } as const
 /** Built-in coding-agent session sources the renderer may ask the host to open. */
-export const sessionSourceKinds = ['claude-code', 'codex'] as const
+export const sessionSourceKinds = ['claude-code', 'codex', 'kimi'] as const
 export type SessionSourceKind = (typeof sessionSourceKinds)[number]
 const sessionKind = { enum: sessionSourceKinds } as const
 export const sourcesRequestSchema = {

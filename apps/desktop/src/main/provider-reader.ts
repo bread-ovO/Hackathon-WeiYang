@@ -3,13 +3,20 @@ import {
   createFeishuMessagesFetcher,
   FeishuHistoryAdapter,
   createGithubPullRequestsFetcher,
+  createGithubAccountFetcher,
   type SourceHttpTransport,
   type SourceAdapter,
 } from '@memo/connectors'
 import { parseSourceEvent } from '@memo/contracts'
 import { createSourceHttpTransport } from './source-http'
 export type ProviderSourceConfig = { id: string; credentialId: string } & (
-  | { kind: 'github'; owner: string; repo: string; repositoryId?: number }
+  | {
+      kind: 'github'
+      mode?: 'repository' | 'account'
+      owner: string
+      repo: string
+      repositoryId?: number
+    }
   | {
       kind: 'feishu'
       chatId: string
@@ -81,13 +88,20 @@ export function createProviderSourceReader(
   }
   let pull: SourceAdapter['pull']
   if (config.kind === 'github')
-    pull = createGithubPullRequestsFetcher(
-      'host-managed',
-      config.owner,
-      config.repo,
-      transport,
-      config.repositoryId,
-    )
+    pull =
+      config.mode === 'account'
+        ? createGithubAccountFetcher(
+            'host-managed',
+            config.repositoryId!,
+            transport,
+          )
+        : createGithubPullRequestsFetcher(
+            'host-managed',
+            config.owner,
+            config.repo,
+            transport,
+            config.repositoryId,
+          )
   else {
     const adapter = new FeishuHistoryAdapter(
       config.id,

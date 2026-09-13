@@ -676,3 +676,53 @@ describe('GitHub host runtime with actual provider adapter and synthetic HTTP', 
     ).toBe(true)
   })
 })
+
+it('binds account identity before discovery, and persists the affected repository on permission failure', async () => {
+  const f = fixture()
+  f.transport.mockImplementation(async (r) => ({
+    status: 200,
+    headers: {},
+    body: r.url.endsWith('/user') ? { id: 42, login: 'Synthetic' } : [],
+  }))
+  const result = await f.runtime.handle({
+    method: 'github.connectAccount',
+    projectId: 'project',
+    credentialId,
+  })
+  expect(result.ok).toBe(true)
+  expect(
+    f.request.mock.calls.find(
+      ([r]) => r.method === 'githubHost.authorize',
+    )?.[0],
+  ).toMatchObject({
+    input: { mode: 'account', owner: 'synthetic', repo: '', repositoryId: 42 },
+  })
+  // Use the persisted account binding with the same scheduler, vault and pause/cursor fences.
+  const binding = f.connections.at(-1)!
+  f.transport.mockImplementation(async (r) =>
+    r.url.includes('/pulls?')
+      ? { status: 403, headers: {}, body: {} }
+      : {
+          status: 200,
+          headers: {},
+          body: r.url.endsWith('/user')
+            ? { id: 42, login: 'synthetic' }
+            : r.url.includes('/user/repos?')
+              ? [{ id: 7, full_name: 'synthetic/repo' }]
+              : { id: 7, full_name: 'synthetic/repo' },
+        },
+  )
+  await f.runtime.handle({ method: 'github.sync', id: binding.id })
+  expect(
+    f.request.mock.calls.find(
+      ([r]) => r.method === 'githubHost.recordFailure',
+    )?.[0],
+  ).toMatchObject({
+    errorCode: 'GITHUB_AUTH_FAILED',
+    errorScope: 'synthetic/repo',
+    expectedCursor: '',
+  })
+  expect(
+    f.request.mock.calls.some(([r]) => r.method === 'githubHost.receiveBatch'),
+  ).toBe(false)
+})

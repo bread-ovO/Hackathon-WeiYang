@@ -14,6 +14,7 @@ import type {
   SourceBindings,
   IdentityMappings,
   PetContextFacts,
+  TaskSplitResult,
 } from '@memo/contracts'
 export function handleWorkspace(
   store: ReturnType<typeof openStore>,
@@ -31,7 +32,29 @@ export function handleWorkspace(
   | SourceBindings
   | IdentityMappings
   | PetContextFacts
+  | TaskSplitResult
   | { valid: boolean } {
+  const mutating = [
+    'workspace.updateTask',
+    'workspace.replaceCriteria',
+    'workspace.confirmPlanChange',
+    'workspace.bindSourceObject',
+    'workspace.revokeSourceBinding',
+    'workspace.confirmReference',
+  ]
+  const taskId =
+    'id' in request
+      ? request.id
+      : 'taskId' in request
+        ? request.taskId
+        : undefined
+  if (
+    mutating.includes(request.method) &&
+    taskId &&
+    'projectId' in request &&
+    store.tasks.mergeInfo(request.projectId, taskId).mergedInto
+  )
+    throw Error('TASK_MERGED')
   const by = { actorId: 'local-user', reason: '用户在我的工作区手动操作' }
   switch (request.method) {
     case 'workspace.petContextFacts':
@@ -103,6 +126,7 @@ export function handleWorkspace(
       if (!task) throw new Error('TASK_NOT_IN_PROJECT')
       return {
         task,
+        merge: store.tasks.mergeInfo(request.projectId, request.id),
         provenance: store.processing.getTaskEvidence(
           request.projectId,
           request.id,
@@ -112,8 +136,20 @@ export function handleWorkspace(
           request.id,
           request.criteriaVersion,
         ),
+        splitChildren: store.tasks.splitChildren(
+          request.projectId,
+          request.id,
+        ),
+        splitFrom: store.tasks.splitParent(request.projectId, request.id),
       }
     }
+    case 'workspace.mergeTasks':
+      store.tasks.merge(
+        { ...request, taskId: request.id },
+        { ...request.target, taskId: request.target.id },
+        by,
+      )
+      break
     case 'workspace.createProject':
       store.tasks.createProject(randomUUID(), request.name)
       break
@@ -154,6 +190,18 @@ export function handleWorkspace(
         by,
       )
       break
+    case 'workspace.splitTask':
+      return store.tasks.split(
+        {
+          projectId: request.projectId,
+          taskId: request.taskId,
+          expectedVersion: request.expectedVersion,
+          expectedCriteriaVersion: request.expectedCriteriaVersion,
+          expectedManualVersion: request.expectedManualVersion,
+          children: request.children,
+        },
+        by,
+      )
   }
   const page = store.tasks.listPage(
     request.method === 'workspace.list' ? request.query : undefined,

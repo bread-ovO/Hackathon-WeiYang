@@ -22,7 +22,7 @@ describe('offline explicit commitment production preparation', () => {
   it('returns a bounded candidate with exact immutable quote and host scope', () => {
     const output = prepare()
     expect(output).toEqual({
-      version: 'explicit-commitment-v1',
+      version: 'explicit-commitment-v2',
       eventId: 12,
       projectId: 'alpha',
       sourceInstanceId: 'source',

@@ -399,6 +399,34 @@ export function createTimeline(db: Database.Database) {
           after: one(p.validity, ['valid', 'unknown', 'invalid']),
         },
       )
+    } else if (scope === 'merge') {
+      const p = obj(payload, ['sourceId', 'targetId'])
+      const merge = db
+        .prepare(
+          'SELECT * FROM task_merges WHERE source_id=? AND target_id=? AND project_id=?',
+        )
+        .get(str(p.sourceId, 256), str(p.targetId, 256), projectId) as
+        | Row
+        | undefined
+      if (
+        !merge ||
+        !before ||
+        ![p.sourceId, p.targetId].includes(taskId) ||
+        version !==
+          (taskId === p.sourceId ? merge.source_version : merge.target_version)
+      )
+        fail()
+      changes.push({
+        field: 'merge',
+        before: str(p.sourceId, 256),
+        after: str(p.targetId, 256),
+      })
+      if (taskId === p.targetId)
+        changes.push({
+          field: 'criteria',
+          before: criteria(projectId, taskId, num(before.criteriaVersion)),
+          after: criteria(projectId, taskId, num(after.criteriaVersion)),
+        })
     } else if (scope === 'create') {
       const p = obj(payload, ['title'])
       if (p.title !== after.title || before) fail()
@@ -582,7 +610,9 @@ export function createTimeline(db: Database.Database) {
         r.resultProject !== projectId ||
         r.resultOutcome !== r.outcome ||
         r.resultReason !== r.reason ||
-        r.rule_version !== 'explicit-commitment-v1'
+        !['explicit-commitment-v1', 'explicit-commitment-v2'].includes(
+          String(r.rule_version),
+        )
       )
         fail()
       one(r.outcome, ['created', 'review_required'])
@@ -596,7 +626,7 @@ export function createTimeline(db: Database.Database) {
       ])
       return {
         ...base,
-        actor: { kind: 'rule', id: 'explicit-commitment-v1' },
+        actor: { kind: 'rule', id: String(r.rule_version) },
         reason,
         relatedEventIds: [num(r.event_id, 1)],
         evidence: event(projectId, r.event_id),

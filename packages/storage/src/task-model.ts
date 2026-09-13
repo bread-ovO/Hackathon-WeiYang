@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto'
 import { createRevisionReview } from './revision-review'
 import { createRetractions } from './retractions'
 import type Database from 'better-sqlite3'
@@ -90,6 +91,9 @@ export interface TaskPageQuery {
   status?: StoredTaskStatus
   admission?: StoredAdmission
   archive?: 'active' | 'archived' | 'all'
+  sourceInstanceId?: string
+  updatedSince?: string
+  updatedBefore?: string
   query?: string
   limit?: number
   cursor?: string
@@ -174,6 +178,49 @@ export function migrateTaskModel(db: Database.Database) {
   )()
 }
 
+export function migrateTaskMerges(db: Database.Database) {
+  db.transaction(() =>
+    db.exec(`
+    CREATE TABLE task_merges(source_id TEXT PRIMARY KEY,target_id TEXT NOT NULL,project_id TEXT NOT NULL,source_version INTEGER NOT NULL,target_version INTEGER NOT NULL,created_at TEXT NOT NULL,
+      CHECK(source_id!=target_id),FOREIGN KEY(source_id,project_id) REFERENCES tasks(id,project_id),FOREIGN KEY(target_id,project_id) REFERENCES tasks(id,project_id));
+    CREATE INDEX task_merges_target ON task_merges(target_id);
+    PRAGMA user_version=19;
+  `),
+  )()
+}
+
+export interface TaskSplitChildInput {
+  title: string
+  criterionIds: string[]
+}
+export interface TaskSplitInput {
+  projectId: string
+  taskId: string
+  expectedVersion: number
+  expectedCriteriaVersion: number
+  expectedManualVersion: number
+  children: TaskSplitChildInput[]
+}
+export interface TaskSplitLink {
+  taskId: string
+  title: string
+  splitAt: string
+}
+export interface TaskSplitOutcome {
+  parent: StoredTask
+  children: StoredTask[]
+}
+export function migrateTaskSplits(db: Database.Database) {
+  db.transaction(() =>
+    db.exec(`
+    CREATE TABLE task_splits(task_id TEXT NOT NULL,child_id TEXT NOT NULL,decision_id INTEGER NOT NULL,created_at TEXT NOT NULL,
+      PRIMARY KEY(task_id,child_id),FOREIGN KEY(task_id) REFERENCES tasks(id),FOREIGN KEY(child_id) REFERENCES tasks(id));
+    CREATE INDEX task_splits_child ON task_splits(child_id);
+    PRAGMA user_version=21;
+  `),
+  )()
+}
+
 export function createTaskModel(db: Database.Database) {
   const search = createCandidateSearch(db)
   function read(taskId: string): StoredTask | undefined {
@@ -196,6 +243,8 @@ export function createTaskModel(db: Database.Database) {
       task.manualVersion !== input.expectedManualVersion
     )
       throw new Error('VERSION_CONFLICT')
+    if (db.prepare('SELECT 1 FROM task_merges WHERE source_id=?').get(task.id))
+      throw Error('TASK_MERGED')
     return task
   }
   function eventInProject(projectId: string, eventId: number) {
@@ -353,6 +402,356 @@ export function createTaskModel(db: Database.Database) {
       const task = read(taskId)
       return task?.projectId === projectId ? task : undefined
     },
+    splitChildren(projectId: string, taskId: string): TaskSplitLink[] {
+      text(projectId)
+      text(taskId)
+      if (read(taskId)?.projectId !== projectId)
+        throw new Error('TASK_NOT_IN_PROJECT')
+      return db
+        .prepare(
+          'SELECT s.child_id AS taskId,t.title,s.created_at AS splitAt FROM task_splits s JOIN tasks t ON t.id=s.child_id WHERE s.task_id=? ORDER BY s.created_at,s.child_id',
+        )
+        .all(taskId) as TaskSplitLink[]
+    },
+    splitParent(projectId: string, taskId: string): TaskSplitLink | null {
+      text(projectId)
+      text(taskId)
+      if (read(taskId)?.projectId !== projectId)
+        throw new Error('TASK_NOT_IN_PROJECT')
+      const row = db
+        .prepare(
+          'SELECT s.task_id AS taskId,t.title,s.created_at AS splitAt FROM task_splits s JOIN tasks t ON t.id=s.task_id WHERE s.child_id=?',
+        )
+        .get(taskId) as TaskSplitLink | undefined
+      return row ?? null
+    },
+    /** Move selected criteria (and their evidence) out of a task into fresh
+     * child tasks. The parent keeps the remaining criteria at a new version;
+     * both directions of the split stay queryable for history. */
+    split: db.transaction(
+      (input: TaskSplitInput, by: ManualActor): TaskSplitOutcome => {
+        actor(by)
+        const task = requireTask({
+          projectId: input.projectId,
+          taskId: input.taskId,
+          expectedVersion: input.expectedVersion,
+          expectedCriteriaVersion: input.expectedCriteriaVersion,
+          expectedManualVersion: input.expectedManualVersion,
+        })
+        if (task.archivedAt !== null) throw new Error('INVALID_TASK_SPLIT')
+        if (
+          !Array.isArray(input.children) ||
+          input.children.length < 1 ||
+          input.children.length > 4
+        )
+          throw new Error('INVALID_TASK_SPLIT')
+        const parentCriteria = db
+          .prepare(
+            'SELECT criterion_id,description,origin_event_id FROM criteria WHERE task_id=? AND version=? ORDER BY criterion_id',
+          )
+          .all(task.id, task.criteriaVersion) as {
+          criterion_id: string
+          description: string
+          origin_event_id: number | null
+        }[]
+        const parentMap = new Map(
+          parentCriteria.map((c) => [c.criterion_id, c]),
+        )
+        for (const child of input.children) {
+          text(child.title, 512)
+          if (
+            !Array.isArray(child.criterionIds) ||
+            child.criterionIds.length < 1 ||
+            child.criterionIds.length > 32
+          )
+            throw new Error('INVALID_TASK_SPLIT')
+          for (const criterionId of child.criterionIds) {
+            text(criterionId)
+            if (!parentMap.has(criterionId))
+              throw new Error('INVALID_TASK_SPLIT')
+          }
+        }
+        const assigned = new Set(
+          input.children.flatMap((child) => child.criterionIds),
+        )
+        if (assigned.size !==
+          input.children.reduce((n, child) => n + child.criterionIds.length, 0))
+          throw new Error('INVALID_TASK_SPLIT')
+        const now = new Date().toISOString()
+        const parentEvidence = db
+          .prepare(
+            'SELECT criterion_id,event_id,relation,validity,reason FROM evidence_links WHERE task_id=? AND criterion_version=?',
+          )
+          .all(task.id, task.criteriaVersion) as {
+          criterion_id: string
+          event_id: number
+          relation: string
+          validity: string
+          reason: string
+        }[]
+        const created: StoredTask[] = []
+        const insertCriterion = db.prepare(
+          'INSERT INTO criteria(task_id,project_id,version,criterion_id,description,origin_event_id) VALUES(?,?,?,?,?,?)',
+        )
+        const insertEvidence = db.prepare(
+          'INSERT INTO evidence_links(id,task_id,project_id,criterion_version,criterion_id,event_id,relation,validity,reason) VALUES(?,?,?,?,?,?,?,?,?)',
+        )
+        for (const child of input.children) {
+          const childId = randomUUID()
+          db.prepare(
+            "INSERT INTO tasks(id,project_id,title,owner,status,evidence_status,manual_version,admission,due_at) VALUES(?,?,?,?,'todo','unknown',1,?,NULL)",
+          ).run(
+            childId,
+            input.projectId,
+            child.title.trim(),
+            task.owner,
+            task.admission,
+          )
+          db.prepare(
+            'INSERT INTO criterion_sets(task_id,version) VALUES(?,1)',
+          ).run(childId)
+          for (const criterionId of child.criterionIds) {
+            const criterion = parentMap.get(criterionId)!
+            insertCriterion.run(
+              childId,
+              input.projectId,
+              1,
+              criterion.criterion_id,
+              criterion.description,
+              criterion.origin_event_id,
+            )
+          }
+          for (const link of parentEvidence) {
+            if (!child.criterionIds.includes(link.criterion_id)) continue
+            insertEvidence.run(
+              randomUUID(),
+              childId,
+              input.projectId,
+              1,
+              link.criterion_id,
+              link.event_id,
+              link.relation,
+              link.validity,
+              link.reason,
+            )
+          }
+          db.prepare(
+            "UPDATE tasks SET criteria_version=1,evidence_status='unknown' WHERE id=?",
+          ).run(childId)
+          created.push(record(childId, by, 'create', { title: child.title }))
+        }
+        const staying = parentCriteria.filter(
+          (c) => !assigned.has(c.criterion_id),
+        )
+        const parentVersion = task.criteriaVersion + 1
+        db.prepare(
+          'INSERT INTO criterion_sets(task_id,version) VALUES(?,?)',
+        ).run(task.id, parentVersion)
+        for (const criterion of staying)
+          insertCriterion.run(
+            task.id,
+            input.projectId,
+            parentVersion,
+            criterion.criterion_id,
+            criterion.description,
+            criterion.origin_event_id,
+          )
+        const carryEvidence = db.prepare(
+          'INSERT INTO evidence_links(id,task_id,project_id,criterion_version,criterion_id,event_id,relation,validity,reason) SELECT ?,?,?,?,?,?,?,?,? WHERE NOT EXISTS(SELECT 1 FROM evidence_links WHERE task_id=? AND criterion_version=? AND criterion_id=? AND event_id=? AND relation=?)',
+        )
+        for (const link of parentEvidence) {
+          if (assigned.has(link.criterion_id)) continue
+          carryEvidence.run(
+            randomUUID(),
+            task.id,
+            input.projectId,
+            parentVersion,
+            link.criterion_id,
+            link.event_id,
+            link.relation,
+            link.validity,
+            link.reason,
+            task.id,
+            parentVersion,
+            link.criterion_id,
+            link.event_id,
+            link.relation,
+          )
+        }
+        db.prepare(
+          "UPDATE tasks SET criteria_version=?,evidence_status='unknown' WHERE id=?",
+        ).run(parentVersion, task.id)
+        bump(task.id)
+        const parentResult = record(
+          task.id,
+          by,
+          'split',
+          {
+            children: created.map((child) => ({
+              taskId: child.id,
+              title: child.title,
+            })),
+          },
+          parentEvidence.map((l) => l.event_id),
+        )
+        const decision = db
+          .prepare(
+            'SELECT decision_id AS id FROM task_revisions WHERE task_id=? AND version=?',
+          )
+          .get(task.id, parentResult.version) as { id: number }
+        const insertSplit = db.prepare(
+          'INSERT INTO task_splits(task_id,child_id,decision_id,created_at) VALUES(?,?,?,?)',
+        )
+        for (const child of created)
+          insertSplit.run(task.id, child.id, decision.id, now)
+        return { parent: parentResult, children: created }
+      },
+    ),
+    mergeInfo(projectId: string, taskId: string) {
+      if (read(taskId)?.projectId !== projectId)
+        throw Error('TASK_NOT_IN_PROJECT')
+      let canonical = taskId
+      const seen = new Set<string>()
+      while (true) {
+        if (seen.has(canonical) || seen.size > 1000)
+          throw Error('INVALID_TASK_MERGE')
+        seen.add(canonical)
+        const next = db
+          .prepare(
+            'SELECT target_id AS id FROM task_merges WHERE source_id=? AND project_id=?',
+          )
+          .get(canonical, projectId) as { id: string } | undefined
+        if (!next) break
+        canonical = next.id
+      }
+      return {
+        mergedInto: canonical === taskId ? null : canonical,
+        mergedFrom: db
+          .prepare(
+            'SELECT t.id,t.title FROM task_merges m JOIN tasks t ON t.id=m.source_id WHERE m.target_id=? AND m.project_id=? ORDER BY m.created_at,m.source_id',
+          )
+          .all(taskId, projectId) as { id: string; title: string }[],
+      }
+    },
+    merge: db.transaction(
+      (source: TaskExpectation, target: TaskExpectation, by: ManualActor) => {
+        actor(by)
+        if (
+          source.taskId === target.taskId ||
+          source.projectId !== target.projectId
+        )
+          throw Error('INVALID_TASK_MERGE')
+        const from = requireTask(source),
+          to = requireTask(target)
+        if (
+          from.archivedAt ||
+          to.archivedAt ||
+          from.admission === 'ignored' ||
+          to.admission === 'ignored'
+        )
+          throw Error('INVALID_TASK_MERGE')
+        const rows = db.prepare(
+          'SELECT criterion_id AS id,description,origin_event_id AS originEventId FROM criteria WHERE task_id=? AND version=? ORDER BY criterion_id',
+        )
+        const own = rows.all(to.id, to.criteriaVersion) as CriterionInput[]
+        const incoming = rows.all(
+          from.id,
+          from.criteriaVersion,
+        ) as CriterionInput[]
+        const combined = [...own]
+        const mapping = new Map<string, string>()
+        for (const c of incoming) {
+          const duplicate = combined.find(
+            (x) => x.description.trim() === c.description.trim(),
+          )
+          const id = duplicate?.id ?? randomUUID()
+          mapping.set(c.id, id)
+          if (!duplicate) combined.push({ ...c, id })
+        }
+        if (
+          combined.length > 32 ||
+          combined.reduce((n, c) => n + c.description.length + 1, 0) > 16384
+        )
+          throw Error('MERGE_CRITERIA_LIMIT')
+        const version = to.criteriaVersion + 1
+        db.prepare('INSERT INTO criterion_sets VALUES(?,?)').run(to.id, version)
+        for (const c of combined)
+          db.prepare('INSERT INTO criteria VALUES(?,?,?,?,?,?)').run(
+            to.id,
+            to.projectId,
+            version,
+            c.id,
+            c.description,
+            c.originEventId ?? null,
+          )
+        // Rebind evidence to the new condition set, while retaining every old version and original link.
+        for (const task of [to, from]) {
+          const links = db
+            .prepare(
+              'SELECT * FROM evidence_links WHERE task_id=? AND criterion_version=?',
+            )
+            .all(task.id, task.criteriaVersion) as {
+            criterion_id: string
+            event_id: number
+            relation: string
+            validity: string
+            reason: string
+          }[]
+          for (const link of links)
+            db.prepare(
+              'INSERT INTO evidence_links VALUES(?,?,?,?,?,?,?,?,?)',
+            ).run(
+              randomUUID(),
+              to.id,
+              to.projectId,
+              version,
+              task.id === from.id
+                ? mapping.get(link.criterion_id)
+                : link.criterion_id,
+              link.event_id,
+              link.relation,
+              link.validity === 'invalid' ? 'invalid' : 'unknown',
+              '合并后待重新核验：' + link.reason.slice(0, 2000),
+            )
+        }
+        db.prepare(
+          `INSERT OR IGNORE INTO processing_evidence(project_id,task_id,event_id,quote_start,quote_end,quote,reference_status,invalidated_by_event_id)
+        SELECT project_id,?,event_id,quote_start,quote_end,quote,reference_status,invalidated_by_event_id FROM processing_evidence WHERE task_id=?`,
+        ).run(to.id, from.id)
+        db.prepare(
+          "UPDATE tasks SET criteria_version=?,evidence_status='unknown' WHERE id=?",
+        ).run(version, to.id)
+        db.prepare('UPDATE tasks SET archived_at=? WHERE id=?').run(
+          new Date().toISOString(),
+          from.id,
+        )
+        bump(from.id)
+        bump(to.id)
+        db.prepare('INSERT INTO task_merges VALUES(?,?,?,?,?,?)').run(
+          from.id,
+          to.id,
+          from.projectId,
+          from.version + 1,
+          to.version + 1,
+          new Date().toISOString(),
+        )
+        record(from.id, by, 'merge', { sourceId: from.id, targetId: to.id })
+        const result = record(to.id, by, 'merge', {
+          sourceId: from.id,
+          targetId: to.id,
+        })
+        const events = db
+          .prepare(
+            'SELECT event_id AS id FROM processing_evidence WHERE task_id=? UNION SELECT event_id AS id FROM evidence_links WHERE task_id=?',
+          )
+          .all(to.id, to.id) as { id: number }[]
+        for (const event of events) {
+          createRetractions(db).observe(to.projectId!, event.id)
+          createRevisionReview(db).observe(to.projectId!, event.id)
+        }
+        return result
+      },
+    ),
     listPage: db.transaction((input: TaskPageQuery = {}): TaskPage => {
       const limit = input.limit ?? 50
       integer(limit)
@@ -401,12 +800,38 @@ export function createTaskModel(db: Database.Database) {
           }
         }
       }
+      if (input.sourceInstanceId !== undefined) {
+        text(input.sourceInstanceId)
+        where.push(
+          `(EXISTS(SELECT 1 FROM processing_evidence e JOIN source_events s ON s.id=e.event_id WHERE e.task_id=tasks.id AND e.project_id=tasks.project_id AND s.source_id=?) OR EXISTS(SELECT 1 FROM evidence_links e JOIN source_events s ON s.id=e.event_id WHERE e.task_id=tasks.id AND e.project_id=tasks.project_id AND s.source_id=?) OR EXISTS(SELECT 1 FROM source_object_bindings b WHERE b.task_id=tasks.id AND b.project_id=tasks.project_id AND b.source_id=? AND b.active=1))`,
+        )
+        params.push(
+          input.sourceInstanceId,
+          input.sourceInstanceId,
+          input.sourceInstanceId,
+        )
+      }
+      // Activity is recorded changes, never a completion inference.
+      const activity = `max(coalesce((SELECT max(created_at) FROM decisions d WHERE d.task_id=tasks.id),''),coalesce((SELECT max(created_at) FROM processing_decisions d WHERE d.task_id=tasks.id),''),coalesce((SELECT max(recorded_at) FROM source_association_audit d WHERE d.task_id=tasks.id),''),coalesce((SELECT max(recorded_at) FROM reference_revision_audit d WHERE d.task_id=tasks.id),''),coalesce((SELECT max(created_at) FROM reference_revision_decisions d WHERE d.task_id=tasks.id),''),coalesce((SELECT max(recorded_at) FROM plan_change_assessments d WHERE d.task_id=tasks.id),''))`
+      for (const [value, op] of [
+        [input.updatedSince, '>='],
+        [input.updatedBefore, '<'],
+      ] as const) {
+        if (value !== undefined) {
+          const date = dueDate(value)
+          where.push(`${activity} ${op} ?`)
+          params.push(date!)
+        }
+      }
       const filter = JSON.stringify([
         input.projectId === undefined ? { all: true } : input.projectId,
         input.status ?? null,
         input.admission ?? null,
         archive,
         input.query ?? '',
+        input.sourceInstanceId ?? null,
+        input.updatedSince ?? null,
+        input.updatedBefore ?? null,
       ])
       let after: string | undefined
       if (input.cursor !== undefined) {

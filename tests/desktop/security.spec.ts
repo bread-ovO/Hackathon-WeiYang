@@ -82,6 +82,7 @@ test('real IPC rejects foreign windows and malformed requests; source text stays
       await page.evaluate(() => Object.keys(window.memo.ingestion)),
     ).toEqual(['status', 'configure'])
     expect(await page.evaluate(() => Object.keys(window.memo.github))).toEqual([
+      'connectAccount',
       'list',
       'connect',
       'setEnabled',
@@ -134,7 +135,9 @@ test('real IPC rejects foreign windows and malformed requests; source text stays
       'replaceCriteria',
       'createProject',
       'createTask',
+      'mergeTasks',
       'updateTask',
+      'splitTask',
     ])
     expect(await page.evaluate(() => Object.keys(window.memo.sources))).toEqual(
       ['list', 'chooseFile', 'authorizeDirectory', 'sync', 'revoke'],
@@ -146,7 +149,16 @@ test('real IPC rejects foreign windows and malformed requests; source text stays
       await page.evaluate(() => Object.keys(window.memo.credentials)),
     ).toEqual(['list', 'importFile', 'remove'])
     expect(await page.evaluate(() => Object.keys(window.memo.plugins))).toEqual(
-      ['startDemo', 'list', 'inspect', 'trial', 'activate', 'disable', 'uninstall', 'sync'],
+      [
+        'startDemo',
+        'list',
+        'inspect',
+        'trial',
+        'activate',
+        'disable',
+        'uninstall',
+        'sync',
+      ],
     )
     expect(await page.evaluate(() => Object.keys(window.memo.pet))).toEqual([
       'voiceState',

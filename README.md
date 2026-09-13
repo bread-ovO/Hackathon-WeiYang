@@ -8,10 +8,10 @@ BUGU 不咕：把分散在工作上下文里的承诺、进展与依据整理成
 
 ## 团队文档
 
-| 文档 | 飞书入口 |
-| --- | --- |
-| PRD · 产品需求 | [产品需求文档](https://my.feishu.cn/docx/JQ11dTz4ioqXcExWlq2cMH9zn5e) |
-| ERD · 工程设计 | [现有技术方案](https://my.feishu.cn/docx/BTFWdltVvoQs2exIwDKc1LNKnVh) |
+| 文档                    | 飞书入口                                                                                 |
+| ----------------------- | ---------------------------------------------------------------------------------------- |
+| PRD · 产品需求          | [产品需求文档](https://my.feishu.cn/docx/JQ11dTz4ioqXcExWlq2cMH9zn5e)                    |
+| ERD · 工程设计          | [现有技术方案](https://my.feishu.cn/docx/BTFWdltVvoQs2exIwDKc1LNKnVh)                    |
 | 多维表 · 需求拆解与进度 | [需求明细](https://my.feishu.cn/base/VHWebJShaa0nhnskizncs3GZnud?table=tblAzOvM7QohTvak) |
 
 ERD 入口沿用此前创建的「技术方案」，尚无单独命名的 ERD 文档；历史文档中原项目名后续统一称为 BUGU 不咕。最新新增范围见 [Live2D 桌宠需求与架构增补](docs/product/BUGU_桌宠需求与架构增补.md)，对应多维表 PET01–PET16。
@@ -24,7 +24,7 @@ ERD 入口沿用此前创建的「技术方案」，尚无单独命名的 ERD �
 
 ## 当前能力
 
-- pnpm workspace、严格 TypeScript、包边界检查和 macOS CI 配置。
+- pnpm workspace、严格 TypeScript 和本地包边界检查。
 - React 桌面设计预览：事项列表/详情、来源记录、连接规划与真实核心/数据库健康状态。
 - Electron sandbox renderer、最小 preload、白名单 IPC 与自定义本地资源协议。
 - 独立 utilityProcess 核心，超时和有上限的崩溃重启。
@@ -41,7 +41,11 @@ ERD 入口沿用此前创建的「技术方案」，尚无单独命名的 ERD �
 - GitHub 专用连接：限定仓库与保险库凭据验证、持久分页及限流恢复、暂停与撤销、PR 观察记录；见 [GitHub 采集交付](docs/engineering/GitHub专用连接与持久采集_2026-09-13.md)。
 - 显式消息撤回：授权收录撤回记录后立即标记引用失效，保留人工事项；详情显示撤回依据，导出保留失效关系与隐私选项，见 [撤回处理交付](docs/engineering/消息撤回与引用失效_2026-09-13.md)。
 
-已支持用户选择本地 JSONL 导出文件、按项目导入、增量同步和撤销授权；GitHub 已支持限定仓库令牌与持久轮询；飞书已支持手动令牌与限定会话的历史及增量采集；原生 AI 会话格式和事项语义模型执行尚未接入；“示例体验”提供虚构事项，支持筛选、搜索、新增及可撤销的状态预览，仅保存在窗口内存；“我的工作区”已支持真实项目、手动事项、标题与状态修改、归档及重启恢复。已接通本机有限规则的后台候选整理，支持暂停和原文依据；模型语义处理、自动条件核验、飞书令牌自动刷新及加密数据库仍待开发。
+已支持用户选择本地 JSONL 导出文件、按项目导入、增量同步和撤销授权；GitHub 已支持限定仓库令牌与持久轮询；飞书已支持手动令牌与限定会话的历史及增量采集；Claude Code/Codex 的受支持 JSONL 会话格式已接入，事项语义模型执行尚未接入；“示例体验”提供虚构事项，支持筛选、搜索、新增及可撤销的状态预览，仅保存在窗口内存；“我的工作区”已支持真实项目、手动事项、标题与状态修改、归档及重启恢复。已接通本机有限规则的后台候选整理，支持暂停和原文依据；模型语义处理、自动条件核验、飞书令牌自动刷新及加密数据库仍待开发。
+
+## 开发来源插件
+
+见 [插件开发指南与可安装示例](docs/plugins/README.md)；包含公开 Schema、本地校验命令、安装试运行步骤与权限边界。会话来源的格式支持与增量限制见 [会话格式说明](docs/plugins/session-formats.md)。
 
 ## 桌宠（逐步接入）
 
@@ -50,7 +54,6 @@ ERD 入口沿用此前创建的「技术方案」，尚无单独命名的 ERD �
 **设置页已接通模型目录选择、入口确认、资源预检与受控导入，支持去重、当前模型选择、移除和重启恢复。本地安装受支持的运行库后，可在独立透明窗口显示当前模型，播放 Idle 与物理动画。已支持拖动、缩放、置顶、位置恢复、透明区穿透、模型表情动作与手动文字气泡。macOS 已接通可选自动话语、频率上限、静默与暂停及系统抑制；默认关闭且不播音。**
 
 本地开发准备运行库：执行 `node scripts/fetch-pet-sdk.mjs`，在设置的「选择运行库目录」中选择 `.pet-sdk/runtime`。安装器仅接受仓库固定版本、大小和哈希匹配的文件；运行库与示例模型不随应用打包。随后导入模型、设为当前并点击「显示桌宠」。隐藏或切换模型会释放窗口，重新显示需点击按钮。模型与 SDK 的发布许可见 [许可边界](docs/engineering/Live2D许可与发布边界_2026-09-13.md)。
-
 
 事项话语可独立授权项目，引用真实事项并回到详情；可选本机 Ollama 只选择受限模板，默认关闭。见[事项话语交付与验证边界](docs/engineering/桌宠事项话语与本机模型选择_2026-09-13.md)。
 
@@ -68,12 +71,16 @@ npx --yes pnpm@10.34.5 dev
 
 ## 验证与构建
 
+仓库已移除 GitHub Actions CI 工作流，提交与 PR 不再自动运行全量检查、打包或公网来源探针。开发时按改动范围做本地验证，默认只跑受影响的 E2E 用例。
+
 ```bash
-pnpm check
-pnpm package:dir
+pnpm typecheck
+# 按改动选择相关单测或桌面用例，例如：
+pnpm exec vitest run tests/unit/local-jsonl.test.ts
+pnpm exec playwright test tests/desktop/source-import.spec.ts
 ```
 
-`check` 顺序执行包边界、类型、单元、构建、SQLite 集成和桌面端到端测试。`package:dir` 生成 release/ 下的本地未签名应用目录，尚非可公开分发的安装包。CI 配置已提供，远端执行结果需推送后确认。
+跨包修改运行 `pnpm check:boundaries`；原生依赖或打包配置修改运行 `pnpm package:dir`。`package:dir` 生成 release/ 下的本地未签名应用目录，尚非可公开分发的安装包。`pnpm check` 保留为手动全量入口，按需使用；公网来源探针仍可手动执行 `node scripts/probe-http-source.mjs`。
 
 给试用用户可构建**无示例体验版本**：`pnpm package:real`（渲染层以 `VITE_MEMO_NO_DEMO=1` 构建），输出 `release/real/`。该版本启动即进入「我的工作区」，隐藏示例体验切换与相关说明，功能与默认构建一致。
 
@@ -85,17 +92,17 @@ pnpm package:dir
 
 ## 工程结构
 
-| 目录 | 职责 |
-| --- | --- |
-| apps/desktop | main、preload、renderer、core 入口与打包 |
-| packages/contracts | 版本化 JSON Schema 和边界类型 |
-| packages/domain | 与平台无关的领域规则 |
-| packages/application | 接收等应用用例及存储接口 |
-| packages/storage | SQLite、迁移与事务实现 |
-| packages/connectors | 来源适配器；GitHub 仓库与飞书限定会话均已接宿主持久采集 |
+| 目录                 | 职责                                                                                    |
+| -------------------- | --------------------------------------------------------------------------------------- |
+| apps/desktop         | main、preload、renderer、core 入口与打包                                                |
+| packages/contracts   | 版本化 JSON Schema 和边界类型                                                           |
+| packages/domain      | 与平台无关的领域规则                                                                    |
+| packages/application | 接收等应用用例及存储接口                                                                |
+| packages/storage     | SQLite、迁移与事务实现                                                                  |
+| packages/connectors  | 来源适配器；GitHub 仓库与飞书限定会话均已接宿主持久采集                                 |
 | packages/plugin-host | 版本化 manifest 校验、local-jsonl 与 HTTPS JSON 读取模块；含安装/授权、试运行与启停界面 |
-| packages/model | 受限本机 Ollama 桌宠模板选择；通用事项提取仍未接入 |
-| packages/evals | 按时间回放的评测类型，真实样例待补 |
+| packages/model       | 受限本机 Ollama 桌宠模板选择；通用事项提取仍未接入                                      |
+| packages/evals       | 按时间回放的评测类型，真实样例待补                                                      |
 
 队列存储与故障恢复说明见 [S05 交付记录](docs/engineering/S05_持久作业与租约恢复_2026-09-13.md)。作业处理器已接本地明确承诺规则，只生成待确认候选。事项处理尚未连接语义模型；不把队列领取等同于事项处理成功。
 
@@ -141,12 +148,14 @@ pnpm package:dir
 
 第十七批[桌宠帧率与恢复](docs/engineering/桌宠帧率与恢复交付_2026-09-13.md)：闲置15fps/活动30fps、WebGL受限恢复和着色器迟到回调释放保护；运行库需升级为lifecycle1。
 
-
 第十八批[事件入口一致性与退出验收](docs/engineering/事件入口一致性与退出验收_2026-09-13.md)：同修订冲突事务拒绝、v7 时间上下文与项目隔离查询；补本地插件在途退出和同步时间恢复。事项自动消费者及迟到计划更新尚未接通。
-
 
 第十九批[本地候选整理闭环](docs/engineering/本地候选整理闭环_2026-09-13.md)：授权事件经后台规则处理进入待确认候选，暂停持久化，修订保留待复核且不覆盖人工更改；详情可见原文与规则来源，导出升级至 v2 并保留相关依据。有限规则不能替代完整模型语义理解。
 
 S01–S08 分支合并保留主干 v14 生产数据库及现有来源、工作区和桌宠。额外的 v2 数据底座通过 `@memo/storage/foundation` 的 `openFoundationStore` 显式使用独立数据库；尚未接入桌面生产流水线。见[合并范围与兼容边界](docs/engineering/数据与作业_S01-S08_主干合并说明_2026-09-13.md)。
 
 第二十九批[桌宠系统语音与口型联动](docs/engineering/桌宠系统语音与口型联动_2026-09-13.md)：默认关闭的 macOS 系统声音、真实 PCM 口型、即时停止与文字降级。
+
+### 本批新增：筛选、截止解析、Kimi、合并与账户监听
+
+入口与边界见 [U01 / A02 / L06 / H03 / G05 交付说明](docs/engineering/五项需求交付_U01_A02_L06_H03_G05.md)。存储测试支持指定受影响的用例，例如 `pnpm test:storage five-requirements-integration`；桌面测试继续按 spec 定向执行。

@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { parseCoreRequest } from '@memo/contracts'
 import { createRequestHandler } from '../../apps/desktop/src/main/request-handler'
+import { handleWorkspace } from '../../apps/desktop/src/core/workspace'
 
 const update = {
   method: 'workspace.updateTask',
@@ -231,6 +232,72 @@ describe('workspace filtering, detail and versioned criteria contract', () => {
   ])('rejects noncanonical or invalid due date %s', (dueAt) => {
     expect(() => parseCoreRequest({ ...update, patch: { dueAt } })).toThrow(
       'INVALID_REQUEST',
+    )
+  })
+})
+
+describe('task split request boundary', () => {
+  const split = {
+    method: 'workspace.splitTask' as const,
+    projectId: 'project-1',
+    taskId: 'task-1',
+    expectedVersion: 1,
+    expectedCriteriaVersion: 2,
+    expectedManualVersion: 0,
+    children: [{ title: '拆分新事项', criterionIds: ['criterion-1'] }],
+  }
+  it('accepts typed split requests', () => {
+    for (const request of [
+      split,
+      {
+        ...split,
+        children: [
+          { title: 'A', criterionIds: ['c1', 'c2'] },
+          { title: 'B', criterionIds: ['c3'] },
+        ],
+      },
+    ])
+      expect(parseCoreRequest(request)).toEqual(request)
+  })
+  it.each([
+    { method: 'workspace.splitTask' },
+    { ...split, children: [] },
+    {
+      ...split,
+      children: Array.from({ length: 5 }, (_, i) => ({
+        title: `t${i}`,
+        criterionIds: ['c1'],
+      })),
+    },
+    { ...split, children: [{ title: '', criterionIds: ['c1'] }] },
+    { ...split, children: [{ title: 'x'.repeat(513), criterionIds: ['c1'] }] },
+    { ...split, children: [{ title: 'ok', criterionIds: [] }] },
+    { ...split, children: [{ title: 'ok', criterionIds: ['c1'], extra: 1 }] },
+    {
+      ...split,
+      children: [
+        {
+          title: 'ok',
+          criterionIds: Array.from({ length: 33 }, (_, i) => `c${i}`),
+        },
+      ],
+    },
+    { ...split, expectedVersion: 0 },
+    { ...split, taskId: null },
+  ])('rejects malformed split request %#', (request) => {
+    expect(() => parseCoreRequest(request)).toThrow('INVALID_REQUEST')
+  })
+  it('dispatches split through the core workspace handler', () => {
+    const splitOutcome = { parent: { id: 'task-1' }, children: [{ id: 'new' }] }
+    const tasks = { split: vi.fn(() => splitOutcome) }
+    const store = { tasks } as unknown as ReturnType<
+      typeof import('../../packages/storage/src/index').openStore
+    >
+    expect(handleWorkspace(store, split)).toBe(splitOutcome)
+    const { method: _s, ...splitInput } = split
+    expect(tasks.split).toHaveBeenCalledExactlyOnceWith(
+      splitInput,
+      { actorId: 'local-user', reason: '用户在我的工作区手动操作' },
     )
   })
 })

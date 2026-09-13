@@ -45,6 +45,58 @@ export function RealWorkspace({
     [archive, setArchive] = useState(false),
     [status, setStatus] = useState(''),
     [admission, setAdmission] = useState('')
+  const [source, setSource] = useState(''),
+    [activity, setActivity] = useState('')
+  const [activityNow] = useState(() => Date.now())
+  const [sourceOptions, setSourceOptions] = useState<
+    { id: string; name: string; projectId: string }[]
+  >([])
+  useEffect(() => {
+    let active = true
+    void Promise.all([
+      window.memo.sources.list(),
+      window.memo.github.list(),
+      window.memo.feishu.list(),
+      window.memo.plugins.list(),
+    ])
+      .then(([local, github, feishu, plugins]) => {
+        if (!active) return
+        setSourceOptions([
+          ...(local.ok
+            ? local.data.sources.map((s) => ({
+                id: s.id,
+                name: s.displayName,
+                projectId: s.projectId,
+              }))
+            : []),
+          ...(github.ok
+            ? github.data.connections.map((s) => ({
+                id: s.id,
+                name: s.mode === 'account' ? `GitHub · ${s.owner}（账户）` : `GitHub · ${s.owner}/${s.repo}`,
+                projectId: s.projectId,
+              }))
+            : []),
+          ...(feishu.ok
+            ? feishu.data.connections.map((s) => ({
+                id: s.id,
+                name: `飞书 · ${s.chatId}`,
+                projectId: s.projectId,
+              }))
+            : []),
+          ...(plugins.ok
+            ? plugins.data.plugins.map((s) => ({
+                id: s.sourceInstanceId ?? s.id,
+                name: s.displayName,
+                projectId: s.projectId,
+              }))
+            : []),
+        ])
+      })
+      .catch(() => {})
+    return () => {
+      active = false
+    }
+  }, [])
   const [selected, setSelected] = useState<string | null>(null)
   const seq = useRef(0),
     mutating = useRef(false)
@@ -86,6 +138,12 @@ export function RealWorkspace({
     archive: archive ? 'archived' : 'active',
     query,
     limit: 50,
+    ...(source ? { sourceInstanceId: source } : {}),
+    ...(activity === 'recent'
+      ? { updatedSince: new Date(activityNow - 7 * 86400000).toISOString() }
+      : activity === 'quiet'
+        ? { updatedBefore: new Date(activityNow - 30 * 86400000).toISOString() }
+        : {}),
   })
   const load = useCallback(
     async (append = false, cursor?: string) => {
@@ -228,6 +286,21 @@ export function RealWorkspace({
         '条件新版本已保存，旧证据仍保留在原版本。',
       )
   }
+  async function split(children: { title: string; criterionIds: string[] }[]) {
+    if (!current?.projectId) return
+    await run(
+      () =>
+        window.memo.workspace.splitTask({
+          projectId: current.projectId!,
+          taskId: current.id,
+          expectedVersion: current.version,
+          expectedCriteriaVersion: current.criteriaVersion,
+          expectedManualVersion: current.manualVersion,
+          children,
+        }),
+      '已拆分：所选条件与证据移入新事项。',
+    )
+  }
   return (
     <>
       <div className="page-heading">
@@ -300,7 +373,10 @@ export function RealWorkspace({
             disabled={saving}
             aria-label="所属项目"
             value={project}
-            onChange={(e) => setProject(e.target.value)}
+            onChange={(e) => {
+              setProject(e.target.value)
+              setSource('')
+            }}
           >
             <option value="">全部项目 / 请选择</option>
             {data.projects.map((p) => (
@@ -364,6 +440,31 @@ export function RealWorkspace({
             <option value="accepted">已收录</option>
             <option value="candidate">待确认</option>
             <option value="ignored">已忽略</option>
+          </select>
+          <select
+            aria-label="来源筛选"
+            value={source}
+            disabled={saving}
+            onChange={(e) => setSource(e.target.value)}
+          >
+            <option value="">全部来源</option>
+            {sourceOptions
+              .filter((s) => !project || s.projectId === project)
+              .map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name}
+                </option>
+              ))}
+          </select>
+          <select
+            aria-label="活跃度筛选"
+            value={activity}
+            disabled={saving}
+            onChange={(e) => setActivity(e.target.value)}
+          >
+            <option value="">全部活跃度</option>
+            <option value="recent">最近7天有更新</option>
+            <option value="quiet">30天无更新</option>
           </select>
         </div>
         <AppInput
@@ -440,16 +541,34 @@ export function RealWorkspace({
           ) : (
             <div className="empty-state">
               <h2>
-                {project || query || status || admission || archive
+                {project ||
+                query ||
+                status ||
+                admission ||
+                archive ||
+                source ||
+                activity
                   ? '没有匹配的事项'
                   : '你的跟进清单，从这里开始'}
               </h2>
               <p>
-                {project || query || status || admission || archive
+                {project ||
+                query ||
+                status ||
+                admission ||
+                archive ||
+                source ||
+                activity
                   ? '可以调整筛选条件再试。'
                   : '可以创建项目并添加真实事项，或先连接来源自动收录。'}
               </p>
-              {project || query || status || admission || archive ? (
+              {project ||
+              query ||
+              status ||
+              admission ||
+              archive ||
+              source ||
+              activity ? (
                 <AppButton
                   className="secondary"
                   onClick={() => {
@@ -458,6 +577,8 @@ export function RealWorkspace({
                     setStatus('')
                     setAdmission('')
                     setArchive(false)
+                    setSource('')
+                    setActivity('')
                   }}
                 >
                   清除筛选
@@ -481,12 +602,27 @@ export function RealWorkspace({
             </AppButton>
           )}
           <div className="list-foot">
-            事项保存在本机 · 已支持有限规则候选与指定 GitHub 仓库 PR
-            采样；模型语义识别尚未接通
+            事项保存在本机 · 已支持规则候选、会话导入与 GitHub
+            观察记录；模型语义识别尚未接通
           </div>
         </section>
         {current && (
           <TaskEditor
+            openRelated={async (id) => {
+              if (!current.projectId) return
+              const r = await window.memo.workspace.detail(
+                current.projectId,
+                id,
+              )
+              if (r.ok) {
+                await latestLoad.current()
+                setData((old) => ({
+                  ...old,
+                  tasks: [r.data.task, ...old.tasks.filter((t) => t.id !== id)],
+                }))
+                setSelected(id)
+              }
+            }}
             key={current.id}
             task={current}
             onPlanApplied={(next) =>
@@ -500,6 +636,7 @@ export function RealWorkspace({
             busy={busy || saving}
             update={update}
             replace={replace}
+            split={split}
             close={() => setSelected(null)}
           />
         )}

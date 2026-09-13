@@ -27,6 +27,7 @@ const sources = {
   unknown: '无法确认',
 } as const
 const fields: Record<TimelineEntry['changes'][number]['field'], string> = {
+  merge: '事项合并（原 ID → 目标 ID）',
   title: '标题',
   owner: '负责人',
   status: '事项状态',

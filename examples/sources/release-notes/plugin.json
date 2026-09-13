@@ -1,0 +1,19 @@
+{
+  "id": "release-notes-demo",
+  "version": "1.0.0",
+  "schemaVersion": 1,
+  "sourceType": "source",
+  "displayName": "发布笔记（虚构样例）",
+  "hostApiRange": { "minInclusive": "1.0.0", "maxExclusive": "2.0.0" },
+  "kind": "local-jsonl",
+  "permissions": { "domains": [], "directories": [{ "id": "notes", "purpose": "只读用户选择的发布笔记目录" }], "credentials": [] },
+  "sampling": { "intervalSeconds": 60, "maxRecordsPerRun": 100 },
+  "transport": { "directoryId": "notes", "file": "events.jsonl", "maxFileBytes": 1048576, "maxLineBytes": 65536 },
+  "mapping": {
+    "externalId": { "pointer": "/note/key" },
+    "revision": { "pointer": "/note/revision" },
+    "occurredAt": { "pointer": "/note/time" },
+    "role": { "pointer": "/author/role" },
+    "text": { "pointer": "/note/body" }
+  }
+}

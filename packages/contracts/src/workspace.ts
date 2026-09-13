@@ -52,6 +52,9 @@ export const workspaceQuerySchema = {
     status,
     admission,
     archive: { enum: ['active', 'archived', 'all'] },
+    sourceInstanceId: id,
+    updatedSince: { type: 'string', format: 'workspace-date-time' },
+    updatedBefore: { type: 'string', format: 'workspace-date-time' },
     query: { type: 'string', maxLength: 256 },
     limit: { type: 'integer', minimum: 1, maximum: 100 },
     cursor: { type: 'string', minLength: 1, maxLength: 4096 },
@@ -60,6 +63,21 @@ export const workspaceQuerySchema = {
 export type WorkspaceQuery = FromSchema<typeof workspaceQuerySchema>
 export const workspaceRequestSchema = {
   oneOf: [
+    {
+      type: 'object',
+      additionalProperties: false,
+      required: ['method', ...expected, 'target'],
+      properties: {
+        method: { const: 'workspace.mergeTasks' },
+        ...expectation,
+        target: {
+          type: 'object',
+          additionalProperties: false,
+          required: expected,
+          properties: expectation,
+        },
+      },
+    },
     ...petContextFactsRequestSchemas,
     ...planChangeRequestSchemas,
     ...sourceAssociationRequestSchemas,
@@ -148,6 +166,41 @@ export const workspaceRequestSchema = {
         },
       },
     },
+    {
+      type: 'object',
+      additionalProperties: false,
+      required: [
+        'method',
+        'projectId',
+        'taskId',
+        'expectedVersion',
+        'expectedCriteriaVersion',
+        'expectedManualVersion',
+        'children',
+      ],
+      properties: {
+        method: { const: 'workspace.splitTask' },
+        projectId: id,
+        taskId: id,
+        expectedVersion: { ...version, minimum: 1 },
+        expectedCriteriaVersion: version,
+        expectedManualVersion: version,
+        children: {
+          type: 'array',
+          minItems: 1,
+          maxItems: 4,
+          items: {
+            type: 'object',
+            additionalProperties: false,
+            required: ['title', 'criterionIds'],
+            properties: {
+              title: { type: 'string', minLength: 1, maxLength: 512 },
+              criterionIds: { type: 'array', minItems: 1, maxItems: 32, items: id },
+            },
+          },
+        },
+      },
+    },
   ],
 } as const
 export type WorkspaceRequest = FromSchema<typeof workspaceRequestSchema>
@@ -197,10 +250,20 @@ export interface CandidateProvenance {
   createdAt: string
 }
 export interface WorkspaceDetail {
+  merge?: {
+    mergedInto: string | null
+    mergedFrom: { id: string; title: string }[]
+  }
   provenance?: CandidateProvenance[]
   task: WorkspaceTask
   criteria: {
     version: number
     items: { id: string; description: string; originEventId?: number }[]
   }
+  splitChildren?: { taskId: string; title: string; splitAt: string }[]
+  splitFrom?: { taskId: string; title: string; splitAt: string } | null
+}
+export interface TaskSplitResult {
+  parent: WorkspaceTask
+  children: WorkspaceTask[]
 }

@@ -44,3 +44,5 @@ export interface StoredTask extends Omit<Task, 'status'> {
 // Recompute from facts, never arrival order. An opaque revision is not a sequence number.
 
 export { extractExplicitPlanChange } from './plan-change'
+
+export { resolveDeadline } from './deadline'

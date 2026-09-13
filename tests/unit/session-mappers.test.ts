@@ -57,14 +57,13 @@ describe('claudeSessionMapper', () => {
             { type: 'tool_use', name: 'Bash', input: {} },
             { type: 'text', text: '第二段' },
             { type: 'tool_result', content: 'done' },
-            'raw-string',
           ],
         },
       }),
     )
     expect(mapped?.content).toBe('第一段\n\n第二段')
   })
-  it('skips non-conversational types and malformed lines', () => {
+  it('skips known metadata but rejects malformed messages', () => {
     for (const type of [
       'permission-mode',
       'file-history-snapshot',
@@ -73,25 +72,31 @@ describe('claudeSessionMapper', () => {
       'system',
     ])
       expect(claudeSessionMapper(claudeLine({ type }))).toBeNull()
-    expect(claudeSessionMapper(claudeLine({ uuid: 7 }))).toBeNull()
-    expect(claudeSessionMapper(claudeLine({ timestamp: '不是时间' }))).toBeNull()
-    expect(claudeSessionMapper(claudeLine({ message: null }))).toBeNull()
-    expect(
-      claudeSessionMapper(
-        claudeLine({ message: { role: 'system', content: 'x' } }),
-      ),
-    ).toBeNull()
-    expect(
-      claudeSessionMapper(claudeLine({ message: { role: 'user' } })),
-    ).toBeNull()
+    for (const value of [
+      { uuid: 7 },
+      { timestamp: 'not-a-time' },
+      { message: null },
+      { message: { role: 'system', content: 'x' } },
+      { message: { role: 'user' } },
+      { type: 'future-version' },
+      { uuid: 'x'.repeat(257) },
+      { message: { role: 'user', content: 'x'.repeat(65537) } },
+      { message: { role: 'user', content: [{ type: 'future_block' }] } },
+    ])
+      expect(() => claudeSessionMapper(claudeLine(value))).toThrow(
+        'UNSUPPORTED_SESSION_FORMAT',
+      )
   })
   it('skips empty extracted text', () => {
     expect(
-      claudeSessionMapper(claudeLine({ message: { role: 'user', content: '' } })),
+      claudeSessionMapper(
+        claudeLine({ message: { role: 'user', content: '' } }),
+      ),
     ).toBeNull()
     expect(
       claudeSessionMapper(
         claudeLine({
+          type: 'assistant',
           message: {
             role: 'assistant',
             content: [{ type: 'thinking', thinking: '仅思考' }],
@@ -127,6 +132,15 @@ describe('codexSessionMapper', () => {
     expect(assistant?.id).toBe('4')
     expect(assistant?.content).toBe('收到。\n\n周四给你初稿。')
   })
+  it('uses trusted reader offsets for missing/null ordinals and preserves legacy IDs', () => {
+    for (const ordinal of [undefined, null]) {
+      expect(
+        codexSessionMapper(codexLine({ ordinal }), { byteOffset: 123 })?.id,
+      ).toBe('offset:123')
+      expect(() => codexSessionMapper(codexLine({ ordinal }))).toThrow()
+    }
+    expect(codexSessionMapper(codexLine(), { byteOffset: 123 })?.id).toBe('3')
+  })
   it('skips non-message lines, other payload items and developer messages', () => {
     for (const type of ['session_meta', 'event_msg', 'turn_context'])
       expect(codexSessionMapper(codexLine({ type }))).toBeNull()
@@ -160,17 +174,17 @@ describe('codexSessionMapper', () => {
     ).toBeNull()
   })
   it('skips malformed lines and empty extracted text', () => {
-    expect(codexSessionMapper(codexLine({ ordinal: '3' }))).toBeNull()
-    expect(codexSessionMapper(codexLine({ ordinal: -1 }))).toBeNull()
-    expect(codexSessionMapper(codexLine({ timestamp: 42 }))).toBeNull()
-    expect(codexSessionMapper(codexLine({ payload: 'message' }))).toBeNull()
-    expect(
-      codexSessionMapper(
-        codexLine({
-          payload: { type: 'message', role: 'user', content: 'plain' },
-        }),
-      ),
-    ).toBeNull()
+    for (const value of [
+      { ordinal: '3' },
+      { ordinal: -1 },
+      { timestamp: 42 },
+      { payload: 'message' },
+      { type: 'future-version' },
+      { payload: { type: 'message', role: 'user', content: 'plain' } },
+    ])
+      expect(() => codexSessionMapper(codexLine(value))).toThrow(
+        'UNSUPPORTED_SESSION_FORMAT',
+      )
     expect(
       codexSessionMapper(
         codexLine({
@@ -189,7 +203,51 @@ describe('session mapper registry', () => {
   it('exposes one versioned normalizer id per kind', () => {
     expect(SESSION_MAPPERS['claude-code']).toBe(claudeSessionMapper)
     expect(SESSION_MAPPERS.codex).toBe(codexSessionMapper)
-    expect(SESSION_NORMALIZER_IDS['claude-code']).toMatch(/^claude-code-session@/)
+    expect(SESSION_NORMALIZER_IDS['claude-code']).toMatch(
+      /^claude-code-session@/,
+    )
     expect(SESSION_NORMALIZER_IDS.codex).toMatch(/^codex-session@/)
   })
+})
+
+it('imports Kimi wire user input with occurrence time and stable trusted byte offsets', () => {
+  const record = {
+    timestamp: 1789362000,
+    message: {
+      type: 'TurnBegin',
+      payload: {
+        user_input: [
+          { type: 'text', text: '我会提交验收报告' },
+          { type: 'image_url', image_url: { url: 'data:fictional' } },
+        ],
+      },
+    },
+  }
+  const result = SESSION_MAPPERS.kimi(record, { byteOffset: 100 })!
+  expect(result.role).toBe('user')
+  expect(result.created_at).toBe(new Date(1789362000 * 1000).toISOString())
+  expect(result.content).toBe('我会提交验收报告')
+  expect(result.id).toBe('offset:100')
+  expect(() => SESSION_MAPPERS.kimi(record)).toThrow()
+  expect(() =>
+    SESSION_MAPPERS.kimi({ type: 'metadata', protocol_version: '2.0' }),
+  ).toThrow()
+  expect(
+    SESSION_MAPPERS.kimi({ type: 'metadata', protocol_version: '1.10' }),
+  ).toBeNull()
+  expect(() =>
+    SESSION_MAPPERS.kimi(
+      { role: 'user', content: 'context without timestamp' },
+      { byteOffset: 0 },
+    ),
+  ).toThrow()
+  expect(
+    SESSION_MAPPERS.kimi(
+      {
+        timestamp: 1789362000,
+        message: { type: 'TextPart', payload: { text: '我会提交助手报告' } },
+      },
+      { byteOffset: 200 },
+    )!.role,
+  ).toBe('assistant')
 })

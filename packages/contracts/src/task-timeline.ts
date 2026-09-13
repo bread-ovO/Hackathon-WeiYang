@@ -53,6 +53,7 @@ export interface TimelineEntry {
   relatedEventIds: number[]
   changes: {
     field:
+      | 'merge'
       | 'title'
       | 'owner'
       | 'status'

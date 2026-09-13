@@ -1,3 +1,4 @@
+import { TaskMerge } from './task-merge'
 import { Disclosure } from './ui/disclosure'
 import { X } from '@phosphor-icons/react'
 import { SourceAssociations } from './source-associations'
@@ -47,10 +48,12 @@ type EditorDraft = {
 const editorDrafts = new Map<string, EditorDraft>()
 export function TaskEditor({
   task,
-  busy,
+  busy: externalBusy,
   update,
   replace,
+  split,
   close,
+  openRelated,
   onPlanApplied,
 }: {
   task: WorkspaceTask
@@ -60,9 +63,16 @@ export function TaskEditor({
     items: { id: string; description: string; originEventId?: number }[],
     baseline?: EditorBaseline,
   ) => Promise<void>
+  split: (children: { title: string; criterionIds: string[] }[]) => Promise<void>
   onPlanApplied: (task: WorkspaceTask) => void
+  openRelated: (id: string) => void
   close: () => void
 }) {
+  const [merge, setMerge] = useState<{
+    mergedInto: string | null
+    mergedFrom: { id: string; title: string }[]
+  }>({ mergedInto: null, mergedFrom: [] })
+  const busy = externalBusy || !!merge.mergedInto
   const draftKey = JSON.stringify([task.projectId, task.id])
   const restored = useRef(editorDrafts.get(draftKey))
   const [baseline, setBaseline] = useState<EditorBaseline>(
@@ -86,6 +96,9 @@ export function TaskEditor({
   const [provenance, setProvenance] = useState<CandidateProvenance[]>([])
   const [evidenceLoading, setEvidenceLoading] = useState(false)
   const [evidenceError, setEvidenceError] = useState('')
+  const [splitSelection, setSplitSelection] = useState<Set<string>>(new Set())
+  const [splitTitle, setSplitTitle] = useState('')
+  const [splitBusy, setSplitBusy] = useState(false)
   const evidenceGeneration = useRef(0)
   const generation = useRef(0)
   const preservePlanDrafts = useRef<number | null>(
@@ -132,6 +145,7 @@ export function TaskEditor({
           if (preservePlanDrafts.current !== task.version)
             setItems(r.data.criteria.items.map((x) => ({ ...x })))
           setProvenance(r.data.provenance ?? [])
+          setMerge(r.data.merge ?? { mergedInto: null, mergedFrom: [] })
         } else setError('条件读取失败，请刷新事项。')
       })
       .catch(() => {
@@ -215,6 +229,14 @@ export function TaskEditor({
       </div>
       <div className="real-editor">
         <h2>{task.title}</h2>
+        {merge.mergedInto && (
+          <p>
+            此事项已合并，历史记录只读。
+            <AppButton onClick={() => openRelated(merge.mergedInto!)}>
+              打开目标事项
+            </AppButton>
+          </p>
+        )}
         {staleDraft && (
           <section role="alert" aria-label="草稿版本冲突">
             <p>事项已在别处更新，旧草稿已保留。请核对当前保存内容后再提交。</p>
@@ -355,7 +377,8 @@ export function TaskEditor({
               <form
                 onSubmit={(e) => {
                   e.preventDefault()
-                  if (!staleDraft) void update({ title: title.trim() }, baseline)
+                  if (!staleDraft)
+                    void update({ title: title.trim() }, baseline)
                 }}
               >
                 <AppInput
@@ -404,7 +427,10 @@ export function TaskEditor({
                     return
                   }
                   if (!staleDraft)
-                    void update({ dueAt: date?.toISOString() ?? null }, baseline)
+                    void update(
+                      { dueAt: date?.toISOString() ?? null },
+                      baseline,
+                    )
                 }}
               >
                 <label htmlFor="task-due">截止时间（本机时区）</label>
@@ -442,9 +468,9 @@ export function TaskEditor({
                   onChange={(e) =>
                     void update({
                       admission: e.target.value as
-                      | 'candidate'
-                      | 'accepted'
-                      | 'ignored',
+                        | 'candidate'
+                        | 'accepted'
+                        | 'ignored',
                     })
                   }
                 >
@@ -564,6 +590,105 @@ export function TaskEditor({
           </>
         ) : (
           <p>旧事项尚未分配项目，暂不可编辑。</p>
+        )}
+        {merge.mergedFrom.length > 0 && (
+          <Disclosure title="合并来源与原始历史" id="merge-history">
+            {merge.mergedFrom.map((t) => (
+              <AppButton key={t.id} onClick={() => openRelated(t.id)}>
+                {t.title}
+              </AppButton>
+            ))}
+          </Disclosure>
+        )}
+        {!merge.mergedInto && !task.archivedAt && (
+          <TaskMerge
+            task={task}
+            disabled={busy}
+            onMerged={(next) => openRelated(next.id)}
+          />
+        )}
+        {task.projectId && !merge.mergedInto && !task.archivedAt && (
+          <Disclosure title="拆分事项" description="把部分条件拆成独立事项">
+            <div className="task-structure">
+              {readonly ? (
+                <p>仅当前条件版本可拆分，请先切回最新版本。</p>
+              ) : items.length < 2 ? (
+                <p>至少需要两个条件才能拆分。</p>
+              ) : (
+                <>
+                  <p>
+                    勾选要移出的完成条件，拆分为一条新事项；相关证据随条件移动，本事项保留其余条件。
+                  </p>
+                  <ul className="split-criteria">
+                    {items.map((item) => (
+                      <li key={item.id}>
+                        <label>
+                          <input
+                            type="checkbox"
+                            checked={splitSelection.has(item.id)}
+                            disabled={splitBusy || busy || !item.description.trim()}
+                            onChange={(e) => {
+                              const next = new Set(splitSelection)
+                              if (e.target.checked) next.add(item.id)
+                              else next.delete(item.id)
+                              setSplitSelection(next)
+                            }}
+                          />
+                          {item.description || '（未填写描述的条件）'}
+                        </label>
+                      </li>
+                    ))}
+                  </ul>
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault()
+                      if (
+                        splitBusy ||
+                        busy ||
+                        staleDraft ||
+                        !splitTitle.trim() ||
+                        !splitSelection.size ||
+                        splitSelection.size >= items.length
+                      )
+                        return
+                      setSplitBusy(true)
+                      void split([
+                        { title: splitTitle.trim(), criterionIds: [...splitSelection] },
+                      ])
+                        .catch(() => undefined)
+                        .finally(() => setSplitBusy(false))
+                      setSplitSelection(new Set())
+                      setSplitTitle('')
+                    }}
+                  >
+                    <AppInput
+                      aria-label="新事项标题"
+                      placeholder="拆分出的新事项标题"
+                      value={splitTitle}
+                      maxLength={512}
+                      disabled={splitBusy || busy}
+                      onChange={(e) => setSplitTitle(e.target.value)}
+                    />
+                    <AppButton
+                      type="submit"
+                      className="secondary"
+                      disabled={
+                        splitBusy ||
+                        busy ||
+                        staleDraft ||
+                        !splitTitle.trim() ||
+                        !splitSelection.size ||
+                        splitSelection.size >= items.length
+                      }
+                    >
+                      拆分出所选条件
+                    </AppButton>
+                  </form>
+                  <p>新事项继承收录状态与负责人，截止时间需单独设置。</p>
+                </>
+              )}
+            </div>
+          </Disclosure>
         )}
         <Disclosure title="关联、改期与历史">
           {task.projectId && (

@@ -278,8 +278,8 @@ export function createProcessing(db: Database.Database) {
           const id = randomUUID()
           ids.push(id)
           db.prepare(
-            "INSERT INTO tasks(id,project_id,title,status,evidence_status,version,manual_version,admission,criteria_version,due_at) VALUES(?,?,?,'todo','unknown',1,0,'candidate',0,NULL)",
-          ).run(id, actual.projectId, candidate.title)
+            "INSERT INTO tasks(id,project_id,title,status,evidence_status,version,manual_version,admission,criteria_version,due_at) VALUES(?,?,?,'todo','unknown',1,0,'candidate',0,?)",
+          ).run(id, actual.projectId, candidate.title, candidate.dueAt)
           db.prepare('INSERT INTO processing_origins VALUES(?,?,?,?,?)').run(
             actual.projectId,
             actual.event.sourceInstanceId,
