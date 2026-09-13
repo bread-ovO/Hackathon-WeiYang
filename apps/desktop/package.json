@@ -46,8 +46,12 @@
     ],
     "mac": {
       "category": "public.app-category.productivity",
-      "identity": null
+      "identity": null,
+      "icon": "build/icon.png"
     },
-    "npmRebuild": true
+    "npmRebuild": true,
+    "win": {
+      "icon": "build/icon.ico"
+    }
   }
 }
