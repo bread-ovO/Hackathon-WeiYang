@@ -7,14 +7,26 @@ import type {
   WorkspaceTask,
 } from '@memo/contracts'
 import { AppButton, AppInput } from './ui'
+import { Badge } from '@cloudflare/kumo/components/badge'
 import { TaskEditor, taskLabels, type EditorBaseline } from './task-editor'
 import { TaskExport } from './task-export'
+
+const realStatusVariants = {
+  todo: 'warning',
+  in_progress: 'info',
+  waiting: 'secondary',
+  completed: 'success',
+  cancelled: 'secondary',
+} as const
+
 export function RealWorkspace({
   onCount,
   openTask,
+  onConnect,
 }: {
   onCount: (count: number) => void
   openTask?: { projectId: string; taskId: string; nonce: number } | null
+  onConnect?: () => void
 }) {
   const [data, setData] = useState<WorkspaceSnapshot>({
     projects: [],
@@ -411,7 +423,12 @@ export function RealWorkspace({
                   </span>
                 </span>
                 <span className="task-trailing">
-                  {taskLabels[t.status]}
+                  <Badge
+                    variant={realStatusVariants[t.status] ?? 'secondary'}
+                    className="task-status"
+                  >
+                    {taskLabels[t.status]}
+                  </Badge>
                   <small>
                     {t.dueAt ? new Date(t.dueAt).toLocaleString() : '未设截止'}
                   </small>
@@ -425,7 +442,31 @@ export function RealWorkspace({
                   ? '没有匹配的事项'
                   : '你的跟进清单，从这里开始'}
               </h2>
-              <p>可以调整筛选，或创建项目并添加真实事项。</p>
+              <p>
+                {project || query || status || admission || archive
+                  ? '可以调整筛选条件再试。'
+                  : '可以创建项目并添加真实事项，或先连接来源自动收录。'}
+              </p>
+              {project || query || status || admission || archive ? (
+                <AppButton
+                  className="secondary"
+                  onClick={() => {
+                    setProject('')
+                    setQuery('')
+                    setStatus('')
+                    setAdmission('')
+                    setArchive(false)
+                  }}
+                >
+                  清除筛选
+                </AppButton>
+              ) : (
+                onConnect && (
+                  <AppButton className="secondary" onClick={onConnect}>
+                    去连接来源
+                  </AppButton>
+                )
+              )}
             </div>
           )}
           {data.nextCursor && (

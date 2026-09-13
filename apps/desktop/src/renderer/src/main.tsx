@@ -368,7 +368,11 @@ function App() {
           </div>
         </header>
         {page === '跟进' && !demo ? (
-          <RealWorkspace onCount={setRealCount} openTask={petTarget} />
+          <RealWorkspace
+            onCount={setRealCount}
+            openTask={petTarget}
+            onConnect={() => setPage('连接')}
+          />
         ) : page === '跟进' ? (
           <>
             <div className="page-heading">
