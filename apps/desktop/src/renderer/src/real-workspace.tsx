@@ -415,11 +415,13 @@ export function RealWorkspace({
                     {data.projects.find((p) => p.id === t.projectId)?.name ??
                       '旧事项 · 未分配项目'}{' '}
                     ·{' '}
-                    {t.admission === 'candidate'
-                      ? '待确认收录'
-                      : t.admission === 'ignored'
-                        ? '已忽略'
-                        : '已收录'}
+                    {t.admission === 'candidate' ? (
+                      <Badge variant="warning">待确认收录</Badge>
+                    ) : t.admission === 'ignored' ? (
+                      '已忽略'
+                    ) : (
+                      '已收录'
+                    )}
                   </span>
                 </span>
                 <span className="task-trailing">

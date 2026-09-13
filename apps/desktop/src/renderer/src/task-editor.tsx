@@ -238,6 +238,27 @@ export function TaskEditor({
           </section>
         )}
 
+        {task.admission === 'candidate' && (
+          <section className="admission-triage" aria-label="收录确认">
+            <p>这条事项来自来源整理，确认后才会进入正式跟进。</p>
+            <div>
+              <AppButton
+                disabled={busy}
+                onClick={() => void update({ admission: 'accepted' })}
+              >
+                确认收录
+              </AppButton>
+              <AppButton
+                className="secondary"
+                disabled={busy}
+                onClick={() => void update({ admission: 'ignored' })}
+              >
+                忽略
+              </AppButton>
+            </div>
+          </section>
+        )}
+
         <p>业务状态：{taskLabels[task.status]}</p>
         <p>
           证据：

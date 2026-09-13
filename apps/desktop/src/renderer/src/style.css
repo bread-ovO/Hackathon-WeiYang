@@ -1141,6 +1141,21 @@ dd {
 .source-import-row { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding: 12px 0; border-top: 1px solid #ddd; overflow-wrap: anywhere; }
 .credential-hint { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
 
+.admission-triage {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  border-radius: 10px;
+  background: var(--color-kumo-warning-tint);
+  color: var(--text-color-kumo-warning);
+}
+.admission-triage p { margin: 0; font-size: 13px; }
+.admission-triage > div { display: flex; gap: 8px; }
+
 .workspace-actions, .export-actions { display: flex; gap: 8px; align-items: center; }
 .export-dialog { display: flex; flex-direction: column; gap: 12px; padding: 0; }
 .export-dialog h2 { font-size: 18px; font-weight: 600; margin: 0; }
