@@ -1,3 +1,5 @@
+import { petContextFactsRequestSchemas } from './pet-context-facts'
+export * from './pet-context-facts'
 import { sourceAssociationRequestSchemas } from './source-associations'
 export * from './source-associations'
 import { planChangeRequestSchemas } from './plan-changes'
@@ -58,6 +60,7 @@ export const workspaceQuerySchema = {
 export type WorkspaceQuery = FromSchema<typeof workspaceQuerySchema>
 export const workspaceRequestSchema = {
   oneOf: [
+    ...petContextFactsRequestSchemas,
     ...planChangeRequestSchemas,
     ...sourceAssociationRequestSchemas,
     timelineRequestSchema,

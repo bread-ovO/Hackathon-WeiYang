@@ -7,6 +7,7 @@ import {
   type PetSpeechState as PolicyState,
   type PetSpeechClock,
 } from '@memo/domain'
+import type { PreparedContextSpeech } from './context-service'
 import type { PetSpeechPatch, PetSpeechState } from '@memo/contracts'
 
 interface Environment {
@@ -23,6 +24,16 @@ export interface PetSpeechServiceDeps {
   environment(): Promise<Environment>
   display(): { visible: boolean; busy: boolean }
   deliver(text: string): string | null
+  prepare?(
+    text: string,
+    signal: AbortSignal,
+  ): Promise<PreparedContextSpeech | null>
+  deliverPrepared?(
+    input: PreparedContextSpeech,
+    signal: AbortSignal,
+    guard: () => Promise<boolean>,
+    current: () => boolean,
+  ): Promise<string | null>
   cancel(id: string): void
   monitor?(enabled: boolean): void
   clock?: PetSpeechClock
@@ -40,6 +51,7 @@ export function createPetSpeechService(deps: PetSpeechServiceDeps) {
     disposed = false,
     failed = false,
     active: string | null = null
+  let generation: AbortController | null = null
   let cancelTimer: (() => void) | undefined
   let serial: Promise<unknown> = Promise.resolve()
   function cancelActive() {
@@ -48,6 +60,7 @@ export function createPetSpeechService(deps: PetSpeechServiceDeps) {
   }
   function invalidate() {
     revision++
+    generation?.abort()
     cancelTimer?.()
     cancelTimer = undefined
     cancelActive()
@@ -130,6 +143,13 @@ export function createPetSpeechService(deps: PetSpeechServiceDeps) {
         ? (decision.reason as PetSpeechState['status'])
         : 'waiting'
       if (decision.speech && ticket === revision && !disposed) {
+        const own = new AbortController()
+        generation = own
+        const prepared = deps.prepare
+          ? await deps.prepare(decision.speech.text, own.signal)
+          : { text: decision.speech.text }
+        if (!prepared || own.signal.aborted || ticket !== revision || disposed)
+          return
         const latest = await deps.environment()
         const visible = deps.display()
         const now = clock.now(),
@@ -156,14 +176,79 @@ export function createPetSpeechService(deps: PetSpeechServiceDeps) {
           !latest.fullscreen &&
           visible.visible &&
           !visible.busy
-        )
-          active = deps.deliver(decision.speech.text)
+        ) {
+          const id = deps.deliverPrepared
+            ? await deps.deliverPrepared(
+                prepared,
+                own.signal,
+                async () => {
+                  const env = await deps.environment(),
+                    view = deps.display()
+                  const time = clock.now(),
+                    local = clock.localTime?.(time),
+                    date = new Date(time)
+                  const minute =
+                    local?.minute ?? date.getHours() * 60 + date.getMinutes()
+                  return (
+                    !own.signal.aborted &&
+                    ticket === revision &&
+                    !disposed &&
+                    time >= decision.state.lastNow &&
+                    time - decision.state.lastNow <= PET_SPEECH_RESUME_GAP_MS &&
+                    policy.preferences.enabled &&
+                    !isPetSpeechQuiet(
+                      minute,
+                      policy.preferences.quietStart,
+                      policy.preferences.quietEnd,
+                    ) &&
+                    (policy.preferences.pausedUntil === null ||
+                      time >= policy.preferences.pausedUntil) &&
+                    env.available &&
+                    !env.locked &&
+                    !env.suspended &&
+                    !env.fullscreen &&
+                    view.visible &&
+                    !view.busy
+                  )
+                },
+                () => {
+                  const time = clock.now(),
+                    local = clock.localTime?.(time),
+                    date = new Date(time),
+                    view = deps.display()
+                  const minute =
+                    local?.minute ?? date.getHours() * 60 + date.getMinutes()
+                  return (
+                    !own.signal.aborted &&
+                    ticket === revision &&
+                    !disposed &&
+                    time >= decision.state.lastNow &&
+                    time - decision.state.lastNow <= PET_SPEECH_RESUME_GAP_MS &&
+                    policy.preferences.enabled &&
+                    !isPetSpeechQuiet(
+                      minute,
+                      policy.preferences.quietStart,
+                      policy.preferences.quietEnd,
+                    ) &&
+                    (policy.preferences.pausedUntil === null ||
+                      time >= policy.preferences.pausedUntil) &&
+                    view.visible &&
+                    !view.busy
+                  )
+                },
+              )
+            : deps.deliver(prepared.text)
+          if (own.signal.aborted || ticket !== revision || disposed) {
+            if (id) deps.cancel(id)
+          } else active = id
+        }
       }
     } catch {
       failed = true
       status = 'error'
       cancelActive()
     } finally {
+      generation = null
       schedule()
     }
   }

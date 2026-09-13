@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto'
 export interface PetPresentation {
+  reference?: { label: string; reason: string }
   id: string
   kind: 'action' | 'bubble'
   text?: string
@@ -21,11 +22,16 @@ export function createPresentationQueue() {
       binding = null
     },
     current(): PetPresentation | null {
-      return items[0] ? { ...items[0] } : null
+      return items[0] ? structuredClone(items[0]) : null
     },
     enqueue(
       expected: string,
-      input: { kind: 'action' | 'bubble'; text?: string; actionId?: string },
+      input: {
+        kind: 'action' | 'bubble'
+        text?: string
+        actionId?: string
+        reference?: { label: string; reason: string }
+      },
       allowed: ReadonlySet<string>,
     ): boolean {
       if (binding !== expected || !binding || items.length >= 8) return false
@@ -51,7 +57,24 @@ export function createPresentationQueue() {
           ))
       )
         return false
+      if (
+        input.reference !== undefined &&
+        (input.kind !== 'bubble' ||
+          !input.reference ||
+          typeof input.reference !== 'object' ||
+          Array.isArray(input.reference) ||
+          Object.keys(input.reference).sort().join(',') !== 'label,reason' ||
+          [input.reference.label, input.reference.reason].some(
+            (x) =>
+              typeof x !== 'string' ||
+              !x.trim() ||
+              x.length > 240 ||
+              /[\u0000-\u001f\u007f]/u.test(x),
+          ))
+      )
+        return false
       items.push({
+        ...(input.reference ? { reference: { ...input.reference } } : {}),
         id: randomUUID(),
         kind: input.kind,
         ...(input.text !== undefined ? { text: input.text } : {}),

@@ -1,3 +1,4 @@
+import { createPetContext } from './pet-context'
 import {
   migratePlanChanges,
   migratePlanAssessments,
@@ -158,6 +159,7 @@ export function openStore(path: string) {
     const github = createGithub(db, receive, observeEvent)
     const feishu = createFeishu(db, receive, observeEvent)
     return {
+      petContext: createPetContext(db),
       timeline: createTimeline(db),
       planChanges: createPlanChanges(db),
       sourceAssociations: createSourceAssociations(db),

@@ -70,6 +70,8 @@ parentPort.on('message', async ({ data }) => {
     reply = {
       ok: false,
       error:
+        code === 'PET_CONTEXT_INVALID_INPUT' ||
+        code === 'PET_CONTEXT_UNAVAILABLE' ||
         code === 'ASSOCIATION_INVALID_INPUT' ||
         code === 'ASSOCIATION_NOT_FOUND' ||
         code === 'ASSOCIATION_CONFLICT' ||

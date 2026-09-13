@@ -99,6 +99,7 @@ test('real IPC rejects foreign windows and malformed requests; source text stays
       'records',
     ])
     expect(await page.evaluate(() => Object.keys(window.memo))).toEqual([
+      'onOpenTask',
       'feishu',
       'github',
       'pet',
@@ -148,6 +149,11 @@ test('real IPC rejects foreign windows and malformed requests; source text stays
       ['list', 'inspect', 'trial', 'activate', 'disable', 'uninstall', 'sync'],
     )
     expect(await page.evaluate(() => Object.keys(window.memo.pet))).toEqual([
+      'contextState',
+      'configureContext',
+      'previewContext',
+      'cancelContext',
+      'showContext',
       'configureSpeech',
       'play',
       'speak',

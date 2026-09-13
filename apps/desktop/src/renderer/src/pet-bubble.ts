@@ -1,11 +1,16 @@
 export interface PetPresentation {
+  reference?: { label: string; reason: string }
   id: string
   text?: string
   actionId?: string
   kind: 'action' | 'bubble'
 }
 interface PresentationDeps {
-  show(text: string, close: () => void): void
+  show(
+    text: string,
+    close: () => void,
+    context?: { id: string; label: string; reason: string },
+  ): void
   hide(): void
   play(id: string): Promise<{ status: 'playing' | 'unavailable' }>
   currentAction(): { id: string | null; kind: 'idle' | 'motion' | 'expression' }
@@ -95,7 +100,11 @@ export function createPetPresentationPlayer(deps: PresentationDeps) {
           finish()
         }
         // Callers must use textContent, never interpret message text as markup.
-        deps.show(item.text ?? '', close)
+        deps.show(
+          item.text ?? '',
+          close,
+          item.reference ? { id: item.id, ...item.reference } : undefined,
+        )
         timer = setTimeout(close, 12000)
       }
       if (item.actionId) {

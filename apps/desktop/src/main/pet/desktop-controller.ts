@@ -35,6 +35,7 @@ export interface PetDesktopDeps {
   speechState?(): PetSpeechState | undefined
   configureSpeech?(patch: PetSpeechPatch): Promise<boolean>
   onDisplayChanged?(): void
+  openContext?(id: string): Promise<boolean>
 }
 const codes = new Set([
   'RUNTIME_MISSING',
@@ -420,6 +421,34 @@ export function createPetDesktopController(deps: PetDesktopDeps) {
         }
       },
     )
+  let openingContext = false
+  ipcMain.handle(
+    'memo-pet:openContext',
+    async (event, input: unknown, ...args: unknown[]) => {
+      const current = presentations.current()
+      if (
+        args.length ||
+        !authorized(event) ||
+        !descriptor ||
+        !windows.displaying() ||
+        renderStatus !== 'ready' ||
+        !input ||
+        typeof input !== 'object' ||
+        Array.isArray(input) ||
+        Object.keys(input).join(',') !== 'id' ||
+        !current?.reference ||
+        (input as { id?: unknown }).id !== current.id
+      )
+        throw Error('INVALID_PET_CONTEXT')
+      if (openingContext) return false
+      openingContext = true
+      try {
+        return (await deps.openContext?.(current.id)) ?? false
+      } finally {
+        openingContext = false
+      }
+    },
+  )
   ipcMain.handle(
     'memo-pet:ack',
     (event, input: unknown, ...args: unknown[]) => {
@@ -445,6 +474,7 @@ export function createPetDesktopController(deps: PetDesktopDeps) {
     },
   )
   const enqueue = (input: {
+    reference?: { label: string; reason: string }
     kind: 'action' | 'bubble'
     text?: string
     actionId?: string
@@ -517,6 +547,28 @@ export function createPetDesktopController(deps: PetDesktopDeps) {
         visible: windows.displaying() && renderStatus === 'ready',
         busy: !!presentations.current(),
       }
+    },
+    isContextCurrent(id: string) {
+      return (
+        !disposed &&
+        !!descriptor &&
+        windows.displaying() &&
+        renderStatus === 'ready' &&
+        presentations.current()?.id === id &&
+        !!presentations.current()?.reference
+      )
+    },
+    enqueueContext(text: string, reason: string) {
+      if (
+        presentations.current() ||
+        !enqueue({
+          kind: 'bubble',
+          text,
+          reference: { label: '查看相关事项', reason },
+        })
+      )
+        return null
+      return presentations.current()!.id
     },
     enqueueAutomatic(text: string) {
       if (presentations.current() || !enqueue({ kind: 'bubble', text }))
@@ -670,6 +722,7 @@ export function createPetDesktopController(deps: PetDesktopDeps) {
       ipcMain.removeHandler('memo-pet:hitTest')
       ipcMain.removeHandler('memo-pet:drag')
       ipcMain.removeHandler('memo-pet:ack')
+      ipcMain.removeHandler('memo-pet:openContext')
       isolated.protocol.unhandle('memo-pet')
       isolated.webRequest.onBeforeRequest(null)
     },
