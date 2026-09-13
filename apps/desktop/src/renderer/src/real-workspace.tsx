@@ -389,8 +389,8 @@ export function RealWorkspace({
             </AppButton>
           )}
           <div className="list-foot">
-            事项保存在本机 ·
-            已支持有限规则候选；飞书/GitHub 专用自动采集与模型语义识别尚未接通
+            事项保存在本机 · 已支持有限规则候选与指定 GitHub 仓库 PR
+            采样；模型语义识别尚未接通
           </div>
         </section>
         {current && (

@@ -75,7 +75,7 @@ describe('host source HTTP capability', () => {
     resolve(response())
     await pending
   })
-  it.each([304, 403, 429])(
+  it.each([304, 401, 403, 404, 429])(
     'never returns error or conditional body for %s',
     async (status) => {
       const actual = await createSourceHttpTransport(async () =>
@@ -108,7 +108,7 @@ describe('host source HTTP capability', () => {
       ).toEqual({ ok: true })
     },
   )
-  it.each([301, 302, 400, 401, 500])(
+  it.each([301, 302, 400, 500])(
     'rejects unexpected status %s with a fixed error',
     async (status) => {
       await expect(

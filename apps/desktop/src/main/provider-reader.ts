@@ -9,7 +9,7 @@ import {
 import { parseSourceEvent } from '@memo/contracts'
 import { createSourceHttpTransport } from './source-http'
 export type ProviderSourceConfig = { id: string; credentialId: string } & (
-  | { kind: 'github'; owner: string; repo: string }
+  | { kind: 'github'; owner: string; repo: string; repositoryId?: number }
   | { kind: 'feishu'; chatId: string; startTime?: string; endTime?: string }
 )
 export interface ProviderReaderDependencies {
@@ -80,6 +80,7 @@ export function createProviderSourceReader(
       config.owner,
       config.repo,
       transport,
+      config.repositoryId,
     )
   else {
     const adapter = new FeishuHistoryAdapter(

@@ -1,3 +1,13 @@
+import { createGithub, migrateGithub } from './github'
+export type {
+  GithubConnection,
+  GithubAuthorized,
+  GithubAuthorizeInput,
+  GithubBatchInput,
+  GithubFailureInput,
+  GithubFailureCode,
+} from './github'
+export { githubFailureCodes } from './github'
 import { createRevisionReview, migrateRevisionReview } from './revision-review'
 import { createRetractions, migrateRetractions } from './retractions'
 import {
@@ -60,7 +70,7 @@ export function openStore(path: string) {
     db.pragma('synchronous = FULL')
     db.pragma('busy_timeout = 3000')
     const version = db.pragma('user_version', { simple: true }) as number
-    if (version > 11) throw new Error('DATABASE_TOO_NEW')
+    if (version > 12) throw new Error('DATABASE_TOO_NEW')
     if (version < 1)
       db.transaction(() => {
         db.exec(`
@@ -92,6 +102,7 @@ export function openStore(path: string) {
     if (version < 9) migrateIngestionBudget(db)
     if (version < 10) migrateRetractions(db)
     if (version < 11) migrateRevisionReview(db)
+    if (version < 12) migrateGithub(db)
     const revisionReview = createRevisionReview(db)
     const retractions = createRetractions(db)
     const ingestion = createIngestionBudget(db)
@@ -107,7 +118,13 @@ export function openStore(path: string) {
     }
     const sources = createSources(db, receive, observeEvent)
     const plugins = createPlugins(db, receive, observeEvent)
+    const github = createGithub(db, receive, observeEvent)
     return {
+      github: {
+        ...github,
+        receiveBatch: (input: Parameters<typeof github.receiveBatch>[0]) =>
+          ingestion.withBatch(() => github.receiveBatch(input)),
+      },
       ingestion,
       revisionReview,
       processing: createProcessing(db),
@@ -140,6 +157,9 @@ export function openStore(path: string) {
             .prepare(
               'SELECT 1 FROM plugin_source_history WHERE source_instance_id=?',
             )
+            .get(event.sourceInstanceId) ||
+          db
+            .prepare('SELECT 1 FROM github_connections WHERE source_id=?')
             .get(event.sourceInstanceId)
         )
           throw new Error('USE_AUTHORIZED_SOURCE_BATCH')

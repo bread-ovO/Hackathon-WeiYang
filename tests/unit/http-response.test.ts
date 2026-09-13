@@ -123,7 +123,7 @@ describe('shared constrained HTTPS response', () => {
     await rejection
     expect(req.destroy).toHaveBeenCalled()
   })
-  it.each([403, 429])(
+  it.each([401, 403, 404, 429])(
     'passes %s status and bounded HTML error body for adapter interpretation',
     async (status) => {
       const pending = requestHttpsResponse(input())
@@ -218,7 +218,7 @@ describe('shared constrained HTTPS response', () => {
       await rejection
     },
   )
-  it.each([403, 429])(
+  it.each([401, 403, 404, 429])(
     'rejects compressed error bodies for %s',
     async (status) => {
       const pending = requestHttpsResponse(input())

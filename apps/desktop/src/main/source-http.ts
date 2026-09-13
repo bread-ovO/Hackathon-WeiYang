@@ -136,8 +136,34 @@ export function createSourceHttpTransport(
       fail('SOURCE_HTTP_INVALID_RESPONSE')
     const status = response.status
     const safeHeaders = projectHeaders(response.headers)
-    if (status === 304 || status === 403 || status === 429)
-      return { status, headers: safeHeaders, body: null }
+    if ([304, 401, 403, 404, 429].includes(status)) {
+      // Error text is never exposed. Retain only a canonical secondary-limit hint.
+      let body: { message: string } | null = null
+      if (
+        status === 403 &&
+        response.bytes instanceof Uint8Array &&
+        response.bytes.byteLength <= 8192 &&
+        /^application\/(?:json|[a-z0-9!#$&^_.+-]+\+json)(?:\s*;[^\r\n]*)?$/i.test(
+          safeHeaders['content-type'] ?? '',
+        )
+      ) {
+        try {
+          const parsed = JSON.parse(
+            new TextDecoder('utf-8', { fatal: true }).decode(response.bytes),
+          )
+          if (
+            parsed &&
+            typeof parsed.message === 'string' &&
+            parsed.message.length <= 4096 &&
+            /secondary rate limit/i.test(parsed.message)
+          )
+            body = { message: 'secondary rate limit' }
+        } catch {
+          /* malformed error content does not hide the HTTP status */
+        }
+      }
+      return { status, headers: safeHeaders, body }
+    }
     if (status < 200 || status >= 300) fail('SOURCE_HTTP_FAILED')
     if (
       !/^application\/(?:json|[a-z0-9!#$&^_.+-]+\+json)(?:\s*;[^\r\n]*)?$/i.test(

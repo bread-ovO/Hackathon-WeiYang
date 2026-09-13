@@ -349,7 +349,7 @@ try {
     "INSERT INTO evidence_links VALUES('large-history',?,'a',1,'c',?,'supports','valid','Legacy fixture')",
   ).run(taskId, largeFirst)
   db.exec(
-    'DROP TABLE reference_revision_decisions; DROP TABLE reference_revision_reviews; PRAGMA user_version=10',
+    'DROP TABLE github_credential_cooldowns; DROP TABLE github_connections; DROP TABLE reference_revision_decisions; DROP TABLE reference_revision_reviews; PRAGMA user_version=10',
   )
   const migrated = openStore(path)
   const large = migrated.revisionReview.reviewReference({
@@ -361,7 +361,7 @@ try {
   assert.equal(large.reference.status, 'review_required')
   assert.equal(large.events.length, 1)
   assert.ok(large.nextCursor)
-  assert.equal(db.pragma('user_version', { simple: true }), 11)
+  assert.equal(db.pragma('user_version', { simple: true }), 12)
   migrated.close()
   console.log('revision review integration passed')
 } finally {

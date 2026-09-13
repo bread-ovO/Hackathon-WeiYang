@@ -1,3 +1,4 @@
+import { handleGithubHost, isGithubHostRequest } from './github'
 import { handlePluginHost } from './plugins'
 import { createSourceHandler } from './sources'
 import { handleWorkspace } from './workspace'
@@ -32,8 +33,9 @@ parentPort.on('message', async ({ data }) => {
     if (request.method.startsWith('pet.')) throw new Error('INVALID_REQUEST')
     reply = {
       ok: true,
-      data:
-        request.method === 'ingestion.status'
+      data: isGithubHostRequest(request)
+        ? handleGithubHost(store, request)
+        : request.method === 'ingestion.status'
           ? store.ingestion.getStatus()
           : request.method === 'ingestion.configure'
             ? store.ingestion.configure(request.patch)
@@ -74,18 +76,20 @@ parentPort.on('message', async ({ data }) => {
         code === 'INGESTION_DISK_LOW' ||
         code === 'INGESTION_PROBE_UNAVAILABLE'
           ? code
-          : code === 'EXPORT_LIMIT_EXCEEDED'
-            ? 'EXPORT_LIMIT_EXCEEDED'
-            : code === 'EXPORT_CORRUPT_DATA'
-              ? 'EXPORT_INVALID_DATA'
-              : code === 'EXPORT_TASK_NOT_IN_PROJECT' ||
-                  code === 'EXPORT_UNKNOWN_PROJECT'
-                ? 'NOT_FOUND'
-                : code === 'VERSION_CONFLICT'
-                  ? 'VERSION_CONFLICT'
-                  : code === 'TASK_NOT_IN_PROJECT'
-                    ? 'NOT_FOUND'
-                    : 'INVALID_REQUEST',
+          : code.startsWith('GITHUB_')
+            ? 'GITHUB_FAILED'
+            : code === 'EXPORT_LIMIT_EXCEEDED'
+              ? 'EXPORT_LIMIT_EXCEEDED'
+              : code === 'EXPORT_CORRUPT_DATA'
+                ? 'EXPORT_INVALID_DATA'
+                : code === 'EXPORT_TASK_NOT_IN_PROJECT' ||
+                    code === 'EXPORT_UNKNOWN_PROJECT'
+                  ? 'NOT_FOUND'
+                  : code === 'VERSION_CONFLICT'
+                    ? 'VERSION_CONFLICT'
+                    : code === 'TASK_NOT_IN_PROJECT'
+                      ? 'NOT_FOUND'
+                      : 'INVALID_REQUEST',
     }
   }
   parentPort.postMessage({ id: data.id, reply })
