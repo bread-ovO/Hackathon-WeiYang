@@ -247,7 +247,6 @@ export function GithubPanel() {
   }
   return (
     <section className="source-import github-panel" aria-label="GitHub仓库连接">
-      <h2>GitHub 仓库</h2>
       <p>
         仅访问所选仓库的 PR
         记录，凭据保存在本机保险库。验证通过后启用定时采样，不会自动完成事项。

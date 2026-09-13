@@ -236,7 +236,6 @@ export function FeishuPanel() {
   }
   return (
     <section className="source-import feishu-panel" aria-label="飞书会话连接">
-      <h2>飞书会话历史</h2>
       <p>
         指定一个会话与历史起点，验证读取权限后启用分窗采样。只读取凭据有权访问的范围，不发现其他会话，也不自动刷新过期令牌。
       </p>
