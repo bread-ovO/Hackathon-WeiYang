@@ -40,7 +40,7 @@ try {
   store.close()
   // Restore the exact v2 task columns while retaining existing events, jobs and search projections.
   const legacy = new Database(path)
-  legacy.exec(`DROP TABLE task_merges; DROP TABLE plan_change_assessments; DROP TABLE source_association_audit; DROP TABLE explicit_identity_mappings; DROP TABLE task_source_anchors; DROP TABLE source_object_bindings; DROP TABLE plan_change_proposals; ALTER TABLE source_events DROP COLUMN metadata_json; DROP TABLE reference_revision_audit; DROP TABLE feishu_page_tokens; DROP TABLE feishu_credential_cooldowns; DROP TABLE feishu_connections; DROP TABLE github_credential_cooldowns; DROP TABLE github_connections; DROP TABLE reference_revision_decisions; DROP TABLE reference_revision_reviews; DROP TABLE retraction_impacts; DROP TABLE object_retractions; ALTER TABLE source_events DROP COLUMN operation; DROP TABLE ingestion_limits; DROP TABLE processing_decisions; DROP TABLE processing_evidence; DROP TABLE processing_origins; DROP TABLE processing_results; DROP TABLE processing_preferences; ALTER TABLE jobs DROP COLUMN processing_skips; DROP TABLE event_contexts; DROP TABLE plugin_source_history; DROP TABLE plugin_bindings; DROP TABLE source_grants;DROP TABLE task_listing_fts;DROP TABLE notification_outbox;DROP TABLE manual_overrides;DROP TABLE task_revisions;DROP TABLE decisions;DROP TABLE evidence_links;DROP TABLE criteria;DROP TABLE criterion_sets;DROP TABLE event_projects;
+  legacy.exec(`DROP TABLE task_merges; DROP TABLE task_splits; DROP TABLE plan_change_assessments; DROP TABLE source_association_audit; DROP TABLE explicit_identity_mappings; DROP TABLE task_source_anchors; DROP TABLE source_object_bindings; DROP TABLE plan_change_proposals; ALTER TABLE source_events DROP COLUMN metadata_json; DROP TABLE reference_revision_audit; DROP TABLE feishu_page_tokens; DROP TABLE feishu_credential_cooldowns; DROP TABLE feishu_connections; DROP TABLE github_credential_cooldowns; DROP TABLE github_connections; DROP TABLE reference_revision_decisions; DROP TABLE reference_revision_reviews; DROP TABLE retraction_impacts; DROP TABLE object_retractions; ALTER TABLE source_events DROP COLUMN operation; DROP TABLE ingestion_limits; DROP TABLE processing_decisions; DROP TABLE processing_evidence; DROP TABLE processing_origins; DROP TABLE processing_results; DROP TABLE processing_preferences; ALTER TABLE jobs DROP COLUMN processing_skips; DROP TABLE event_contexts; DROP TABLE plugin_source_history; DROP TABLE plugin_bindings; DROP TABLE source_grants;DROP TABLE task_listing_fts;DROP TABLE notification_outbox;DROP TABLE manual_overrides;DROP TABLE task_revisions;DROP TABLE decisions;DROP TABLE evidence_links;DROP TABLE criteria;DROP TABLE criterion_sets;DROP TABLE event_projects;
     DROP TABLE tasks;DROP TABLE projects;
     CREATE TABLE tasks(id TEXT PRIMARY KEY,title TEXT NOT NULL,status TEXT NOT NULL CHECK(status IN ('todo','in_progress','waiting','completed','cancelled')),
       evidence_status TEXT NOT NULL CHECK(evidence_status IN ('unknown','partial','sufficient','conflict')),version INTEGER NOT NULL DEFAULT 1 CHECK(version>0),archived_at TEXT);
@@ -48,7 +48,7 @@ try {
   legacy.close()
   store = openStore(path)
   const tasks = store.tasks
-  assert.equal(store.health().schemaVersion, 20)
+  assert.equal(store.health().schemaVersion, 21)
   assert.equal(store.health().eventCount, 2)
   assert.equal(store.health().jobCount, 2)
   assert.equal(store.cursor('fixture'), 'cursor')
@@ -403,14 +403,14 @@ try {
   // Independently exercise v3 -> v4 with existing manual history and searchable criteria.
   const v3 = new Database(path)
   v3.exec(
-    'DROP TABLE task_merges; DROP TABLE plan_change_assessments; DROP TABLE source_association_audit; DROP TABLE explicit_identity_mappings; DROP TABLE task_source_anchors; DROP TABLE source_object_bindings; DROP TABLE plan_change_proposals; ALTER TABLE source_events DROP COLUMN metadata_json; DROP TABLE reference_revision_audit; DROP TABLE feishu_page_tokens; DROP TABLE feishu_credential_cooldowns; DROP TABLE feishu_connections; DROP TABLE github_credential_cooldowns; DROP TABLE github_connections; DROP TABLE reference_revision_decisions; DROP TABLE reference_revision_reviews; DROP TABLE retraction_impacts; DROP TABLE object_retractions; ALTER TABLE source_events DROP COLUMN operation; DROP TABLE ingestion_limits; DROP TABLE processing_decisions; DROP TABLE processing_evidence; DROP TABLE processing_origins; DROP TABLE processing_results; DROP TABLE processing_preferences; ALTER TABLE jobs DROP COLUMN processing_skips; DROP TABLE event_contexts; DROP TABLE plugin_source_history; DROP TABLE plugin_bindings; DROP TABLE source_grants; DROP TABLE task_listing_fts; ALTER TABLE tasks DROP COLUMN due_at; PRAGMA user_version=3;',
+    'DROP TABLE task_merges; DROP TABLE task_splits; DROP TABLE plan_change_assessments; DROP TABLE source_association_audit; DROP TABLE explicit_identity_mappings; DROP TABLE task_source_anchors; DROP TABLE source_object_bindings; DROP TABLE plan_change_proposals; ALTER TABLE source_events DROP COLUMN metadata_json; DROP TABLE reference_revision_audit; DROP TABLE feishu_page_tokens; DROP TABLE feishu_credential_cooldowns; DROP TABLE feishu_connections; DROP TABLE github_credential_cooldowns; DROP TABLE github_connections; DROP TABLE reference_revision_decisions; DROP TABLE reference_revision_reviews; DROP TABLE retraction_impacts; DROP TABLE object_retractions; ALTER TABLE source_events DROP COLUMN operation; DROP TABLE ingestion_limits; DROP TABLE processing_decisions; DROP TABLE processing_evidence; DROP TABLE processing_origins; DROP TABLE processing_results; DROP TABLE processing_preferences; ALTER TABLE jobs DROP COLUMN processing_skips; DROP TABLE event_contexts; DROP TABLE plugin_source_history; DROP TABLE plugin_bindings; DROP TABLE source_grants; DROP TABLE task_listing_fts; ALTER TABLE tasks DROP COLUMN due_at; PRAGMA user_version=3;',
   )
   const oldDecisions = (
     v3.prepare('SELECT count(*) AS n FROM decisions').get() as { n: number }
   ).n
   v3.close()
   store = openStore(path)
-  assert.equal(store.health().schemaVersion, 20)
+  assert.equal(store.health().schemaVersion, 21)
   assert.equal(store.tasks.get('alpha', 't1')?.dueAt, null)
   assert.equal(store.tasks.getCriteria('alpha', 't1').version, 2)
   assert.equal(store.tasks.listPage({ query: '新标题' }).items[0]?.id, 't1')
@@ -429,5 +429,5 @@ try {
     'Task model integration passed: v2 migration, project isolation, criteria history, evidence FKs, manual audit, archive, optimistic concurrency, outbox and search atomicity',
   )
 } finally {
-  rmSync(folder, { recursive: true, force: true })
+  try { rmSync(folder, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 }) } catch {}
 }

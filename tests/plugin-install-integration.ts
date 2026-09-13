@@ -245,11 +245,11 @@ try {
   store.close()
   const reopen = openStore(path)
   assert.equal(reopen.plugins.list().length, 2)
-  assert.equal(reopen.health().schemaVersion, 20)
+  assert.equal(reopen.health().schemaVersion, 21)
   reopen.close()
   console.log(
     'Plugin installation integration passed: activate/upgrade rollback, grants, cursor CAS, transactional import, secrets rejection and uninstall/reinstall generations',
   )
 } finally {
-  rmSync(folder, { recursive: true, force: true })
+  try { rmSync(folder, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 }) } catch {}
 }

@@ -343,5 +343,5 @@ try {
   )
 } finally {
   store?.close()
-  rmSync(folder, { recursive: true, force: true })
+  try { rmSync(folder, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 }) } catch {}
 }

@@ -281,7 +281,7 @@ async function main() {
     console.log('five requirements storage integration passed')
   } finally {
     store.close()
-    rmSync(dir, { recursive: true, force: true })
+    try { rmSync(dir, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 }) } catch {}
   }
 }
 void main().catch((e) => {

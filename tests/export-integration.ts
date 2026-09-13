@@ -537,5 +537,5 @@ try {
     'Export integration passed: complete history, invalid/counter evidence, source privacy, revoked grants, references, corruption task/byte/row limits, concurrent WAL snapshot and assigned legacy history',
   )
 } finally {
-  rmSync(folder, { recursive: true, force: true })
+  try { rmSync(folder, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 }) } catch {}
 }

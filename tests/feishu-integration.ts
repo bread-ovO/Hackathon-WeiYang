@@ -327,10 +327,10 @@ try {
     () => store.feishu.getAuthorized(other.id),
     /FEISHU_INVALID_RESPONSE/,
   )
-  assert.equal(store.health().schemaVersion, 20)
+  assert.equal(store.health().schemaVersion, 21)
   console.log('Feishu storage integration passed')
 } finally {
   db.close()
   store.close()
-  rmSync(dir, { recursive: true, force: true })
+  try { rmSync(dir, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 }) } catch {}
 }

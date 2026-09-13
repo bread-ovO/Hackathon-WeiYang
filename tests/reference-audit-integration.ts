@@ -148,7 +148,7 @@ try {
   ).run(new Date().toISOString())
   store.close()
   db.exec(
-    'ALTER TABLE github_connections DROP COLUMN error_scope; ALTER TABLE github_connections DROP COLUMN mode; DROP TABLE task_merges; DROP TABLE plan_change_assessments; DROP TABLE source_association_audit; DROP TABLE explicit_identity_mappings; DROP TABLE task_source_anchors; DROP TABLE source_object_bindings; DROP TABLE plan_change_proposals; ALTER TABLE source_events DROP COLUMN metadata_json; DROP TABLE reference_revision_audit; PRAGMA user_version=13',
+    'ALTER TABLE github_connections DROP COLUMN error_scope; ALTER TABLE github_connections DROP COLUMN mode; DROP TABLE task_merges; DROP TABLE task_splits; DROP TABLE plan_change_assessments; DROP TABLE source_association_audit; DROP TABLE explicit_identity_mappings; DROP TABLE task_source_anchors; DROP TABLE source_object_bindings; DROP TABLE plan_change_proposals; ALTER TABLE source_events DROP COLUMN metadata_json; DROP TABLE reference_revision_audit; PRAGMA user_version=13',
   )
   const migrationStart = Date.now()
   store = openStore(path)
@@ -176,10 +176,10 @@ try {
   )
   ingest({ ...base, revision: '5', text: 'new change after migration' })
   assert.equal(count(), 2)
-  assert.equal(store.health().schemaVersion, 20)
+  assert.equal(store.health().schemaVersion, 21)
   console.log('Reference conflict audit integration passed')
 } finally {
   db.close()
   store.close()
-  rmSync(dir, { recursive: true, force: true })
+  try { rmSync(dir, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 }) } catch {}
 }
