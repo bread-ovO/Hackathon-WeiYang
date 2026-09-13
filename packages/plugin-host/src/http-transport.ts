@@ -218,7 +218,7 @@ function requestResponse(
             }
             const noBody = status === 304 && !jsonOnly
             const isErrorResponse =
-              !jsonOnly && (status === 403 || status === 429)
+              !jsonOnly && [401, 403, 404, 429].includes(status)
             const type = res.headers['content-type']
             if (
               (!noBody &&

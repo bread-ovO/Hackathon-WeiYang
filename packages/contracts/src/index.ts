@@ -1,4 +1,14 @@
 import {
+  githubRequestSchema,
+  createGithubHostRequestSchema,
+  type GithubRequest,
+  type GithubHostRequest,
+  type GithubSnapshot,
+  type GithubRecords,
+  type GithubConnectionError,
+} from './github'
+export * from './github'
+import {
   ingestionRequestSchema,
   type IngestionStatus,
   type IngestionLimitsPatch,
@@ -156,6 +166,7 @@ export const healthRequestSchema = {
 const coreRequestSchema = {
   oneOf: [
     healthRequestSchema,
+    githubRequestSchema,
     processingRequestSchema,
     ingestionRequestSchema,
     workspaceRequestSchema,
@@ -185,6 +196,7 @@ export type HostRequest =
       {
         method:
           | PetRequest['method']
+          | GithubRequest['method']
           | 'sources.chooseFile'
           | 'exports.save'
           | 'credentials.list'
@@ -208,6 +220,7 @@ export type HostRequest =
   | ImportFileRequest
   | ExportBuildRequest
   | PluginHostRequest
+  | GithubHostRequest
 const validateImportFile = ajv.compile<ImportFileRequest>(
   importFileRequestSchema,
 )
@@ -218,7 +231,11 @@ const validateExportBuild = ajv.compile<ExportBuildRequest>(
 const validatePluginHost = ajv.compile<PluginHostRequest>(
   createPluginHostRequestSchema(sourceEventSchema),
 )
+const validateGithubHost = ajv.compile<GithubHostRequest>(
+  createGithubHostRequestSchema(sourceEventSchema),
+)
 export function parseHostRequest(value: unknown): HostRequest {
+  if (validateGithubHost(value)) return value
   if (validatePluginHost(value)) {
     if (value.method === 'pluginHost.activate') {
       try {
@@ -237,6 +254,12 @@ export function parseHostRequest(value: unknown): HostRequest {
   if (validateImportFile(value)) return value
   const request = parseCoreRequest(value)
   if (
+    request.method === 'github.list' ||
+    request.method === 'github.connect' ||
+    request.method === 'github.setEnabled' ||
+    request.method === 'github.revoke' ||
+    request.method === 'github.sync' ||
+    request.method === 'github.records' ||
     request.method === 'pet.play' ||
     request.method === 'pet.speak' ||
     request.method === 'pet.dismissBubble' ||
@@ -284,6 +307,13 @@ export type CoreReply<T = Health> =
         | 'REFERENCE_REVIEW_CONFLICT'
         | 'REFERENCE_RETRACTED'
         | 'REFERENCE_ALREADY_INVALID'
+        | GithubConnectionError
+        | 'GITHUB_CANCELLED'
+        | 'GITHUB_BUSY'
+        | 'GITHUB_NOT_DUE'
+        | 'GITHUB_INVALID'
+        | 'GITHUB_UNAVAILABLE'
+        | 'GITHUB_FAILED'
         | 'CORE_UNAVAILABLE'
         | 'INVALID_REQUEST'
         | 'INTERNAL_ERROR'
@@ -315,6 +345,24 @@ export type CoreReply<T = Health> =
         | 'INGESTION_PROBE_UNAVAILABLE'
     }
 export interface DesktopBridge {
+  github: {
+    list(): Promise<CoreReply<GithubSnapshot>>
+    connect(
+      input: Omit<
+        Extract<GithubRequest, { method: 'github.connect' }>,
+        'method'
+      >,
+    ): Promise<CoreReply<GithubSnapshot>>
+    setEnabled(id: string, enabled: boolean): Promise<CoreReply<GithubSnapshot>>
+    revoke(id: string): Promise<CoreReply<GithubSnapshot>>
+    sync(id: string): Promise<CoreReply<GithubSnapshot>>
+    records(
+      input: Omit<
+        Extract<GithubRequest, { method: 'github.records' }>,
+        'method'
+      >,
+    ): Promise<CoreReply<GithubRecords>>
+  }
   ingestion: {
     status(): Promise<CoreReply<IngestionStatus>>
     configure(patch: IngestionLimitsPatch): Promise<CoreReply<IngestionStatus>>

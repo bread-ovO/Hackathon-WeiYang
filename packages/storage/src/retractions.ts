@@ -81,7 +81,7 @@ export function createRetractions(db: Database.Database) {
       .prepare(
         `SELECT e.* FROM source_events e JOIN event_projects ep ON ep.event_id=e.id AND ep.project_id=? WHERE e.id=? AND (
       EXISTS(SELECT 1 FROM source_grants g WHERE g.source_id=e.source_id AND g.project_id=ep.project_id AND g.revoked=0) OR
-      EXISTS(SELECT 1 FROM plugin_bindings p WHERE p.source_instance_id=e.source_id AND p.project_id=ep.project_id AND p.enabled=1 AND p.uninstalled=0))`,
+      EXISTS(SELECT 1 FROM plugin_bindings p WHERE p.source_instance_id=e.source_id AND p.project_id=ep.project_id AND p.enabled=1 AND p.uninstalled=0) OR EXISTS(SELECT 1 FROM github_connections h WHERE h.source_id=e.source_id AND h.project_id=ep.project_id AND h.enabled=1 AND h.revoked=0))`,
       )
       .get(projectId, eventId) as
       | {

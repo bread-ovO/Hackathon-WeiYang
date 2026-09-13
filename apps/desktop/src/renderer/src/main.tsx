@@ -1,3 +1,4 @@
+import { GithubPanel } from './github-panel'
 import { IngestionPanel } from './ingestion-panel'
 import { ProcessingPanel } from './processing-panel'
 import { PluginManager } from './plugin-manager'
@@ -677,15 +678,16 @@ function App() {
             <IngestionPanel />
             <ProcessingPanel />
             <SourceImport />
+            <GithubPanel />
             <PluginManager />
             <div className="connection-summary">
               <Icon name="link" />
               <span>可手动导入本地 JSONL 导出</span>
-              <small>飞书和 GitHub 自动连接仍在开发</small>
+              <small>已支持指定 GitHub 仓库的 PR 采样；飞书专用连接仍在开发</small>
             </div>
             <div className="section-heading">
-              <h3>可接入方向</h3>
-              <span>4 种来源</span>
+              <h3>后续接入方向</h3>
+              <span>3 种来源</span>
             </div>
             {[
               ['chat', '飞书', '从授权对话中发现承诺、变更与反馈', 'blue'],
@@ -695,7 +697,6 @@ function App() {
                 '关联执行过程、工具结果和验证记录',
                 'ink',
               ],
-              ['github', 'GitHub', '核对 PR、提交与交付记录', 'ink'],
               ['folder', '本地文件', '从选定的文件夹中关联文档变化', 'amber'],
             ].map(([symbol, name, desc, color]) => (
               <div className="connection-row" key={name}>

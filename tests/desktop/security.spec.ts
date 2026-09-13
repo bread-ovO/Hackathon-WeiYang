@@ -81,7 +81,16 @@ test('real IPC rejects foreign windows and malformed requests; source text stays
     expect(
       await page.evaluate(() => Object.keys(window.memo.ingestion)),
     ).toEqual(['status', 'configure'])
+    expect(await page.evaluate(() => Object.keys(window.memo.github))).toEqual([
+      'list',
+      'connect',
+      'setEnabled',
+      'revoke',
+      'sync',
+      'records',
+    ])
     expect(await page.evaluate(() => Object.keys(window.memo))).toEqual([
+      'github',
       'pet',
       'ingestion',
       'processing',

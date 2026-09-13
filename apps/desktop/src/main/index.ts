@@ -1,3 +1,4 @@
+import { createGithubRuntime } from './github-runtime'
 import { createPetSpeechService } from './pet/speech-service'
 import { createPetSpeechStore } from './pet/speech-store'
 import { createPetSpeechEnvironment } from './pet/speech-environment'
@@ -181,6 +182,21 @@ else {
         petWorker.stop()
       })
       const vault = createSystemCredentialVault(join(data, 'credentials'))
+      const github = createGithubRuntime({
+        request: (request) =>
+          core
+            ? core.request(request)
+            : Promise.resolve({ ok: false, error: 'CORE_UNAVAILABLE' }),
+        readCredential: (id, scope) => vault.read(id, scope),
+      })
+      const githubTimer = setInterval(() => {
+        void github.tick().catch(() => {})
+      }, 1000)
+      githubTimer.unref()
+      app.once('before-quit', () => {
+        clearInterval(githubTimer)
+        github.stop()
+      })
       const plugins = createPluginRuntime({
         request: (request) =>
           core
@@ -266,11 +282,24 @@ else {
               request.method === 'plugins.sync'
             )
               return plugins.handle(request)
-            if (request.method === 'credentials.remove') plugins.cancel()
+            if (
+              request.method === 'github.list' ||
+              request.method === 'github.connect' ||
+              request.method === 'github.setEnabled' ||
+              request.method === 'github.revoke' ||
+              request.method === 'github.sync' ||
+              request.method === 'github.records'
+            )
+              return github.handle(request)
+            if (request.method === 'credentials.remove') {
+              plugins.cancel()
+              return github.removeCredential(request.id, () =>
+                credentials(request),
+              )
+            }
             if (
               request.method === 'credentials.list' ||
-              request.method === 'credentials.importFile' ||
-              request.method === 'credentials.remove'
+              request.method === 'credentials.importFile'
             )
               return credentials(request)
             if (!core) return { ok: false, error: 'CORE_UNAVAILABLE' }

@@ -817,8 +817,8 @@ export function createExports(db: Database.Database) {
         const r = db
           .prepare(
             `SELECT e.id,e.source_id AS sourceInstanceId,e.external_id AS externalId,e.revision,e.occurred_at AS occurredAt,e.received_at AS receivedAt,e.role,e.operation,
-        CASE WHEN g.source_id IS NOT NULL THEN CASE WHEN g.revoked=1 THEN 'revoked' ELSE 'active' END WHEN h.source_instance_id IS NOT NULL THEN CASE WHEN b.source_instance_id=e.source_id AND b.enabled=1 AND b.uninstalled=0 THEN 'active' ELSE 'revoked' END ELSE 'unmanaged' END AS sourceStatus${scope.includeSourceText ? ',e.content AS text' : ''}
-        FROM source_events e LEFT JOIN source_grants g ON g.source_id=e.source_id LEFT JOIN plugin_source_history h ON h.source_instance_id=e.source_id LEFT JOIN plugin_bindings b ON b.id=h.plugin_id JOIN event_projects p ON p.event_id=e.id AND p.project_id=? WHERE e.id=?`,
+        CASE WHEN gh.source_id IS NOT NULL THEN CASE WHEN gh.revoked=1 OR gh.enabled=0 THEN 'revoked' ELSE 'active' END WHEN g.source_id IS NOT NULL THEN CASE WHEN g.revoked=1 THEN 'revoked' ELSE 'active' END WHEN h.source_instance_id IS NOT NULL THEN CASE WHEN b.source_instance_id=e.source_id AND b.enabled=1 AND b.uninstalled=0 THEN 'active' ELSE 'revoked' END ELSE 'unmanaged' END AS sourceStatus${scope.includeSourceText ? ',e.content AS text' : ''}
+        FROM source_events e LEFT JOIN github_connections gh ON gh.source_id=e.source_id LEFT JOIN source_grants g ON g.source_id=e.source_id LEFT JOIN plugin_source_history h ON h.source_instance_id=e.source_id LEFT JOIN plugin_bindings b ON b.id=h.plugin_id JOIN event_projects p ON p.event_id=e.id AND p.project_id=? WHERE e.id=?`,
           )
           .get(scope.projectId, eventId) as Record<string, unknown> | undefined
         if (!r) fail()

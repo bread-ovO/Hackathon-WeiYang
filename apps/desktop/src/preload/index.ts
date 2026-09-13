@@ -1,6 +1,29 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import type { DesktopBridge } from '@memo/contracts'
 const bridge: DesktopBridge = {
+  github: Object.freeze({
+    list: () => ipcRenderer.invoke('memo:request', { method: 'github.list' }),
+    connect: (input) =>
+      ipcRenderer.invoke('memo:request', {
+        ...input,
+        method: 'github.connect',
+      }),
+    setEnabled: (id, enabled) =>
+      ipcRenderer.invoke('memo:request', {
+        method: 'github.setEnabled',
+        id,
+        enabled,
+      }),
+    revoke: (id) =>
+      ipcRenderer.invoke('memo:request', { method: 'github.revoke', id }),
+    sync: (id) =>
+      ipcRenderer.invoke('memo:request', { method: 'github.sync', id }),
+    records: (input) =>
+      ipcRenderer.invoke('memo:request', {
+        ...input,
+        method: 'github.records',
+      }),
+  }),
   pet: Object.freeze({
     configureSpeech: (patch) =>
       ipcRenderer.invoke('memo:request', {

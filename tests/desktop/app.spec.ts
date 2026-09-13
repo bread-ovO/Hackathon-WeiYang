@@ -35,6 +35,7 @@ test('packaged renderer connects to isolated SQLite core without exposing Node',
     ).toEqual({
       node: 'undefined',
       keys: [
+        'github',
         'pet',
         'ingestion',
         'processing',
@@ -61,7 +62,7 @@ test('packaged renderer connects to isolated SQLite core without exposing Node',
     expect(reply.ok).toBe(true)
     if (reply.ok) {
       expect(reply.data.eventCount).toBe(0)
-      expect(reply.data.schemaVersion).toBe(11)
+      expect(reply.data.schemaVersion).toBe(12)
     }
     // Terminate only our named child process and verify a different, healthy core replaces it.
     const oldPid = await app.evaluate(({ app }) => {
@@ -90,7 +91,9 @@ test('packaged renderer connects to isolated SQLite core without exposing Node',
     await page.evaluate(() => window.open('https://example.com'))
     expect(app.windows()).toHaveLength(1)
     await page.getByRole('button', { name: '连接', exact: true }).click()
-    await expect(page.getByRole('button', { name: '即将支持' })).toHaveCount(4)
+    await expect(page.getByRole('button', { name: '即将支持' })).toHaveCount(3)
+    await expect(page.getByRole('region', { name: 'GitHub仓库连接' })).toBeVisible()
+    await expect(page.getByRole('region', { name: 'GitHub仓库连接' }).getByRole('button', { name: '验证并启用仓库' })).toBeVisible()
     await page.screenshot({
       animations: 'disabled',
       path: 'test-results/desktop-connections.png',
