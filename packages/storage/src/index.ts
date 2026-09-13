@@ -16,23 +16,12 @@ import { createFeishu, migrateFeishu } from './feishu'
 export type {
   FeishuConnection,
   FeishuAuthorized,
-  FeishuAuthorizeInput,
-  FeishuBatchInput,
-  FeishuFailureInput,
-  FeishuFailureCode,
-  FeishuFence,
 } from './feishu'
-export { feishuFailureCodes } from './feishu'
 import { createGithub, migrateGithub } from './github'
 export type {
   GithubConnection,
   GithubAuthorized,
-  GithubAuthorizeInput,
-  GithubBatchInput,
-  GithubFailureInput,
-  GithubFailureCode,
 } from './github'
-export { githubFailureCodes } from './github'
 import { createRevisionReview, migrateRevisionReview } from './revision-review'
 import { createRetractions, migrateRetractions } from './retractions'
 import {
@@ -40,7 +29,7 @@ import {
   migrateIngestionBudget,
 } from './ingestion-budget'
 import { createProcessing, migrateProcessing } from './processing'
-export type { ProcessingContext, ProcessingResult } from './processing'
+export type { ProcessingContext } from './processing'
 import { createEventReceiver } from './receive'
 import { createEventContexts, migrateEventContexts } from './event-context'
 export type { StoredEventContext } from './event-context'
@@ -82,9 +71,9 @@ export type {
 } from './task-model'
 import { createJobQueue } from './jobs'
 import { createCandidateSearch, migrateSearch } from './search'
-export type { SearchProjection, CandidateQuery, CandidateHit } from './search'
-export type { Job, JobLease, JobErrorCode } from './jobs'
-export { MAX_JOB_ATTEMPTS, JOB_LEASE_MS } from './jobs'
+
+export type { Job } from './jobs'
+export { JOB_LEASE_MS } from './jobs'
 import type { SourceEvent, Health } from '@memo/contracts'
 
 export function openStore(path: string) {

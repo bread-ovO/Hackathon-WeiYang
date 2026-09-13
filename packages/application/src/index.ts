@@ -1,5 +1,5 @@
 import { parseSourceEvent, type SourceEvent } from '@memo/contracts'
-export interface EventStore {
+interface EventStore {
   receive(event:SourceEvent, cursor:string): { inserted:boolean }
 }
 // Connectors submit data, not SQL or state changes. The adapter is responsible for authorization.
@@ -9,4 +9,4 @@ export function receiveEvent(store:EventStore, input:unknown, cursor:string): { 
 }
 
 export { prepareEventProcessing } from './event-processing'
-export type { EventProcessingInput, PreparedEventProcessing } from './event-processing'
+export type { PreparedEventProcessing } from './event-processing'
