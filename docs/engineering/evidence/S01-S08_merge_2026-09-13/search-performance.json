@@ -1,0 +1,15 @@
+{
+  "tasks": 10000,
+  "platform": "darwin",
+  "arch": "arm64",
+  "node": "24.20.0",
+  "electron": "44.3.0",
+  "sqlite": "3.53.4",
+  "coldMs": 17.978667000001224,
+  "p50Ms": 24.85174999999981,
+  "p95Ms": 26.194958000000042,
+  "seedMs": 6585.178540999999,
+  "rebuildMs": 1225.0216659999987,
+  "databaseBytes": 18755584,
+  "threshold": "baseline only; performance budget not yet frozen"
+}

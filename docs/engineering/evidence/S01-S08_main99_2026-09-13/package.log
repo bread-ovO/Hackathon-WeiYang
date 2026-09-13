@@ -1,0 +1,51 @@
+
+> bugu@0.1.0 package:dir <repo>
+> pnpm --filter @memo/desktop package:dir
+
+
+> @memo/desktop@0.1.0 package:dir <repo>/apps/desktop
+> node ../../scripts/build-pet-native.mjs && electron-vite build && electron-builder --dir
+
+vite v7.3.1 building ssr environment for production...
+transforming...
+✓ 232 modules transformed.
+rendering chunks...
+out/main/chunks/import-session-BXo6llN0.js   11.54 kB
+out/main/pet-worker.js                       29.00 kB
+out/main/index.js                           198.83 kB
+out/main/core.js                            227.13 kB
+out/main/chunks/pet-speech-VWFgnELK.js      318.75 kB
+✓ built in 581ms
+vite v7.3.1 building ssr environment for production...
+transforming...
+✓ 2 modules transformed.
+rendering chunks...
+out/preload/pet.js    0.50 kB
+out/preload/index.js  7.19 kB
+✓ built in 8ms
+vite v7.3.1 building client environment for production...
+transforming...
+✓ 4690 modules transformed.
+rendering chunks...
+../../out/renderer/index.html                     0.58 kB
+../../out/renderer/pet.html                       2.79 kB
+../../out/renderer/assets/index-BNJz_DjZ.css    163.79 kB
+../../out/renderer/assets/pet-mjDux89r.js        41.31 kB
+../../out/renderer/assets/index-BUxBq7hX.js   1,378.46 kB
+✓ built in 2.21s
+  • electron-builder  version=26.8.1 os=25.6.0
+  • loaded configuration  file=package.json ("build" field)
+  • packageManager not detected by file, falling back to environment detection  resolvedPackageManager=pnpm detected=<repo>/apps/desktop
+  • detected workspace root for project using packageManager field  pm=pnpm config=pnpm@10.34.5 resolved=<repo> projectDir=<repo>/apps/desktop
+  • executing @electron/rebuild  electronVersion=44.3.0 arch=arm64 buildFromSource=false workspaceRoot=<repo> projectDir=./ appDir=./
+  • installing native dependencies  arch=arm64
+  • preparing       moduleName=better-sqlite3 arch=arm64
+  • finished        moduleName=better-sqlite3 arch=arm64
+  • completed installing native dependencies
+  • packaging       platform=darwin arch=arm64 electron=44.3.0 appOutDir=<repo>/release/mac-arm64
+  • searching for node modules  pm=pnpm searchDir=<repo>/apps/desktop
+(node:29542) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security vulnerabilities, as the arguments are not escaped, only concatenated.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+  • default Electron icon is used  reason=application icon is not set
+  • skipped macOS code signing  reason=identity explicitly is set to null
+  • arm64 requires signing, but identity is set to null and signing is being skipped

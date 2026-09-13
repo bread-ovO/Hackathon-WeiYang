@@ -25,6 +25,12 @@
       ],
       "@memo/contracts/pet-actions": [
         "packages/contracts/src/pet-actions.ts"
+      ],
+      "@memo/contracts/foundation": [
+        "packages/contracts/src/foundation.ts"
+      ],
+      "@memo/storage/foundation": [
+        "packages/storage/src/foundation/index.ts"
       ]
     }
   },
