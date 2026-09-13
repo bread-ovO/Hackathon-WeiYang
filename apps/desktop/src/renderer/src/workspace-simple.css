@@ -95,19 +95,9 @@
   border-bottom: 1px solid var(--line);
   background: var(--color-kumo-tint);
 }
-.workspace-filter-panel select,
-.create-dialog-content select {
-  height: 32px;
-  min-width: 0;
-  max-width: 100%;
-  border: 1px solid var(--line);
-  background: var(--color-kumo-base);
-  border-radius: 8px;
-  padding: 0 8px;
-  font-size: 14px;
-}
 .workspace-filter-panel select {
   flex: 1 1 128px;
+  min-width: 0;
 }
 .active-filter-summary {
   display: flex;
