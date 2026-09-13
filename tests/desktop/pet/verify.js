@@ -78,7 +78,7 @@
       return true
     })
     const setting = await step('model-setting', async () => {
-      const buffer = await fetchBuf('model/Haru.model3.json')
+      const buffer = await fetchBuf('model/Hiyori.model3.json')
       const result = new F.CubismModelSettingJson(buffer, buffer.byteLength)
       releases.push(() => result.release())
       return result
@@ -106,7 +106,7 @@
         true,
       )
       if (moc === null)
-        throw new Error('official Haru moc failed consistency check')
+        throw new Error('official Hiyori moc failed consistency check')
       releases.push(() => moc.release())
       const result = moc.createModel() // createModel already calls initialize in 5-r.5.
       if (result === null) throw new Error('moc.createModel failed')

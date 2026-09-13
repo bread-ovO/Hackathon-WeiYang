@@ -13,9 +13,9 @@ import { createRequire } from 'node:module'
 import { deflateSync } from 'node:zlib'
 const require = createRequire(resolve('apps/desktop/package.json'))
 const sdk = resolve('.pet-sdk')
-const haru = join(sdk, 'CubismSdkForWeb-5-r.5/Samples/Resources/Haru')
+const hiyori = join(sdk, 'CubismSdkForWeb-5-r.5/Samples/Resources/Hiyori')
 const assetsReady =
-  existsSync(join(haru, 'Haru.model3.json')) &&
+  existsSync(join(hiyori, 'Hiyori.model3.json')) &&
   existsSync(join(sdk, 'runtime/framework.js'))
 async function launch(root: string) {
   const env = Object.fromEntries(
@@ -153,7 +153,7 @@ test('missing runtime refuses show without creating a pet window', async () => {
   }
 })
 
-test('installed Haru renders through isolated pet bridge and stops on hide, switch and remove', async ({}, testInfo) => {
+test('installed Hiyori renders through isolated pet bridge and stops on hide, switch and remove', async ({}, testInfo) => {
   test.skip(
     !assetsReady,
     'Licensed SDK fixture is absent; no download is performed by tests',
@@ -161,16 +161,16 @@ test('installed Haru renders through isolated pet bridge and stops on hide, swit
   test.setTimeout(120000)
   const root = await realpath(await mkdtemp(join(tmpdir(), 'bugu-pet-live-')))
   const source = join(root, 'source')
-  await cp(haru, source, { recursive: true })
+  await cp(hiyori, source, { recursive: true })
   // A second manifest filename produces an independent imported model ID using the same real assets.
-  await cp(join(source, 'Haru.model3.json'), join(source, 'Second.model3.json'))
+  await cp(join(source, 'Hiyori.model3.json'), join(source, 'Second.model3.json'))
   const app = await launch(root)
   try {
     const page = await app.firstWindow()
     await expect(
       page.getByRole('heading', { name: '跟进', exact: true }),
     ).toBeVisible()
-    const id = await importModel(app, page, source, 'Haru.model3.json')
+    const id = await importModel(app, page, source, 'Hiyori.model3.json')
     const second = await importModel(app, page, source, 'Second.model3.json')
     expect(second).not.toBe(id)
     expect(
@@ -229,7 +229,7 @@ test('installed Haru renders through isolated pet bridge and stops on hide, swit
       return false
     })
     expect(pixels).toBe(true)
-    await pet.screenshot({ path: testInfo.outputPath('haru-render.png') })
+    await pet.screenshot({ path: testInfo.outputPath('hiyori-render.png') })
     expect((await page.evaluate(() => window.memo.pet.hide())).ok).toBe(true)
     await expect
       .poll(() =>

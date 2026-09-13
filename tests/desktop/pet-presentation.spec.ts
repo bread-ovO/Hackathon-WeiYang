@@ -18,7 +18,7 @@ import { join, resolve } from 'node:path'
 import { createRequire } from 'node:module'
 const require = createRequire(resolve('apps/desktop/package.json'))
 const sdk = resolve('.pet-sdk'),
-  haru = join(sdk, 'CubismSdkForWeb-5-r.5/Samples/Resources/Haru')
+  hiyori = join(sdk, 'CubismSdkForWeb-5-r.5/Samples/Resources/Hiyori')
 async function pick(app: ElectronApplication, path: string) {
   await app.evaluate(({ dialog }, path) => {
     Object.defineProperty(dialog, 'showOpenDialog', {
@@ -27,11 +27,11 @@ async function pick(app: ElectronApplication, path: string) {
     })
   }, path)
 }
-test('Haru plays one-shot motions and expressions, serializes plain-text bubbles and clears them on hide', async ({}, testInfo) => {
+test('Hiyori plays one-shot motions and expressions, serializes plain-text bubbles and clears them on hide', async ({}, testInfo) => {
   test.skip(
     !existsSync(join(sdk, 'runtime/framework.js')) ||
-      !existsSync(join(haru, 'Haru.model3.json')),
-    'Local licensed runtime and Haru required; test never downloads assets',
+      !existsSync(join(hiyori, 'Hiyori.model3.json')),
+    'Local licensed runtime and Hiyori required; test never downloads assets',
   )
   test.setTimeout(150000)
   const root = await realpath(
@@ -55,12 +55,29 @@ test('Haru plays one-shot motions and expressions, serializes plain-text bubbles
     await expect(
       main.getByRole('heading', { name: '跟进', exact: true }),
     ).toBeVisible()
-    await pick(app, haru)
+    // Hiyori ships without expressions. Add a synthetic expression only to
+    // this temporary import fixture to retain expression playback coverage.
+    const source = join(root, 'expression-fixture')
+    await cp(hiyori, source, { recursive: true })
+    const manifestFile = join(source, 'Hiyori.model3.json')
+    const fixtureManifest = JSON.parse(await readFile(manifestFile, 'utf8'))
+    fixtureManifest.FileReferences.Expressions = [
+      { Name: 'test-smile', File: 'test-smile.exp3.json' },
+    ]
+    await writeFile(
+      join(source, 'test-smile.exp3.json'),
+      JSON.stringify({
+        Type: 'Live2D Expression',
+        Parameters: [{ Id: 'ParamMouthForm', Value: 1, Blend: 'Add' }],
+      }),
+    )
+    await writeFile(manifestFile, JSON.stringify(fixtureManifest))
+    await pick(app, source)
     const chosen = await main.evaluate(() => window.memo.pet.openImportDialog())
     if (!chosen.ok || !('sessionId' in chosen.data))
       throw Error('CHOOSE_FAILED')
     const imported = await main.evaluate(
-      (id) => window.memo.pet.importChosen(id, 'Haru.model3.json'),
+      (id) => window.memo.pet.importChosen(id, 'Hiyori.model3.json'),
       chosen.data.sessionId,
     )
     if (!imported.ok || imported.data.status === 'invalid')
@@ -228,8 +245,8 @@ test('Haru plays one-shot motions and expressions, serializes plain-text bubbles
     const final = await main.evaluate(() => window.memo.pet.state())
     expect(final.ok && final.data.presentation).toBeNull()
     const optional = join(root, 'no-optional-actions')
-    await cp(haru, optional, { recursive: true })
-    const manifestPath = join(optional, 'Haru.model3.json')
+    await cp(hiyori, optional, { recursive: true })
+    const manifestPath = join(optional, 'Hiyori.model3.json')
     const manifest = JSON.parse(await readFile(manifestPath, 'utf8'))
     delete manifest.FileReferences.Motions
     delete manifest.FileReferences.Expressions
@@ -239,7 +256,7 @@ test('Haru plays one-shot motions and expressions, serializes plain-text bubbles
     if (!choice.ok || !('sessionId' in choice.data))
       throw Error(`OPTIONAL_CHOOSE_FAILED: ${JSON.stringify(choice)}`)
     const copy = await main.evaluate(
-      (id) => window.memo.pet.importChosen(id, 'Haru.model3.json'),
+      (id) => window.memo.pet.importChosen(id, 'Hiyori.model3.json'),
       choice.data.sessionId,
     )
     if (!copy.ok || copy.data.status === 'invalid')

@@ -8,7 +8,7 @@ import {
   lifecycleAssetsReady,
   diagnostics,
   contextCycle,
-  haru,
+  hiyori,
 } from './pet-lifecycle-fixture'
 async function resources(
   root: string,
@@ -80,7 +80,7 @@ test('PET14 real thirty-minute render soak with process working-set trends', asy
   )
   test.skip(
     !lifecycleAssetsReady,
-    'Licensed local Haru/runtime absent; no download',
+    'Licensed local Hiyori/runtime absent; no download',
   )
   test.setTimeout(33 * 60 * 1000)
   const artifact = resolve(
@@ -121,7 +121,7 @@ test('PET14 real thirty-minute render soak with process working-set trends', asy
       logicalCpus: cpus().length,
       totalMemoryBytes: totalmem(),
     },
-    model: { ...fixture.model, resources: await resources(haru) },
+    model: { ...fixture.model, resources: await resources(hiyori) },
     samples,
   }
   const save = () => writeFile(artifact, JSON.stringify(report, null, 2))

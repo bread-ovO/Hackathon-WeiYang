@@ -12,9 +12,9 @@ import { join, resolve } from 'node:path'
 import { createRequire } from 'node:module'
 const require = createRequire(resolve('apps/desktop/package.json'))
 const sdk = resolve('.pet-sdk')
-const haru = join(sdk, 'CubismSdkForWeb-5-r.5/Samples/Resources/Haru')
+const hiyori = join(sdk, 'CubismSdkForWeb-5-r.5/Samples/Resources/Hiyori')
 const assetsReady =
-  existsSync(join(haru, 'Haru.model3.json')) &&
+  existsSync(join(hiyori, 'Hiyori.model3.json')) &&
   existsSync(join(sdk, 'runtime/framework.js'))
 async function launch(root: string) {
   const env = Object.fromEntries(
@@ -57,8 +57,8 @@ async function importModel(
 }
 
 // Regression: models declaring a Pose file must load it. Cubism pose3.json
-// switches visibility between overlapping part groups (Haru: crossed arms vs
-// resting hands); skipping it draws every variant at once — duplicated hands.
+// switches visibility between overlapping part groups; skipping it can draw
+// multiple variants at once. Use the default Hiyori model for this regression.
 // Observable from the main process: the pet renderer fetches every declared
 // resource through memo-pet://app/models/, watched here via session webRequest.
 test.skip(
@@ -72,14 +72,14 @@ test('booting a model fetches its declared pose3.json and still renders', async 
   test.setTimeout(120000)
   const root = await realpath(await mkdtemp(join(tmpdir(), 'bugu-pet-pose-')))
   const source = join(root, 'source')
-  await cp(haru, source, { recursive: true })
+  await cp(hiyori, source, { recursive: true })
   const app = await launch(root)
   try {
     const page = await app.firstWindow()
     await expect(
       page.getByRole('heading', { name: '跟进', exact: true }),
     ).toBeVisible()
-    const id = await importModel(app, page, source, 'Haru.model3.json')
+    const id = await importModel(app, page, source, 'Hiyori.model3.json')
     expect(
       (await page.evaluate((id) => window.memo.pet.select(id), id)).ok,
     ).toBe(true)
@@ -133,10 +133,10 @@ test('booting a model fetches its declared pose3.json and still renders', async 
       () => (globalThis as { __petRequests?: string[] }).__petRequests ?? [],
     )
     expect(
-      requests.some((url) => url.endsWith(`/${id}/Haru.model3.json`)),
+      requests.some((url) => url.endsWith(`/${id}/Hiyori.model3.json`)),
     ).toBe(true)
     expect(
-      requests.some((url) => url.endsWith(`/${id}/Haru.pose3.json`)),
+      requests.some((url) => url.endsWith(`/${id}/Hiyori.pose3.json`)),
     ).toBe(true)
     // Pose must not break drawing: the canvas still carries nontransparent pixels.
     const pixels = await pet.evaluate(async () => {
@@ -160,7 +160,7 @@ test('booting a model fetches its declared pose3.json and still renders', async 
       return false
     })
     expect(pixels).toBe(true)
-    await pet.screenshot({ path: testInfo.outputPath('haru-pose.png') })
+    await pet.screenshot({ path: testInfo.outputPath('hiyori-pose.png') })
   } finally {
     await app
       .evaluate(({ app }) => app.quit())

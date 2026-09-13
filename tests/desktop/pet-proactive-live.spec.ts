@@ -12,7 +12,7 @@ import { createRequire } from 'node:module'
 import { PET_SPEECH_LINES } from '../../packages/domain/src/pet-speech'
 const require = createRequire(resolve('apps/desktop/package.json'))
 const sdk = resolve('.pet-sdk'),
-  haru = join(sdk, 'CubismSdkForWeb-5-r.5/Samples/Resources/Haru')
+  hiyori = join(sdk, 'CubismSdkForWeb-5-r.5/Samples/Resources/Hiyori')
 async function picker(app: ElectronApplication, path: string) {
   await app.evaluate(({ dialog }, path) => {
     Object.defineProperty(dialog, 'showOpenDialog', {
@@ -22,15 +22,15 @@ async function picker(app: ElectronApplication, path: string) {
   }, path)
 }
 
-test('virtual clock drives a durable automatic Haru bubble through the real host and renderer', async ({}, testInfo) => {
+test('virtual clock drives a durable automatic Hiyori bubble through the real host and renderer', async ({}, testInfo) => {
   test.skip(
     process.platform !== 'darwin',
     'Uses the actual macOS environment probe',
   )
   test.skip(
     !existsSync(join(sdk, 'runtime/framework.js')) ||
-      !existsSync(join(haru, 'Haru.model3.json')),
-    'Licensed local runtime and Haru absent; no downloads',
+      !existsSync(join(hiyori, 'Hiyori.model3.json')),
+    'Licensed local runtime and Hiyori absent; no downloads',
   )
   test.setTimeout(120000)
   testInfo.annotations.push({
@@ -59,12 +59,12 @@ test('virtual clock drives a durable automatic Haru bubble through the real host
     await expect(
       main.getByRole('heading', { name: '跟进', exact: true }),
     ).toBeVisible()
-    await picker(app, haru)
+    await picker(app, hiyori)
     const chosen = await main.evaluate(() => window.memo.pet.openImportDialog())
     if (!chosen.ok || !('sessionId' in chosen.data))
       throw Error('CHOOSE_FAILED')
     const imported = await main.evaluate(
-      (id) => window.memo.pet.importChosen(id, 'Haru.model3.json'),
+      (id) => window.memo.pet.importChosen(id, 'Hiyori.model3.json'),
       chosen.data.sessionId,
     )
     if (!imported.ok || imported.data.status === 'invalid')

@@ -6,7 +6,7 @@ import { tmpdir } from 'node:os'
 import { resolve, join } from 'node:path'
 const desktopRequire = createRequire(resolve('apps/desktop/package.json'))
 const runtime = resolve('.pet-sdk/runtime'),
-  haru = resolve('.pet-sdk/CubismSdkForWeb-5-r.5/Samples/Resources/Haru')
+  hiyori = resolve('.pet-sdk/CubismSdkForWeb-5-r.5/Samples/Resources/Hiyori')
 for (const rendering of [false, true])
   test(
     rendering
@@ -17,7 +17,7 @@ for (const rendering of [false, true])
       test.skip(
         rendering &&
           (!existsSync(join(runtime, 'framework.js')) ||
-            !existsSync(join(haru, 'Haru.model3.json'))),
+            !existsSync(join(hiyori, 'Hiyori.model3.json'))),
         'Licensed SDK unavailable; no download',
       )
       const root = await realpath(
@@ -101,14 +101,14 @@ for (const rendering of [false, true])
               }),
             path,
           )
-        await picker(haru)
+        await picker(hiyori)
         const chosen = await main.evaluate(() =>
           window.memo.pet.openImportDialog(),
         )
         if (!chosen.ok || !('sessionId' in chosen.data))
           throw Error('NO_MODEL_SESSION')
         const imported = await main.evaluate(
-          (id) => window.memo.pet.importChosen(id, 'Haru.model3.json'),
+          (id) => window.memo.pet.importChosen(id, 'Hiyori.model3.json'),
           chosen.data.sessionId,
         )
         if (!imported.ok || imported.data.status === 'invalid')
@@ -183,7 +183,7 @@ for (const rendering of [false, true])
                 }
               }
             ).__petRender
-            if (!d.lipSyncAvailable) throw Error('HARU_LIPSYNC_UNAVAILABLE')
+            if (!d.lipSyncAvailable) throw Error('HIYORI_LIPSYNC_UNAVAILABLE')
             samples.push({
               level: d.lipSyncLevel,
               playing: d.audioPlaying,

@@ -7,10 +7,10 @@ import {
   contextCycle,
   showReady,
 } from './pet-lifecycle-fixture'
-test('Haru frame pacing, context restoration and renderer crash isolation', async ({}, testInfo) => {
+test('Hiyori frame pacing, context restoration and renderer crash isolation', async ({}, testInfo) => {
   test.skip(
     !lifecycleAssetsReady,
-    'Licensed local Haru/runtime absent; no download',
+    'Licensed local Hiyori/runtime absent; no download',
   )
   test.setTimeout(150000)
   const fixture = await prepareLifecycle()

@@ -11,10 +11,10 @@ import { join, resolve } from 'node:path'
 import { createRequire } from 'node:module'
 const require = createRequire(resolve('apps/desktop/package.json'))
 export const sdk = resolve('.pet-sdk'),
-  haru = join(sdk, 'CubismSdkForWeb-5-r.5/Samples/Resources/Haru')
+  hiyori = join(sdk, 'CubismSdkForWeb-5-r.5/Samples/Resources/Hiyori')
 export const lifecycleAssetsReady =
   existsSync(join(sdk, 'runtime/framework.js')) &&
-  existsSync(join(haru, 'Haru.model3.json'))
+  existsSync(join(hiyori, 'Hiyori.model3.json'))
 export interface RenderDiagnostics {
   frames: number
   totalFrames: number
@@ -65,12 +65,12 @@ export async function prepareLifecycle() {
           }),
         path,
       )
-    await pick(haru)
+    await pick(hiyori)
     const chosen = await main.evaluate(() => window.memo.pet.openImportDialog())
     if (!chosen.ok || !('sessionId' in chosen.data))
       throw Error('CHOOSE_FAILED')
     const imported = await main.evaluate(
-      (id) => window.memo.pet.importChosen(id, 'Haru.model3.json'),
+      (id) => window.memo.pet.importChosen(id, 'Hiyori.model3.json'),
       chosen.data.sessionId,
     )
     if (!imported.ok || imported.data.status === 'invalid')

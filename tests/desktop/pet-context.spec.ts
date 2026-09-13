@@ -8,7 +8,7 @@ import { tmpdir } from 'node:os'
 import { createRequire } from 'node:module'
 const requireDesktop = createRequire(resolve('apps/desktop/package.json'))
 const sdk = resolve('.pet-sdk'),
-  haru = join(sdk, 'CubismSdkForWeb-5-r.5/Samples/Resources/Haru')
+  hiyori = join(sdk, 'CubismSdkForWeb-5-r.5/Samples/Resources/Hiyori')
 for (const scenario of ['settings', 'manual', 'automatic'])
   test(
     scenario === 'automatic'
@@ -20,7 +20,7 @@ for (const scenario of ['settings', 'manual', 'automatic'])
       const render = scenario !== 'settings'
       test.skip(
         render &&
-          (!existsSync(join(haru, 'Haru.model3.json')) ||
+          (!existsSync(join(hiyori, 'Hiyori.model3.json')) ||
             !existsSync(join(sdk, 'runtime/framework.js'))),
         'Licensed local SDK unavailable; no download',
       )
@@ -168,7 +168,7 @@ for (const scenario of ['settings', 'manual', 'automatic'])
               }),
             path,
           )
-        await pick(haru)
+        await pick(hiyori)
         const chosen = await page.evaluate(() =>
           window.memo.pet.openImportDialog(),
         )
@@ -176,7 +176,7 @@ for (const scenario of ['settings', 'manual', 'automatic'])
           throw Error('NO_SESSION')
         const imported = await page.evaluate(
           (sessionId) =>
-            window.memo.pet.importChosen(sessionId, 'Haru.model3.json'),
+            window.memo.pet.importChosen(sessionId, 'Hiyori.model3.json'),
           chosen.data.sessionId,
         )
         if (!imported.ok || imported.data.status === 'invalid')
