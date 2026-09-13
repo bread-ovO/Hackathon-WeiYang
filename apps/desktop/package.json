@@ -10,7 +10,8 @@
     "build": "node ../../scripts/build-pet-native.mjs && electron-vite build",
     "rebuild:native": "electron-builder install-app-deps",
     "package:dir": "node ../../scripts/build-pet-native.mjs && electron-vite build && electron-builder --dir",
-    "package:demo": "node ../../scripts/build-pet-native.mjs && electron-vite build && node ../../scripts/bundle-demo-pet.mjs && electron-builder --dir --config.directories.output=../../release/demo"
+    "package:demo": "node ../../scripts/build-pet-native.mjs && electron-vite build && node ../../scripts/bundle-demo-pet.mjs && electron-builder --dir --config.directories.output=../../release/demo",
+    "package:real": "node ../../scripts/build-pet-native.mjs && VITE_MEMO_NO_DEMO=1 electron-vite build && electron-builder --dir --config.directories.output=../../release/real"
   },
   "dependencies": {
     "@cloudflare/kumo": "2.13.2",
