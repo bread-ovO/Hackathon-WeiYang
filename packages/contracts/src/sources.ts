@@ -6,6 +6,10 @@ const projectId = {
   pattern: '^[^\\s\\u0000-\\u001f\\u007f]+$',
 } as const
 const id = { ...projectId, maxLength: 128 } as const
+/** Built-in coding-agent session sources the renderer may ask the host to open. */
+export const sessionSourceKinds = ['claude-code', 'codex'] as const
+export type SessionSourceKind = (typeof sessionSourceKinds)[number]
+const sessionKind = { enum: sessionSourceKinds } as const
 export const sourcesRequestSchema = {
   oneOf: [
     {
@@ -23,6 +27,16 @@ export const sourcesRequestSchema = {
     {
       type: 'object',
       additionalProperties: false,
+      required: ['method', 'projectId', 'kind'],
+      properties: {
+        method: { const: 'sources.authorizeDirectory' },
+        projectId,
+        kind: sessionKind,
+      },
+    },
+    {
+      type: 'object',
+      additionalProperties: false,
       required: ['method', 'id'],
       properties: { method: { const: 'sources.sync' }, id },
     },
@@ -34,6 +48,12 @@ export const sourcesRequestSchema = {
     },
   ],
 } as const
+const hostPath = {
+  type: 'string',
+  minLength: 1,
+  maxLength: 4096,
+  pattern: '^(?:/|[A-Za-z]:[\\\\/]|\\\\\\\\)[^\\u0000]+$',
+} as const
 /** Host-only capability: only a native file picker may originate this request. */
 export const importFileRequestSchema = {
   type: 'object',
@@ -42,16 +62,26 @@ export const importFileRequestSchema = {
   properties: {
     method: { const: 'sources.importFile' },
     projectId,
-    path: {
-      type: 'string',
-      minLength: 1,
-      maxLength: 4096,
-      pattern: '^(?:/|[A-Za-z]:[\\\\/]|\\\\\\\\)[^\\u0000]+$',
-    },
+    path: hostPath,
+  },
+} as const
+/** Host-only capability: only a native directory picker may originate this request. */
+export const importDirectoryRequestSchema = {
+  type: 'object',
+  additionalProperties: false,
+  required: ['method', 'path', 'projectId', 'kind'],
+  properties: {
+    method: { const: 'sources.importDirectory' },
+    projectId,
+    kind: sessionKind,
+    path: hostPath,
   },
 } as const
 export type SourcesRequest = FromSchema<typeof sourcesRequestSchema>
 export type ImportFileRequest = FromSchema<typeof importFileRequestSchema>
+export type ImportDirectoryRequest = FromSchema<
+  typeof importDirectoryRequestSchema
+>
 export const sourceErrorCodes = [
   'FILE_UNAVAILABLE',
   'UNSAFE_PATH',
@@ -80,7 +110,15 @@ export interface SourceSummary {
   eventCount: number
   errorCode: SourceErrorCode | null
 }
+/** Aggregate outcome of a directory import; never carries paths or per-file detail. */
+export interface DirectoryImportSummary {
+  files: number
+  imported: number
+  skipped: number
+  truncated: boolean
+}
 export interface SourcesSnapshot {
   sources: SourceSummary[]
   cancelled?: boolean
+  directoryImport?: DirectoryImportSummary
 }

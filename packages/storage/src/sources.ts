@@ -97,7 +97,11 @@ export function createSources(
   }
   return {
     authorize: db.transaction(
-      (input: { path: string; projectId: string }): SourceSummary => {
+      (input: {
+        path: string
+        projectId: string
+        displayName?: string
+      }): SourceSummary => {
         id(input.projectId)
         if (
           typeof input.path !== 'string' ||
@@ -113,6 +117,14 @@ export function createSources(
         // The host supplies a canonical realpath from its native picker. Storage never touches source files.
         const path = input.path
         if (normalize(path) !== path) throw new Error('INVALID_SOURCE_PATH')
+        // Optional host-supplied label for built-in session sources; the
+        // basename remains the default. Labels never contain directories.
+        const label = input.displayName
+          ? input.displayName
+              .replace(/[\u0000-\u001f\u007f]/g, '')
+              .trim()
+              .slice(0, 256)
+          : ''
         const existing = db
           .prepare(
             'SELECT source_id AS id FROM source_grants WHERE path=? AND project_id=?',
@@ -122,15 +134,21 @@ export function createSources(
           db.prepare(
             'UPDATE source_grants SET grant_version=grant_version+1,revoked=0,error_code=NULL WHERE source_id=?',
           ).run(existing.id)
+          if (label)
+            db.prepare(
+              'UPDATE source_grants SET display_name=? WHERE source_id=?',
+            ).run(label, existing.id)
           return get(existing.id)
         }
         const sourceId = randomUUID()
         db.prepare('INSERT INTO source_instances(id) VALUES(?)').run(sourceId)
         // Filename only: full path stays private to the host/core API.
         const displayName =
+          label ||
           basename(path)
             .replace(/[\u0000-\u001f\u007f]/g, '')
-            .slice(0, 256) || '本地记录'
+            .slice(0, 256) ||
+          '本地记录'
         db.prepare(
           'INSERT INTO source_grants(source_id,project_id,path,display_name) VALUES(?,?,?,?)',
         ).run(sourceId, input.projectId, path, displayName)

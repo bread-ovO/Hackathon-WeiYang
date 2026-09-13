@@ -31,6 +31,7 @@ import {
   dialog,
 } from 'electron'
 import { join, resolve, sep } from 'node:path'
+import { homedir } from 'node:os'
 import { mkdirSync } from 'node:fs'
 import { pathToFileURL } from 'node:url'
 import { CoreClient } from './core-client'
@@ -620,6 +621,45 @@ else {
                   method: 'sources.importFile',
                   path: selection.filePaths[0],
                   projectId: request.projectId,
+                })
+              } finally {
+                choosingSource = false
+              }
+            }
+            if (request.method === 'sources.authorizeDirectory') {
+              if (!window || choosingSource)
+                return { ok: false, error: 'CORE_UNAVAILABLE' }
+              choosingSource = true
+              try {
+                const selection = await dialog.showOpenDialog(window, {
+                  title:
+                    request.kind === 'claude-code'
+                      ? '选择 Claude Code 会话目录'
+                      : '选择 Codex 会话目录',
+                  defaultPath: join(
+                    homedir(),
+                    request.kind === 'claude-code'
+                      ? '.claude/projects'
+                      : '.codex/sessions',
+                  ),
+                  properties: ['openDirectory'],
+                })
+                if (selection.canceled || !selection.filePaths[0]) {
+                  const reply = await core.request({ method: 'sources.list' })
+                  return reply.ok
+                    ? {
+                        ok: true,
+                        data: { ...(reply.data as object), cancelled: true },
+                      }
+                    : reply
+                }
+                // The resolved directory stays host-side; the renderer only
+                // ever receives the redacted SourcesSnapshot.
+                return await core.request({
+                  method: 'sources.importDirectory',
+                  path: selection.filePaths[0],
+                  projectId: request.projectId,
+                  kind: request.kind,
                 })
               } finally {
                 choosingSource = false

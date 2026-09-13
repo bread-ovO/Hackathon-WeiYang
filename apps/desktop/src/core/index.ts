@@ -60,6 +60,7 @@ parentPort.on('message', async ({ data }) => {
                         ? store.health()
                         : request.method === 'sources.list' ||
                             request.method === 'sources.importFile' ||
+                            request.method === 'sources.importDirectory' ||
                             request.method === 'sources.sync' ||
                             request.method === 'sources.revoke'
                           ? await sources(request)

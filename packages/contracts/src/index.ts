@@ -74,7 +74,10 @@ export * from './export'
 import {
   sourcesRequestSchema,
   importFileRequestSchema,
+  importDirectoryRequestSchema,
   type ImportFileRequest,
+  type ImportDirectoryRequest,
+  type SessionSourceKind,
   type SourcesSnapshot,
 } from './sources'
 export * from './sources'
@@ -248,6 +251,7 @@ export type HostRequest =
           | GithubRequest['method']
           | FeishuRequest['method']
           | 'sources.chooseFile'
+          | 'sources.authorizeDirectory'
           | 'exports.save'
           | 'credentials.list'
           | 'credentials.importFile'
@@ -269,12 +273,16 @@ export type HostRequest =
       }
     >
   | ImportFileRequest
+  | ImportDirectoryRequest
   | ExportBuildRequest
   | PluginHostRequest
   | GithubHostRequest
   | FeishuHostRequest
 const validateImportFile = ajv.compile<ImportFileRequest>(
   importFileRequestSchema,
+)
+const validateImportDirectory = ajv.compile<ImportDirectoryRequest>(
+  importDirectoryRequestSchema,
 )
 /** Internal host validation never grants renderer access to a filesystem path. */
 const validateExportBuild = ajv.compile<ExportBuildRequest>(
@@ -308,6 +316,7 @@ export function parseHostRequest(value: unknown): HostRequest {
   }
   if (validateExportBuild(value)) return value
   if (validateImportFile(value)) return value
+  if (validateImportDirectory(value)) return value
   const request = parseCoreRequest(value)
   if (
     request.method === 'feishu.list' ||
@@ -347,6 +356,7 @@ export function parseHostRequest(value: unknown): HostRequest {
     request.method === 'pet.select' ||
     request.method === 'pet.remove' ||
     request.method === 'sources.chooseFile' ||
+    request.method === 'sources.authorizeDirectory' ||
     request.method === 'exports.save' ||
     request.method === 'credentials.list' ||
     request.method === 'credentials.importFile' ||
@@ -560,6 +570,10 @@ export interface DesktopBridge {
   sources: {
     list(): Promise<CoreReply<SourcesSnapshot>>
     chooseFile(projectId: string): Promise<CoreReply<SourcesSnapshot>>
+    authorizeDirectory(
+      projectId: string,
+      kind: SessionSourceKind,
+    ): Promise<CoreReply<SourcesSnapshot>>
     sync(id: string): Promise<CoreReply<SourcesSnapshot>>
     revoke(id: string): Promise<CoreReply<SourcesSnapshot>>
   }

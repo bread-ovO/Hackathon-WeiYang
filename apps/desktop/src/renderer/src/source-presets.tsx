@@ -87,6 +87,18 @@ export function SourcePresets({ onDemoReady }: { onDemoReady(): void }) {
             '导入工作记录，按文件新增内容继续同步。',
             '导入本地记录',
           ],
+          [
+            'preset-claude',
+            'Claude Code 会话',
+            '从本机 Claude Code 会话收录工作约定与进展。',
+            '配置 Claude Code',
+          ],
+          [
+            'preset-codex',
+            'Codex 会话',
+            '从本机 Codex 会话收录工作约定与进展。',
+            '配置 Codex',
+          ],
         ].map(([id, name, description, button]) => (
           <article key={id}>
             <div className="source-preset-title">
