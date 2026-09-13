@@ -2,7 +2,6 @@ import {
   mkdtemp,
   rm,
   writeFile,
-  symlink,
   mkdir,
   readdir,
 } from 'node:fs/promises'
@@ -10,6 +9,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { createPetContextStore } from '../../apps/desktop/src/main/pet/context-store'
 import { describe, it, expect, vi } from 'vitest'
+import { symlinkOrSkip } from './helpers/symlink-or-skip'
 import {
   createPetContextService,
   parseContextStoreState,
@@ -430,12 +430,12 @@ describe('context state store in isolated profile', () => {
       await rm(dir, { recursive: true, force: true })
     }
   })
-  it('refuses symlink/nonregular reads and failed publish cleans staging files', async () => {
+  it('refuses symlink/nonregular reads and failed publish cleans staging files', async (ctx) => {
     const dir = await mkdtemp(join(tmpdir(), 'bugu-context-store-'))
     try {
       const f = await configured()
       await writeFile(join(dir, 'original.json'), JSON.stringify(f.stored))
-      await symlink(join(dir, 'original.json'), join(dir, 'link.json'))
+      await symlinkOrSkip(ctx, join(dir, 'original.json'), join(dir, 'link.json'))
       await expect(
         createPetContextStore(join(dir, 'link.json')).load(),
       ).rejects.toThrow('PET_CONTEXT_STORAGE_ERROR')
