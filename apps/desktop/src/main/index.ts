@@ -36,6 +36,9 @@ import {
   electronTrayPlatform,
   type TrayController,
 } from './tray'
+// Hide the default File/Edit/View menu bar on Windows/Linux; macOS keeps
+// the standard application menu for native shortcuts.
+if (process.platform !== 'darwin') Menu.setApplicationMenu(null)
 protocol.registerSchemesAsPrivileged([
   {
     scheme: 'memo-pet',
