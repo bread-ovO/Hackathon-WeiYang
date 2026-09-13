@@ -4,6 +4,8 @@ import type {
   PetContextState,
   PetContextPreview,
 } from '@memo/contracts'
+import { Switch } from '@cloudflare/kumo/components/switch'
+import { Disclosure } from './ui/disclosure'
 import { Checkbox } from '@cloudflare/kumo/components/checkbox'
 import { AppButton, AppInput } from './ui'
 export function PetContextSettings() {
@@ -95,129 +97,144 @@ export function PetContextSettings() {
   const dirty = !!saved && JSON.stringify(draft) !== JSON.stringify(saved)
   return (
     <section className="pet-context-settings" aria-label="基于事项的话语">
-      <h2>基于事项的话语</h2>
-      <p>
-        让桌宠偶尔邀请你回顾事项。默认关闭，开启后仅使用所选项目中有有效依据的事项。
-      </p>
-      <Checkbox
-        label="允许基于事项生成话语"
-        checked={draft.enabled}
-        disabled={busy || !state}
-        onCheckedChange={(checked) => setDraft({ ...draft, enabled: checked })}
-      />
-      <fieldset disabled={busy || !state}>
-        <legend>允许使用的项目（最多 3 个）</legend>
-        {projects.map((p) => (
-          <Checkbox
-            key={p.id}
-            label={p.name}
-            checked={draft.projectIds.includes(p.id)}
-            onCheckedChange={(checked) =>
-              setDraft({
-                ...draft,
-                projectIds: checked
-                  ? [...draft.projectIds, p.id].slice(0, 3)
-                  : draft.projectIds.filter((id) => id !== p.id),
-              })
-            }
+      <div className="setting-card-heading">
+        <div>
+          <h2>基于事项的话语</h2>
+          <p>提醒你回顾所选项目中的事项。调整后保存生效。</p>
+        </div>{' '}
+        <Switch
+          aria-label="允许基于事项生成话语"
+          checked={draft.enabled}
+          disabled={busy || !state}
+          onCheckedChange={(checked) =>
+            setDraft({ ...draft, enabled: checked })
+          }
+        />
+      </div>
+      <Disclosure title="项目与话语设置">
+        {' '}
+        <fieldset disabled={busy || !state}>
+          <legend>允许使用的项目（最多 3 个）</legend>
+          {projects.map((p) => (
+            <Checkbox
+              key={p.id}
+              label={p.name}
+              checked={draft.projectIds.includes(p.id)}
+              onCheckedChange={(checked) =>
+                setDraft({
+                  ...draft,
+                  projectIds: checked
+                    ? [...draft.projectIds, p.id].slice(0, 3)
+                    : draft.projectIds.filter((id) => id !== p.id),
+                })
+              }
+              disabled={
+                busy ||
+                !state ||
+                (!draft.projectIds.includes(p.id) &&
+                  draft.projectIds.length >= 3)
+              }
+            />
+          ))}
+          {!projects.length && <p>先在我的工作区创建项目并收录有效事项。</p>}
+        </fieldset>
+        <Checkbox
+          label="使用本地模型选择话术"
+          checked={draft.useModel}
+          disabled={busy || !state}
+          onCheckedChange={(checked) =>
+            setDraft({ ...draft, useModel: checked })
+          }
+        />
+        {draft.useModel && (
+          <label>
+            本地模型名称
+            <AppInput
+              aria-label="本地模型名称"
+              value={draft.model}
+              maxLength={128}
+              disabled={busy}
+              onChange={(e) => setDraft({ ...draft, model: e.target.value })}
+              placeholder="填写已自行安装的本地模型名称"
+            />
+          </label>
+        )}
+        <details className="pet-context-data-scope">
+          <summary>数据范围与使用频率</summary>
+          <p>
+            模型仅收到临时引用编号与事项状态；标题、聊天和作者信息保留在
+            BUGU。展示文字来自本地模板。
+          </p>
+          <p>
+            可选模型通过本机
+            Ollama（127.0.0.1:11434）运行，请使用已安装的本地模型，并确认服务的联网策略。
+          </p>
+          <p>
+            自动出现沿用“自动话语”的频率、静默和每日上限。保存设置后可先预览；模型请求每天最多
+            12 次，间隔至少 10 秒，预览、失败和取消也计入次数。
+          </p>
+        </details>
+      </Disclosure>
+      {(dirty || state?.config.enabled || preview) && (
+        <div className="source-import-actions">
+          <AppButton
             disabled={
               busy ||
               !state ||
-              (!draft.projectIds.includes(p.id) && draft.projectIds.length >= 3)
+              !dirty ||
+              (draft.useModel && !draft.model.trim())
             }
-          />
-        ))}
-        {!projects.length && <p>先在我的工作区创建项目并收录有效事项。</p>}
-      </fieldset>
-      <Checkbox
-        label="使用本地模型选择话术"
-        checked={draft.useModel}
-        disabled={busy || !state}
-        onCheckedChange={(checked) => setDraft({ ...draft, useModel: checked })}
-      />
-      {draft.useModel && (
-        <label>
-          本地模型名称
-          <AppInput
-            aria-label="本地模型名称"
-            value={draft.model}
-            maxLength={128}
-            disabled={busy}
-            onChange={(e) => setDraft({ ...draft, model: e.target.value })}
-            placeholder="填写已自行安装的本地模型名称"
-          />
-        </label>
-      )}
-      <details className="pet-context-data-scope">
-        <summary>数据范围与使用频率</summary>
-        <p>
-          模型仅收到临时引用编号与事项状态；标题、聊天和作者信息保留在
-          BUGU。展示文字来自本地模板。
-        </p>
-        <p>
-          可选模型通过本机
-          Ollama（127.0.0.1:11434）运行，请使用已安装的本地模型，并确认服务的联网策略。
-        </p>
-        <p>
-          自动出现沿用“自动话语”的频率、静默和每日上限。保存设置后可先预览；模型请求每天最多
-          12 次，间隔至少 10 秒，预览、失败和取消也计入次数。
-        </p>
-      </details>
-      <div className="source-import-actions">
-        <AppButton
-          disabled={
-            busy || !state || !dirty || (draft.useModel && !draft.model.trim())
-          }
-          onClick={() =>
-            void run(
-              () =>
-                window.memo.pet.configureContext({
-                  expectedVersion: state!.config.version,
-                  config: draft,
-                }),
-              (data) => {
-                setState(data)
-                setPreview(null)
-                setMessage('设置已保存，尚未生成话语。')
-              },
-            )
-          }
-        >
-          保存事项话语设置
-        </AppButton>
-        <AppButton
-          disabled={busy || !state || dirty || !state.config.enabled}
-          onClick={() =>
-            void run(
-              () => window.memo.pet.previewContext(),
-              (data) => {
-                setPreview(data)
-                setMessage(
-                  data.mode === 'fallback'
-                    ? '未生成事项话语，已回退本地预设。'
-                    : '已生成预览，尚未显示到桌宠。',
-                )
-              },
-            )
-          }
-        >
-          生成一条预览
-        </AppButton>
-        {busy && (
-          <AppButton
-            onClick={() => {
-              void window.memo.pet
-                .cancelContext()
-                .then((r) => {
-                  if (r.ok) setState(r.data)
-                })
-                .catch(() => undefined)
-            }}
+            onClick={() =>
+              void run(
+                () =>
+                  window.memo.pet.configureContext({
+                    expectedVersion: state!.config.version,
+                    config: draft,
+                  }),
+                (data) => {
+                  setState(data)
+                  setPreview(null)
+                  setMessage('设置已保存，尚未生成话语。')
+                },
+              )
+            }
           >
-            取消生成
+            保存事项话语设置
           </AppButton>
-        )}
-      </div>
+          <AppButton
+            disabled={busy || !state || dirty || !state.config.enabled}
+            onClick={() =>
+              void run(
+                () => window.memo.pet.previewContext(),
+                (data) => {
+                  setPreview(data)
+                  setMessage(
+                    data.mode === 'fallback'
+                      ? '未生成事项话语，已回退本地预设。'
+                      : '已生成预览，尚未显示到桌宠。',
+                  )
+                },
+              )
+            }
+          >
+            生成一条预览
+          </AppButton>
+          {busy && (
+            <AppButton
+              onClick={() => {
+                void window.memo.pet
+                  .cancelContext()
+                  .then((r) => {
+                    if (r.ok) setState(r.data)
+                  })
+                  .catch(() => undefined)
+              }}
+            >
+              取消生成
+            </AppButton>
+          )}
+        </div>
+      )}
       {preview && (
         <div>
           <blockquote>{preview.text}</blockquote>

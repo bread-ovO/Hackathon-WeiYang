@@ -29,6 +29,28 @@ test('manual workspace persists tasks, versions and archive without fabricating 
       .poll(() => page.evaluate(async () => (await window.memo.health()).ok))
       .toBe(true)
     await page.getByRole('button', { name: '我的工作区', exact: true }).click()
+
+    await expect(page.getByLabel('新项目名称')).toHaveCount(0)
+    await expect(page.getByLabel('业务状态筛选')).toHaveCount(0)
+    const filter = page.getByRole('button', { name: '筛选事项', exact: true })
+    await filter.hover()
+    await expect(page.locator('.kumo-tooltip-popup')).toHaveText('筛选事项')
+    await filter.click()
+    await page.getByLabel('业务状态筛选').selectOption('todo')
+    await page.getByLabel('业务状态筛选').press('Escape')
+    await expect(filter).toBeFocused()
+    await expect(page.getByLabel('业务状态筛选')).toHaveCount(0)
+    await expect(page.getByLabel('1 项筛选已启用')).toBeVisible()
+    await page
+      .getByRole('button', { name: '清除筛选', exact: true })
+      .first()
+      .click()
+    const add = page.getByRole('button', { name: '新建事项', exact: true })
+    await add.click()
+    await page.getByLabel('真实事项标题').fill('保留关闭前的草稿')
+    await page.getByLabel('真实事项标题').press('Escape')
+    await expect(add).toBeFocused()
+    await page.getByRole('button', { name: '新建事项', exact: true }).click()
     await page.getByLabel('新项目名称').fill('隔离项目')
     await page.getByRole('button', { name: '创建项目', exact: true }).click()
     await expect(page.getByRole('status')).toHaveText('项目已创建。')
@@ -37,7 +59,7 @@ test('manual workspace persists tasks, versions and archive without fabricating 
     await page.getByLabel('所属项目').selectOption({ label: '隔离项目' })
     await page.getByLabel('真实事项标题').fill('人工持久事项')
     await page.getByRole('button', { name: '添加事项', exact: true }).click()
-    await expect(page.getByLabel('真实事项标题')).toHaveValue('')
+    await expect(page.getByRole('dialog')).toHaveCount(0)
     await page.getByRole('button', { name: /人工持久事项.*已收录/ }).click()
     await page.getByLabel('手动状态').selectOption('completed')
     await expect(page.getByRole('status')).toContainText('已保存到本地')
@@ -49,6 +71,7 @@ test('manual workspace persists tasks, versions and archive without fabricating 
     )
     if (!snapshot.ok) throw new Error('WORKSPACE_UNAVAILABLE')
     const task = snapshot.data.tasks[0]!
+    await page.getByText('编辑事项与完成条件', { exact: true }).click()
     await page.getByLabel('编辑事项标题').fill('已修改标题')
     await page.getByRole('button', { name: '保存标题', exact: true }).click()
     await expect(
@@ -161,6 +184,7 @@ test('manual workspace persists tasks, versions and archive without fabricating 
     await expect(
       page.getByRole('button', { name: '加载更多', exact: true }),
     ).toHaveCount(0)
+    await page.getByRole('button', { name: '筛选事项' }).click()
     await page.getByLabel('业务状态筛选').selectOption('completed')
     await expect(page.locator('.task-row')).toHaveCount(0)
     await page.getByRole('button', { name: '已归档', exact: true }).click()

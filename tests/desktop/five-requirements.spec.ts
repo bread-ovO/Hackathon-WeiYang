@@ -109,6 +109,7 @@ test('Kimi import, deadline, filters and merge survive restart through the produ
       { project, id: original.id },
     )
     if (!detail.ok) throw Error('detail')
+    await page.getByRole('button',{name:'筛选事项'}).click()
     await page
       .getByLabel('来源筛选')
       .selectOption(detail.data.provenance![0]!.sourceInstanceId)

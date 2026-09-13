@@ -1,0 +1,346 @@
+/* Workspace actions share a square hit area, independent of SVG/font baselines. */
+.action-icon.app-control {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  padding: 0;
+  flex: none;
+  border-radius: 8px;
+}
+.action-icon.app-control > span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  gap: 0;
+}
+.action-icon.app-control svg {
+  display: block;
+  width: 16px;
+  height: 16px;
+  flex: none;
+  margin: 0;
+  transform: none;
+}
+.action-icon[aria-pressed='true'] {
+  background: var(--color-kumo-tint);
+  color: var(--text-color-kumo-brand);
+}
+.compact-heading {
+  padding: 16px 16px 12px;
+}
+.compact-heading h1 {
+  font-size: 24px;
+  line-height: 32px;
+}
+.compact-heading p {
+  font-size: 12px;
+  line-height: 20px;
+}
+.workspace-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 16px 12px;
+  border-bottom: 1px solid var(--line);
+}
+.workspace-tabs {
+  display: flex;
+  gap: 4px;
+  margin-right: auto;
+  flex: none;
+}
+.workspace-tabs .app-control {
+  height: 32px;
+  padding: 0 8px;
+  color: var(--muted);
+  font-size: 14px;
+}
+.workspace-tabs [aria-pressed='true'] {
+  background: var(--color-kumo-tint);
+  color: var(--ink);
+}
+.workspace-search {
+  position: relative;
+  width: 240px;
+  min-width: 120px;
+}
+.workspace-search > svg {
+  position: absolute;
+  left: 8px;
+  top: 8px;
+  width: 16px;
+  height: 16px;
+  color: var(--muted);
+  pointer-events: none;
+  z-index: 1;
+}
+.workspace-search .app-input {
+  width: 100%;
+  padding-left: 32px;
+  height: 32px;
+}
+.filter-count {
+  min-width: 16px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.workspace-filter-panel {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  background: var(--color-kumo-tint);
+}
+.workspace-filter-panel select,
+.create-dialog-content select {
+  height: 32px;
+  min-width: 0;
+  max-width: 100%;
+  border: 1px solid var(--line);
+  background: var(--color-kumo-base);
+  border-radius: 8px;
+  padding: 0 8px;
+  font-size: 14px;
+}
+.workspace-filter-panel select {
+  flex: 1 1 128px;
+}
+.active-filter-summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 16px;
+  border-bottom: 1px solid var(--line);
+  font-size: 12px;
+  color: var(--muted);
+}
+.active-filter-summary > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.create-dialog-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px;
+}
+.create-dialog-content > h2 {
+  padding-right: 32px;
+}
+.create-dialog-content > p {
+  font-size: 14px;
+  color: var(--muted);
+}
+.create-dialog-content form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.create-dialog-content .app-input {
+  width: 100%;
+}
+.create-dialog-content form > .app-control {
+  align-self: flex-end;
+}
+.create-project-disclosure {
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+  font-size: 14px;
+}
+.create-project-disclosure summary {
+  cursor: pointer;
+  color: var(--muted);
+}
+.create-project-disclosure form {
+  margin-top: 12px;
+}
+.create-dialog-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+}
+.empty-actions {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+.workspace-toolbar ~ .work-body .task-row {
+  min-height: 72px;
+}
+@media (max-width: 1040px) {
+  .workspace-search {
+    width: 180px;
+  }
+  .work-body.has-detail > .task-list {
+    display: none;
+  }
+  .work-body.has-detail > .detail {
+    width: 100%;
+    flex: 1;
+    border-left: 0;
+  }
+}
+.task-state-control label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  font-size: 12px;
+  color: var(--muted);
+}
+/* Kumo's inner flex wrapper must span navigation rows for count alignment. */
+.nav-item.app-control > .relative.flex,
+.project.app-control > .relative.flex {
+  width: 100%;
+  align-items: center;
+}
+.nav-item.app-control svg,
+.project.app-control svg {
+  margin: 0;
+  transform: none;
+}
+/* Settings follow the reference: one feature per card, text left and switch right. */
+.settings-page.standalone {
+  padding: 32px;
+  background: var(--color-kumo-tint);
+}
+.settings-page > * {
+  max-width: 960px;
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
+}
+.settings-page > h1 {
+  font-size: 24px;
+  line-height: 32px;
+}
+.settings-page > .page-description {
+  margin-top: 8px;
+  margin-bottom: 24px;
+  font-size: 14px;
+}
+.settings-page > .disclosure,
+.settings-card {
+  background: var(--color-kumo-base);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  margin-bottom: 16px;
+}
+.settings-page > .disclosure > summary {
+  padding: 20px 24px;
+}
+.settings-page > .disclosure > .disclosure-body {
+  padding: 0 24px 24px;
+}
+.settings-card {
+  padding: 24px;
+}
+.settings-card > section {
+  padding: 0;
+  margin: 0;
+  border: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.setting-card-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+}
+.setting-card-heading > div {
+  min-width: 0;
+}
+.setting-card-heading h2 {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+  margin: 0 0 8px;
+}
+.setting-card-heading p {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 24px;
+  max-width: 640px;
+  margin: 0;
+}
+.setting-card-heading [role='switch'],
+.pet-speech-heading [role='switch'] {
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+.settings-card .disclosure {
+  border: 0;
+  border-top: 1px solid var(--line);
+}
+.settings-card .disclosure > summary {
+  padding: 12px 0 0;
+}
+.settings-card .disclosure-body {
+  padding: 16px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.settings-card .source-import-actions {
+  margin: 0;
+  gap: 8px;
+}
+.settings-card .source-import-actions .app-control {
+  font-size: 12px;
+}
+@media (max-width: 1040px) {
+  .settings-page.standalone {
+    padding: 24px;
+  }
+  .settings-card {
+    padding: 20px;
+  }
+}
+.evidence-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.evidence-summary > p {
+  margin: 0;
+}
+.evidence-summary .source-import-actions {
+  margin: 0;
+}
+@media (max-width: 1040px) {
+  .work-body.has-detail > .detail {
+    max-width: none;
+    min-width: 0;
+    flex: 1 1 100%;
+  }
+}
+.editor-group > form,
+.task-structure form {
+  gap: 8px;
+}
+.editor-group .action-icon.app-control {
+  padding: 0;
+}
+.settings-page.standalone > * {
+  max-width: 960px;
+}
+.settings-page > .disclosure .disclosure-title {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+}
+.settings-page > .disclosure .disclosure-description,
+.settings-card .setting-card-heading p {
+  font-size: 14px;
+  line-height: 24px;
+}

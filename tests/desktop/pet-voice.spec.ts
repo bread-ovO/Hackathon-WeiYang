@@ -47,11 +47,11 @@ for (const rendering of [false, true])
           ),
         ).toBe(true)
         await main.getByRole('button', { name: '设置', exact: true }).click()
-    await main.locator('#settings-voice > summary').click()
-    await main.locator('#settings-pet > summary').click()
+        await main.getByText('声音、音量与语速', { exact: true }).click()
+        await main.locator('#settings-pet > summary').click()
         const panel = main.getByRole('region', { name: '桌宠声音' })
         await expect(
-          panel.getByRole('checkbox', { name: '允许桌宠播音' }),
+          panel.getByRole('switch', { name: '允许桌宠播音' }),
         ).not.toBeChecked()
         const initial = await main.evaluate(() => window.memo.pet.voiceState())
         expect(initial.ok).toBe(true)
@@ -70,7 +70,7 @@ for (const rendering of [false, true])
         })
         if (!initial.data.available || !initial.data.voices.length) {
           await expect(
-            panel.getByRole('checkbox', { name: '允许桌宠播音' }),
+            panel.getByRole('switch', { name: '允许桌宠播音' }),
           ).toBeDisabled()
           test.skip(
             rendering,
@@ -82,7 +82,7 @@ for (const rendering of [false, true])
           initial.data.voices.find((v) => v.language.startsWith('zh')) ??
           initial.data.voices[0]!
         await panel.getByLabel('系统声音').selectOption(voice.id)
-        await panel.getByRole('checkbox', { name: '允许桌宠播音' }).check()
+        await panel.getByRole('switch', { name: '允许桌宠播音' }).check()
         await panel.getByLabel('桌宠音量').fill('0.4')
         await panel.getByLabel('桌宠语速').fill('1')
         await panel.getByRole('button', { name: '保存声音设置' }).click()

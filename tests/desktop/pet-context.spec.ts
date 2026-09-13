@@ -86,17 +86,17 @@ for (const scenario of ['settings', 'manual', 'automatic'])
             fixture,
           )
         await page.getByRole('button', { name: '设置', exact: true }).click()
-    await page.locator('#settings-context > summary').click()
+        await page.getByText('项目与话语设置', { exact: true }).click()
         const panel = page.getByRole('region', { name: '基于事项的话语' })
         await expect(
-          panel.getByRole('checkbox', {
+          panel.getByRole('switch', {
             name: '允许基于事项生成话语',
             exact: true,
           }),
         ).not.toBeChecked()
         expect(await stats()).toHaveLength(0)
         await panel
-          .getByRole('checkbox', { name: '允许基于事项生成话语', exact: true })
+          .getByRole('switch', { name: '允许基于事项生成话语', exact: true })
           .check()
         await panel
           .getByRole('checkbox', { name: '桌宠上下文验收', exact: true })
@@ -289,6 +289,7 @@ for (const scenario of ['settings', 'manual', 'automatic'])
           .getByRole('button', { name: '我的工作区', exact: true })
           .click()
         await page.getByText('保留草稿的另一事项', { exact: true }).click()
+        await page.getByText('编辑事项与完成条件', { exact: true }).click()
         await page.getByLabel('编辑事项标题').fill('必须保留的未保存标题')
         const pet = app.windows().find((p) => p !== page)!
         await pet.getByRole('button', { name: '查看相关事项' }).click()
@@ -333,6 +334,7 @@ for (const scenario of ['settings', 'manual', 'automatic'])
           expect(changed.ok).toBe(true)
           await page.getByRole('button', { name: '刷新', exact: true }).click()
           await page.getByText('别处保存的新标题', { exact: true }).click()
+          await page.getByText('编辑事项与完成条件', { exact: true }).click()
           await expect(page.getByLabel('编辑事项标题')).toHaveValue(
             '必须保留的未保存标题',
           )

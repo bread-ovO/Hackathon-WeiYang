@@ -8,6 +8,7 @@ import {
 import { Button } from '@cloudflare/kumo/components/button'
 import { Input } from '@cloudflare/kumo/components/input'
 import { Badge } from '@cloudflare/kumo/components/badge'
+import { Tooltip } from '@cloudflare/kumo/components/tooltip'
 import { Dialog } from '@cloudflare/kumo/components/dialog'
 import type { Task } from '../demo'
 
@@ -92,3 +93,27 @@ export function AppDialog({
 }
 export const DialogTitle = Dialog.Title
 export const DialogDescription = Dialog.Description
+
+/** Shared square geometry and hover/focus label for secondary desktop actions. */
+export function IconButton({
+  label,
+  children,
+  className = '',
+  ...props
+}: Omit<ComponentProps<typeof Button>, 'aria-label'> & { label: string }) {
+  return (
+    <Tooltip
+      content={label}
+      render={
+        <AppButton
+          {...props}
+          aria-label={label}
+          shape="square"
+          className={`action-icon ${className}`}
+        >
+          {children}
+        </AppButton>
+      }
+    />
+  )
+}

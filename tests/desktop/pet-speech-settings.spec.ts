@@ -34,10 +34,10 @@ async function openSettings(page: Page) {
     page.getByRole('heading', { name: '跟进', exact: true }),
   ).toBeVisible()
   await page.getByRole('button', { name: '设置', exact: true }).click()
-    await page.locator('#settings-pet > summary').click()
+  await page.locator('#settings-pet > summary').click()
   const settings = page.getByRole('region', { name: '自动话语设置' })
   await expect(
-    settings.getByRole('button', { name: '开启自动话语', exact: true }),
+    settings.getByRole('switch', { name: '自动话语', exact: true }),
   ).toBeEnabled()
   return settings
 }
@@ -63,10 +63,10 @@ test('automatic speech settings remain opt-in and persist across restart without
     expect(initial.ok && initial.data.speech?.status).toBe('disabled')
     await expect(settings).toContainText('只有开启后才会自动显示')
     await settings
-      .getByRole('button', { name: '开启自动话语', exact: true })
+      .getByRole('switch', { name: '自动话语', exact: true })
       .click()
     await expect(
-      settings.getByRole('button', { name: '关闭自动话语', exact: true }),
+      settings.getByRole('switch', { name: '自动话语', exact: true }),
     ).toBeEnabled()
     await settings.getByLabel('出现频率', { exact: true }).selectOption('low')
     await expect(settings.getByLabel('出现频率', { exact: true })).toHaveValue(
@@ -123,10 +123,10 @@ test('automatic speech settings remain opt-in and persist across restart without
       beforeInvalid.ok && beforeInvalid.data.speech?.preferences,
     )
     await settings
-      .getByRole('button', { name: '关闭自动话语', exact: true })
+      .getByRole('switch', { name: '自动话语', exact: true })
       .click()
     await expect(
-      settings.getByRole('button', { name: '开启自动话语', exact: true }),
+      settings.getByRole('switch', { name: '自动话语', exact: true }),
     ).toBeEnabled()
     await close(app)
     app = await launch(root)
@@ -160,7 +160,7 @@ test('automatic speech settings remain opt-in and persist across restart without
       }))
       expect(geometry.content).toBeLessThanOrEqual(geometry.visible + 1)
       await expect(
-        settings.getByRole('button', { name: '开启自动话语', exact: true }),
+        settings.getByRole('switch', { name: '自动话语', exact: true }),
       ).toBeVisible()
       await page.screenshot({
         path: testInfo.outputPath(`pet-speech-settings-${width}.png`),

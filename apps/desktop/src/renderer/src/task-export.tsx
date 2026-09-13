@@ -1,5 +1,12 @@
 import { useRef, useState } from 'react'
-import { AppButton, AppDialog, DialogTitle, DialogDescription } from './ui'
+import { DownloadSimple } from '@phosphor-icons/react'
+import {
+  IconButton,
+  AppButton,
+  AppDialog,
+  DialogTitle,
+  DialogDescription,
+} from './ui'
 
 export function TaskExport({
   projects,
@@ -66,8 +73,8 @@ export function TaskExport({
   }
   return (
     <>
-      <AppButton
-        className="secondary"
+      <IconButton
+        label="导出"
         disabled={disabled || !projects.length}
         onClick={() => {
           setProjectId(selected?.projectId ?? projects[0]?.id ?? '')
@@ -77,8 +84,8 @@ export function TaskExport({
           setOpen(true)
         }}
       >
-        导出
-      </AppButton>
+        <DownloadSimple aria-hidden />
+      </IconButton>
       <AppDialog
         open={open}
         onOpenChange={(next) => {

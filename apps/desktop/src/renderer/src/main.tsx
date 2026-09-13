@@ -789,7 +789,7 @@ function App() {
             </Disclosure>
           </div>
         ) : (
-          <div className="standalone" key="settings">
+          <div className="standalone settings-page" key="settings">
             <h1>
               设置<span className="heading-dot">.</span>
             </h1>
@@ -801,20 +801,8 @@ function App() {
             >
               <PetModels />
             </Disclosure>
-            <Disclosure
-              id="settings-context"
-              title="事项提醒"
-              description="允许桌宠提醒哪些项目"
-            >
-              <PetContextSettings />
-            </Disclosure>
-            <Disclosure
-              id="settings-voice"
-              title="桌宠声音"
-              description="系统声音、语速与音量"
-            >
-              <PetVoiceSettings />
-            </Disclosure>
+            <div id="settings-context" className="settings-card"><PetContextSettings /></div>
+            <div id="settings-voice" className="settings-card"><PetVoiceSettings /></div>
             <Disclosure
               id="settings-credentials"
               title="连接凭据"

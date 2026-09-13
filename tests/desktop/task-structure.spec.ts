@@ -28,6 +28,7 @@ test('workspace tasks split selected criteria into a new task', async ({}, testI
       page.getByRole('heading', { name: '跟进', exact: true }),
     ).toBeVisible()
     await page.getByRole('button', { name: '我的工作区', exact: true }).click()
+    await page.getByRole('button', {name:'新建事项',exact:true}).click()
     await page.getByLabel('新项目名称').fill('拆分项目')
     await page.getByRole('button', { name: '创建项目', exact: true }).click()
     await expect(page.getByRole('status')).toContainText('项目已创建')
@@ -42,6 +43,7 @@ test('workspace tasks split selected criteria into a new task', async ({}, testI
     await expect(
       page.getByRole('region', { name: '事项详情' }),
     ).toBeVisible()
+    await page.getByText('编辑事项与完成条件',{exact:true}).click()
     await page.getByRole('button', { name: '添加条件', exact: true }).click()
     await page.getByRole('button', { name: '添加条件', exact: true }).click()
     const criterionInputs = page.getByLabel(/^条件 \d+$/)
