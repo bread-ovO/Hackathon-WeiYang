@@ -15,6 +15,9 @@ import type {
   PetState,
   PetSpeechPatch,
   PetSpeechState,
+  PetVoicePlayback,
+  PetVoiceAudio,
+  PetPresentation,
 } from '@memo/contracts'
 import type { createPetImportFlow } from './import-flow'
 import type { PetWorkerClient } from './worker-client'
@@ -36,6 +39,17 @@ export interface PetDesktopDeps {
   configureSpeech?(patch: PetSpeechPatch): Promise<boolean>
   onDisplayChanged?(): void
   openContext?(id: string): Promise<boolean>
+  voicePlayback?(): PetVoicePlayback
+  voiceAudio?(input: {
+    id: string
+    version: number
+  }): Promise<PetVoiceAudio | null>
+  voiceReport?(input: {
+    id: string
+    version: number
+    status: 'playing' | 'ended' | 'error'
+  }): void
+  onPresentation?(presentation: PetPresentation | null): void
 }
 const codes = new Set([
   'RUNTIME_MISSING',
@@ -81,6 +95,8 @@ export function createPetDesktopController(deps: PetDesktopDeps) {
     recoveryTimer = undefined
   }
   const presentations = createPresentationQueue()
+  const notifyPresentation = () =>
+    deps.onPresentation?.(presentations.current())
   let catalog: ReturnType<typeof parsePetActionCatalog> = {
     motions: [],
     expressions: [],
@@ -279,6 +295,7 @@ export function createPetDesktopController(deps: PetDesktopDeps) {
             nodeIntegration: false,
             webSecurity: true,
             backgroundThrottling: true,
+            autoplayPolicy: 'no-user-gesture-required',
           },
         })
         pet = created
@@ -294,6 +311,7 @@ export function createPetDesktopController(deps: PetDesktopDeps) {
             generation++
             descriptor = null
             presentations.clear()
+            notifyPresentation()
             catalog = { motions: [], expressions: [] }
             renderStatus = 'error'
             renderError = 'RENDER_FAILED'
@@ -306,6 +324,7 @@ export function createPetDesktopController(deps: PetDesktopDeps) {
             clearRecoveryDeadline()
             pet = null
             presentations.clear()
+            notifyPresentation()
             deps.onDisplayChanged?.()
           }
         })
@@ -314,6 +333,7 @@ export function createPetDesktopController(deps: PetDesktopDeps) {
           if (pet === created) {
             descriptor = null
             presentations.clear()
+            notifyPresentation()
             catalog = { motions: [], expressions: [] }
             renderStatus = 'error'
             renderError = 'RENDER_FAILED'
@@ -332,9 +352,82 @@ export function createPetDesktopController(deps: PetDesktopDeps) {
     event.sender === pet.webContents &&
     event.senderFrame === pet.webContents.mainFrame &&
     event.senderFrame.url === pageURL
+  function voiceRequest(
+    event: IpcMainInvokeEvent,
+    value: unknown,
+    report: boolean,
+    args: unknown[],
+  ): { id: string; version: number; status?: 'playing' | 'ended' | 'error' } {
+    if (
+      args.length ||
+      !authorized(event) ||
+      !descriptor ||
+      !windows.displaying() ||
+      renderStatus !== 'ready' ||
+      !value ||
+      typeof value !== 'object' ||
+      Array.isArray(value)
+    )
+      throw Error('INVALID_PET_VOICE')
+    const input = value as Record<string, unknown>,
+      current = presentations.current(),
+      playback = deps.voicePlayback?.()
+    if (
+      Object.keys(input).sort().join(',') !==
+        (report ? 'id,status,version' : 'id,version') ||
+      typeof input.id !== 'string' ||
+      !Number.isSafeInteger(input.version) ||
+      Number(input.version) < 1 ||
+      current?.kind !== 'bubble' ||
+      current.id !== input.id ||
+      playback?.id !== input.id ||
+      playback.version !== input.version ||
+      (report && !['playing', 'ended', 'error'].includes(String(input.status)))
+    )
+      throw Error('INVALID_PET_VOICE')
+    return {
+      id: input.id,
+      version: Number(input.version),
+      ...(report
+        ? { status: input.status as 'playing' | 'ended' | 'error' }
+        : {}),
+    }
+  }
+  ipcMain.handle(
+    'memo-pet:voiceAudio',
+    async (event, input: unknown, ...args: unknown[]) => {
+      const request = voiceRequest(event, input, false, args)
+      const epoch = generation
+      const audio =
+        (await deps.voiceAudio?.({
+          id: request.id,
+          version: request.version,
+        })) ?? null
+      if (epoch !== generation || !authorized(event)) return null
+      try {
+        voiceRequest(event, input, false, args)
+      } catch {
+        return null
+      }
+      return audio
+    },
+  )
+  ipcMain.handle(
+    'memo-pet:voiceReport',
+    (event, input: unknown, ...args: unknown[]) => {
+      const request = voiceRequest(event, input, true, args)
+      deps.voiceReport?.({
+        id: request.id,
+        version: request.version,
+        status: request.status!,
+      })
+    },
+  )
   ipcMain.handle('memo-pet:state', (event, ...args: unknown[]) => {
     if (args.length || !authorized(event)) throw new Error('INVALID_PET_SENDER')
+    notifyPresentation()
     return {
+      voice: deps.voicePlayback?.(),
       model: descriptor ? { id: descriptor.id, entry: descriptor.entry } : null,
       visible: windows.displaying(),
       preferences: windows.preferences(),
@@ -353,10 +446,12 @@ export function createPetDesktopController(deps: PetDesktopDeps) {
       )
         throw new Error('INVALID_PET_REPORT')
       clearRecoveryDeadline()
-      if (input.status === 'ready')
+      if (input.status === 'ready') {
         presentations.bind(`${descriptor!.id}/${generation}`)
-      else {
+        notifyPresentation()
+      } else {
         presentations.clear()
+        notifyPresentation()
         if (input.status === 'error') catalog = { motions: [], expressions: [] }
       }
       renderStatus = input.status === 'recovering' ? 'loading' : input.status
@@ -370,6 +465,7 @@ export function createPetDesktopController(deps: PetDesktopDeps) {
           renderError = 'RENDER_FAILED'
           descriptor = null
           presentations.clear()
+          notifyPresentation()
           catalog = { motions: [], expressions: [] }
           windows.rendererGone()
           deps.onDisplayChanged?.()
@@ -471,6 +567,7 @@ export function createPetDesktopController(deps: PetDesktopDeps) {
         !presentations.ack(`${descriptor.id}/${generation}`, v.id)
       )
         throw new Error('INVALID_PET_ACK')
+      notifyPresentation()
     },
   )
   const enqueue = (input: {
@@ -488,16 +585,19 @@ export function createPetDesktopController(deps: PetDesktopDeps) {
       renderStatus !== 'ready'
     )
       return false
-    return presentations.enqueue(
+    const accepted = presentations.enqueue(
       `${descriptor.id}/${generation}`,
       input,
       new Set(
         [...catalog.motions, ...catalog.expressions].map((item) => item.id),
       ),
     )
+    notifyPresentation()
+    return accepted
   }
   function snapshotReply(): CoreReply<PetState> {
     if (disposed || !snapshot) return { ok: false, error: 'PET_UNAVAILABLE' }
+    notifyPresentation()
     return {
       ok: true,
       data: {
@@ -506,6 +606,7 @@ export function createPetDesktopController(deps: PetDesktopDeps) {
         preferences: windows.preferences(),
         catalog: structuredClone(catalog),
         presentation: presentations.current(),
+        voice: deps.voicePlayback?.(),
         ...(deps.speechState?.() ? { speech: deps.speechState() } : {}),
         runtimeReady,
         renderStatus,
@@ -532,6 +633,7 @@ export function createPetDesktopController(deps: PetDesktopDeps) {
   function stop() {
     clearRecoveryDeadline()
     presentations.clear()
+    notifyPresentation()
     catalog = { motions: [], expressions: [] }
     generation++
     descriptor = null
@@ -542,6 +644,11 @@ export function createPetDesktopController(deps: PetDesktopDeps) {
   }
   return {
     state,
+    currentPresentation: () => presentations.current(),
+    notifyVoiceStop() {
+      if (!disposed && pet && !pet.isDestroyed())
+        pet.webContents.send('memo-pet:voiceStop')
+    },
     automaticDisplay() {
       return {
         visible: windows.displaying() && renderStatus === 'ready',
@@ -577,6 +684,7 @@ export function createPetDesktopController(deps: PetDesktopDeps) {
     },
     cancelAutomatic(id: string) {
       presentations.cancel(id)
+      notifyPresentation()
     },
     async configureSpeech(patch: PetSpeechPatch): Promise<CoreReply<PetState>> {
       if (!deps.configureSpeech || !(await deps.configureSpeech(patch)))
@@ -611,6 +719,7 @@ export function createPetDesktopController(deps: PetDesktopDeps) {
       if (disposed || !snapshot)
         return { ok: false as const, error: 'PET_UNAVAILABLE' as const }
       presentations.dismissBubble()
+      notifyPresentation()
       return snapshotReply()
     },
     async configure(patch: {
@@ -712,6 +821,7 @@ export function createPetDesktopController(deps: PetDesktopDeps) {
       if (disposed) return
       clearRecoveryDeadline()
       presentations.clear()
+      notifyPresentation()
       catalog = { motions: [], expressions: [] }
       disposed = true
       generation++
@@ -723,6 +833,8 @@ export function createPetDesktopController(deps: PetDesktopDeps) {
       ipcMain.removeHandler('memo-pet:drag')
       ipcMain.removeHandler('memo-pet:ack')
       ipcMain.removeHandler('memo-pet:openContext')
+      ipcMain.removeHandler('memo-pet:voiceAudio')
+      ipcMain.removeHandler('memo-pet:voiceReport')
       isolated.protocol.unhandle('memo-pet')
       isolated.webRequest.onBeforeRequest(null)
     },

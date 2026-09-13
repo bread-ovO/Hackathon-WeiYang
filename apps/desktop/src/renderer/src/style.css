@@ -1159,3 +1159,7 @@ dd {
 .pet-context-data-scope summary {cursor:pointer;padding:4px 0}
 .pet-context-data-scope p {margin-top:8px;max-width:720px}
 .pet-context-settings fieldset legend {font-size:12px;padding:0 4px;color:var(--muted)}
+
+.pet-voice-settings {display:grid;gap:8px;padding:16px 0;border-top:1px solid var(--color-kumo-line)}
+.pet-voice-settings h2,.pet-voice-settings p{margin:0}.pet-voice-settings p,.pet-voice-settings details {font-size:12px;line-height:1.6}
+.pet-voice-fields{display:flex;gap:12px;flex-wrap:wrap}.pet-voice-fields label{display:grid;gap:4px;font-size:12px}.pet-voice-fields input{max-width:120px}.pet-voice-fields select{max-width:100%;border:1px solid var(--line);border-radius:8px;background:var(--color-kumo-base);padding:8px}.pet-voice-settings summary{cursor:pointer;color:var(--muted)}

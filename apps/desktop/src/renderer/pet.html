@@ -63,7 +63,7 @@
           BlinkMacSystemFont,
           sans-serif;
       }
-      #pet-context-link {margin-top:8px;padding:4px 8px;border:1px solid #d4d4d8;border-radius:8px;background:white;color:#292a2e;cursor:pointer;max-width:100%;white-space:normal}
+      #pet-context-link, #pet-voice-stop {margin-top:8px;margin-right:8px;padding:4px 8px;border:1px solid #d4d4d8;border-radius:8px;background:white;color:#292a2e;cursor:pointer;max-width:100%;white-space:normal}
       #pet-bubble-text {
         white-space: pre-wrap;
         overflow-wrap: anywhere;
@@ -93,6 +93,7 @@
     <canvas id="stage-gl" hidden aria-label="Live2D 桌宠"></canvas>
     <div id="pet-bubble" role="status" aria-live="polite" hidden>
       <div id="pet-bubble-text"></div>
+      <button id="pet-voice-stop" type="button" hidden>停止播音</button>
       <button
         id="pet-bubble-close"
         type="button"

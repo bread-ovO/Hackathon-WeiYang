@@ -1,3 +1,4 @@
+import {PetVoiceSettings} from './pet-voice-settings'
 import { PetContextSettings } from './pet-context-settings'
 import { FeishuPanel } from './feishu-panel'
 import { GithubPanel } from './github-panel'
@@ -797,6 +798,7 @@ function App() {
             </section>
             <CredentialsPanel />
             <PetContextSettings />
+            <PetVoiceSettings />
             <PetModels />
             <div className="connection-note">
               <h3>关于设计预览</h3>

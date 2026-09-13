@@ -1,3 +1,4 @@
+import {petVoiceRequestSchemas,type PetVoicePlayback} from './pet-voice'
 import { petContextRequestSchemas } from './pet-context'
 export * from './pet-context'
 import type { PetActionCatalog, PetPresentation } from './pet-actions'
@@ -40,6 +41,7 @@ export interface PetSpeechState {
 }
 export const petRequestSchemas = [
   ...petContextRequestSchemas,
+  ...petVoiceRequestSchemas,
   {
     type: 'object',
     properties: {
@@ -206,6 +208,7 @@ export interface PetPreferences {
   clickThrough: boolean
 }
 export interface PetState {
+  voice?: PetVoicePlayback
   speech?: PetSpeechState
   catalog?: PetActionCatalog
   presentation?: PetPresentation | null

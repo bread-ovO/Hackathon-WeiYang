@@ -73,6 +73,9 @@ const bridge: DesktopBridge = {
       }),
   }),
   pet: Object.freeze({
+    voiceState: () => ipcRenderer.invoke('memo:request',{method:'pet.voiceState'}),
+    configureVoice: input => ipcRenderer.invoke('memo:request',{method:'pet.configureVoice',...input}),
+    stopVoice: () => ipcRenderer.invoke('memo:request',{method:'pet.stopVoice'}),
     contextState: () =>
       ipcRenderer.invoke('memo:request', { method: 'pet.contextState' }),
     configureContext: (input) =>

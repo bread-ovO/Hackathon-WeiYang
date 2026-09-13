@@ -21,4 +21,17 @@ if (process.platform === 'darwin') {
     ],
     { stdio: 'inherit', timeout: 120000 },
   )
+  execFileSync(
+    '/usr/bin/xcrun',
+    [
+      'swiftc',
+      '-O',
+      '-framework',
+      'AVFoundation',
+      resolve(root, 'apps/desktop/native/pet-tts.swift'),
+      '-o',
+      resolve(root, 'apps/desktop/out/native/pet-tts'),
+    ],
+    { stdio: 'inherit', timeout: 120000 },
+  )
 }

@@ -2,8 +2,18 @@ import { defineConfig } from 'electron-vite'
 import react from '@vitejs/plugin-react'
 import { resolve } from 'node:path'
 const alias = {
-  '@memo/contracts/foundation': resolve(__dirname, '../../packages/contracts/src/foundation.ts'),
-  '@memo/storage/foundation': resolve(__dirname, '../../packages/storage/src/foundation/index.ts'),
+  '@memo/contracts/pet-voice-pcm': resolve(
+    __dirname,
+    '../../packages/contracts/src/pet-voice-pcm.ts',
+  ),
+  '@memo/contracts/foundation': resolve(
+    __dirname,
+    '../../packages/contracts/src/foundation.ts',
+  ),
+  '@memo/storage/foundation': resolve(
+    __dirname,
+    '../../packages/storage/src/foundation/index.ts',
+  ),
   '@memo/contracts/pet-actions': resolve(
     __dirname,
     '../../packages/contracts/src/pet-actions.ts',

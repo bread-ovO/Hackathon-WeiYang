@@ -1,3 +1,8 @@
+import { createPetVoiceService } from './pet/voice-service'
+import { blocksPetPresentation } from './pet/environment-block'
+import { createPetVoiceStore } from './pet/voice-store'
+import { createSystemTtsProvider } from './pet/tts-provider'
+import { isPetSpeechQuiet } from '@memo/domain'
 import { createPetContextService } from './pet/context-service'
 import { createPetContextStore } from './pet/context-store'
 import { createLocalModelTransport } from './pet/local-model-http'
@@ -147,17 +152,35 @@ else {
       })
       let speech: ReturnType<typeof createPetSpeechService> | undefined
       let contextSpeech: ReturnType<typeof createPetContextService> | undefined
+      let voice: ReturnType<typeof createPetVoiceService> | undefined
+      let speechMonitoring = false,
+        voiceMonitoring = false,
+        environmentMonitoring = false
       const environment = createPetSpeechEnvironment({
         helperPath: join(
           __dirname.replace('app.asar', 'app.asar.unpacked'),
           '../native/pet-speech-environment',
         ),
-        onChange: () => {
-          contextSpeech?.invalidateDisplay()
+        onChange: (state) => {
+          if (blocksPetPresentation(state, environmentMonitoring)) {
+            voice?.stopNow()
+            contextSpeech?.invalidateDisplay()
+          }
           void speech?.wake()
         },
       })
+      const updateEnvironmentMonitor = () => {
+        const enabled = speechMonitoring || voiceMonitoring
+        if (enabled === environmentMonitoring) return
+        environmentMonitoring = enabled
+        environment.setEnabled(enabled)
+      }
       const petDesktop = createPetDesktopController({
+        voicePlayback: () =>
+          voice?.playback() ?? { id: null, version: 1, status: 'disabled' },
+        voiceAudio: (input) => voice?.audio(input) ?? Promise.resolve(null),
+        voiceReport: (input) => voice?.report(input),
+        onPresentation: (presentation) => voice?.observe(presentation),
         openContext: (id) => contextSpeech?.open(id) ?? Promise.resolve(false),
         speechState: () => speech?.snapshot(),
         configureSpeech: (patch) =>
@@ -220,7 +243,10 @@ else {
       speech = createPetSpeechService({
         store: createPetSpeechStore(join(data, 'pet-speech.json')),
         environment: () => environment.read(),
-        monitor: (enabled) => environment.setEnabled(enabled),
+        monitor: (enabled) => {
+          speechMonitoring = enabled
+          updateEnvironmentMonitor()
+        },
         display: () => petDesktop.automaticDisplay(),
         deliver: (text) => petDesktop.enqueueAutomatic(text),
         prepare: (text, signal) =>
@@ -229,7 +255,48 @@ else {
           contextSpeech!.deliver(input, signal, guard, current),
         cancel: (id) => petDesktop.cancelAutomatic(id),
       })
+      const voiceAllowed = () => {
+        const prefs = speech?.snapshot().preferences
+        if (!prefs || !petDesktop.automaticDisplay().visible) return false
+        const now = Date.now(),
+          date = new Date(now)
+        return (
+          !isPetSpeechQuiet(
+            date.getHours() * 60 + date.getMinutes(),
+            prefs.quietStart,
+            prefs.quietEnd,
+          ) &&
+          (prefs.pausedUntil === null || now >= prefs.pausedUntil)
+        )
+      }
+      voice = createPetVoiceService({
+        store: createPetVoiceStore(join(data, 'pet-voice.json')),
+        provider: createSystemTtsProvider({
+          helperPath: join(
+            __dirname.replace('app.asar', 'app.asar.unpacked'),
+            '../native/pet-tts',
+          ),
+        }),
+        current: () => petDesktop.currentPresentation(),
+        currentAllowed: voiceAllowed,
+        guard: async () => {
+          const state = await environment.read()
+          return (
+            state.available &&
+            !state.locked &&
+            !state.suspended &&
+            !state.fullscreen &&
+            voiceAllowed()
+          )
+        },
+        notifyStop: () => petDesktop.notifyVoiceStop(),
+        activity: (enabled) => {
+          voiceMonitoring = enabled
+          updateEnvironmentMonitor()
+        },
+      })
       app.once('before-quit', () => {
+        voice?.dispose()
         contextSpeech?.dispose()
         speech?.dispose()
         environment.dispose()
@@ -315,6 +382,44 @@ else {
           () => window?.webContents ?? null,
           pageURL,
           async (request) => {
+            if (
+              request.method === 'pet.voiceState' ||
+              request.method === 'pet.configureVoice' ||
+              request.method === 'pet.stopVoice'
+            ) {
+              try {
+                await voice!.ready
+                const data =
+                  request.method === 'pet.configureVoice'
+                    ? await voice!.configure(
+                        request.expectedVersion,
+                        request.preferences,
+                      )
+                    : request.method === 'pet.stopVoice'
+                      ? await voice!.stop()
+                      : await voice!.state()
+                return { ok: true as const, data }
+              } catch (cause) {
+                const code = cause instanceof Error ? cause.message : ''
+                const allowed = [
+                  'PET_VOICE_UNAVAILABLE',
+                  'PET_VOICE_INVALID',
+                  'PET_VOICE_INVALID_PCM',
+                  'PET_VOICE_TOO_LONG',
+                  'PET_VOICE_TIMEOUT',
+                  'PET_VOICE_CANCELLED',
+                  'PET_VOICE_BUSY',
+                  'PET_VOICE_STORAGE',
+                  'PET_VOICE_CONFLICT',
+                ] as const
+                return {
+                  ok: false as const,
+                  error:
+                    allowed.find((value) => value === code) ??
+                    'PET_VOICE_UNAVAILABLE',
+                }
+              }
+            }
             if (
               request.method === 'pet.contextState' ||
               request.method === 'pet.configureContext' ||

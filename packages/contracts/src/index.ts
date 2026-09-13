@@ -1,3 +1,6 @@
+import type {PetVoiceState,PetVoicePreferences} from './pet-voice'
+export * from './pet-voice'
+export * from './pet-voice-pcm'
 import type {
   PetContextState,
   PetContextConfig,
@@ -319,6 +322,9 @@ export function parseHostRequest(value: unknown): HostRequest {
     request.method === 'github.revoke' ||
     request.method === 'github.sync' ||
     request.method === 'github.records' ||
+    request.method === 'pet.voiceState' ||
+    request.method === 'pet.configureVoice' ||
+    request.method === 'pet.stopVoice' ||
     request.method === 'pet.contextState' ||
     request.method === 'pet.configureContext' ||
     request.method === 'pet.previewContext' ||
@@ -393,6 +399,7 @@ export type CoreReply<T = Health> =
         | 'PET_MODEL_CANCELLED'
         | 'PET_MODEL_UNAVAILABLE'
         | 'PET_MODEL_BUSY'
+        | 'PET_VOICE_UNAVAILABLE' | 'PET_VOICE_INVALID' | 'PET_VOICE_INVALID_PCM' | 'PET_VOICE_TOO_LONG' | 'PET_VOICE_TIMEOUT' | 'PET_VOICE_CANCELLED' | 'PET_VOICE_BUSY' | 'PET_VOICE_STORAGE' | 'PET_VOICE_CONFLICT'
         | 'PET_CONTEXT_STORAGE_ERROR'
         | 'PET_CONTEXT_CONFLICT'
         | 'PET_CONTEXT_EXPIRED'
@@ -491,6 +498,9 @@ export interface DesktopBridge {
     configure(enabled: boolean): Promise<CoreReply<ProcessingStatus>>
   }
   pet: {
+    voiceState(): Promise<CoreReply<PetVoiceState>>
+    configureVoice(input:{expectedVersion:number;preferences:Omit<PetVoicePreferences,'version'>}):Promise<CoreReply<PetVoiceState>>
+    stopVoice():Promise<CoreReply<PetVoiceState>>
     contextState(): Promise<CoreReply<PetContextState>>
     configureContext(input: {
       expectedVersion: number

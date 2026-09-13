@@ -1,3 +1,4 @@
+import { createDeclaredLipSync } from './pet-lip-sync'
 import {
   guardShaderRegistration,
   type ShaderRegistration,
@@ -29,6 +30,12 @@ export class PetRenderError extends Error {
   }
 }
 export interface Live2DSession {
+  readonly lipSyncAvailable: boolean
+  setLipSyncLevel(level: number | null): void
+  lipSyncState(): {
+    appliedFrames: number
+    parameters: { index: number; value: number }[]
+  }
   mode: 'live2d' | 'live2d-idle'
   play(actionId: string): Promise<{ status: 'playing' | 'unavailable' }>
   currentAction(): { id: string | null; kind: 'idle' | 'motion' | 'expression' }
@@ -57,6 +64,7 @@ interface Model {
   getDrawableCount(): number
   getDrawableVertexPositions(index: number): Float32Array
 }
+
 interface Motion {
   setLoop(value: boolean): void
   setEffectIds(eye: Id[], lip: Id[]): void
@@ -434,6 +442,8 @@ export async function bootLive2D(
       { length: setting.getLipSyncParameterCount() },
       (_, i) => setting.getLipSyncParameterId(i),
     )
+    const lipSync = createDeclaredLipSync(model, lipIds)
+    release.push(() => lipSync.set(null))
     let manager: MotionManager | undefined
     let idleMotion: Motion | undefined
     // Optional/broken Idle never prevents the actual model from rendering.
@@ -792,6 +802,9 @@ export async function bootLive2D(
     release.push(() => signal.removeEventListener('abort', onAbort))
     check(signal)
     return {
+      lipSyncAvailable: lipSync.available,
+      setLipSyncLevel: (level) => lipSync.set(level),
+      lipSyncState: () => lipSync.state(),
       mode: idleMotion ? 'live2d' : 'live2d-idle',
       play,
       currentAction: () => ({ ...action }),
@@ -866,6 +879,7 @@ export async function bootLive2D(
           }
           physics?.evaluate(model, delta)
           pose?.updateParameters(model, delta)
+          lipSync.apply()
           draw()
         } catch (error) {
           if (gl.isContextLost()) {
