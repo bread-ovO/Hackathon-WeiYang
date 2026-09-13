@@ -5,7 +5,7 @@ import {
   type TimelineEvidence,
   type TimelinePage,
 } from '@memo/contracts'
-import { parseContextTimestamp } from '@memo/domain'
+import { parseContextTimestamp, extractExplicitPlanChange } from '@memo/domain'
 import { getSourceStatus } from './source-status'
 import { createRetractions } from './retractions'
 import {
@@ -273,8 +273,40 @@ export function createTimeline(db: Database.Database) {
     }
     const scope = str(r.scope, 512),
       payload = json(r.payload)
-    if (scope !== 'criteria' && !scope.startsWith('evidence:') && refs.length)
-      fail()
+    if (scope !== 'criteria' && !scope.startsWith('evidence:') && refs.length) {
+      if (scope !== 'dueAt' || refs.length !== 1 || !before) fail()
+      const plans = db
+        .prepare(
+          `SELECT p.*,e.content,e.role,e.operation
+        FROM plan_change_proposals p JOIN source_events e ON e.id=p.event_id
+        WHERE p.project_id=? AND p.task_id=? AND p.decision_id=? LIMIT 2`,
+        )
+        .all(projectId, taskId, rowId) as Row[]
+      if (plans.length !== 1) fail()
+      const plan = plans[0]!
+      if (
+        plan.event_id !== refs[0] ||
+        plan.due_at !== after.dueAt ||
+        num(plan.task_version, 1) !== before.version ||
+        num(plan.criteria_version) !== before.criteriaVersion ||
+        num(plan.manual_version) !== before.manualVersion
+      )
+        fail()
+      date(plan.created_at)
+      date(plan.applied_at)
+      event(projectId, plan.baseline_event_id)
+      const extracted = extractExplicitPlanChange({
+        text: str(plan.content, 65536),
+        role: one(plan.role, ['user', 'assistant', 'tool', 'system']),
+        operation: one(plan.operation, ['upsert', 'retract'] as const),
+      })
+      if (
+        !extracted ||
+        extracted.quote !== plan.quote ||
+        extracted.dueAt !== plan.due_at
+      )
+        fail()
+    }
     let ref: TimelineEntry['reference'] = null
     if (scope === 'criteria') {
       if (!Array.isArray(payload) || payload.length > 32) fail()

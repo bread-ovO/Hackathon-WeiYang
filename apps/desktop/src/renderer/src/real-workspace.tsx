@@ -395,7 +395,16 @@ export function RealWorkspace({
         </section>
         {current && (
           <TaskEditor
+            key={current.id}
             task={current}
+            onPlanApplied={(next) =>
+              setData((old) => ({
+                ...old,
+                tasks: old.tasks.map((item) =>
+                  item.id === next.id ? next : item,
+                ),
+              }))
+            }
             busy={busy || saving}
             update={update}
             replace={replace}

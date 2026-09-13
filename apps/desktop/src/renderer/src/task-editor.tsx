@@ -1,3 +1,4 @@
+import { PlanChanges } from './plan-changes'
 import { TaskTimeline } from './task-timeline'
 import { ReferenceList } from './reference-list'
 import './candidate-provenance.css'
@@ -29,6 +30,7 @@ export function TaskEditor({
   update,
   replace,
   close,
+  onPlanApplied,
 }: {
   task: WorkspaceTask
   busy: boolean
@@ -36,6 +38,7 @@ export function TaskEditor({
   replace: (
     items: { id: string; description: string; originEventId?: number }[],
   ) => Promise<void>
+  onPlanApplied: (task: WorkspaceTask) => void
   close: () => void
 }) {
   const [title, setTitle] = useState(task.title),
@@ -51,7 +54,9 @@ export function TaskEditor({
   const [evidenceError, setEvidenceError] = useState('')
   const evidenceGeneration = useRef(0)
   const generation = useRef(0)
+  const preservePlanDrafts = useRef<number | null>(null)
   useEffect(() => {
+    if (preservePlanDrafts.current === task.version) return
     setTitle(task.title)
     setDue(localDate(task.dueAt))
     setVersion(task.criteriaVersion)
@@ -70,7 +75,8 @@ export function TaskEditor({
       .then((r) => {
         if (seq !== generation.current) return
         if (r.ok) {
-          setItems(r.data.criteria.items.map((x) => ({ ...x })))
+          if (preservePlanDrafts.current !== task.version)
+            setItems(r.data.criteria.items.map((x) => ({ ...x })))
           setProvenance(r.data.provenance ?? [])
         } else setError('条件读取失败，请刷新事项。')
       })
@@ -208,6 +214,19 @@ export function TaskEditor({
               </details>
             ))}
           </section>
+        )}
+        {task.projectId && (
+          <PlanChanges
+            task={task}
+            busy={busy}
+            onApplied={(next) => {
+              setDue((old) =>
+                old === localDate(task.dueAt) ? localDate(next.dueAt) : old,
+              )
+              preservePlanDrafts.current = next.version
+              onPlanApplied(next)
+            }}
+          />
         )}
         {task.projectId && (
           <ReferenceList

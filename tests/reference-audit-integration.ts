@@ -127,7 +127,7 @@ try {
     projectId: 'a',
     includeSourceText: false,
   })
-  assert.equal(exported.schemaVersion, 5)
+  assert.equal(exported.schemaVersion, 6)
   assert.equal(exported.referenceConflictAudit.length, 2)
   assert.ok(exported.events.some((e) => e.id === first.trigger_event_id))
   assert.equal(JSON.stringify(exported).includes('PRIVATE_EDIT_BODY'), false)
@@ -147,7 +147,7 @@ try {
     'UPDATE reference_revision_audit SET recorded_at=? WHERE id=1',
   ).run(new Date().toISOString())
   store.close()
-  db.exec('DROP TABLE reference_revision_audit; PRAGMA user_version=13')
+  db.exec('DROP TABLE plan_change_proposals; ALTER TABLE source_events DROP COLUMN metadata_json; DROP TABLE reference_revision_audit; PRAGMA user_version=13')
   const migrationStart = Date.now()
   store = openStore(path)
   assert.equal(count(), 1)
@@ -174,7 +174,7 @@ try {
   )
   ingest({ ...base, revision: '5', text: 'new change after migration' })
   assert.equal(count(), 2)
-  assert.equal(store.health().schemaVersion, 14)
+  assert.equal(store.health().schemaVersion, 16)
   console.log('Reference conflict audit integration passed')
 } finally {
   db.close()

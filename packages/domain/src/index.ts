@@ -194,3 +194,4 @@ export function identityKey(
     throw new Error('INVALID_IDENTITY')
   return JSON.stringify(parts)
 }
+export { extractExplicitPlanChange } from './plan-change'

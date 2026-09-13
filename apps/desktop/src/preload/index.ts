@@ -153,6 +153,16 @@ const bridge: DesktopBridge = {
       ipcRenderer.invoke('memo:request', { method: 'sources.revoke', id }),
   }),
   workspace: Object.freeze({
+    planChanges: (request) =>
+      ipcRenderer.invoke('memo:request', {
+        ...request,
+        method: 'workspace.planChanges',
+      }),
+    confirmPlanChange: (request) =>
+      ipcRenderer.invoke('memo:request', {
+        ...request,
+        method: 'workspace.confirmPlanChange',
+      }),
     timeline: (request) =>
       ipcRenderer.invoke('memo:request', {
         ...request,

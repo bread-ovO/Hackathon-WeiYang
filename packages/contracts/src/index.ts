@@ -76,12 +76,34 @@ import {
   type ReferenceList,
   type ReferenceReview,
   type TimelinePage,
+  type PlanChangesPage,
+  type PlanChangeResult,
 } from './workspace'
 export * from './workspace'
 import Ajv from 'ajv'
 import type { FromSchema } from 'json-schema-to-ts'
 
 // JSON Schema is the runtime boundary; TypeScript types are derived from it.
+const metadataIdentity = {
+  type: 'string',
+  minLength: 1,
+  maxLength: 256,
+  pattern: '^[^\\s\\u0000-\\u001f\\u007f]+$',
+} as const
+export const sourceEventMetadataSchema = {
+  type: 'object',
+  additionalProperties: false,
+  minProperties: 1,
+  properties: {
+    author: {
+      type: 'object',
+      additionalProperties: false,
+      required: ['namespace', 'subjectId'],
+      properties: { namespace: metadataIdentity, subjectId: metadataIdentity },
+    },
+    replyToExternalId: metadataIdentity,
+  },
+} as const
 export const sourceEventSchema = {
   type: 'object',
   additionalProperties: false,
@@ -103,6 +125,7 @@ export const sourceEventSchema = {
     role: { enum: ['user', 'assistant', 'tool', 'system'] },
     text: { type: 'string', maxLength: 65536 },
     operation: { enum: ['upsert', 'retract'] },
+    metadata: sourceEventMetadataSchema,
   },
   allOf: [
     {
@@ -349,6 +372,9 @@ export type CoreReply<T = Health> =
         | 'CORE_UNAVAILABLE'
         | 'INVALID_REQUEST'
         | 'INTERNAL_ERROR'
+        | 'PLAN_CHANGE_INVALID_INPUT'
+        | 'PLAN_CHANGE_NOT_FOUND'
+        | 'PLAN_CHANGE_NOT_APPLICABLE'
         | 'VERSION_CONFLICT'
         | 'NOT_FOUND'
         | 'TIMELINE_INVALID_CURSOR'
@@ -476,6 +502,18 @@ export interface DesktopBridge {
     revoke(id: string): Promise<CoreReply<SourcesSnapshot>>
   }
   workspace: {
+    planChanges(
+      request: Omit<
+        Extract<CoreRequest, { method: 'workspace.planChanges' }>,
+        'method'
+      >,
+    ): Promise<CoreReply<PlanChangesPage>>
+    confirmPlanChange(
+      request: Omit<
+        Extract<CoreRequest, { method: 'workspace.confirmPlanChange' }>,
+        'method'
+      >,
+    ): Promise<CoreReply<PlanChangeResult>>
     timeline(
       request: Omit<
         Extract<CoreRequest, { method: 'workspace.timeline' }>,

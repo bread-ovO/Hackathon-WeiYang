@@ -1,3 +1,5 @@
+import { createPlanChanges } from './plan-changes'
+import { eventMetadataFields } from './event-metadata'
 import { getSourceStatus } from './source-status'
 import type Database from 'better-sqlite3'
 import { randomUUID } from 'node:crypto'
@@ -81,7 +83,7 @@ export function createProcessing(db: Database.Database) {
   function context(eventId: number): ProcessingContext | null {
     const row = db
       .prepare(
-        'SELECT source_id,external_id,revision,occurred_at,role,content,operation FROM source_events WHERE id=?',
+        'SELECT source_id,external_id,revision,occurred_at,role,content,operation,metadata_json FROM source_events WHERE id=?',
       )
       .get(eventId) as
       | {
@@ -91,6 +93,7 @@ export function createProcessing(db: Database.Database) {
           occurred_at: string
           role: string
           content: string
+          metadata_json: string | null
           operation: 'upsert' | 'retract'
         }
       | undefined
@@ -149,6 +152,7 @@ export function createProcessing(db: Database.Database) {
       },
       event: parseSourceEvent({
         schemaVersion: 1,
+        ...eventMetadataFields(row.metadata_json),
         sourceInstanceId: row.source_id,
         externalId: row.external_id,
         revision: row.revision,
@@ -320,6 +324,7 @@ export function createProcessing(db: Database.Database) {
         db.prepare(
           "INSERT INTO processing_decisions(project_id,task_id,event_id,actor,outcome,reason,created_at) VALUES(?,?,?,'rule',?,?,?)",
         ).run(actual.projectId, id, actual.eventId, outcome, reason, time)
+      createPlanChanges(db).observe(actual.projectId, actual.eventId, now)
       if (!jobs.complete(lease, now)) throw Error('PROCESSING_LEASE_LOST')
       return { outcome, taskIds: ids }
     },
