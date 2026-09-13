@@ -1094,6 +1094,13 @@ dd {
   font-size: 12px;
   line-height: 20px;
 }
+.privacy-notes ul {
+  margin: 0;
+  padding-left: 20px;
+  font-size: 12px;
+  line-height: 1.8;
+  color: var(--muted);
+}
 .task-list .app-control:focus-visible {
   outline-offset: -2px;
 }
@@ -1132,6 +1139,7 @@ dd {
 .source-import-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .source-import-actions select { padding: 8px; border: 1px solid #ddd; border-radius: 8px; background: white; }
 .source-import-row { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding: 12px 0; border-top: 1px solid #ddd; overflow-wrap: anywhere; }
+.credential-hint { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
 
 .workspace-actions, .export-actions { display: flex; gap: 8px; align-items: center; }
 .export-dialog { display: flex; flex-direction: column; gap: 12px; padding: 0; }
