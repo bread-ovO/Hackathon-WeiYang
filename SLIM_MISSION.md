@@ -16,7 +16,7 @@
 - [x] T2 storage 影子层裁决：`jobs.ts` vs `foundation/jobs.ts` —— **整体删 v2**（见下方裁决记录）
 - [x] T3 storage 影子层裁决：`search.ts` vs `foundation/search.ts` —— 同上
 - [x] T4 storage 影子层裁决：`task-model.ts` vs `foundation/tasks.ts` —— 同上
-- [ ] T5 连接器收敛：`packages/connectors`（feishu/github/http/polling）与 `apps/desktop/src/main/{feishu,github}-runtime.ts`、`source-http.ts` 的源逻辑双写收敛；desktop 只留 IPC 接线
+- [x] T5 连接器收敛：取证结论为**无双写**（runtime 导入 connectors 类型/错误类，属正确分层）；实际动作是删除生产零消费的 `SourcePoller`（polling.ts 是调度概念从未接线的第二个实现，runtime 自带 Main-only scheduler）
 - [ ] T6 巨型文件拆分（>800 行）：`plan-changes.ts`(1211)、`source-associations.ts`(1042)、`export.ts`(992)、`main.tsx`(969)、`pet-live2d.ts`(905)、`timeline.ts`(883)、`desktop-controller.ts`(842)
 - [ ] T7 测试瘦身：合并 tests/unit 与 tests/desktop 中测同一逻辑的用例；删测 mock 的 mock；保持验收覆盖不减
 - [ ] T8 终验：全量相关单测 + typecheck + check:boundaries 全绿，标记 MISSION COMPLETE，开 PR
@@ -39,6 +39,12 @@
 - 向 main 开 PR（`chore: 极简化瘦身——影子层收敛、死包清除、巨型文件拆分`）
 
 ## 进度日志（追加，勿删历史）
+
+### 2026-09-14 03:00 · 自动化第 1 轮 · T5 完成（commit e375e51）
+- 自检：重跑 check:boundaries（passed）、typecheck（exit 0）、vitest（84 文件 1600 用例通过）——上一轮声称属实。
+- T5 取证：feishu/github runtime 均 import @memo/connectors 的类型与错误类，transport 是"接口在 connectors、实现在 source-http.ts"的依赖倒置，不构成双写。真正的问题是 polling.ts 的 SourcePoller（180 行）生产零消费——调度概念已有 runtime 的 Main-only scheduler 存活实现。删 polling.ts + source-poller.test.ts（269 行）+ feishu-connector.test.ts 中 poller 用例块（保留适配器测试）。
+- 验证证据：SourcePoller 引用 grep 清零；typecheck exit 0；boundaries passed；vitest 83 文件 1576 用例通过。
+- 下一步：T6 巨型文件拆分（>800 行：plan-changes 1211、source-associations 1042、export 992、main.tsx 969、pet-live2d 905、timeline 883、desktop-controller 842）。
 
 ### 2026-09-14 02:30 · T1-T4 完成（commit 1644eea）
 - 裁决记录：foundation v2 不是影子层而是**从未接线的平行重写**。desktop 全部走 v1 `openStore`；v2 仅 vite 别名+专属测试可达。S05 已验收需求（租约恢复）的实现在 v1 顶层 jobs.ts，tests/job-queue-integration.ts（含 SIGKILL 恢复）全绿佐证。故整体删除 v2 岛屿（storage/foundation + contracts 的 events/ipc/operations/validation/foundation + application 的 jobs/search + tests/data-foundation + evals 死包）。
