@@ -27,6 +27,7 @@ const responseHeaders = new Set([
   'retry-after',
   'x-ratelimit-remaining',
   'x-ratelimit-reset',
+  'x-ogw-ratelimit-reset',
 ])
 function fail(code: SourceHttpErrorCode): never {
   throw new SourceHttpError(code)
@@ -136,11 +137,15 @@ export function createSourceHttpTransport(
       fail('SOURCE_HTTP_INVALID_RESPONSE')
     const status = response.status
     const safeHeaders = projectHeaders(response.headers)
-    if ([304, 401, 403, 404, 429].includes(status)) {
+    if (
+      [304, 401, 403, 404, 429].includes(status) ||
+      (status === 400 && allowedDomain === 'open.feishu.cn')
+    ) {
       // Error text is never exposed. Retain only a canonical secondary-limit hint.
-      let body: { message: string } | null = null
+      let body: { message: string } | { code: number } | null = null
       if (
-        status === 403 &&
+        (status === 403 ||
+          (status === 400 && allowedDomain === 'open.feishu.cn')) &&
         response.bytes instanceof Uint8Array &&
         response.bytes.byteLength <= 8192 &&
         /^application\/(?:json|[a-z0-9!#$&^_.+-]+\+json)(?:\s*;[^\r\n]*)?$/i.test(
@@ -151,7 +156,10 @@ export function createSourceHttpTransport(
           const parsed = JSON.parse(
             new TextDecoder('utf-8', { fatal: true }).decode(response.bytes),
           )
+          if (status === 400 && parsed && Number.isSafeInteger(parsed.code))
+            body = { code: parsed.code }
           if (
+            status === 403 &&
             parsed &&
             typeof parsed.message === 'string' &&
             parsed.message.length <= 4096 &&

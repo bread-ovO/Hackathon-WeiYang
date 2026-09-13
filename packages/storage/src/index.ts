@@ -1,3 +1,14 @@
+import { createFeishu, migrateFeishu } from './feishu'
+export type {
+  FeishuConnection,
+  FeishuAuthorized,
+  FeishuAuthorizeInput,
+  FeishuBatchInput,
+  FeishuFailureInput,
+  FeishuFailureCode,
+  FeishuFence,
+} from './feishu'
+export { feishuFailureCodes } from './feishu'
 import { createGithub, migrateGithub } from './github'
 export type {
   GithubConnection,
@@ -70,7 +81,7 @@ export function openStore(path: string) {
     db.pragma('synchronous = FULL')
     db.pragma('busy_timeout = 3000')
     const version = db.pragma('user_version', { simple: true }) as number
-    if (version > 12) throw new Error('DATABASE_TOO_NEW')
+    if (version > 13) throw new Error('DATABASE_TOO_NEW')
     if (version < 1)
       db.transaction(() => {
         db.exec(`
@@ -103,6 +114,7 @@ export function openStore(path: string) {
     if (version < 10) migrateRetractions(db)
     if (version < 11) migrateRevisionReview(db)
     if (version < 12) migrateGithub(db)
+    if (version < 13) migrateFeishu(db)
     const revisionReview = createRevisionReview(db)
     const retractions = createRetractions(db)
     const ingestion = createIngestionBudget(db)
@@ -119,7 +131,13 @@ export function openStore(path: string) {
     const sources = createSources(db, receive, observeEvent)
     const plugins = createPlugins(db, receive, observeEvent)
     const github = createGithub(db, receive, observeEvent)
+    const feishu = createFeishu(db, receive, observeEvent)
     return {
+      feishu: {
+        ...feishu,
+        receiveBatch: (input: Parameters<typeof feishu.receiveBatch>[0]) =>
+          ingestion.withBatch(() => feishu.receiveBatch(input)),
+      },
       github: {
         ...github,
         receiveBatch: (input: Parameters<typeof github.receiveBatch>[0]) =>
@@ -160,6 +178,9 @@ export function openStore(path: string) {
             .get(event.sourceInstanceId) ||
           db
             .prepare('SELECT 1 FROM github_connections WHERE source_id=?')
+            .get(event.sourceInstanceId) ||
+          db
+            .prepare('SELECT 1 FROM feishu_connections WHERE source_id=?')
             .get(event.sourceInstanceId)
         )
           throw new Error('USE_AUTHORIZED_SOURCE_BATCH')

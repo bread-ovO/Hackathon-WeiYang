@@ -1,6 +1,34 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import type { DesktopBridge } from '@memo/contracts'
 const bridge: DesktopBridge = {
+  feishu: Object.freeze({
+    list: () => ipcRenderer.invoke('memo:request', { method: 'feishu.list' }),
+    connect: (input) =>
+      ipcRenderer.invoke('memo:request', {
+        ...input,
+        method: 'feishu.connect',
+      }),
+    setEnabled: (id, enabled) =>
+      ipcRenderer.invoke('memo:request', {
+        method: 'feishu.setEnabled',
+        id,
+        enabled,
+      }),
+    revoke: (id) =>
+      ipcRenderer.invoke('memo:request', { method: 'feishu.revoke', id }),
+    sync: (id) =>
+      ipcRenderer.invoke('memo:request', { method: 'feishu.sync', id }),
+    restartWindow: (id) =>
+      ipcRenderer.invoke('memo:request', {
+        method: 'feishu.restartWindow',
+        id,
+      }),
+    records: (input) =>
+      ipcRenderer.invoke('memo:request', {
+        ...input,
+        method: 'feishu.records',
+      }),
+  }),
   github: Object.freeze({
     list: () => ipcRenderer.invoke('memo:request', { method: 'github.list' }),
     connect: (input) =>

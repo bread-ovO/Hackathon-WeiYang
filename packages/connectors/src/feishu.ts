@@ -38,8 +38,65 @@ export interface FeishuApiPage {
   code?: number
   data?: { items?: FeishuApiMessage[]; page_token?: string; has_more?: boolean }
 }
+export type FeishuErrorCode =
+  | 'FEISHU_AUTH_FAILED'
+  | 'FEISHU_PERMISSION_DENIED'
+  | 'FEISHU_RATE_LIMITED'
+  | 'FEISHU_API_FAILED'
+  | 'FEISHU_HTTP_FAILED'
+  | 'FEISHU_ABORTED'
+  | 'INVALID_FEISHU_RESPONSE'
+  | 'INVALID_PAGE_CURSOR'
+export class FeishuConnectorError extends Error {
+  constructor(readonly code: FeishuErrorCode) {
+    super(code)
+    this.name = 'FeishuConnectorError'
+  }
+}
+export class FeishuRateLimitError extends FeishuConnectorError {
+  constructor(readonly retryAfterMs: number) {
+    super('FEISHU_RATE_LIMITED')
+    this.name = 'FeishuRateLimitError'
+  }
+}
+// Official gateway pacing: larksuite/cli internal/ratelimit/headers.go.
+function retryDelay(headers: Record<string, string>): number {
+  const values = Object.fromEntries(
+    Object.entries(headers).map(([key, value]) => [key.toLowerCase(), value]),
+  )
+  const delays: number[] = []
+  for (const name of ['x-ogw-ratelimit-reset', 'retry-after']) {
+    const raw = values[name]
+    if (typeof raw !== 'string' || raw.length > 128) continue
+    if (/^[0-9]+$/.test(raw.trim()) && Number(raw) > 0) {
+      // Saturate at the host's maximum deadline instead of shortening long server waits.
+      delays.push(Math.min(Number(raw) * 1000, 8_640_000_000_000_000))
+    } else if (name === 'retry-after') {
+      const date = Date.parse(raw)
+      if (Number.isFinite(date) && date > Date.now())
+        delays.push(date - Date.now())
+    }
+  }
+  return delays.length ? Math.max(...delays) : 60000
+}
+// Official generic codes: larksuite/cli internal/output/lark_errors.go.
+function apiFailure(code: unknown, headers: Record<string, string>): never {
+  if (!Number.isSafeInteger(code)) invalid()
+  if (code === 99991400) throw new FeishuRateLimitError(retryDelay(headers))
+  if (
+    [99991661, 99991671, 99991668, 99991663, 99991677].includes(code as number)
+  )
+    throw new FeishuConnectorError('FEISHU_AUTH_FAILED')
+  if (
+    [99991672, 99991676, 99991679, 230027, 99991662, 99991673].includes(
+      code as number,
+    )
+  )
+    throw new FeishuConnectorError('FEISHU_PERMISSION_DENIED')
+  throw new FeishuConnectorError('FEISHU_API_FAILED')
+}
 function invalid(): never {
-  throw new Error('INVALID_FEISHU_RESPONSE')
+  throw new FeishuConnectorError('INVALID_FEISHU_RESPONSE')
 }
 function object(value: unknown): Record<string, unknown> {
   if (
@@ -89,7 +146,7 @@ function timestamp(value: unknown, millisecondsOnly = false): string {
   return normalized
 }
 function checkCancelled(signal: AbortSignal) {
-  if (signal.aborted) throw new Error('FEISHU_ABORTED')
+  if (signal.aborted) throw new FeishuConnectorError('FEISHU_ABORTED')
 }
 function pageCursor(value: unknown): string {
   if (
@@ -97,7 +154,7 @@ function pageCursor(value: unknown): string {
     value.length > 4096 ||
     /[\s\u0000-\u001f\u007f]/u.test(value)
   )
-    throw new Error('INVALID_PAGE_CURSOR')
+    throw new FeishuConnectorError('INVALID_PAGE_CURSOR')
   return value
 }
 function nextCursor(
@@ -112,7 +169,7 @@ function nextCursor(
   if (token !== undefined) pageCursor(token)
   if (!more) return ''
   if (typeof token !== 'string' || !token || token === cursor)
-    throw new Error('INVALID_PAGE_CURSOR')
+    throw new FeishuConnectorError('INVALID_PAGE_CURSOR')
   return token
 }
 export function decodeFeishuContent(content: string | undefined): string {
@@ -135,6 +192,7 @@ export function decodeFeishuContent(content: string | undefined): string {
   return content
 }
 export interface FeishuHistoryWindow {
+  strictScope?: boolean
   startTime?: Date
   endTime?: Date
 }
@@ -154,6 +212,8 @@ export function createFeishuMessagesFetcher(
   )
     throw new Error('INVALID_FEISHU_CLIENT_CONFIG')
   identifier(chatId, 256)
+  const strictScope = window.strictScope === true
+  if (strictScope && !/^oc_[A-Za-z0-9_-]{1,252}$/.test(chatId)) invalid()
   const start = window.startTime?.getTime(),
     end = window.endTime?.getTime()
   if (
@@ -169,6 +229,7 @@ export function createFeishuMessagesFetcher(
       container_id_type: 'chat',
       container_id: chatId,
       page_size: '50',
+      sort_type: 'ByCreateTimeAsc',
     })
     if (cursor) params.set('page_token', cursor)
     if (start !== undefined)
@@ -183,15 +244,25 @@ export function createFeishuMessagesFetcher(
         bearerToken: token,
         signal,
       })
-    } catch {
+    } catch (error) {
       checkCancelled(signal)
-      throw new Error('FEISHU_HTTP_FAILED')
+      if (error instanceof FeishuConnectorError) throw error
+      throw new FeishuConnectorError('FEISHU_HTTP_FAILED')
     }
     checkCancelled(signal)
-    if (!response || response.status !== 200)
-      throw new Error('FEISHU_HTTP_FAILED')
+    if (!response) throw new FeishuConnectorError('FEISHU_HTTP_FAILED')
+    if (response.status === 429)
+      throw new FeishuRateLimitError(retryDelay(response.headers))
+    if (response.status === 401)
+      throw new FeishuConnectorError('FEISHU_AUTH_FAILED')
+    if (response.status === 403)
+      throw new FeishuConnectorError('FEISHU_PERMISSION_DENIED')
+    if (response.status !== 200 && response.status !== 400)
+      throw new FeishuConnectorError('FEISHU_HTTP_FAILED')
     const body = object(response.body)
-    if (own(body, 'code') !== 0) invalid()
+    if (own(body, 'code') !== 0) apiFailure(own(body, 'code'), response.headers)
+    if (response.status !== 200)
+      throw new FeishuConnectorError('FEISHU_HTTP_FAILED')
     const data = object(own(body, 'data')),
       items = own(data, 'items')
     if (!Array.isArray(items) || items.length > 50) invalid()
@@ -200,6 +271,15 @@ export function createFeishuMessagesFetcher(
       items: items.map((raw): FeishuMessage => {
         const item = object(raw),
           sender = object(own(item, 'sender'))
+        if (strictScope && own(item, 'chat_id') !== chatId) invalid()
+        const created = timestamp(own(item, 'create_time'), true)
+        const createdMs = Date.parse(created)
+        if (
+          strictScope &&
+          ((start !== undefined && createdMs < start) ||
+            (end !== undefined && createdMs > end))
+        )
+          invalid()
         const type = own(sender, 'sender_type')
         if (
           type !== 'user' &&
@@ -218,7 +298,7 @@ export function createFeishuMessagesFetcher(
         if (update !== undefined) timestamp(update, true)
         return {
           messageId: identifier(own(item, 'message_id'), 256),
-          createTime: timestamp(own(item, 'create_time'), true),
+          createTime: created,
           senderType: type,
           content: decodeFeishuContent(text(content, 65536, true)),
           ...(deleted !== undefined ? { deleted } : {}),
@@ -259,8 +339,9 @@ export class FeishuHistoryAdapter implements SourceAdapter {
     let raw: FeishuMessagePage
     try {
       raw = await this.fetchPage(cursor, signal)
-    } catch {
+    } catch (error) {
       checkCancelled(signal)
+      if (error instanceof FeishuConnectorError) throw error
       throw new Error('FEISHU_FETCH_FAILED')
     }
     checkCancelled(signal)
@@ -272,12 +353,13 @@ export class FeishuHistoryAdapter implements SourceAdapter {
     let step = next
     const visited = new Set<string>([cursor])
     while (step) {
-      if (visited.has(step)) throw new Error('INVALID_PAGE_CURSOR')
+      if (visited.has(step))
+        throw new FeishuConnectorError('INVALID_PAGE_CURSOR')
       visited.add(step)
       step = this.transitions.get(step) ?? ''
     }
     if (!this.transitions.has(cursor) && this.transitions.size >= 10000)
-      throw new Error('INVALID_PAGE_CURSOR')
+      throw new FeishuConnectorError('INVALID_PAGE_CURSOR')
     const events = await Promise.all(
       items.map(async (raw): Promise<SourceEvent> => {
         const message = object(raw),

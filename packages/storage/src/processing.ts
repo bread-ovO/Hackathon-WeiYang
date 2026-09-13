@@ -22,13 +22,17 @@ export interface ProcessingContext {
   eventId: number
   projectId: string
   event: SourceEvent
-  grant: { kind: 'source' | 'plugin' | 'github'; id: string; version: number }
+  grant: {
+    kind: 'source' | 'plugin' | 'github' | 'feishu'
+    id: string
+    version: number
+  }
 }
 export interface ProcessingResult {
   outcome: 'created' | 'review_required' | 'ignored' | 'already_processed'
   taskIds: string[]
 }
-const eligible = `(EXISTS(SELECT 1 FROM source_grants g JOIN event_projects ep ON ep.project_id=g.project_id AND ep.event_id=e.id WHERE g.source_id=e.source_id AND g.revoked=0 AND g.error_code IS NULL) OR EXISTS(SELECT 1 FROM plugin_bindings p JOIN event_projects ep ON ep.project_id=p.project_id AND ep.event_id=e.id WHERE p.source_instance_id=e.source_id AND p.enabled=1 AND p.uninstalled=0 AND p.has_error=0) OR EXISTS(SELECT 1 FROM github_connections h JOIN event_projects ep ON ep.project_id=h.project_id AND ep.event_id=e.id WHERE h.source_id=e.source_id AND h.enabled=1 AND h.revoked=0))`
+const eligible = `(EXISTS(SELECT 1 FROM source_grants g JOIN event_projects ep ON ep.project_id=g.project_id AND ep.event_id=e.id WHERE g.source_id=e.source_id AND g.revoked=0 AND g.error_code IS NULL) OR EXISTS(SELECT 1 FROM plugin_bindings p JOIN event_projects ep ON ep.project_id=p.project_id AND ep.event_id=e.id WHERE p.source_instance_id=e.source_id AND p.enabled=1 AND p.uninstalled=0 AND p.has_error=0) OR EXISTS(SELECT 1 FROM github_connections h JOIN event_projects ep ON ep.project_id=h.project_id AND ep.event_id=e.id WHERE h.source_id=e.source_id AND h.enabled=1 AND h.revoked=0) OR EXISTS(SELECT 1 FROM feishu_connections f JOIN event_projects ep ON ep.project_id=f.project_id AND ep.event_id=e.id WHERE f.source_id=e.source_id AND f.enabled=1 AND f.revoked=0))`
 const at = (now: Date) => {
   if (!Number.isFinite(now.getTime())) throw Error('INVALID_PROCESSING_INPUT')
   return now.toISOString()
@@ -116,13 +120,29 @@ export function createProcessing(db: Database.Database) {
             .get(eventId, row.source_id) as
             | { projectId: string; id: string; version: number }
             | undefined)
-    const grant = source ?? plugin ?? github
+    const feishu =
+      source || plugin || github
+        ? undefined
+        : (db
+            .prepare(
+              'SELECT f.project_id AS projectId,f.source_id AS id,f.grant_version AS version FROM feishu_connections f JOIN event_projects ep ON ep.project_id=f.project_id AND ep.event_id=? WHERE f.source_id=? AND f.enabled=1 AND f.revoked=0',
+            )
+            .get(eventId, row.source_id) as
+            | { projectId: string; id: string; version: number }
+            | undefined)
+    const grant = source ?? plugin ?? github ?? feishu
     if (!grant) return null
     return {
       eventId,
       projectId: grant.projectId,
       grant: {
-        kind: source ? 'source' : plugin ? 'plugin' : 'github',
+        kind: source
+          ? 'source'
+          : plugin
+            ? 'plugin'
+            : github
+              ? 'github'
+              : 'feishu',
         id: grant.id,
         version: grant.version,
       },
@@ -432,7 +452,7 @@ export function createProcessing(db: Database.Database) {
       const rows = db
         .prepare(
           `SELECT v.event_id AS eventId,e.source_id AS sourceInstanceId,e.external_id AS externalId,e.revision,v.quote_start AS quoteStart,v.quote_end AS quoteEnd,v.quote,v.reference_id AS referenceId,v.reference_status AS storedReferenceStatus,v.invalidated_by_event_id AS storedInvalidatedBy,r.reason,r.created_at AS createdAt,r.rule_version AS policyVersion,'rule' AS actor,r.outcome,
-      CASE WHEN EXISTS(SELECT 1 FROM github_connections h WHERE h.source_id=e.source_id AND (h.revoked=1 OR h.enabled=0)) THEN 'revoked' WHEN EXISTS(SELECT 1 FROM github_connections h WHERE h.source_id=e.source_id AND h.revoked=0 AND h.enabled=1) THEN 'active' WHEN EXISTS(SELECT 1 FROM source_grants g WHERE g.source_id=e.source_id AND g.revoked=1) THEN 'revoked'
+      CASE WHEN EXISTS(SELECT 1 FROM feishu_connections f WHERE f.source_id=e.source_id AND (f.revoked=1 OR f.enabled=0)) THEN 'revoked' WHEN EXISTS(SELECT 1 FROM feishu_connections f WHERE f.source_id=e.source_id AND f.revoked=0 AND f.enabled=1) THEN 'active' WHEN EXISTS(SELECT 1 FROM github_connections h WHERE h.source_id=e.source_id AND (h.revoked=1 OR h.enabled=0)) THEN 'revoked' WHEN EXISTS(SELECT 1 FROM github_connections h WHERE h.source_id=e.source_id AND h.revoked=0 AND h.enabled=1) THEN 'active' WHEN EXISTS(SELECT 1 FROM source_grants g WHERE g.source_id=e.source_id AND g.revoked=1) THEN 'revoked'
        WHEN EXISTS(SELECT 1 FROM source_grants g WHERE g.source_id=e.source_id AND g.revoked=0) THEN 'active'
        WHEN EXISTS(SELECT 1 FROM plugin_bindings p WHERE p.source_instance_id=e.source_id AND p.uninstalled=1) THEN 'uninstalled'
        WHEN EXISTS(SELECT 1 FROM plugin_bindings p WHERE p.source_instance_id=e.source_id AND p.enabled=0) THEN 'revoked'

@@ -89,7 +89,17 @@ test('real IPC rejects foreign windows and malformed requests; source text stays
       'sync',
       'records',
     ])
+    expect(await page.evaluate(() => Object.keys(window.memo.feishu))).toEqual([
+      'list',
+      'connect',
+      'setEnabled',
+      'revoke',
+      'sync',
+      'restartWindow',
+      'records',
+    ])
     expect(await page.evaluate(() => Object.keys(window.memo))).toEqual([
+      'feishu',
       'github',
       'pet',
       'ingestion',
