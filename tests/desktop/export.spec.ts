@@ -66,7 +66,8 @@ test('export saves a scoped snapshot with explicit body choice and cancellation 
     }, destination)
     await page.getByRole('button', { name: '我的工作区', exact: true }).click()
     await page.getByRole('button', { name: '导出', exact: true }).click()
-    const modal = page.getByRole('dialog')
+    // 详情模态化后导出对话框可能与其并存，按标题精确定位。
+    const modal = page.getByRole('dialog', { name: '导出事项与证据' })
     await expect(
       modal.getByRole('heading', { name: '导出事项与证据' }),
     ).toBeVisible()

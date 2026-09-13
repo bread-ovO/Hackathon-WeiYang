@@ -343,7 +343,6 @@ svg {
 .search > svg {
   position: absolute;
   left: 8px;
-  z-index: 1;
 }
 .search .app-input {
   width: 100%;
@@ -507,13 +506,13 @@ svg {
   color: var(--muted);
 }
 .detail {
-  width: 40%;
-  min-width: 352px;
-  max-width: 480px;
+  width: 100%;
+  min-width: 0;
+  flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   background: var(--color-kumo-base);
-  border-left: 1px solid var(--line);
 }
 .detail-top {
   display: flex;
@@ -528,8 +527,33 @@ svg {
 .detail-top > .task-status {
   margin-left: auto;
 }
+.detail-top-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
 .detail-number {
   opacity: 0.7;
+}
+.detail-dialog.app-dialog {
+  width: min(720px, calc(100vw - 48px));
+  max-width: 720px;
+  max-height: calc(100vh - 96px);
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+.detail-dialog .detail {
+  border: 0;
+}
+.detail-dialog-message {
+  margin: 0;
+  padding: 8px 24px;
+  border-top: 1px solid var(--line);
+  font-size: 12px;
+  line-height: 20px;
+  color: var(--muted);
 }
 .icon-button.app-control {
   height: 28px;
@@ -543,6 +567,7 @@ svg {
 .detail-scroll {
   padding: 16px;
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
 }
 .detail-scroll > h2 {
@@ -955,7 +980,7 @@ dd {
   box-shadow:
     0 0 0 1px var(--line),
     0 8px 28px #00000014;
-  z-index: 10;
+  z-index: 60;
   font-size: 14px;
 }
 .toast .app-control {
@@ -1059,9 +1084,6 @@ dd {
   .task-trailing {
     display: none;
   }
-  .detail {
-    min-width: 324px;
-  }
   .detail-scroll {
     padding: 16px;
   }
@@ -1076,15 +1098,6 @@ dd {
   }
 }
 @media (max-width: 900px) {
-  .has-detail .task-list {
-    display: none;
-  }
-  .detail {
-    width: 100%;
-    max-width: none;
-    min-width: 0;
-    border-left: 0;
-  }
   .detail-scroll {
     padding: 16px;
   }

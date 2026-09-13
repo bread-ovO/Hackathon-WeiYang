@@ -668,6 +668,8 @@ test('real IPC rejects foreign windows and malformed requests; source text stays
     await expect
       .poll(() => page.frames().filter((frame) => frame.url() === url).length)
       .toBe(1)
+    // 示例详情现为模态：先打开第一条事项再进入来源记录页签。
+    await page.locator('.task-row').first().click()
     await page.getByRole('button', { name: /来源记录\s*3/ }).click()
     await page.getByRole('button', { name: /完成修复与本地测试/ }).click()
     await expect(page.locator('.evidence-content')).toContainText(payload)

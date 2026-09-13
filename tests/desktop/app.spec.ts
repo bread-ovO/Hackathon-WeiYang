@@ -122,18 +122,26 @@ test('packaged renderer connects to isolated SQLite core without exposing Node',
       animations: 'disabled',
       path: 'test-results/desktop-home.png',
     })
+    // 详情现在是居中模态：点任务行打开。
+    await page.locator('.task-row').first().click()
+    await expect(page.getByRole('region', { name: '事项详情' })).toBeVisible()
     await page.getByRole('button', { name: '手动标记完成' }).click()
-    await expect(page.getByRole('status')).toContainText('已在示例中标记完成')
     // A manual decision must preserve unmet evidence conditions.
     await expect(page.getByText('尚未找到对应记录')).toBeVisible()
+    // 全局提示在模态之外，关闭详情后核对与撤销。
+    await page.getByRole('button', { name: '关闭详情' }).click()
+    await expect(page.getByRole('status')).toContainText('已在示例中标记完成')
     await page.getByRole('button', { name: '撤销', exact: true }).click()
+    await page.getByRole('button', { name: '关闭提示' }).click()
+    await page.locator('.task-row').first().click()
     await expect(
       page.getByRole('button', { name: '手动标记完成' }),
     ).toBeVisible()
-    await page.getByRole('button', { name: '关闭提示' }).click()
     await page.getByRole('button', { name: /来源记录\s*3/ }).click()
     await page.getByRole('button', { name: /修复 PR 已提交/ }).click()
     await expect(page.getByText(/PR #128/)).toBeVisible()
+    // 关掉详情模态后才能操作列表筛选。
+    await page.getByRole('button', { name: '关闭详情' }).click()
     await page.getByRole('button', { name: '等待反馈', exact: true }).click()
     await expect(page.locator('.task-row')).toHaveCount(2)
     await page.getByRole('button', { name: '全部', exact: true }).click()
@@ -162,6 +170,9 @@ test('packaged renderer connects to isolated SQLite core without exposing Node',
     await expect(
       page.getByRole('heading', { name: '设计回归样例' }),
     ).toBeVisible()
+    // 新增后详情模态自动打开，先关闭再切换工作区。
+    await page.keyboard.press('Escape')
+    await expect(page.getByRole('dialog')).toHaveCount(0)
     await page.getByRole('button', { name: '我的工作区', exact: true }).click()
     await expect(page.locator('.task-row')).toHaveCount(0)
     await expect(
@@ -177,10 +188,9 @@ test('packaged renderer connects to isolated SQLite core without exposing Node',
     await app.evaluate(({ BrowserWindow }) =>
       BrowserWindow.getAllWindows()[0]!.setSize(860, 700),
     )
+    // 窄屏下详情同样是居中模态，列表保持通栏。
+    await page.locator('.task-row').first().click()
     await expect(page.getByRole('region', { name: '事项详情' })).toBeVisible()
-    await expect(
-      page.getByRole('region', { name: '事项列表' }),
-    ).not.toBeVisible()
     await page.screenshot({
       animations: 'disabled',
       path: 'test-results/desktop-narrow.png',

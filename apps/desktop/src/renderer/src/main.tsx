@@ -18,13 +18,12 @@ import {
   List,
   Link,
   MagnifyingGlass,
-  SlidersHorizontal,
+  GearSix,
   Plus,
   ArrowRight,
   Check,
   Clock,
   X,
-  CaretLeft,
   FileText,
   ChatsCircle,
   TerminalWindow,
@@ -40,6 +39,7 @@ import {
   AppDialog,
   DialogTitle,
   DialogDescription,
+  IconButton,
   StatusBadge,
   WorkspacePanel,
 } from './ui'
@@ -60,7 +60,6 @@ type IconName =
   | 'check'
   | 'clock'
   | 'close'
-  | 'back'
   | 'file'
   | 'chat'
   | 'terminal'
@@ -70,13 +69,12 @@ const icons: Record<IconName, PhosphorIcon> = {
   list: List,
   link: Link,
   search: MagnifyingGlass,
-  settings: SlidersHorizontal,
+  settings: GearSix,
   plus: Plus,
   arrow: ArrowRight,
   check: Check,
   clock: Clock,
   close: X,
-  back: CaretLeft,
   file: FileText,
   chat: ChatsCircle,
   terminal: TerminalWindow,
@@ -349,7 +347,7 @@ function App() {
                 className={demo ? 'selected' : ''}
                 onClick={() => {
                   setDemo(true)
-                  setSelected('01')
+                  setSelected(null)
                 }}
               >
                 示例体验
@@ -436,7 +434,7 @@ function App() {
                 <kbd>⌘ K</kbd>
               </label>
             </div>
-            <div className={`work-body ${current ? 'has-detail' : ''}`}>
+            <div className="work-body">
               <section className="task-list" aria-label="事项列表">
                 <div className="list-caption">
                   <span>
@@ -511,16 +509,17 @@ function App() {
                     : '尚未接入应用 · 当前没有采集工作记录'}
                 </div>
               </section>
+            </div>
+            <AppDialog
+              open={!!current}
+              onOpenChange={(open) => {
+                if (!open) setSelected(null)
+              }}
+              className="detail-dialog"
+            >
               {current && (
                 <section className="detail" aria-label="事项详情">
                   <div className="detail-top">
-                    <AppButton
-                      className="icon-button"
-                      aria-label="关闭详情"
-                      onClick={() => setSelected(null)}
-                    >
-                      <Icon name="back" />
-                    </AppButton>
                     <span>
                       {current.project}
                       <span className="detail-number">
@@ -531,7 +530,16 @@ function App() {
                           : `事项 ${current.id}`}
                       </span>
                     </span>
-                    <StatusBadge status={current.status} />
+                    <div className="detail-top-actions">
+                      <StatusBadge status={current.status} />
+                      <IconButton
+                        label="关闭详情"
+                        className="detail-close"
+                        onClick={() => setSelected(null)}
+                      >
+                        <Icon name="close" />
+                      </IconButton>
+                    </div>
                   </div>
                   <div className="detail-scroll">
                     <h2>{current.title}</h2>
@@ -730,7 +738,7 @@ function App() {
                   </footer>
                 </section>
               )}
-            </div>
+            </AppDialog>
           </>
         ) : page === '连接' ? (
           <div className="standalone" key="connections">
@@ -896,29 +904,28 @@ function App() {
               撤销
             </AppButton>
           )}
-          <AppButton
-            aria-label="关闭提示"
+          <IconButton
+            label="关闭提示"
             onClick={() => {
               setNotice('')
               setUndo(null)
             }}
           >
             <Icon name="close" size={14} />
-          </AppButton>
+          </IconButton>
         </div>
       )}
       <AppDialog open={modal} onOpenChange={setModal}>
         <form onSubmit={addTask}>
           <div className="section-heading">
             <DialogTitle>添加示例事项</DialogTitle>
-            <AppButton
+            <IconButton
               type="button"
-              className="icon-button"
-              aria-label="关闭添加窗口"
+              label="关闭添加窗口"
               onClick={() => setModal(false)}
             >
               <Icon name="close" />
-            </AppButton>
+            </IconButton>
           </div>
           <DialogDescription className="muted">
             仅在本次设计预览中保留。

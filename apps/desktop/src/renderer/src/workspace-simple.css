@@ -1,11 +1,18 @@
 /* Workspace actions share a square hit area, independent of SVG/font baselines. */
 .action-icon.app-control {
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  padding: 0;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+}
+.action-icon.app-control.create-action {
   width: 32px;
   height: 32px;
   min-width: 32px;
-  padding: 0;
-  flex: none;
-  border-radius: 8px;
 }
 .action-icon.app-control > span {
   display: flex;
@@ -74,7 +81,6 @@
   height: 16px;
   color: var(--muted);
   pointer-events: none;
-  z-index: 1;
 }
 .workspace-search .app-input {
   width: 100%;
@@ -165,14 +171,6 @@
 @media (max-width: 1040px) {
   .workspace-search {
     width: 180px;
-  }
-  .work-body.has-detail > .task-list {
-    display: none;
-  }
-  .work-body.has-detail > .detail {
-    width: 100%;
-    flex: 1;
-    border-left: 0;
   }
 }
 .task-state-control label {
@@ -306,13 +304,6 @@
 }
 .evidence-summary .source-import-actions {
   margin: 0;
-}
-@media (max-width: 1040px) {
-  .work-body.has-detail > .detail {
-    max-width: none;
-    min-width: 0;
-    flex: 1 1 100%;
-  }
 }
 .editor-group > form,
 .task-structure form {

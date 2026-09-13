@@ -358,8 +358,27 @@ export function RealWorkspace({
             <ArrowClockwise aria-hidden />
           </IconButton>
           <IconButton
+            ref={filterButton}
+            label="筛选事项"
+            aria-expanded={filtersOpen}
+            aria-controls="workspace-filter-panel"
+            aria-pressed={filterCount > 0}
+            onClick={() => setFiltersOpen(!filtersOpen)}
+          >
+            <SlidersHorizontal aria-hidden />
+          </IconButton>
+          {filterCount > 0 && (
+            <span
+              className="filter-count"
+              aria-label={`${filterCount} 项筛选已启用`}
+            >
+              {filterCount}
+            </span>
+          )}
+          <IconButton
             label="新建事项"
             variant="primary"
+            className="create-action"
             onClick={() => {
               setCreateProject(project || data.projects[0]?.id || '')
               setMessage('')
@@ -509,24 +528,6 @@ export function RealWorkspace({
             onChange={(e) => setQuery(e.target.value)}
           />
         </div>
-        <IconButton
-          ref={filterButton}
-          label="筛选事项"
-          aria-expanded={filtersOpen}
-          aria-controls="workspace-filter-panel"
-          aria-pressed={filterCount > 0}
-          onClick={() => setFiltersOpen(!filtersOpen)}
-        >
-          <SlidersHorizontal aria-hidden />
-        </IconButton>
-        {filterCount > 0 && (
-          <span
-            className="filter-count"
-            aria-label={`${filterCount} 项筛选已启用`}
-          >
-            {filterCount}
-          </span>
-        )}
       </div>
       {filterCount > 0 && !filtersOpen && (
         <div className="active-filter-summary">
@@ -666,7 +667,7 @@ export function RealWorkspace({
           </AppButton>
         </div>
       )}
-      <div className={`work-body ${current ? 'has-detail' : ''}`}>
+      <div className="work-body">
         <section className="task-list" aria-label="事项列表">
           <div className="list-caption">
             <span>
@@ -785,6 +786,14 @@ export function RealWorkspace({
             </AppButton>
           )}
         </section>
+      </div>
+      <AppDialog
+        open={!!current}
+        onOpenChange={(open) => {
+          if (!open) setSelected(null)
+        }}
+        className="detail-dialog"
+      >
         {current && (
           <TaskEditor
             openRelated={async (id) => {
@@ -804,6 +813,15 @@ export function RealWorkspace({
             }}
             key={current.id}
             task={current}
+            toolbar={
+              current.projectId ? (
+                <TaskExport
+                  projects={data.projects}
+                  selected={current}
+                  disabled={saving || busy}
+                />
+              ) : undefined
+            }
             onPlanApplied={(next) =>
               setData((old) => ({
                 ...old,
@@ -819,7 +837,12 @@ export function RealWorkspace({
             close={() => setSelected(null)}
           />
         )}
-      </div>
+        {current && message && (
+          <p role="status" className="detail-dialog-message">
+            {message}
+          </p>
+        )}
+      </AppDialog>
     </TooltipProvider>
   )
 }
