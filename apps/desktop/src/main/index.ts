@@ -1,4 +1,5 @@
 import { createPetVoiceService } from './pet/voice-service'
+import { blocksPetPresentation } from './pet/environment-block'
 import { createPetVoiceStore } from './pet/voice-store'
 import { createSystemTtsProvider } from './pet/tts-provider'
 import { isPetSpeechQuiet } from '@memo/domain'
@@ -161,14 +162,10 @@ else {
           '../native/pet-speech-environment',
         ),
         onChange: (state) => {
-          if (
-            state.locked ||
-            state.suspended ||
-            state.fullscreen ||
-            !state.available
-          )
+          if (blocksPetPresentation(state, environmentMonitoring)) {
             voice?.stopNow()
-          contextSpeech?.invalidateDisplay()
+            contextSpeech?.invalidateDisplay()
+          }
           void speech?.wake()
         },
       })
