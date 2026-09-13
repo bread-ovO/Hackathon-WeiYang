@@ -135,7 +135,10 @@ describe('core reference scope and actor projection', () => {
       confirmReference: vi.fn(() => review),
       listReferences: vi.fn(() => ({ references: [], nextCursor: null })),
     }
-    const store = { revisionReview } as unknown as ReturnType<typeof openStore>
+    const store = {
+      revisionReview,
+      tasks: { mergeInfo: () => ({ mergedInto: null, mergedFrom: [] }) },
+    } as unknown as ReturnType<typeof openStore>
     expect(handleWorkspace(store, confirm)).toBe(review)
     const { method: _, ...input } = confirm
     expect(revisionReview.confirmReference).toHaveBeenCalledExactlyOnceWith(
@@ -170,6 +173,7 @@ describe('core reference scope and actor projection', () => {
           throw Error('REFERENCE_REVIEW_CONFLICT')
         },
       },
+      tasks: { mergeInfo: () => ({ mergedInto: null, mergedFrom: [] }) },
     } as unknown as ReturnType<typeof openStore>
     expect(() => handleWorkspace(store, confirm)).toThrow(
       'REFERENCE_REVIEW_CONFLICT',

@@ -137,6 +137,7 @@ test('real IPC rejects foreign windows and malformed requests; source text stays
       'createTask',
       'mergeTasks',
       'updateTask',
+      'splitTask',
     ])
     expect(await page.evaluate(() => Object.keys(window.memo.sources))).toEqual(
       ['list', 'chooseFile', 'authorizeDirectory', 'sync', 'revoke'],

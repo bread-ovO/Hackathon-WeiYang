@@ -367,5 +367,5 @@ try {
 } finally {
   db.close()
   store.close()
-  rmSync(dir, { recursive: true, force: true })
+  try { rmSync(dir, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 }) } catch {}
 }

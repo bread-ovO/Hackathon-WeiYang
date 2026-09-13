@@ -317,6 +317,11 @@ const bridge: DesktopBridge = {
         ...request,
         method: 'workspace.updateTask',
       }),
+    splitTask: (request) =>
+      ipcRenderer.invoke('memo:request', {
+        ...request,
+        method: 'workspace.splitTask',
+      }),
   }),
 }
 contextBridge.exposeInMainWorld('memo', Object.freeze(bridge))

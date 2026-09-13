@@ -95,6 +95,7 @@ import {
   type ProjectSourceEvents,
   type SourceBindings,
   type IdentityMappings,
+  type TaskSplitResult,
 } from './workspace'
 export * from './workspace'
 import Ajv from 'ajv'
@@ -441,6 +442,8 @@ export type CoreReply<T = Health> =
         | 'PLAN_CHANGE_NOT_APPLICABLE'
         | 'VERSION_CONFLICT'
         | 'NOT_FOUND'
+        | 'INVALID_TASK_MERGE'
+        | 'INVALID_TASK_SPLIT'
         | 'TIMELINE_INVALID_CURSOR'
         | 'TIMELINE_CORRUPT_DATA'
         | 'EXPORT_LIMIT_EXCEEDED'
@@ -709,6 +712,12 @@ export interface DesktopBridge {
         'method'
       >,
     ): Promise<CoreReply<WorkspaceSnapshot>>
+    splitTask(
+      request: Omit<
+        Extract<CoreRequest, { method: 'workspace.splitTask' }>,
+        'method'
+      >,
+    ): Promise<CoreReply<TaskSplitResult>>
   }
 }
 export * from './github-account'
