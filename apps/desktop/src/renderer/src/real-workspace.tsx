@@ -7,12 +7,14 @@ import type {
   WorkspaceTask,
 } from '@memo/contracts'
 import { AppButton, AppInput } from './ui'
-import { TaskEditor, taskLabels } from './task-editor'
+import { TaskEditor, taskLabels, type EditorBaseline } from './task-editor'
 import { TaskExport } from './task-export'
 export function RealWorkspace({
   onCount,
+  openTask,
 }: {
   onCount: (count: number) => void
+  openTask?: { projectId: string; taskId: string; nonce: number } | null
 }) {
   const [data, setData] = useState<WorkspaceSnapshot>({
     projects: [],
@@ -115,6 +117,36 @@ export function RealWorkspace({
       seq.current++
     }
   }, [load])
+  const openedPetNonce = useRef<number | null>(null)
+  useEffect(() => {
+    if (!openTask || busy || openedPetNonce.current === openTask.nonce) return
+    let active = true
+    // Wait for the normal list refresh; the target may be outside this page/filter.
+    void window.memo.workspace
+      .detail(openTask.projectId, openTask.taskId)
+      .then((reply) => {
+        if (!active) return
+        if (!reply.ok) {
+          setMessage('此事项当前不可打开，请刷新工作区。')
+          return
+        }
+        openedPetNonce.current = openTask.nonce
+        setData((old) => ({
+          ...old,
+          tasks: [
+            reply.data.task,
+            ...old.tasks.filter((t) => t.id !== reply.data.task.id),
+          ],
+        }))
+        setSelected(reply.data.task.id)
+      })
+      .catch(() => {
+        if (active) setMessage('事项暂不可打开，请稍后重试。')
+      })
+    return () => {
+      active = false
+    }
+  }, [openTask?.nonce, busy])
   async function run(
     action: () => Promise<CoreReply<unknown>>,
     success: string,
@@ -154,22 +186,29 @@ export function RealWorkspace({
   }
   async function update(
     patch: Extract<CoreRequest, { method: 'workspace.updateTask' }>['patch'],
+    baseline?: EditorBaseline,
   ) {
     if (current?.projectId)
       await run(
         () =>
-          window.memo.workspace.updateTask({ ...expectation(current), patch }),
+          window.memo.workspace.updateTask({
+            ...expectation(current),
+            ...baseline,
+            patch,
+          }),
         '已保存到本地，人工操作已记录。',
       )
   }
   async function replace(
     criteria: { id: string; description: string; originEventId?: number }[],
+    baseline?: EditorBaseline,
   ) {
     if (current?.projectId)
       await run(
         () =>
           window.memo.workspace.replaceCriteria({
             ...expectation(current),
+            ...baseline,
             criteria,
           }),
         '条件新版本已保存，旧证据仍保留在原版本。',
@@ -395,7 +434,16 @@ export function RealWorkspace({
         </section>
         {current && (
           <TaskEditor
+            key={current.id}
             task={current}
+            onPlanApplied={(next) =>
+              setData((old) => ({
+                ...old,
+                tasks: old.tasks.map((item) =>
+                  item.id === next.id ? next : item,
+                ),
+              }))
+            }
             busy={busy || saving}
             update={update}
             replace={replace}

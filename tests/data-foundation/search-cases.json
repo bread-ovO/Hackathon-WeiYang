@@ -1,0 +1,1147 @@
+{
+  "version": "synthetic-holdout-v1",
+  "documents": [
+    {
+      "id": "zh0",
+      "title": "登录流程处理"
+    },
+    {
+      "id": "zh1",
+      "title": "付款流程处理"
+    },
+    {
+      "id": "zh2",
+      "title": "开票流程处理"
+    },
+    {
+      "id": "zh3",
+      "title": "报销流程处理"
+    },
+    {
+      "id": "zh4",
+      "title": "退款流程处理"
+    },
+    {
+      "id": "zh5",
+      "title": "预约流程处理"
+    },
+    {
+      "id": "zh6",
+      "title": "审核流程处理"
+    },
+    {
+      "id": "zh7",
+      "title": "签约流程处理"
+    },
+    {
+      "id": "zh8",
+      "title": "对账流程处理"
+    },
+    {
+      "id": "zh9",
+      "title": "库存流程处理"
+    },
+    {
+      "id": "zh10",
+      "title": "物流流程处理"
+    },
+    {
+      "id": "zh11",
+      "title": "回访流程处理"
+    },
+    {
+      "id": "zh12",
+      "title": "入职流程处理"
+    },
+    {
+      "id": "zh13",
+      "title": "考勤流程处理"
+    },
+    {
+      "id": "zh14",
+      "title": "请假流程处理"
+    },
+    {
+      "id": "zh15",
+      "title": "排班流程处理"
+    },
+    {
+      "id": "zh16",
+      "title": "培训流程处理"
+    },
+    {
+      "id": "zh17",
+      "title": "离职流程处理"
+    },
+    {
+      "id": "zh18",
+      "title": "备份流程处理"
+    },
+    {
+      "id": "zh19",
+      "title": "恢复流程处理"
+    },
+    {
+      "id": "zh20",
+      "title": "迁移流程处理"
+    },
+    {
+      "id": "zh21",
+      "title": "索引流程处理"
+    },
+    {
+      "id": "zh22",
+      "title": "限流流程处理"
+    },
+    {
+      "id": "zh23",
+      "title": "熔断流程处理"
+    },
+    {
+      "id": "zh24",
+      "title": "监控流程处理"
+    },
+    {
+      "id": "zh25",
+      "title": "告警流程处理"
+    },
+    {
+      "id": "zh26",
+      "title": "续租流程处理"
+    },
+    {
+      "id": "zh27",
+      "title": "回滚流程处理"
+    },
+    {
+      "id": "zh28",
+      "title": "权限流程处理"
+    },
+    {
+      "id": "zh29",
+      "title": "归档流程处理"
+    },
+    {
+      "id": "en0",
+      "title": "验证 AuthBridge 完整行为"
+    },
+    {
+      "id": "en1",
+      "title": "验证 RetryBudget 完整行为"
+    },
+    {
+      "id": "en2",
+      "title": "验证 ScopeGuard 完整行为"
+    },
+    {
+      "id": "en3",
+      "title": "验证 TenantMapper 完整行为"
+    },
+    {
+      "id": "en4",
+      "title": "验证 EventEnvelope 完整行为"
+    },
+    {
+      "id": "en5",
+      "title": "验证 CursorStore 完整行为"
+    },
+    {
+      "id": "en6",
+      "title": "验证 ReceiptLedger 完整行为"
+    },
+    {
+      "id": "en7",
+      "title": "验证 LeaseWorker 完整行为"
+    },
+    {
+      "id": "en8",
+      "title": "验证 EvidenceLink 完整行为"
+    },
+    {
+      "id": "en9",
+      "title": "验证 TaskRevision 完整行为"
+    },
+    {
+      "id": "en10",
+      "title": "验证 ArchivePolicy 完整行为"
+    },
+    {
+      "id": "en11",
+      "title": "验证 SearchTokenizer 完整行为"
+    },
+    {
+      "id": "en12",
+      "title": "验证 QuotaProbe 完整行为"
+    },
+    {
+      "id": "en13",
+      "title": "验证 ClockAdapter 完整行为"
+    },
+    {
+      "id": "en14",
+      "title": "验证 IdentityKey 完整行为"
+    },
+    {
+      "id": "en15",
+      "title": "验证 MessageParser 完整行为"
+    },
+    {
+      "id": "en16",
+      "title": "验证 PipelineRunner 完整行为"
+    },
+    {
+      "id": "en17",
+      "title": "验证 ProjectFilter 完整行为"
+    },
+    {
+      "id": "en18",
+      "title": "验证 FencingToken 完整行为"
+    },
+    {
+      "id": "en19",
+      "title": "验证 ManualOverride 完整行为"
+    },
+    {
+      "id": "en20",
+      "title": "验证 DecisionOutbox 完整行为"
+    },
+    {
+      "id": "en21",
+      "title": "验证 VersionConflict 完整行为"
+    },
+    {
+      "id": "en22",
+      "title": "验证 ReplayHarness 完整行为"
+    },
+    {
+      "id": "en23",
+      "title": "验证 SignalHandler 完整行为"
+    },
+    {
+      "id": "en24",
+      "title": "验证 DeadlineResolver 完整行为"
+    },
+    {
+      "id": "en25",
+      "title": "验证 AdapterRegistry 完整行为"
+    },
+    {
+      "id": "en26",
+      "title": "验证 SourceGrant 完整行为"
+    },
+    {
+      "id": "en27",
+      "title": "验证 TombstoneHead 完整行为"
+    },
+    {
+      "id": "en28",
+      "title": "验证 BackupWriter 完整行为"
+    },
+    {
+      "id": "en29",
+      "title": "验证 HealthReply 完整行为"
+    },
+    {
+      "id": "mix0",
+      "title": "验证 src/core.ts 完整行为"
+    },
+    {
+      "id": "mix1",
+      "title": "验证 api/v2/events 完整行为"
+    },
+    {
+      "id": "mix2",
+      "title": "验证 @memo/storage 完整行为"
+    },
+    {
+      "id": "mix3",
+      "title": "验证 apps/desktop 完整行为"
+    },
+    {
+      "id": "mix4",
+      "title": "验证 docs/README.md 完整行为"
+    },
+    {
+      "id": "mix5",
+      "title": "验证 feature/login 完整行为"
+    },
+    {
+      "id": "mix6",
+      "title": "验证 fix/lease 完整行为"
+    },
+    {
+      "id": "mix7",
+      "title": "验证 tools/replay 完整行为"
+    },
+    {
+      "id": "mix8",
+      "title": "验证 test:storage 完整行为"
+    },
+    {
+      "id": "mix9",
+      "title": "验证 pnpm-lock.yaml 完整行为"
+    },
+    {
+      "id": "mix10",
+      "title": "验证 user_id 完整行为"
+    },
+    {
+      "id": "mix11",
+      "title": "验证 scope_epoch 完整行为"
+    },
+    {
+      "id": "mix12",
+      "title": "验证 nextCursor 完整行为"
+    },
+    {
+      "id": "mix13",
+      "title": "验证 operation_id 完整行为"
+    },
+    {
+      "id": "mix14",
+      "title": "验证 PR-2048 完整行为"
+    },
+    {
+      "id": "mix15",
+      "title": "验证 BUG-1024 完整行为"
+    },
+    {
+      "id": "mix16",
+      "title": "验证 memo.domain 完整行为"
+    },
+    {
+      "id": "mix17",
+      "title": "验证 index.sqlite 完整行为"
+    },
+    {
+      "id": "mix18",
+      "title": "验证 job.done 完整行为"
+    },
+    {
+      "id": "mix19",
+      "title": "验证 foo-bar 完整行为"
+    },
+    {
+      "id": "mix20",
+      "title": "验证 a_b_c 完整行为"
+    },
+    {
+      "id": "mix21",
+      "title": "验证 S01-S08 完整行为"
+    },
+    {
+      "id": "mix22",
+      "title": "验证 v2.1.0 完整行为"
+    },
+    {
+      "id": "mix23",
+      "title": "验证 GET/events 完整行为"
+    },
+    {
+      "id": "mix24",
+      "title": "验证 build:desktop 完整行为"
+    },
+    {
+      "id": "mix25",
+      "title": "验证 data.backup 完整行为"
+    },
+    {
+      "id": "mix26",
+      "title": "验证 queueHigh 完整行为"
+    },
+    {
+      "id": "mix27",
+      "title": "验证 lease_until 完整行为"
+    },
+    {
+      "id": "mix28",
+      "title": "验证 core.health 完整行为"
+    },
+    {
+      "id": "mix29",
+      "title": "验证 task_fts 完整行为"
+    }
+  ],
+  "queries": [
+    {
+      "group": "中文",
+      "query": "登录",
+      "expected": [
+        "zh0"
+      ]
+    },
+    {
+      "group": "中文",
+      "query": "付款",
+      "expected": [
+        "zh1"
+      ]
+    },
+    {
+      "group": "中文",
+      "query": "开票",
+      "expected": [
+        "zh2"
+      ]
+    },
+    {
+      "group": "中文",
+      "query": "报销",
+      "expected": [
+        "zh3"
+      ]
+    },
+    {
+      "group": "中文",
+      "query": "退款",
+      "expected": [
+        "zh4"
+      ]
+    },
+    {
+      "group": "中文",
+      "query": "预约",
+      "expected": [
+        "zh5"
+      ]
+    },
+    {
+      "group": "中文",
+      "query": "审核",
+      "expected": [
+        "zh6"
+      ]
+    },
+    {
+      "group": "中文",
+      "query": "签约",
+      "expected": [
+        "zh7"
+      ]
+    },
+    {
+      "group": "中文",
+      "query": "对账",
+      "expected": [
+        "zh8"
+      ]
+    },
+    {
+      "group": "中文",
+      "query": "库存",
+      "expected": [
+        "zh9"
+      ]
+    },
+    {
+      "group": "中文",
+      "query": "物流",
+      "expected": [
+        "zh10"
+      ]
+    },
+    {
+      "group": "中文",
+      "query": "回访",
+      "expected": [
+        "zh11"
+      ]
+    },
+    {
+      "group": "中文",
+      "query": "入职",
+      "expected": [
+        "zh12"
+      ]
+    },
+    {
+      "group": "中文",
+      "query": "考勤",
+      "expected": [
+        "zh13"
+      ]
+    },
+    {
+      "group": "中文",
+      "query": "请假",
+      "expected": [
+        "zh14"
+      ]
+    },
+    {
+      "group": "中文",
+      "query": "排班",
+      "expected": [
+        "zh15"
+      ]
+    },
+    {
+      "group": "中文",
+      "query": "培训",
+      "expected": [
+        "zh16"
+      ]
+    },
+    {
+      "group": "中文",
+      "query": "离职",
+      "expected": [
+        "zh17"
+      ]
+    },
+    {
+      "group": "中文",
+      "query": "备份",
+      "expected": [
+        "zh18"
+      ]
+    },
+    {
+      "group": "中文",
+      "query": "恢复",
+      "expected": [
+        "zh19"
+      ]
+    },
+    {
+      "group": "中文",
+      "query": "迁移",
+      "expected": [
+        "zh20"
+      ]
+    },
+    {
+      "group": "中文",
+      "query": "索引",
+      "expected": [
+        "zh21"
+      ]
+    },
+    {
+      "group": "中文",
+      "query": "限流",
+      "expected": [
+        "zh22"
+      ]
+    },
+    {
+      "group": "中文",
+      "query": "熔断",
+      "expected": [
+        "zh23"
+      ]
+    },
+    {
+      "group": "中文",
+      "query": "监控",
+      "expected": [
+        "zh24"
+      ]
+    },
+    {
+      "group": "中文",
+      "query": "告警",
+      "expected": [
+        "zh25"
+      ]
+    },
+    {
+      "group": "中文",
+      "query": "续租",
+      "expected": [
+        "zh26"
+      ]
+    },
+    {
+      "group": "中文",
+      "query": "回滚",
+      "expected": [
+        "zh27"
+      ]
+    },
+    {
+      "group": "中文",
+      "query": "权限",
+      "expected": [
+        "zh28"
+      ]
+    },
+    {
+      "group": "中文",
+      "query": "归档",
+      "expected": [
+        "zh29"
+      ]
+    },
+    {
+      "group": "中文",
+      "query": "不存在的紫晶鹦鹉0",
+      "expected": []
+    },
+    {
+      "group": "中文",
+      "query": "不存在的紫晶鹦鹉1",
+      "expected": []
+    },
+    {
+      "group": "中文",
+      "query": "不存在的紫晶鹦鹉2",
+      "expected": []
+    },
+    {
+      "group": "中文",
+      "query": "不存在的紫晶鹦鹉3",
+      "expected": []
+    },
+    {
+      "group": "中文",
+      "query": "不存在的紫晶鹦鹉4",
+      "expected": []
+    },
+    {
+      "group": "中文",
+      "query": "不存在的紫晶鹦鹉5",
+      "expected": []
+    },
+    {
+      "group": "中文",
+      "query": "不存在的紫晶鹦鹉6",
+      "expected": []
+    },
+    {
+      "group": "中文",
+      "query": "不存在的紫晶鹦鹉7",
+      "expected": []
+    },
+    {
+      "group": "中文",
+      "query": "不存在的紫晶鹦鹉8",
+      "expected": []
+    },
+    {
+      "group": "中文",
+      "query": "不存在的紫晶鹦鹉9",
+      "expected": []
+    },
+    {
+      "group": "英文",
+      "query": "AuthBridge",
+      "expected": [
+        "en0"
+      ]
+    },
+    {
+      "group": "英文",
+      "query": "RetryBudget",
+      "expected": [
+        "en1"
+      ]
+    },
+    {
+      "group": "英文",
+      "query": "ScopeGuard",
+      "expected": [
+        "en2"
+      ]
+    },
+    {
+      "group": "英文",
+      "query": "TenantMapper",
+      "expected": [
+        "en3"
+      ]
+    },
+    {
+      "group": "英文",
+      "query": "EventEnvelope",
+      "expected": [
+        "en4"
+      ]
+    },
+    {
+      "group": "英文",
+      "query": "CursorStore",
+      "expected": [
+        "en5"
+      ]
+    },
+    {
+      "group": "英文",
+      "query": "ReceiptLedger",
+      "expected": [
+        "en6"
+      ]
+    },
+    {
+      "group": "英文",
+      "query": "LeaseWorker",
+      "expected": [
+        "en7"
+      ]
+    },
+    {
+      "group": "英文",
+      "query": "EvidenceLink",
+      "expected": [
+        "en8"
+      ]
+    },
+    {
+      "group": "英文",
+      "query": "TaskRevision",
+      "expected": [
+        "en9"
+      ]
+    },
+    {
+      "group": "英文",
+      "query": "ArchivePolicy",
+      "expected": [
+        "en10"
+      ]
+    },
+    {
+      "group": "英文",
+      "query": "SearchTokenizer",
+      "expected": [
+        "en11"
+      ]
+    },
+    {
+      "group": "英文",
+      "query": "QuotaProbe",
+      "expected": [
+        "en12"
+      ]
+    },
+    {
+      "group": "英文",
+      "query": "ClockAdapter",
+      "expected": [
+        "en13"
+      ]
+    },
+    {
+      "group": "英文",
+      "query": "IdentityKey",
+      "expected": [
+        "en14"
+      ]
+    },
+    {
+      "group": "英文",
+      "query": "MessageParser",
+      "expected": [
+        "en15"
+      ]
+    },
+    {
+      "group": "英文",
+      "query": "PipelineRunner",
+      "expected": [
+        "en16"
+      ]
+    },
+    {
+      "group": "英文",
+      "query": "ProjectFilter",
+      "expected": [
+        "en17"
+      ]
+    },
+    {
+      "group": "英文",
+      "query": "FencingToken",
+      "expected": [
+        "en18"
+      ]
+    },
+    {
+      "group": "英文",
+      "query": "ManualOverride",
+      "expected": [
+        "en19"
+      ]
+    },
+    {
+      "group": "英文",
+      "query": "DecisionOutbox",
+      "expected": [
+        "en20"
+      ]
+    },
+    {
+      "group": "英文",
+      "query": "VersionConflict",
+      "expected": [
+        "en21"
+      ]
+    },
+    {
+      "group": "英文",
+      "query": "ReplayHarness",
+      "expected": [
+        "en22"
+      ]
+    },
+    {
+      "group": "英文",
+      "query": "SignalHandler",
+      "expected": [
+        "en23"
+      ]
+    },
+    {
+      "group": "英文",
+      "query": "DeadlineResolver",
+      "expected": [
+        "en24"
+      ]
+    },
+    {
+      "group": "英文",
+      "query": "AdapterRegistry",
+      "expected": [
+        "en25"
+      ]
+    },
+    {
+      "group": "英文",
+      "query": "SourceGrant",
+      "expected": [
+        "en26"
+      ]
+    },
+    {
+      "group": "英文",
+      "query": "TombstoneHead",
+      "expected": [
+        "en27"
+      ]
+    },
+    {
+      "group": "英文",
+      "query": "BackupWriter",
+      "expected": [
+        "en28"
+      ]
+    },
+    {
+      "group": "英文",
+      "query": "HealthReply",
+      "expected": [
+        "en29"
+      ]
+    },
+    {
+      "group": "英文",
+      "query": "UnseenArtifact0",
+      "expected": []
+    },
+    {
+      "group": "英文",
+      "query": "UnseenArtifact1",
+      "expected": []
+    },
+    {
+      "group": "英文",
+      "query": "UnseenArtifact2",
+      "expected": []
+    },
+    {
+      "group": "英文",
+      "query": "UnseenArtifact3",
+      "expected": []
+    },
+    {
+      "group": "英文",
+      "query": "UnseenArtifact4",
+      "expected": []
+    },
+    {
+      "group": "英文",
+      "query": "UnseenArtifact5",
+      "expected": []
+    },
+    {
+      "group": "英文",
+      "query": "UnseenArtifact6",
+      "expected": []
+    },
+    {
+      "group": "英文",
+      "query": "UnseenArtifact7",
+      "expected": []
+    },
+    {
+      "group": "英文",
+      "query": "UnseenArtifact8",
+      "expected": []
+    },
+    {
+      "group": "英文",
+      "query": "UnseenArtifact9",
+      "expected": []
+    },
+    {
+      "group": "混合",
+      "query": "src/core.ts",
+      "expected": [
+        "mix0"
+      ]
+    },
+    {
+      "group": "混合",
+      "query": "api/v2/events",
+      "expected": [
+        "mix1"
+      ]
+    },
+    {
+      "group": "混合",
+      "query": "@memo/storage",
+      "expected": [
+        "mix2"
+      ]
+    },
+    {
+      "group": "混合",
+      "query": "apps/desktop",
+      "expected": [
+        "mix3"
+      ]
+    },
+    {
+      "group": "混合",
+      "query": "docs/README.md",
+      "expected": [
+        "mix4"
+      ]
+    },
+    {
+      "group": "混合",
+      "query": "feature/login",
+      "expected": [
+        "mix5"
+      ]
+    },
+    {
+      "group": "混合",
+      "query": "fix/lease",
+      "expected": [
+        "mix6"
+      ]
+    },
+    {
+      "group": "混合",
+      "query": "tools/replay",
+      "expected": [
+        "mix7"
+      ]
+    },
+    {
+      "group": "混合",
+      "query": "test:storage",
+      "expected": [
+        "mix8"
+      ]
+    },
+    {
+      "group": "混合",
+      "query": "pnpm-lock.yaml",
+      "expected": [
+        "mix9"
+      ]
+    },
+    {
+      "group": "混合",
+      "query": "user_id",
+      "expected": [
+        "mix10"
+      ]
+    },
+    {
+      "group": "混合",
+      "query": "scope_epoch",
+      "expected": [
+        "mix11"
+      ]
+    },
+    {
+      "group": "混合",
+      "query": "nextCursor",
+      "expected": [
+        "mix12"
+      ]
+    },
+    {
+      "group": "混合",
+      "query": "operation_id",
+      "expected": [
+        "mix13"
+      ]
+    },
+    {
+      "group": "混合",
+      "query": "PR-2048",
+      "expected": [
+        "mix14"
+      ]
+    },
+    {
+      "group": "混合",
+      "query": "BUG-1024",
+      "expected": [
+        "mix15"
+      ]
+    },
+    {
+      "group": "混合",
+      "query": "memo.domain",
+      "expected": [
+        "mix16"
+      ]
+    },
+    {
+      "group": "混合",
+      "query": "index.sqlite",
+      "expected": [
+        "mix17"
+      ]
+    },
+    {
+      "group": "混合",
+      "query": "job.done",
+      "expected": [
+        "mix18"
+      ]
+    },
+    {
+      "group": "混合",
+      "query": "foo-bar",
+      "expected": [
+        "mix19"
+      ]
+    },
+    {
+      "group": "混合",
+      "query": "a_b_c",
+      "expected": [
+        "mix20"
+      ]
+    },
+    {
+      "group": "混合",
+      "query": "S01-S08",
+      "expected": [
+        "mix21"
+      ]
+    },
+    {
+      "group": "混合",
+      "query": "v2.1.0",
+      "expected": [
+        "mix22"
+      ]
+    },
+    {
+      "group": "混合",
+      "query": "GET/events",
+      "expected": [
+        "mix23"
+      ]
+    },
+    {
+      "group": "混合",
+      "query": "build:desktop",
+      "expected": [
+        "mix24"
+      ]
+    },
+    {
+      "group": "混合",
+      "query": "data.backup",
+      "expected": [
+        "mix25"
+      ]
+    },
+    {
+      "group": "混合",
+      "query": "queueHigh",
+      "expected": [
+        "mix26"
+      ]
+    },
+    {
+      "group": "混合",
+      "query": "lease_until",
+      "expected": [
+        "mix27"
+      ]
+    },
+    {
+      "group": "混合",
+      "query": "core.health",
+      "expected": [
+        "mix28"
+      ]
+    },
+    {
+      "group": "混合",
+      "query": "task_fts",
+      "expected": [
+        "mix29"
+      ]
+    },
+    {
+      "group": "混合",
+      "query": "missing/幻影-0",
+      "expected": []
+    },
+    {
+      "group": "混合",
+      "query": "missing/幻影-1",
+      "expected": []
+    },
+    {
+      "group": "混合",
+      "query": "missing/幻影-2",
+      "expected": []
+    },
+    {
+      "group": "混合",
+      "query": "missing/幻影-3",
+      "expected": []
+    },
+    {
+      "group": "混合",
+      "query": "missing/幻影-4",
+      "expected": []
+    },
+    {
+      "group": "混合",
+      "query": "missing/幻影-5",
+      "expected": []
+    },
+    {
+      "group": "混合",
+      "query": "missing/幻影-6",
+      "expected": []
+    },
+    {
+      "group": "混合",
+      "query": "missing/幻影-7",
+      "expected": []
+    },
+    {
+      "group": "混合",
+      "query": "missing/幻影-8",
+      "expected": []
+    },
+    {
+      "group": "混合",
+      "query": "missing/幻影-9",
+      "expected": []
+    }
+  ]
+}

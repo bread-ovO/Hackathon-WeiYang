@@ -6,13 +6,86 @@ import type {
   WorkspaceDetail,
   ReferenceList,
   ReferenceReview,
+  TimelinePage,
+  PlanChangesPage,
+  PlanChangeResult,
+  PlanChangeProposal,
+  ProjectSourceEvents,
+  SourceBindings,
+  IdentityMappings,
+  PetContextFacts,
 } from '@memo/contracts'
 export function handleWorkspace(
   store: ReturnType<typeof openStore>,
   request: WorkspaceRequest,
-): WorkspaceSnapshot | WorkspaceDetail | ReferenceList | ReferenceReview {
+):
+  | WorkspaceSnapshot
+  | WorkspaceDetail
+  | ReferenceList
+  | ReferenceReview
+  | TimelinePage
+  | PlanChangesPage
+  | PlanChangeResult
+  | PlanChangeProposal
+  | ProjectSourceEvents
+  | SourceBindings
+  | IdentityMappings
+  | PetContextFacts
+  | { valid: boolean } {
   const by = { actorId: 'local-user', reason: '用户在我的工作区手动操作' }
   switch (request.method) {
+    case 'workspace.petContextFacts':
+      return store.petContext.facts(request.projectIds)
+    case 'workspace.validatePetContextFact':
+      return { valid: store.petContext.validate(request.fact) }
+    case 'workspace.sourceEvents': {
+      const { method: _, ...input } = request
+      return store.sourceAssociations.sourceEvents(input)
+    }
+    case 'workspace.sourceBindings': {
+      const { method: _, ...input } = request
+      return store.sourceAssociations.sourceBindings(input)
+    }
+    case 'workspace.bindSourceObject': {
+      const { method: _, ...input } = request
+      return store.sourceAssociations.bindSourceObject(input, 'local-user')
+    }
+    case 'workspace.revokeSourceBinding': {
+      const { method: _, ...input } = request
+      return store.sourceAssociations.revokeSourceBinding(input, 'local-user')
+    }
+    case 'workspace.identityMappings': {
+      const { method: _, ...input } = request
+      return store.sourceAssociations.identityMappings(input)
+    }
+    case 'workspace.confirmIdentityMapping': {
+      const { method: _, ...input } = request
+      return store.sourceAssociations.confirmIdentityMapping(
+        input,
+        'local-user',
+      )
+    }
+    case 'workspace.revokeIdentityMapping': {
+      const { method: _, ...input } = request
+      return store.sourceAssociations.revokeIdentityMapping(input, 'local-user')
+    }
+
+    case 'workspace.reevaluatePlanChange': {
+      const { method: _, ...input } = request
+      return store.planChanges.reevaluate(input, 'local-user')
+    }
+    case 'workspace.planChanges': {
+      const { method: _, ...input } = request
+      return store.planChanges.list(input)
+    }
+    case 'workspace.confirmPlanChange': {
+      const { method: _, ...input } = request
+      return { task: store.planChanges.confirm(input, 'local-user') }
+    }
+    case 'workspace.timeline': {
+      const { method: _, ...input } = request
+      return store.timeline.list(input)
+    }
     case 'workspace.listReferences': {
       const { method: _, ...input } = request
       return store.revisionReview.listReferences(input)

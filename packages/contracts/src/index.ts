@@ -1,3 +1,20 @@
+import type {
+  PetContextState,
+  PetContextConfig,
+  PetContextPreview,
+} from './pet-context'
+export * from './pet-context'
+export * from './pet-context-facts'
+import {
+  feishuRequestSchema,
+  createFeishuHostRequestSchema,
+  type FeishuRequest,
+  type FeishuHostRequest,
+  type FeishuSnapshot,
+  type FeishuRecords,
+  type FeishuConnectionError,
+} from './feishu'
+export * from './feishu'
 import {
   githubRequestSchema,
   createGithubHostRequestSchema,
@@ -65,12 +82,39 @@ import {
   type WorkspaceDetail,
   type ReferenceList,
   type ReferenceReview,
+  type TimelinePage,
+  type PlanChangesPage,
+  type PlanChangeResult,
+  type PlanChangeProposal,
+  type ProjectSourceEvents,
+  type SourceBindings,
+  type IdentityMappings,
 } from './workspace'
 export * from './workspace'
 import Ajv from 'ajv'
 import type { FromSchema } from 'json-schema-to-ts'
 
 // JSON Schema is the runtime boundary; TypeScript types are derived from it.
+const metadataIdentity = {
+  type: 'string',
+  minLength: 1,
+  maxLength: 256,
+  pattern: '^[^\\s\\u0000-\\u001f\\u007f]+$',
+} as const
+export const sourceEventMetadataSchema = {
+  type: 'object',
+  additionalProperties: false,
+  minProperties: 1,
+  properties: {
+    author: {
+      type: 'object',
+      additionalProperties: false,
+      required: ['namespace', 'subjectId'],
+      properties: { namespace: metadataIdentity, subjectId: metadataIdentity },
+    },
+    replyToExternalId: metadataIdentity,
+  },
+} as const
 export const sourceEventSchema = {
   type: 'object',
   additionalProperties: false,
@@ -92,6 +136,7 @@ export const sourceEventSchema = {
     role: { enum: ['user', 'assistant', 'tool', 'system'] },
     text: { type: 'string', maxLength: 65536 },
     operation: { enum: ['upsert', 'retract'] },
+    metadata: sourceEventMetadataSchema,
   },
   allOf: [
     {
@@ -167,6 +212,7 @@ const coreRequestSchema = {
   oneOf: [
     healthRequestSchema,
     githubRequestSchema,
+    feishuRequestSchema,
     processingRequestSchema,
     ingestionRequestSchema,
     workspaceRequestSchema,
@@ -197,6 +243,7 @@ export type HostRequest =
         method:
           | PetRequest['method']
           | GithubRequest['method']
+          | FeishuRequest['method']
           | 'sources.chooseFile'
           | 'exports.save'
           | 'credentials.list'
@@ -221,6 +268,7 @@ export type HostRequest =
   | ExportBuildRequest
   | PluginHostRequest
   | GithubHostRequest
+  | FeishuHostRequest
 const validateImportFile = ajv.compile<ImportFileRequest>(
   importFileRequestSchema,
 )
@@ -234,7 +282,11 @@ const validatePluginHost = ajv.compile<PluginHostRequest>(
 const validateGithubHost = ajv.compile<GithubHostRequest>(
   createGithubHostRequestSchema(sourceEventSchema),
 )
+const validateFeishuHost = ajv.compile<FeishuHostRequest>(
+  createFeishuHostRequestSchema(sourceEventSchema),
+)
 export function parseHostRequest(value: unknown): HostRequest {
+  if (validateFeishuHost(value)) return value
   if (validateGithubHost(value)) return value
   if (validatePluginHost(value)) {
     if (value.method === 'pluginHost.activate') {
@@ -254,12 +306,24 @@ export function parseHostRequest(value: unknown): HostRequest {
   if (validateImportFile(value)) return value
   const request = parseCoreRequest(value)
   if (
+    request.method === 'feishu.list' ||
+    request.method === 'feishu.connect' ||
+    request.method === 'feishu.setEnabled' ||
+    request.method === 'feishu.revoke' ||
+    request.method === 'feishu.sync' ||
+    request.method === 'feishu.restartWindow' ||
+    request.method === 'feishu.records' ||
     request.method === 'github.list' ||
     request.method === 'github.connect' ||
     request.method === 'github.setEnabled' ||
     request.method === 'github.revoke' ||
     request.method === 'github.sync' ||
     request.method === 'github.records' ||
+    request.method === 'pet.contextState' ||
+    request.method === 'pet.configureContext' ||
+    request.method === 'pet.previewContext' ||
+    request.method === 'pet.cancelContext' ||
+    request.method === 'pet.showContext' ||
     request.method === 'pet.play' ||
     request.method === 'pet.speak' ||
     request.method === 'pet.dismissBubble' ||
@@ -307,6 +371,13 @@ export type CoreReply<T = Health> =
         | 'REFERENCE_REVIEW_CONFLICT'
         | 'REFERENCE_RETRACTED'
         | 'REFERENCE_ALREADY_INVALID'
+        | FeishuConnectionError
+        | 'FEISHU_CANCELLED'
+        | 'FEISHU_BUSY'
+        | 'FEISHU_NOT_DUE'
+        | 'FEISHU_INVALID'
+        | 'FEISHU_UNAVAILABLE'
+        | 'FEISHU_FAILED'
         | GithubConnectionError
         | 'GITHUB_CANCELLED'
         | 'GITHUB_BUSY'
@@ -316,9 +387,34 @@ export type CoreReply<T = Health> =
         | 'GITHUB_FAILED'
         | 'CORE_UNAVAILABLE'
         | 'INVALID_REQUEST'
+        | 'PET_MODEL_OFFLINE'
+        | 'PET_MODEL_TIMEOUT'
+        | 'PET_MODEL_INVALID_RESPONSE'
+        | 'PET_MODEL_CANCELLED'
+        | 'PET_MODEL_UNAVAILABLE'
+        | 'PET_MODEL_BUSY'
+        | 'PET_CONTEXT_STORAGE_ERROR'
+        | 'PET_CONTEXT_CONFLICT'
+        | 'PET_CONTEXT_EXPIRED'
+        | 'PET_CONTEXT_BUDGET'
+        | 'PET_CONTEXT_COOLDOWN'
+        | 'PET_CONTEXT_INVALID_INPUT'
+        | 'PET_CONTEXT_UNAVAILABLE'
         | 'INTERNAL_ERROR'
+        | 'ASSOCIATION_INVALID_INPUT'
+        | 'ASSOCIATION_NOT_FOUND'
+        | 'ASSOCIATION_CONFLICT'
+        | 'ASSOCIATION_UNAVAILABLE'
+        | 'ASSOCIATION_LIMIT_EXCEEDED'
+        | 'ASSOCIATION_CORRUPT_DATA'
+        | 'ASSOCIATION_INVALID_CURSOR'
+        | 'PLAN_CHANGE_INVALID_INPUT'
+        | 'PLAN_CHANGE_NOT_FOUND'
+        | 'PLAN_CHANGE_NOT_APPLICABLE'
         | 'VERSION_CONFLICT'
         | 'NOT_FOUND'
+        | 'TIMELINE_INVALID_CURSOR'
+        | 'TIMELINE_CORRUPT_DATA'
         | 'EXPORT_LIMIT_EXCEEDED'
         | 'EXPORT_INVALID_DATA'
         | 'EXPORT_WRITE_FAILED'
@@ -345,6 +441,29 @@ export type CoreReply<T = Health> =
         | 'INGESTION_PROBE_UNAVAILABLE'
     }
 export interface DesktopBridge {
+  onOpenTask(
+    callback: (target: { projectId: string; taskId: string }) => void,
+  ): () => void
+
+  feishu: {
+    list(): Promise<CoreReply<FeishuSnapshot>>
+    connect(
+      input: Omit<
+        Extract<FeishuRequest, { method: 'feishu.connect' }>,
+        'method'
+      >,
+    ): Promise<CoreReply<FeishuSnapshot>>
+    setEnabled(id: string, enabled: boolean): Promise<CoreReply<FeishuSnapshot>>
+    revoke(id: string): Promise<CoreReply<FeishuSnapshot>>
+    sync(id: string): Promise<CoreReply<FeishuSnapshot>>
+    restartWindow(id: string): Promise<CoreReply<FeishuSnapshot>>
+    records(
+      input: Omit<
+        Extract<FeishuRequest, { method: 'feishu.records' }>,
+        'method'
+      >,
+    ): Promise<CoreReply<FeishuRecords>>
+  }
   github: {
     list(): Promise<CoreReply<GithubSnapshot>>
     connect(
@@ -372,6 +491,15 @@ export interface DesktopBridge {
     configure(enabled: boolean): Promise<CoreReply<ProcessingStatus>>
   }
   pet: {
+    contextState(): Promise<CoreReply<PetContextState>>
+    configureContext(input: {
+      expectedVersion: number
+      config: Omit<PetContextConfig, 'version'>
+    }): Promise<CoreReply<PetContextState>>
+    previewContext(): Promise<CoreReply<PetContextPreview>>
+    cancelContext(): Promise<CoreReply<PetContextState>>
+    showContext(id: string): Promise<CoreReply<PetContextState>>
+
     configureSpeech(patch: PetSpeechPatch): Promise<CoreReply<PetState>>
     play(actionId: string): Promise<CoreReply<PetState>>
     speak(input: {
@@ -423,6 +551,72 @@ export interface DesktopBridge {
     revoke(id: string): Promise<CoreReply<SourcesSnapshot>>
   }
   workspace: {
+    sourceEvents(
+      request: Omit<
+        Extract<CoreRequest, { method: 'workspace.sourceEvents' }>,
+        'method'
+      >,
+    ): Promise<CoreReply<ProjectSourceEvents>>
+    sourceBindings(
+      request: Omit<
+        Extract<CoreRequest, { method: 'workspace.sourceBindings' }>,
+        'method'
+      >,
+    ): Promise<CoreReply<SourceBindings>>
+    bindSourceObject(
+      request: Omit<
+        Extract<CoreRequest, { method: 'workspace.bindSourceObject' }>,
+        'method'
+      >,
+    ): Promise<CoreReply<SourceBindings>>
+    revokeSourceBinding(
+      request: Omit<
+        Extract<CoreRequest, { method: 'workspace.revokeSourceBinding' }>,
+        'method'
+      >,
+    ): Promise<CoreReply<SourceBindings>>
+    identityMappings(
+      request: Omit<
+        Extract<CoreRequest, { method: 'workspace.identityMappings' }>,
+        'method'
+      >,
+    ): Promise<CoreReply<IdentityMappings>>
+    confirmIdentityMapping(
+      request: Omit<
+        Extract<CoreRequest, { method: 'workspace.confirmIdentityMapping' }>,
+        'method'
+      >,
+    ): Promise<CoreReply<IdentityMappings>>
+    revokeIdentityMapping(
+      request: Omit<
+        Extract<CoreRequest, { method: 'workspace.revokeIdentityMapping' }>,
+        'method'
+      >,
+    ): Promise<CoreReply<IdentityMappings>>
+    reevaluatePlanChange(
+      request: Omit<
+        Extract<CoreRequest, { method: 'workspace.reevaluatePlanChange' }>,
+        'method'
+      >,
+    ): Promise<CoreReply<PlanChangeProposal>>
+    planChanges(
+      request: Omit<
+        Extract<CoreRequest, { method: 'workspace.planChanges' }>,
+        'method'
+      >,
+    ): Promise<CoreReply<PlanChangesPage>>
+    confirmPlanChange(
+      request: Omit<
+        Extract<CoreRequest, { method: 'workspace.confirmPlanChange' }>,
+        'method'
+      >,
+    ): Promise<CoreReply<PlanChangeResult>>
+    timeline(
+      request: Omit<
+        Extract<CoreRequest, { method: 'workspace.timeline' }>,
+        'method'
+      >,
+    ): Promise<CoreReply<TimelinePage>>
     listReferences(
       request: Omit<
         Extract<CoreRequest, { method: 'workspace.listReferences' }>,

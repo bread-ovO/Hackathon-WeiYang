@@ -1,3 +1,5 @@
+import { PetContextSettings } from './pet-context-settings'
+import { FeishuPanel } from './feishu-panel'
 import { GithubPanel } from './github-panel'
 import { IngestionPanel } from './ingestion-panel'
 import { ProcessingPanel } from './processing-panel'
@@ -83,6 +85,20 @@ function Icon({ name, size = 18 }: { name: IconName; size?: number }) {
 }
 const filters = ['全部', '进行中', '等待反馈', '待确认', '已完成'] as const
 function App() {
+  const [pendingPetTask, setPendingPetTask] = useState<{
+    projectId: string
+    taskId: string
+  } | null>(null)
+  const [petTarget, setPetTarget] = useState<{
+    projectId: string
+    taskId: string
+    nonce: number
+  } | null>(null)
+  useEffect(
+    () => window.memo.onOpenTask((target) => setPendingPetTask(target)),
+    [],
+  )
+
   const [health, setHealth] = useState<Health | null>(null),
     [error, setError] = useState(false)
   const [page, setPage] = useState('跟进'),
@@ -283,6 +299,27 @@ function App() {
         </div>
       </aside>
       <WorkspacePanel>
+        {pendingPetTask && (
+          <section className="pet-navigation-prompt" role="status">
+            <p>
+              桌宠提到了一项事项。当前事项编辑草稿会暂存在本窗口（最多20项）。
+            </p>
+            <AppButton
+              onClick={() => {
+                setPage('跟进')
+                setDemo(false)
+                setPetTarget({ ...pendingPetTask, nonce: Date.now() })
+                setPendingPetTask(null)
+              }}
+            >
+              打开桌宠提到的事项
+            </AppButton>
+            <AppButton onClick={() => setPendingPetTask(null)}>
+              留在当前页面
+            </AppButton>
+          </section>
+        )}
+
         <header className="topbar">
           <div className="breadcrumb">
             个人空间<span>/</span>
@@ -317,7 +354,7 @@ function App() {
           </div>
         </header>
         {page === '跟进' && !demo ? (
-          <RealWorkspace onCount={setRealCount} />
+          <RealWorkspace onCount={setRealCount} openTask={petTarget} />
         ) : page === '跟进' ? (
           <>
             <div className="page-heading">
@@ -678,19 +715,22 @@ function App() {
             <IngestionPanel />
             <ProcessingPanel />
             <SourceImport />
+            <FeishuPanel />
             <GithubPanel />
             <PluginManager />
             <div className="connection-summary">
               <Icon name="link" />
               <span>可手动导入本地 JSONL 导出</span>
-              <small>已支持指定 GitHub 仓库的 PR 采样；飞书专用连接仍在开发</small>
+              <small>
+                已支持指定 GitHub 仓库的 PR
+                采样；已支持选定飞书会话的分窗历史采样
+              </small>
             </div>
             <div className="section-heading">
               <h3>后续接入方向</h3>
-              <span>3 种来源</span>
+              <span>2 种来源</span>
             </div>
             {[
-              ['chat', '飞书', '从授权对话中发现承诺、变更与反馈', 'blue'],
               [
                 'terminal',
                 '本地 AI 会话',
@@ -756,6 +796,7 @@ function App() {
               </p>
             </section>
             <CredentialsPanel />
+            <PetContextSettings />
             <PetModels />
             <div className="connection-note">
               <h3>关于设计预览</h3>

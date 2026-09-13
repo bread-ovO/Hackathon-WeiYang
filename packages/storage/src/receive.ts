@@ -1,3 +1,4 @@
+import { serializeEventMetadata, storedMetadataMatches } from './event-metadata'
 import type Database from 'better-sqlite3'
 import { parseSourceEvent, type SourceEvent } from '@memo/contracts'
 
@@ -17,19 +18,21 @@ export function createEventReceiver(
       throw new Error('UNKNOWN_SOURCE')
     const prior = db
       .prepare(
-        'SELECT content,role,occurred_at,operation FROM source_events WHERE source_id=? AND external_id=? AND revision=?',
+        'SELECT content,role,occurred_at,operation,metadata_json FROM source_events WHERE source_id=? AND external_id=? AND revision=?',
       )
       .get(event.sourceInstanceId, event.externalId, event.revision) as
       | {
           content: string
           role: string
           occurred_at: string
+          metadata_json: string | null
           operation: string
         }
       | undefined
     if (
       prior &&
-      (prior.operation !== (event.operation ?? 'upsert') ||
+      (!storedMetadataMatches(prior.metadata_json, event.metadata) ||
+        prior.operation !== (event.operation ?? 'upsert') ||
         prior.content !== event.text ||
         prior.role !== event.role ||
         prior.occurred_at !== event.occurredAt)
@@ -47,7 +50,7 @@ export function createEventReceiver(
     const result = db
       .prepare(
         `INSERT INTO source_events
-      (source_id,external_id,revision,occurred_at,received_at,role,content,operation) VALUES (?,?,?,?,?,?,?,?)`,
+      (source_id,external_id,revision,occurred_at,received_at,role,content,operation,metadata_json) VALUES (?,?,?,?,?,?,?,?,?)`,
       )
       .run(
         event.sourceInstanceId,
@@ -58,6 +61,7 @@ export function createEventReceiver(
         event.role,
         event.text,
         event.operation ?? 'upsert',
+        serializeEventMetadata(event.metadata),
       )
     const id = Number(result.lastInsertRowid)
     if (!Number.isSafeInteger(id)) throw new Error('INVALID_EVENT_ID')

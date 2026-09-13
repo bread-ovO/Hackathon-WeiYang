@@ -1,0 +1,1288 @@
+{
+  "fixture": "synthetic-holdout-v1",
+  "tokenizer": "zh-bigram-code-v1",
+  "macroRecallAt20": 1,
+  "groups": {
+    "中文": {
+      "positive": 30,
+      "recall": 30,
+      "negative": 10,
+      "negativeCandidates": 162
+    },
+    "英文": {
+      "positive": 30,
+      "recall": 30,
+      "negative": 10,
+      "negativeCandidates": 200
+    },
+    "混合": {
+      "positive": 30,
+      "recall": 30,
+      "negative": 10,
+      "negativeCandidates": 162
+    }
+  },
+  "misses": [],
+  "cases": [
+    {
+      "group": "中文",
+      "query": "登录",
+      "expected": [
+        "zh0"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 1
+    },
+    {
+      "group": "中文",
+      "query": "付款",
+      "expected": [
+        "zh1"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 1
+    },
+    {
+      "group": "中文",
+      "query": "开票",
+      "expected": [
+        "zh2"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 1
+    },
+    {
+      "group": "中文",
+      "query": "报销",
+      "expected": [
+        "zh3"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 1
+    },
+    {
+      "group": "中文",
+      "query": "退款",
+      "expected": [
+        "zh4"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 1
+    },
+    {
+      "group": "中文",
+      "query": "预约",
+      "expected": [
+        "zh5"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 1
+    },
+    {
+      "group": "中文",
+      "query": "审核",
+      "expected": [
+        "zh6"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 1
+    },
+    {
+      "group": "中文",
+      "query": "签约",
+      "expected": [
+        "zh7"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 1
+    },
+    {
+      "group": "中文",
+      "query": "对账",
+      "expected": [
+        "zh8"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 1
+    },
+    {
+      "group": "中文",
+      "query": "库存",
+      "expected": [
+        "zh9"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 1
+    },
+    {
+      "group": "中文",
+      "query": "物流",
+      "expected": [
+        "zh10"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 1
+    },
+    {
+      "group": "中文",
+      "query": "回访",
+      "expected": [
+        "zh11"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 1
+    },
+    {
+      "group": "中文",
+      "query": "入职",
+      "expected": [
+        "zh12"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 1
+    },
+    {
+      "group": "中文",
+      "query": "考勤",
+      "expected": [
+        "zh13"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 1
+    },
+    {
+      "group": "中文",
+      "query": "请假",
+      "expected": [
+        "zh14"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 1
+    },
+    {
+      "group": "中文",
+      "query": "排班",
+      "expected": [
+        "zh15"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 1
+    },
+    {
+      "group": "中文",
+      "query": "培训",
+      "expected": [
+        "zh16"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 1
+    },
+    {
+      "group": "中文",
+      "query": "离职",
+      "expected": [
+        "zh17"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 1
+    },
+    {
+      "group": "中文",
+      "query": "备份",
+      "expected": [
+        "zh18"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 1
+    },
+    {
+      "group": "中文",
+      "query": "恢复",
+      "expected": [
+        "zh19"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 1
+    },
+    {
+      "group": "中文",
+      "query": "迁移",
+      "expected": [
+        "zh20"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 1
+    },
+    {
+      "group": "中文",
+      "query": "索引",
+      "expected": [
+        "zh21"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 1
+    },
+    {
+      "group": "中文",
+      "query": "限流",
+      "expected": [
+        "zh22"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 2
+    },
+    {
+      "group": "中文",
+      "query": "熔断",
+      "expected": [
+        "zh23"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 1
+    },
+    {
+      "group": "中文",
+      "query": "监控",
+      "expected": [
+        "zh24"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 1
+    },
+    {
+      "group": "中文",
+      "query": "告警",
+      "expected": [
+        "zh25"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 1
+    },
+    {
+      "group": "中文",
+      "query": "续租",
+      "expected": [
+        "zh26"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 1
+    },
+    {
+      "group": "中文",
+      "query": "回滚",
+      "expected": [
+        "zh27"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 1
+    },
+    {
+      "group": "中文",
+      "query": "权限",
+      "expected": [
+        "zh28"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 1
+    },
+    {
+      "group": "中文",
+      "query": "归档",
+      "expected": [
+        "zh29"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 1
+    },
+    {
+      "group": "中文",
+      "query": "不存在的紫晶鹦鹉0",
+      "expected": [],
+      "rank": null,
+      "recall": null,
+      "fallback": null,
+      "candidateCount": 1
+    },
+    {
+      "group": "中文",
+      "query": "不存在的紫晶鹦鹉1",
+      "expected": [],
+      "rank": null,
+      "recall": null,
+      "fallback": null,
+      "candidateCount": 1
+    },
+    {
+      "group": "中文",
+      "query": "不存在的紫晶鹦鹉2",
+      "expected": [],
+      "rank": null,
+      "recall": null,
+      "fallback": "recent",
+      "candidateCount": 20
+    },
+    {
+      "group": "中文",
+      "query": "不存在的紫晶鹦鹉3",
+      "expected": [],
+      "rank": null,
+      "recall": null,
+      "fallback": "recent",
+      "candidateCount": 20
+    },
+    {
+      "group": "中文",
+      "query": "不存在的紫晶鹦鹉4",
+      "expected": [],
+      "rank": null,
+      "recall": null,
+      "fallback": "recent",
+      "candidateCount": 20
+    },
+    {
+      "group": "中文",
+      "query": "不存在的紫晶鹦鹉5",
+      "expected": [],
+      "rank": null,
+      "recall": null,
+      "fallback": "recent",
+      "candidateCount": 20
+    },
+    {
+      "group": "中文",
+      "query": "不存在的紫晶鹦鹉6",
+      "expected": [],
+      "rank": null,
+      "recall": null,
+      "fallback": "recent",
+      "candidateCount": 20
+    },
+    {
+      "group": "中文",
+      "query": "不存在的紫晶鹦鹉7",
+      "expected": [],
+      "rank": null,
+      "recall": null,
+      "fallback": "recent",
+      "candidateCount": 20
+    },
+    {
+      "group": "中文",
+      "query": "不存在的紫晶鹦鹉8",
+      "expected": [],
+      "rank": null,
+      "recall": null,
+      "fallback": "recent",
+      "candidateCount": 20
+    },
+    {
+      "group": "中文",
+      "query": "不存在的紫晶鹦鹉9",
+      "expected": [],
+      "rank": null,
+      "recall": null,
+      "fallback": "recent",
+      "candidateCount": 20
+    },
+    {
+      "group": "英文",
+      "query": "AuthBridge",
+      "expected": [
+        "en0"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 1
+    },
+    {
+      "group": "英文",
+      "query": "RetryBudget",
+      "expected": [
+        "en1"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 1
+    },
+    {
+      "group": "英文",
+      "query": "ScopeGuard",
+      "expected": [
+        "en2"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 2
+    },
+    {
+      "group": "英文",
+      "query": "TenantMapper",
+      "expected": [
+        "en3"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 1
+    },
+    {
+      "group": "英文",
+      "query": "EventEnvelope",
+      "expected": [
+        "en4"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 1
+    },
+    {
+      "group": "英文",
+      "query": "CursorStore",
+      "expected": [
+        "en5"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 2
+    },
+    {
+      "group": "英文",
+      "query": "ReceiptLedger",
+      "expected": [
+        "en6"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 1
+    },
+    {
+      "group": "英文",
+      "query": "LeaseWorker",
+      "expected": [
+        "en7"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 3
+    },
+    {
+      "group": "英文",
+      "query": "EvidenceLink",
+      "expected": [
+        "en8"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 1
+    },
+    {
+      "group": "英文",
+      "query": "TaskRevision",
+      "expected": [
+        "en9"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 2
+    },
+    {
+      "group": "英文",
+      "query": "ArchivePolicy",
+      "expected": [
+        "en10"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 1
+    },
+    {
+      "group": "英文",
+      "query": "SearchTokenizer",
+      "expected": [
+        "en11"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 1
+    },
+    {
+      "group": "英文",
+      "query": "QuotaProbe",
+      "expected": [
+        "en12"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 1
+    },
+    {
+      "group": "英文",
+      "query": "ClockAdapter",
+      "expected": [
+        "en13"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 2
+    },
+    {
+      "group": "英文",
+      "query": "IdentityKey",
+      "expected": [
+        "en14"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 1
+    },
+    {
+      "group": "英文",
+      "query": "MessageParser",
+      "expected": [
+        "en15"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 1
+    },
+    {
+      "group": "英文",
+      "query": "PipelineRunner",
+      "expected": [
+        "en16"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 1
+    },
+    {
+      "group": "英文",
+      "query": "ProjectFilter",
+      "expected": [
+        "en17"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 1
+    },
+    {
+      "group": "英文",
+      "query": "FencingToken",
+      "expected": [
+        "en18"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 1
+    },
+    {
+      "group": "英文",
+      "query": "ManualOverride",
+      "expected": [
+        "en19"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 1
+    },
+    {
+      "group": "英文",
+      "query": "DecisionOutbox",
+      "expected": [
+        "en20"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 1
+    },
+    {
+      "group": "英文",
+      "query": "VersionConflict",
+      "expected": [
+        "en21"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 1
+    },
+    {
+      "group": "英文",
+      "query": "ReplayHarness",
+      "expected": [
+        "en22"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 2
+    },
+    {
+      "group": "英文",
+      "query": "SignalHandler",
+      "expected": [
+        "en23"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 1
+    },
+    {
+      "group": "英文",
+      "query": "DeadlineResolver",
+      "expected": [
+        "en24"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 1
+    },
+    {
+      "group": "英文",
+      "query": "AdapterRegistry",
+      "expected": [
+        "en25"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 2
+    },
+    {
+      "group": "英文",
+      "query": "SourceGrant",
+      "expected": [
+        "en26"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 1
+    },
+    {
+      "group": "英文",
+      "query": "TombstoneHead",
+      "expected": [
+        "en27"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 1
+    },
+    {
+      "group": "英文",
+      "query": "BackupWriter",
+      "expected": [
+        "en28"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 2
+    },
+    {
+      "group": "英文",
+      "query": "HealthReply",
+      "expected": [
+        "en29"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 2
+    },
+    {
+      "group": "英文",
+      "query": "UnseenArtifact0",
+      "expected": [],
+      "rank": null,
+      "recall": null,
+      "fallback": "recent",
+      "candidateCount": 20
+    },
+    {
+      "group": "英文",
+      "query": "UnseenArtifact1",
+      "expected": [],
+      "rank": null,
+      "recall": null,
+      "fallback": "recent",
+      "candidateCount": 20
+    },
+    {
+      "group": "英文",
+      "query": "UnseenArtifact2",
+      "expected": [],
+      "rank": null,
+      "recall": null,
+      "fallback": "recent",
+      "candidateCount": 20
+    },
+    {
+      "group": "英文",
+      "query": "UnseenArtifact3",
+      "expected": [],
+      "rank": null,
+      "recall": null,
+      "fallback": "recent",
+      "candidateCount": 20
+    },
+    {
+      "group": "英文",
+      "query": "UnseenArtifact4",
+      "expected": [],
+      "rank": null,
+      "recall": null,
+      "fallback": "recent",
+      "candidateCount": 20
+    },
+    {
+      "group": "英文",
+      "query": "UnseenArtifact5",
+      "expected": [],
+      "rank": null,
+      "recall": null,
+      "fallback": "recent",
+      "candidateCount": 20
+    },
+    {
+      "group": "英文",
+      "query": "UnseenArtifact6",
+      "expected": [],
+      "rank": null,
+      "recall": null,
+      "fallback": "recent",
+      "candidateCount": 20
+    },
+    {
+      "group": "英文",
+      "query": "UnseenArtifact7",
+      "expected": [],
+      "rank": null,
+      "recall": null,
+      "fallback": "recent",
+      "candidateCount": 20
+    },
+    {
+      "group": "英文",
+      "query": "UnseenArtifact8",
+      "expected": [],
+      "rank": null,
+      "recall": null,
+      "fallback": "recent",
+      "candidateCount": 20
+    },
+    {
+      "group": "英文",
+      "query": "UnseenArtifact9",
+      "expected": [],
+      "rank": null,
+      "recall": null,
+      "fallback": "recent",
+      "candidateCount": 20
+    },
+    {
+      "group": "混合",
+      "query": "src/core.ts",
+      "expected": [
+        "mix0"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 2
+    },
+    {
+      "group": "混合",
+      "query": "api/v2/events",
+      "expected": [
+        "mix1"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 3
+    },
+    {
+      "group": "混合",
+      "query": "@memo/storage",
+      "expected": [
+        "mix2"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 3
+    },
+    {
+      "group": "混合",
+      "query": "apps/desktop",
+      "expected": [
+        "mix3"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 2
+    },
+    {
+      "group": "混合",
+      "query": "docs/README.md",
+      "expected": [
+        "mix4"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 1
+    },
+    {
+      "group": "混合",
+      "query": "feature/login",
+      "expected": [
+        "mix5"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 1
+    },
+    {
+      "group": "混合",
+      "query": "fix/lease",
+      "expected": [
+        "mix6"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 3
+    },
+    {
+      "group": "混合",
+      "query": "tools/replay",
+      "expected": [
+        "mix7"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 2
+    },
+    {
+      "group": "混合",
+      "query": "test:storage",
+      "expected": [
+        "mix8"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 2
+    },
+    {
+      "group": "混合",
+      "query": "pnpm-lock.yaml",
+      "expected": [
+        "mix9"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 1
+    },
+    {
+      "group": "混合",
+      "query": "user_id",
+      "expected": [
+        "mix10"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 2
+    },
+    {
+      "group": "混合",
+      "query": "scope_epoch",
+      "expected": [
+        "mix11"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 2
+    },
+    {
+      "group": "混合",
+      "query": "nextCursor",
+      "expected": [
+        "mix12"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 2
+    },
+    {
+      "group": "混合",
+      "query": "operation_id",
+      "expected": [
+        "mix13"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 2
+    },
+    {
+      "group": "混合",
+      "query": "PR-2048",
+      "expected": [
+        "mix14"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 1
+    },
+    {
+      "group": "混合",
+      "query": "BUG-1024",
+      "expected": [
+        "mix15"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 1
+    },
+    {
+      "group": "混合",
+      "query": "memo.domain",
+      "expected": [
+        "mix16"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 2
+    },
+    {
+      "group": "混合",
+      "query": "index.sqlite",
+      "expected": [
+        "mix17"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 1
+    },
+    {
+      "group": "混合",
+      "query": "job.done",
+      "expected": [
+        "mix18"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 1
+    },
+    {
+      "group": "混合",
+      "query": "foo-bar",
+      "expected": [
+        "mix19"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 1
+    },
+    {
+      "group": "混合",
+      "query": "a_b_c",
+      "expected": [
+        "mix20"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 1
+    },
+    {
+      "group": "混合",
+      "query": "S01-S08",
+      "expected": [
+        "mix21"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 1
+    },
+    {
+      "group": "混合",
+      "query": "v2.1.0",
+      "expected": [
+        "mix22"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 2
+    },
+    {
+      "group": "混合",
+      "query": "GET/events",
+      "expected": [
+        "mix23"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 2
+    },
+    {
+      "group": "混合",
+      "query": "build:desktop",
+      "expected": [
+        "mix24"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 2
+    },
+    {
+      "group": "混合",
+      "query": "data.backup",
+      "expected": [
+        "mix25"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 2
+    },
+    {
+      "group": "混合",
+      "query": "queueHigh",
+      "expected": [
+        "mix26"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 1
+    },
+    {
+      "group": "混合",
+      "query": "lease_until",
+      "expected": [
+        "mix27"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 3
+    },
+    {
+      "group": "混合",
+      "query": "core.health",
+      "expected": [
+        "mix28"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 3
+    },
+    {
+      "group": "混合",
+      "query": "task_fts",
+      "expected": [
+        "mix29"
+      ],
+      "rank": 1,
+      "recall": 1,
+      "fallback": null,
+      "candidateCount": 2
+    },
+    {
+      "group": "混合",
+      "query": "missing/幻影-0",
+      "expected": [],
+      "rank": null,
+      "recall": null,
+      "fallback": null,
+      "candidateCount": 1
+    },
+    {
+      "group": "混合",
+      "query": "missing/幻影-1",
+      "expected": [],
+      "rank": null,
+      "recall": null,
+      "fallback": null,
+      "candidateCount": 1
+    },
+    {
+      "group": "混合",
+      "query": "missing/幻影-2",
+      "expected": [],
+      "rank": null,
+      "recall": null,
+      "fallback": "recent",
+      "candidateCount": 20
+    },
+    {
+      "group": "混合",
+      "query": "missing/幻影-3",
+      "expected": [],
+      "rank": null,
+      "recall": null,
+      "fallback": "recent",
+      "candidateCount": 20
+    },
+    {
+      "group": "混合",
+      "query": "missing/幻影-4",
+      "expected": [],
+      "rank": null,
+      "recall": null,
+      "fallback": "recent",
+      "candidateCount": 20
+    },
+    {
+      "group": "混合",
+      "query": "missing/幻影-5",
+      "expected": [],
+      "rank": null,
+      "recall": null,
+      "fallback": "recent",
+      "candidateCount": 20
+    },
+    {
+      "group": "混合",
+      "query": "missing/幻影-6",
+      "expected": [],
+      "rank": null,
+      "recall": null,
+      "fallback": "recent",
+      "candidateCount": 20
+    },
+    {
+      "group": "混合",
+      "query": "missing/幻影-7",
+      "expected": [],
+      "rank": null,
+      "recall": null,
+      "fallback": "recent",
+      "candidateCount": 20
+    },
+    {
+      "group": "混合",
+      "query": "missing/幻影-8",
+      "expected": [],
+      "rank": null,
+      "recall": null,
+      "fallback": "recent",
+      "candidateCount": 20
+    },
+    {
+      "group": "混合",
+      "query": "missing/幻影-9",
+      "expected": [],
+      "rank": null,
+      "recall": null,
+      "fallback": "recent",
+      "candidateCount": 20
+    }
+  ]
+}

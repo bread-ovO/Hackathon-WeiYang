@@ -1,3 +1,6 @@
+import { SourceAssociations } from './source-associations'
+import { PlanChanges } from './plan-changes'
+import { TaskTimeline } from './task-timeline'
 import { ReferenceList } from './reference-list'
 import './candidate-provenance.css'
 import { useEffect, useRef, useState } from 'react'
@@ -22,35 +25,90 @@ function localDate(value: string | null) {
     .toISOString()
     .slice(0, 16)
 }
+export type EditorBaseline = {
+  expectedVersion: number
+  expectedCriteriaVersion: number
+  expectedManualVersion: number
+}
+const taskBaseline = (task: WorkspaceTask): EditorBaseline => ({
+  expectedVersion: task.version,
+  expectedCriteriaVersion: task.criteriaVersion,
+  expectedManualVersion: task.manualVersion,
+})
+type EditorDraft = {
+  baseline: EditorBaseline
+  title: string
+  due: string
+  version: number
+  items: { id: string; description: string; originEventId?: number }[]
+}
+const editorDrafts = new Map<string, EditorDraft>()
 export function TaskEditor({
   task,
   busy,
   update,
   replace,
   close,
+  onPlanApplied,
 }: {
   task: WorkspaceTask
   busy: boolean
-  update: (patch: Patch) => Promise<void>
+  update: (patch: Patch, baseline?: EditorBaseline) => Promise<void>
   replace: (
     items: { id: string; description: string; originEventId?: number }[],
+    baseline?: EditorBaseline,
   ) => Promise<void>
+  onPlanApplied: (task: WorkspaceTask) => void
   close: () => void
 }) {
-  const [title, setTitle] = useState(task.title),
-    [due, setDue] = useState(localDate(task.dueAt))
-  const [version, setVersion] = useState(task.criteriaVersion),
+  const draftKey = JSON.stringify([task.projectId, task.id])
+  const restored = useRef(editorDrafts.get(draftKey))
+  const [baseline, setBaseline] = useState<EditorBaseline>(
+    restored.current?.baseline ?? taskBaseline(task),
+  )
+  const staleDraft =
+    baseline.expectedVersion !== task.version ||
+    baseline.expectedCriteriaVersion !== task.criteriaVersion ||
+    baseline.expectedManualVersion !== task.manualVersion
+  const [title, setTitle] = useState(restored.current?.title ?? task.title),
+    [due, setDue] = useState(restored.current?.due ?? localDate(task.dueAt))
+  const [version, setVersion] = useState(
+      restored.current?.version ?? task.criteriaVersion,
+    ),
     [items, setItems] = useState<
       { id: string; description: string; originEventId?: number }[]
-    >([]),
+    >(restored.current?.items ?? []),
     [error, setError] = useState(''),
     [loading, setLoading] = useState(false)
+  const [associationRefresh, setAssociationRefresh] = useState(0)
   const [provenance, setProvenance] = useState<CandidateProvenance[]>([])
   const [evidenceLoading, setEvidenceLoading] = useState(false)
   const [evidenceError, setEvidenceError] = useState('')
   const evidenceGeneration = useRef(0)
   const generation = useRef(0)
+  const preservePlanDrafts = useRef<number | null>(
+    restored.current ? task.version : null,
+  )
+  const latestDraft = useRef<EditorDraft>({
+    title,
+    due,
+    version,
+    items,
+    baseline,
+  })
+  latestDraft.current = { title, due, version, items, baseline }
+  useEffect(
+    () => () => {
+      editorDrafts.delete(draftKey)
+      editorDrafts.set(draftKey, structuredClone(latestDraft.current))
+      while (editorDrafts.size > 20)
+        editorDrafts.delete(editorDrafts.keys().next().value!)
+    },
+    [draftKey],
+  )
   useEffect(() => {
+    if (preservePlanDrafts.current === task.version) return
+    setBaseline(taskBaseline(task))
     setTitle(task.title)
     setDue(localDate(task.dueAt))
     setVersion(task.criteriaVersion)
@@ -69,7 +127,8 @@ export function TaskEditor({
       .then((r) => {
         if (seq !== generation.current) return
         if (r.ok) {
-          setItems(r.data.criteria.items.map((x) => ({ ...x })))
+          if (preservePlanDrafts.current !== task.version)
+            setItems(r.data.criteria.items.map((x) => ({ ...x })))
           setProvenance(r.data.provenance ?? [])
         } else setError('条件读取失败，请刷新事项。')
       })
@@ -107,6 +166,38 @@ export function TaskEditor({
         setEvidenceLoading(false)
     }
   }
+  async function resolveDraft(useSaved: boolean) {
+    if (busy || loading || !task.projectId) return
+    setLoading(true)
+    try {
+      const r = await window.memo.workspace.detail(
+        task.projectId,
+        task.id,
+        task.criteriaVersion,
+      )
+      if (
+        !r.ok ||
+        r.data.task.version !== task.version ||
+        r.data.task.manualVersion !== task.manualVersion ||
+        r.data.task.criteriaVersion !== task.criteriaVersion
+      ) {
+        setError('事项再次变更，请关闭详情并重新打开后核对。')
+        return
+      }
+      if (useSaved) {
+        setTitle(task.title)
+        setDue(localDate(task.dueAt))
+        setItems(r.data.criteria.items.map((x) => ({ ...x })))
+      }
+      setVersion(task.criteriaVersion)
+      setBaseline(taskBaseline(task))
+      setError('')
+    } catch {
+      setError('当前内容读取失败，草稿仍保留。')
+    } finally {
+      setLoading(false)
+    }
+  }
   const readonly = version !== task.criteriaVersion
   return (
     <section className="detail" aria-label="事项详情">
@@ -115,6 +206,29 @@ export function TaskEditor({
       </div>
       <div className="real-editor">
         <h2>{task.title}</h2>
+        {staleDraft && (
+          <section role="alert" aria-label="草稿版本冲突">
+            <p>事项已在别处更新，旧草稿已保留。请核对当前保存内容后再提交。</p>
+            <p>当前标题：{task.title}</p>
+            <p>
+              当前截止时间：{task.dueAt ? localDate(task.dueAt) : '未设置'} ·
+              当前条件版本：{task.criteriaVersion}
+            </p>
+            <AppButton
+              disabled={busy || loading}
+              onClick={() => void resolveDraft(false)}
+            >
+              已核对，继续使用草稿
+            </AppButton>
+            <AppButton
+              disabled={busy || loading}
+              onClick={() => void resolveDraft(true)}
+            >
+              使用当前保存内容
+            </AppButton>
+          </section>
+        )}
+
         <p>业务状态：{taskLabels[task.status]}</p>
         <p>
           证据：
@@ -143,7 +257,8 @@ export function TaskEditor({
           <section className="candidate-provenance" aria-label="候选来源依据">
             <h3>候选来源依据</h3>
             <p>
-              由本地有限规则整理。引用用于说明候选来源，不代表交付已经完成。
+              由本地有限规则整理。此处最多预览 100
+              条依据，完整变化请查看事项时间线；引用不代表交付已经完成。
             </p>
             {provenance.map((item) => (
               <details key={`${item.eventId}:${item.quoteStart}`}>
@@ -193,7 +308,8 @@ export function TaskEditor({
                     {
                       (
                         {
-                          revoked: '来源已停用，原引用仍保留。',
+                          paused: '来源采集已暂停，原引用仍保留。',
+                          revoked: '来源授权已撤销，原引用仍保留。',
                           uninstalled: '来源插件已卸载，原引用仍保留。',
                           unknown: '来源授权状态不可确认，引用需复核。',
                         } as const
@@ -207,10 +323,38 @@ export function TaskEditor({
           </section>
         )}
         {task.projectId && (
+          <SourceAssociations
+            task={task}
+            busy={busy}
+            onChanged={() => setAssociationRefresh((value) => value + 1)}
+          />
+        )}
+        {task.projectId && (
+          <PlanChanges
+            refreshVersion={associationRefresh}
+            task={task}
+            busy={busy}
+            onApplied={(next) => {
+              setDue((old) =>
+                old === localDate(task.dueAt) ? localDate(next.dueAt) : old,
+              )
+              preservePlanDrafts.current = next.version
+              onPlanApplied(next)
+            }}
+          />
+        )}
+        {task.projectId && (
           <ReferenceList
             projectId={task.projectId}
             taskId={task.id}
             onConfirmed={() => void refreshEvidence()}
+          />
+        )}
+        {task.projectId && (
+          <TaskTimeline
+            key={`${task.projectId}:${task.id}`}
+            projectId={task.projectId}
+            taskId={task.id}
           />
         )}
         {task.projectId ? (
@@ -218,7 +362,7 @@ export function TaskEditor({
             <form
               onSubmit={(e) => {
                 e.preventDefault()
-                void update({ title: title.trim() })
+                if (!staleDraft) void update({ title: title.trim() }, baseline)
               }}
             >
               <AppInput
@@ -230,7 +374,7 @@ export function TaskEditor({
               <AppButton
                 type="submit"
                 className="secondary"
-                disabled={busy || !title.trim()}
+                disabled={busy || staleDraft || !title.trim()}
               >
                 保存标题
               </AppButton>
@@ -266,7 +410,8 @@ export function TaskEditor({
                   setError('该本地时间不存在或无效，请选择明确时间。')
                   return
                 }
-                void update({ dueAt: date?.toISOString() ?? null })
+                if (!staleDraft)
+                  void update({ dueAt: date?.toISOString() ?? null }, baseline)
               }}
             >
               <label htmlFor="task-due">截止时间（本机时区）</label>
@@ -276,15 +421,20 @@ export function TaskEditor({
                 value={due}
                 onChange={(e) => setDue(e.target.value)}
               />
-              <AppButton type="submit" className="secondary" disabled={busy}>
+              <AppButton
+                type="submit"
+                className="secondary"
+                disabled={busy || staleDraft}
+              >
                 保存截止时间
               </AppButton>
               <AppButton
                 className="secondary"
-                disabled={busy}
+                disabled={busy || staleDraft}
                 onClick={() => {
+                  if (staleDraft) return
                   setDue('')
-                  void update({ dueAt: null })
+                  if (!staleDraft) void update({ dueAt: null }, baseline)
                 }}
               >
                 清除截止时间
@@ -385,14 +535,18 @@ export function TaskEditor({
                       <AppButton
                         className="secondary"
                         disabled={
-                          busy || items.some((x) => !x.description.trim())
+                          busy ||
+                          staleDraft ||
+                          items.some((x) => !x.description.trim())
                         }
                         onClick={() =>
+                          !staleDraft &&
                           void replace(
                             items.map((x) => ({
                               ...x,
                               description: x.description.trim(),
                             })),
+                            baseline,
                           )
                         }
                       >

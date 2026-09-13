@@ -10,7 +10,13 @@ import { parseSourceEvent } from '@memo/contracts'
 import { createSourceHttpTransport } from './source-http'
 export type ProviderSourceConfig = { id: string; credentialId: string } & (
   | { kind: 'github'; owner: string; repo: string; repositoryId?: number }
-  | { kind: 'feishu'; chatId: string; startTime?: string; endTime?: string }
+  | {
+      kind: 'feishu'
+      chatId: string
+      startTime?: string
+      endTime?: string
+      strictScope?: boolean
+    }
 )
 export interface ProviderReaderDependencies {
   readCredential(
@@ -86,6 +92,7 @@ export function createProviderSourceReader(
     const adapter = new FeishuHistoryAdapter(
       config.id,
       createFeishuMessagesFetcher('host-managed', config.chatId, transport, {
+        strictScope: config.strictScope,
         ...(config.startTime ? { startTime: new Date(config.startTime) } : {}),
         ...(config.endTime ? { endTime: new Date(config.endTime) } : {}),
       }),

@@ -192,6 +192,58 @@ test('known version confirmation is reference-scoped, expires on new content and
     )
     expect(saved.ok && saved.data.task).toEqual(task)
     await expect(draft).toHaveValue('未保存的版本复核草稿')
+    // Read through the actual core timeline after live import/edit/confirmation/retraction.
+    const timelineScope = { projectId, taskId: task.id }
+    const history = await page.evaluate(
+      (input) => window.memo.workspace.timeline(input),
+      timelineScope,
+    )
+    if (!history.ok) throw Error('TIMELINE_FAILED')
+    expect(history.data.nextCursor).toBeNull()
+    const entries = history.data.entries
+    expect(entries.filter((e) => e.kind === 'reference_conflict')).toHaveLength(
+      2,
+    )
+    expect(
+      entries.filter((e) => e.kind === 'reference_confirmation'),
+    ).toHaveLength(1)
+    expect(entries.some((e) => e.kind === 'rule')).toBe(true)
+    expect(
+      entries.some(
+        (e) =>
+          e.kind === 'retraction' &&
+          e.evidence?.revision === '5' &&
+          e.evidence.operation === 'retract',
+      ),
+    ).toBe(true)
+    expect(
+      entries
+        .filter((e) => e.kind === 'reference_conflict')
+        .map((e) => e.evidence?.revision)
+        .sort(),
+    ).toEqual(['2', '4'])
+    const timeline = page.getByRole('region', {
+      name: '事项时间线',
+      exact: true,
+    })
+    await timeline
+      .getByRole('button', { name: '查看事项时间线', exact: true })
+      .click()
+    await expect(timeline.locator('.task-timeline-entry')).toHaveCount(
+      entries.length,
+    )
+    await expect(draft).toHaveValue('未保存的版本复核草稿')
+    await timeline
+      .getByRole('button', { name: '刷新时间线', exact: true })
+      .click()
+    await expect(timeline.locator('.task-timeline-entry')).toHaveCount(
+      entries.length,
+    )
+    await expect(draft).toHaveValue('未保存的版本复核草稿')
+    await timeline.scrollIntoViewIfNeeded()
+    await page.screenshot({
+      path: 'test-results/timeline-live-audit-narrow.png',
+    })
   } finally {
     await app.evaluate(({ app }) => app.quit()).catch(() => {})
     await app.close().catch(() => {})

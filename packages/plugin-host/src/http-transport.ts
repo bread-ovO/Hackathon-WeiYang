@@ -218,7 +218,7 @@ function requestResponse(
             }
             const noBody = status === 304 && !jsonOnly
             const isErrorResponse =
-              !jsonOnly && [401, 403, 404, 429].includes(status)
+              !jsonOnly && [400, 401, 403, 404, 429].includes(status)
             const type = res.headers['content-type']
             if (
               (!noBody &&
@@ -243,6 +243,7 @@ function requestResponse(
               'link',
               'retry-after',
               'x-ratelimit-reset',
+              'x-ogw-ratelimit-reset',
               'x-ratelimit-remaining',
               'last-modified',
               'content-type',

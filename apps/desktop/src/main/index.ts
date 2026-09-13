@@ -1,3 +1,9 @@
+import { createPetContextService } from './pet/context-service'
+import { createPetContextStore } from './pet/context-store'
+import { createLocalModelTransport } from './pet/local-model-http'
+import { selectPetTemplate } from '@memo/model'
+import type { PetContextFacts } from '@memo/contracts'
+import { createFeishuRuntime } from './feishu-runtime'
 import { createGithubRuntime } from './github-runtime'
 import { createPetSpeechService } from './pet/speech-service'
 import { createPetSpeechStore } from './pet/speech-store'
@@ -140,20 +146,24 @@ else {
         },
       })
       let speech: ReturnType<typeof createPetSpeechService> | undefined
+      let contextSpeech: ReturnType<typeof createPetContextService> | undefined
       const environment = createPetSpeechEnvironment({
         helperPath: join(
           __dirname.replace('app.asar', 'app.asar.unpacked'),
           '../native/pet-speech-environment',
         ),
         onChange: () => {
+          contextSpeech?.invalidateDisplay()
           void speech?.wake()
         },
       })
       const petDesktop = createPetDesktopController({
+        openContext: (id) => contextSpeech?.open(id) ?? Promise.resolve(false),
         speechState: () => speech?.snapshot(),
         configureSpeech: (patch) =>
           speech?.configure(patch) ?? Promise.resolve(false),
         onDisplayChanged: () => {
+          contextSpeech?.invalidateDisplay()
           void speech?.wake()
         },
         worker: petWorker,
@@ -173,21 +183,75 @@ else {
           return choice.canceled ? null : (choice.filePaths[0] ?? null)
         },
       })
+      const localModelTransport = createLocalModelTransport()
+      contextSpeech = createPetContextService({
+        store: createPetContextStore(join(data, 'pet-context.json')),
+        facts: async (projectIds) => {
+          const reply = await core!.request({
+            method: 'workspace.petContextFacts',
+            projectIds,
+          })
+          if (!reply.ok) throw new Error('PET_CONTEXT_UNAVAILABLE')
+          return (reply.data as PetContextFacts).facts
+        },
+        valid: async (fact) => {
+          const reply = await core!.request({
+            method: 'workspace.validatePetContextFact',
+            fact,
+          })
+          return reply.ok && (reply.data as { valid: boolean }).valid === true
+        },
+        select: (input) =>
+          selectPetTemplate({ ...input, transport: localModelTransport }),
+        enqueue: (text, reason) => petDesktop.enqueueContext(text, reason),
+        enqueueFallback: (text) => petDesktop.enqueueAutomatic(text),
+        cancelPresentation: (id) => petDesktop.cancelAutomatic(id),
+        isCurrent: (id) => petDesktop.isContextCurrent(id),
+        navigate: (projectId, taskId) => {
+          if (!window || window.isDestroyed()) return
+          window.show()
+          window.focus()
+          window.webContents.send('memo:open-task', { projectId, taskId })
+        },
+        changed: () => {
+          void speech?.wake()
+        },
+      })
       speech = createPetSpeechService({
         store: createPetSpeechStore(join(data, 'pet-speech.json')),
         environment: () => environment.read(),
         monitor: (enabled) => environment.setEnabled(enabled),
         display: () => petDesktop.automaticDisplay(),
         deliver: (text) => petDesktop.enqueueAutomatic(text),
+        prepare: (text, signal) =>
+          contextSpeech!.prepareAutomatic(text, signal),
+        deliverPrepared: (input, signal, guard, current) =>
+          contextSpeech!.deliver(input, signal, guard, current),
         cancel: (id) => petDesktop.cancelAutomatic(id),
       })
       app.once('before-quit', () => {
+        contextSpeech?.dispose()
         speech?.dispose()
         environment.dispose()
         petDesktop.dispose()
         petWorker.stop()
       })
       const vault = createSystemCredentialVault(join(data, 'credentials'))
+      const feishu = createFeishuRuntime({
+        request: (request) =>
+          core
+            ? core.request(request)
+            : Promise.resolve({ ok: false, error: 'CORE_UNAVAILABLE' }),
+        readCredential: (id, scope) => vault.read(id, scope),
+      })
+      const feishuTimer = setInterval(() => {
+        void feishu.tick().catch(() => {})
+      }, 1000)
+      feishuTimer.unref()
+      app.once('before-quit', () => {
+        clearInterval(feishuTimer)
+        feishu.stop()
+      })
       const github = createGithubRuntime({
         request: (request) =>
           core
@@ -251,6 +315,61 @@ else {
           () => window?.webContents ?? null,
           pageURL,
           async (request) => {
+            if (
+              request.method === 'pet.contextState' ||
+              request.method === 'pet.configureContext' ||
+              request.method === 'pet.previewContext' ||
+              request.method === 'pet.cancelContext' ||
+              request.method === 'pet.showContext'
+            ) {
+              try {
+                await contextSpeech!.ready
+                let data
+                switch (request.method) {
+                  case 'pet.contextState':
+                    data = contextSpeech!.state()
+                    break
+                  case 'pet.configureContext':
+                    data = await contextSpeech!.configure(
+                      request.expectedVersion,
+                      request.config,
+                    )
+                    break
+                  case 'pet.previewContext':
+                    data = await contextSpeech!.preview()
+                    break
+                  case 'pet.cancelContext':
+                    data = contextSpeech!.cancel()
+                    break
+                  case 'pet.showContext':
+                    data = await contextSpeech!.show(request.id)
+                    break
+                }
+                return { ok: true as const, data }
+              } catch (cause) {
+                const code = cause instanceof Error ? cause.message : ''
+                const allowed = [
+                  'PET_MODEL_OFFLINE',
+                  'PET_MODEL_TIMEOUT',
+                  'PET_MODEL_INVALID_RESPONSE',
+                  'PET_MODEL_CANCELLED',
+                  'PET_MODEL_UNAVAILABLE',
+                  'PET_MODEL_BUSY',
+                  'PET_CONTEXT_STORAGE_ERROR',
+                  'PET_CONTEXT_CONFLICT',
+                  'PET_CONTEXT_EXPIRED',
+                  'PET_CONTEXT_UNAVAILABLE',
+                  'PET_CONTEXT_BUDGET',
+                  'PET_CONTEXT_COOLDOWN',
+                ] as const
+                return {
+                  ok: false as const,
+                  error:
+                    allowed.find((value) => value === code) ??
+                    'PET_CONTEXT_UNAVAILABLE',
+                }
+              }
+            }
             if (request.method === 'pet.configureSpeech')
               return petDesktop.configureSpeech(request.patch)
             if (request.method === 'pet.play')
@@ -297,10 +416,20 @@ else {
               request.method === 'github.records'
             )
               return github.handle(request)
+            if (
+              request.method === 'feishu.list' ||
+              request.method === 'feishu.connect' ||
+              request.method === 'feishu.sync' ||
+              request.method === 'feishu.records' ||
+              request.method === 'feishu.setEnabled' ||
+              request.method === 'feishu.revoke' ||
+              request.method === 'feishu.restartWindow'
+            )
+              return feishu.handle(request)
             if (request.method === 'credentials.remove') {
               plugins.cancel()
               return github.removeCredential(request.id, () =>
-                credentials(request),
+                feishu.removeCredential(request.id, () => credentials(request)),
               )
             }
             if (

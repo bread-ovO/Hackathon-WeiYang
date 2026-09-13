@@ -1,3 +1,7 @@
+import { createSourceAssociations } from './source-associations'
+import { createPlanChanges } from './plan-changes'
+import { eventMetadataFields } from './event-metadata'
+import { getSourceStatus } from './source-status'
 import type Database from 'better-sqlite3'
 import { randomUUID } from 'node:crypto'
 import { isDeepStrictEqual } from 'node:util'
@@ -22,13 +26,17 @@ export interface ProcessingContext {
   eventId: number
   projectId: string
   event: SourceEvent
-  grant: { kind: 'source' | 'plugin' | 'github'; id: string; version: number }
+  grant: {
+    kind: 'source' | 'plugin' | 'github' | 'feishu'
+    id: string
+    version: number
+  }
 }
 export interface ProcessingResult {
   outcome: 'created' | 'review_required' | 'ignored' | 'already_processed'
   taskIds: string[]
 }
-const eligible = `(EXISTS(SELECT 1 FROM source_grants g JOIN event_projects ep ON ep.project_id=g.project_id AND ep.event_id=e.id WHERE g.source_id=e.source_id AND g.revoked=0 AND g.error_code IS NULL) OR EXISTS(SELECT 1 FROM plugin_bindings p JOIN event_projects ep ON ep.project_id=p.project_id AND ep.event_id=e.id WHERE p.source_instance_id=e.source_id AND p.enabled=1 AND p.uninstalled=0 AND p.has_error=0) OR EXISTS(SELECT 1 FROM github_connections h JOIN event_projects ep ON ep.project_id=h.project_id AND ep.event_id=e.id WHERE h.source_id=e.source_id AND h.enabled=1 AND h.revoked=0))`
+const eligible = `(EXISTS(SELECT 1 FROM source_grants g JOIN event_projects ep ON ep.project_id=g.project_id AND ep.event_id=e.id WHERE g.source_id=e.source_id AND g.revoked=0 AND g.error_code IS NULL) OR EXISTS(SELECT 1 FROM plugin_bindings p JOIN event_projects ep ON ep.project_id=p.project_id AND ep.event_id=e.id WHERE p.source_instance_id=e.source_id AND p.enabled=1 AND p.uninstalled=0 AND p.has_error=0) OR EXISTS(SELECT 1 FROM github_connections h JOIN event_projects ep ON ep.project_id=h.project_id AND ep.event_id=e.id WHERE h.source_id=e.source_id AND h.enabled=1 AND h.revoked=0) OR EXISTS(SELECT 1 FROM feishu_connections f JOIN event_projects ep ON ep.project_id=f.project_id AND ep.event_id=e.id WHERE f.source_id=e.source_id AND f.enabled=1 AND f.revoked=0))`
 const at = (now: Date) => {
   if (!Number.isFinite(now.getTime())) throw Error('INVALID_PROCESSING_INPUT')
   return now.toISOString()
@@ -76,7 +84,7 @@ export function createProcessing(db: Database.Database) {
   function context(eventId: number): ProcessingContext | null {
     const row = db
       .prepare(
-        'SELECT source_id,external_id,revision,occurred_at,role,content,operation FROM source_events WHERE id=?',
+        'SELECT source_id,external_id,revision,occurred_at,role,content,operation,metadata_json FROM source_events WHERE id=?',
       )
       .get(eventId) as
       | {
@@ -86,6 +94,7 @@ export function createProcessing(db: Database.Database) {
           occurred_at: string
           role: string
           content: string
+          metadata_json: string | null
           operation: 'upsert' | 'retract'
         }
       | undefined
@@ -116,18 +125,35 @@ export function createProcessing(db: Database.Database) {
             .get(eventId, row.source_id) as
             | { projectId: string; id: string; version: number }
             | undefined)
-    const grant = source ?? plugin ?? github
+    const feishu =
+      source || plugin || github
+        ? undefined
+        : (db
+            .prepare(
+              'SELECT f.project_id AS projectId,f.source_id AS id,f.grant_version AS version FROM feishu_connections f JOIN event_projects ep ON ep.project_id=f.project_id AND ep.event_id=? WHERE f.source_id=? AND f.enabled=1 AND f.revoked=0',
+            )
+            .get(eventId, row.source_id) as
+            | { projectId: string; id: string; version: number }
+            | undefined)
+    const grant = source ?? plugin ?? github ?? feishu
     if (!grant) return null
     return {
       eventId,
       projectId: grant.projectId,
       grant: {
-        kind: source ? 'source' : plugin ? 'plugin' : 'github',
+        kind: source
+          ? 'source'
+          : plugin
+            ? 'plugin'
+            : github
+              ? 'github'
+              : 'feishu',
         id: grant.id,
         version: grant.version,
       },
       event: parseSourceEvent({
         schemaVersion: 1,
+        ...eventMetadataFields(row.metadata_json),
         sourceInstanceId: row.source_id,
         externalId: row.external_id,
         revision: row.revision,
@@ -206,6 +232,17 @@ export function createProcessing(db: Database.Database) {
           actual.event.sourceInstanceId,
           actual.event.externalId,
         ) as { id: string }[]
+      // An explicit binding already gives this exact source object a task. A later
+      // commitment-shaped revision is a review, never a second candidate/origin.
+      const binding = origin.length
+        ? null
+        : createSourceAssociations(db).resolveObject(
+            actual.projectId,
+            actual.event.sourceInstanceId,
+            actual.event.externalId,
+          )
+      if (binding && !origin.some((row) => row.id === binding.taskId))
+        origin.push({ id: binding.taskId })
       const retraction = createRetractions(db).forEvent(
         actual.projectId,
         actual.eventId,
@@ -299,6 +336,7 @@ export function createProcessing(db: Database.Database) {
         db.prepare(
           "INSERT INTO processing_decisions(project_id,task_id,event_id,actor,outcome,reason,created_at) VALUES(?,?,?,'rule',?,?,?)",
         ).run(actual.projectId, id, actual.eventId, outcome, reason, time)
+      createPlanChanges(db).observe(actual.projectId, actual.eventId, now)
       if (!jobs.complete(lease, now)) throw Error('PROCESSING_LEASE_LOST')
       return { outcome, taskIds: ids }
     },
@@ -432,12 +470,6 @@ export function createProcessing(db: Database.Database) {
       const rows = db
         .prepare(
           `SELECT v.event_id AS eventId,e.source_id AS sourceInstanceId,e.external_id AS externalId,e.revision,v.quote_start AS quoteStart,v.quote_end AS quoteEnd,v.quote,v.reference_id AS referenceId,v.reference_status AS storedReferenceStatus,v.invalidated_by_event_id AS storedInvalidatedBy,r.reason,r.created_at AS createdAt,r.rule_version AS policyVersion,'rule' AS actor,r.outcome,
-      CASE WHEN EXISTS(SELECT 1 FROM github_connections h WHERE h.source_id=e.source_id AND (h.revoked=1 OR h.enabled=0)) THEN 'revoked' WHEN EXISTS(SELECT 1 FROM github_connections h WHERE h.source_id=e.source_id AND h.revoked=0 AND h.enabled=1) THEN 'active' WHEN EXISTS(SELECT 1 FROM source_grants g WHERE g.source_id=e.source_id AND g.revoked=1) THEN 'revoked'
-       WHEN EXISTS(SELECT 1 FROM source_grants g WHERE g.source_id=e.source_id AND g.revoked=0) THEN 'active'
-       WHEN EXISTS(SELECT 1 FROM plugin_bindings p WHERE p.source_instance_id=e.source_id AND p.uninstalled=1) THEN 'uninstalled'
-       WHEN EXISTS(SELECT 1 FROM plugin_bindings p WHERE p.source_instance_id=e.source_id AND p.enabled=0) THEN 'revoked'
-       WHEN EXISTS(SELECT 1 FROM plugin_bindings p WHERE p.source_instance_id=e.source_id AND p.enabled=1 AND p.uninstalled=0) THEN 'active'
-       WHEN EXISTS(SELECT 1 FROM plugin_source_history h WHERE h.source_instance_id=e.source_id) THEN 'uninstalled' ELSE 'unknown' END AS sourceStatus,
       CASE WHEN EXISTS(SELECT 1 FROM source_events later JOIN event_projects ep ON ep.event_id=later.id WHERE ep.project_id=v.project_id AND later.source_id=e.source_id AND later.external_id=e.external_id AND later.revision<>e.revision AND later.id>e.id) THEN 'review_required' ELSE 'current' END AS revisionStatus
       FROM (SELECT project_id,task_id,event_id,quote_start,quote_end,quote,CAST(id AS TEXT) AS reference_id,reference_status,invalidated_by_event_id FROM processing_evidence
        UNION ALL SELECT d.project_id,d.task_id,d.event_id,0,0,substr(e.content,1,1024),NULL,NULL,NULL FROM processing_decisions d JOIN source_events e ON e.id=d.event_id WHERE d.outcome='review_required') v JOIN source_events e ON e.id=v.event_id JOIN processing_results r ON r.event_id=v.event_id WHERE v.project_id=? AND v.task_id=? ORDER BY CASE WHEN r.outcome='created' THEN 0 ELSE 1 END,v.event_id DESC LIMIT 100`,
@@ -458,7 +490,6 @@ export function createProcessing(db: Database.Database) {
         policyVersion: string
         actor: 'rule'
         outcome: 'created' | 'review_required'
-        sourceStatus: 'active' | 'revoked' | 'uninstalled' | 'unknown'
         revisionStatus: 'current' | 'review_required'
       }[]
       return rows.map((original) => {
@@ -496,6 +527,11 @@ export function createProcessing(db: Database.Database) {
           (review?.reference.status === 'confirmed' && !selectedSameContent)
         const row = {
           ...publicFields,
+          sourceStatus: getSourceStatus(
+            db,
+            projectId,
+            original.sourceInstanceId,
+          ),
           referenceKind: original.referenceId ? ('processing' as const) : null,
           referenceVersion: review?.reference.version ?? null,
           knownContentSetDigest: review?.knownContentSetDigest ?? null,

@@ -64,6 +64,7 @@ export function parsePetActionCatalog(input: unknown): PetActionCatalog {
   return result
 }
 export interface PetPresentation {
+  reference?: { label: string; reason: string }
   id: string
   kind: 'action' | 'bubble'
   text?: string

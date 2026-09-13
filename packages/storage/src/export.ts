@@ -1,3 +1,13 @@
+import { createSourceAssociations } from './source-associations'
+import { createPlanChanges } from './plan-changes'
+import { eventMetadataFields } from './event-metadata'
+import type { SourceEvent } from '@memo/contracts'
+import {
+  referenceAuditProjection,
+  validateReferenceAudit,
+  type ReferenceConflictAudit,
+} from './reference-audit'
+import { getSourceStatus } from './source-status'
 import { createRevisionReview } from './revision-review'
 import type { ReferenceReview } from '@memo/contracts'
 import { createRetractions, type RetractionProof } from './retractions'
@@ -12,7 +22,22 @@ export interface ExportScope {
 }
 export interface ExportBundle {
   selection: { mode: 'project' } | { mode: 'tasks'; taskIds: string[] }
-  schemaVersion: 4
+  schemaVersion: 7
+  sourceBindings: ReturnType<
+    ReturnType<typeof createSourceAssociations>['exportForTasks']
+  >['bindings']
+  identityMappings: ReturnType<
+    ReturnType<typeof createSourceAssociations>['exportForTasks']
+  >['mappings']
+  associationAudit: ReturnType<
+    ReturnType<typeof createSourceAssociations>['exportForTasks']
+  >['audits']
+  planAssessments: ReturnType<
+    ReturnType<typeof createPlanChanges>['exportAssessmentsForTasks']
+  >
+  planChangeProposals: ReturnType<
+    ReturnType<typeof createPlanChanges>['exportForTasks']
+  >
   exportedAt: string
   project: { id: string; name: string }
   sourceBodiesIncluded: boolean
@@ -82,6 +107,7 @@ export interface ExportBundle {
           text?: string
         })
   }[]
+  referenceConflictAudit: ReferenceConflictAudit[]
   referenceDecisions: {
     id: number
     taskId: string
@@ -115,11 +141,12 @@ export interface ExportBundle {
     occurredAt: string
     receivedAt: string
     role: 'user' | 'assistant' | 'tool' | 'system'
-    sourceStatus: 'active' | 'revoked' | 'unmanaged'
+    sourceStatus: ReturnType<typeof getSourceStatus>
     operation: 'upsert' | 'retract'
     eventStatus: 'present' | 'retracted'
     retraction: RetractionProof | null
     text?: string
+    metadata?: SourceEvent['metadata']
   }[]
 }
 export const EXPORT_MAX_BYTES = 16 * 1024 * 1024
@@ -323,7 +350,11 @@ export function createExports(db: Database.Database) {
       if (scope.taskIds && tasks.length !== scope.taskIds.length)
         throw new Error('EXPORT_TASK_NOT_IN_PROJECT')
       const bundle: ExportBundle = {
-        schemaVersion: 4,
+        schemaVersion: 7,
+        sourceBindings: [],
+        identityMappings: [],
+        associationAudit: [],
+        planAssessments: [],
         selection: scope.taskIds
           ? { mode: 'tasks', taskIds: [...scope.taskIds].sort() }
           : { mode: 'project' },
@@ -331,6 +362,7 @@ export function createExports(db: Database.Database) {
         project,
         sourceBodiesIncluded: scope.includeSourceText,
         tasks,
+        planChangeProposals: [],
         criteriaSets: [],
         evidence: [],
         decisions: [],
@@ -339,6 +371,7 @@ export function createExports(db: Database.Database) {
         retractionImpacts: [],
         referenceReviews: [],
         referenceDecisions: [],
+        referenceConflictAudit: [],
         revisions: [],
         manualOverrides: [],
         events: [],
@@ -353,6 +386,88 @@ export function createExports(db: Database.Database) {
         refs.add(v)
         if (refs.size > MAX_ROWS) throw new Error('EXPORT_LIMIT_EXCEEDED')
         return v
+      }
+      try {
+        const associations = createSourceAssociations(db).exportForTasks(
+          scope.projectId,
+          ids,
+          scope.includeSourceText,
+        )
+        if (
+          associations.bindings.length +
+            associations.mappings.length +
+            associations.audits.length >
+          MAX_ROWS
+        )
+          throw new Error('EXPORT_LIMIT_EXCEEDED')
+        for (const binding of associations.bindings) {
+          if (
+            binding.projectId !== scope.projectId ||
+            !taskMap.has(binding.taskId)
+          )
+            fail()
+          addRef(binding.baselineEventId)
+          account(binding)
+          bundle.sourceBindings.push(binding)
+        }
+        const mappings = new Set(
+          associations.mappings.map((mapping) => mapping.id),
+        )
+        for (const mapping of associations.mappings) {
+          if (mapping.projectId !== scope.projectId) fail()
+          addRef(mapping.leftEventId)
+          addRef(mapping.rightEventId)
+          account(mapping)
+          bundle.identityMappings.push(mapping)
+        }
+        for (const audit of associations.audits) {
+          if (
+            audit.projectId !== scope.projectId ||
+            (audit.kind === 'source_binding'
+              ? !taskMap.has(audit.taskId)
+              : !mappings.has(audit.entityId))
+          )
+            fail()
+          for (const snapshot of [audit.before, audit.after]) {
+            if (!snapshot) continue
+            if ('baselineEventId' in snapshot) addRef(snapshot.baselineEventId)
+            else {
+              addRef(snapshot.leftEventId)
+              addRef(snapshot.rightEventId)
+            }
+          }
+          account(audit)
+          bundle.associationAudit.push(audit)
+        }
+        const assessments = createPlanChanges(db).exportAssessmentsForTasks(
+          scope.projectId,
+          ids,
+        )
+        if (assessments.length > MAX_ROWS)
+          throw new Error('EXPORT_LIMIT_EXCEEDED')
+        for (const assessment of assessments) {
+          assessment.eventIds.forEach(addRef)
+          account(assessment)
+          bundle.planAssessments.push(assessment)
+        }
+        const proposals = createPlanChanges(db).exportForTasks(
+          scope.projectId,
+          ids,
+          scope.includeSourceText,
+        )
+        for (const proposal of proposals) {
+          if (!taskMap.has(proposal.taskId)) fail()
+          addRef(proposal.eventId)
+          addRef(proposal.baselineEventId)
+          if (proposal.decisionId !== null) num(proposal.decisionId, 1)
+          if (!scope.includeSourceText && proposal.quote !== null) fail()
+          account(proposal)
+          bundle.planChangeProposals.push(proposal)
+        }
+      } catch (error) {
+        if (error instanceof Error && error.message === 'EXPORT_LIMIT_EXCEEDED')
+          throw error
+        fail()
       }
       const retractions = createRetractions(db)
       const retractionFor = (eventId: number): RetractionProof | null => {
@@ -660,6 +775,20 @@ export function createExports(db: Database.Database) {
           return r as ExportBundle['referenceDecisions'][number]
         },
       )
+      bundle.referenceConflictAudit = rows(
+        `SELECT ${referenceAuditProjection} FROM reference_revision_audit WHERE project_id=? AND task_id IN (${selected}) ORDER BY id`,
+        [scope.projectId, ...ids],
+        (r) => {
+          let item: ReferenceConflictAudit
+          try {
+            item = validateReferenceAudit(db, r)
+          } catch {
+            fail()
+          }
+          if (item!.triggerEventId !== null) addRef(item!.triggerEventId)
+          return item!
+        },
+      )
       const citedRuleLinks = new Set(
         bundle.candidateEvidence.map((e) =>
           JSON.stringify([e.taskId, e.eventId]),
@@ -816,12 +945,18 @@ export function createExports(db: Database.Database) {
       for (const eventId of [...refs].sort((a, b) => a - b)) {
         const r = db
           .prepare(
-            `SELECT e.id,e.source_id AS sourceInstanceId,e.external_id AS externalId,e.revision,e.occurred_at AS occurredAt,e.received_at AS receivedAt,e.role,e.operation,
-        CASE WHEN gh.source_id IS NOT NULL THEN CASE WHEN gh.revoked=1 OR gh.enabled=0 THEN 'revoked' ELSE 'active' END WHEN g.source_id IS NOT NULL THEN CASE WHEN g.revoked=1 THEN 'revoked' ELSE 'active' END WHEN h.source_instance_id IS NOT NULL THEN CASE WHEN b.source_instance_id=e.source_id AND b.enabled=1 AND b.uninstalled=0 THEN 'active' ELSE 'revoked' END ELSE 'unmanaged' END AS sourceStatus${scope.includeSourceText ? ',e.content AS text' : ''}
-        FROM source_events e LEFT JOIN github_connections gh ON gh.source_id=e.source_id LEFT JOIN source_grants g ON g.source_id=e.source_id LEFT JOIN plugin_source_history h ON h.source_instance_id=e.source_id LEFT JOIN plugin_bindings b ON b.id=h.plugin_id JOIN event_projects p ON p.event_id=e.id AND p.project_id=? WHERE e.id=?`,
+            `SELECT e.id,e.source_id AS sourceInstanceId,e.external_id AS externalId,e.revision,e.occurred_at AS occurredAt,e.received_at AS receivedAt,e.role,e.operation,e.metadata_json,
+        CASE WHEN fs.source_id IS NOT NULL THEN CASE WHEN fs.revoked=1 OR fs.enabled=0 THEN 'revoked' ELSE 'active' END WHEN gh.source_id IS NOT NULL THEN CASE WHEN gh.revoked=1 OR gh.enabled=0 THEN 'revoked' ELSE 'active' END WHEN g.source_id IS NOT NULL THEN CASE WHEN g.revoked=1 THEN 'revoked' ELSE 'active' END WHEN h.source_instance_id IS NOT NULL THEN CASE WHEN b.source_instance_id=e.source_id AND b.enabled=1 AND b.uninstalled=0 THEN 'active' ELSE 'revoked' END ELSE 'unmanaged' END AS sourceStatus${scope.includeSourceText ? ',e.content AS text' : ''}
+        FROM source_events e LEFT JOIN feishu_connections fs ON fs.source_id=e.source_id LEFT JOIN github_connections gh ON gh.source_id=e.source_id LEFT JOIN source_grants g ON g.source_id=e.source_id LEFT JOIN plugin_source_history h ON h.source_instance_id=e.source_id LEFT JOIN plugin_bindings b ON b.id=h.plugin_id JOIN event_projects p ON p.event_id=e.id AND p.project_id=? WHERE e.id=?`,
           )
           .get(scope.projectId, eventId) as Record<string, unknown> | undefined
         if (!r) fail()
+        try {
+          Object.assign(r, eventMetadataFields(r.metadata_json))
+          delete r.metadata_json
+        } catch {
+          fail()
+        }
         num(r.id, 1)
         for (const key of [
           'sourceInstanceId',
@@ -833,6 +968,15 @@ export function createExports(db: Database.Database) {
           str(r[key])
         one(r.role, ['user', 'assistant', 'tool', 'system'])
         one(r.operation, ['upsert', 'retract'])
+        try {
+          r.sourceStatus = getSourceStatus(
+            db,
+            scope.projectId,
+            r.sourceInstanceId as string,
+          )
+        } catch {
+          fail()
+        }
         const retraction = retractionFor(eventId)
         r.eventStatus = retraction ? 'retracted' : 'present'
         r.retraction = retraction

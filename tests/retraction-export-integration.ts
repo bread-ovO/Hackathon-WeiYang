@@ -90,7 +90,7 @@ try {
   // Export must reflect retraction immediately, without running the paused consumer.
   const scope = { projectId: 'p', taskIds: [taskId], includeSourceText: true }
   const full = store.exports.build(scope)
-  assert.equal(full.schemaVersion, 4)
+  assert.equal(full.schemaVersion, 7)
   assert.deepEqual(full.tasks[0], before)
   const reference = full.candidateEvidence[0]!
   assert.equal(reference.referenceStatus, 'invalidated')

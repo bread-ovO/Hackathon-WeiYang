@@ -1,0 +1,44 @@
+.plan-changes {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--color-kumo-line);
+  border-radius: 8px;
+}
+.plan-changes h3,
+.plan-changes h4,
+.plan-changes p {
+  margin: 0;
+}
+.plan-changes p {
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--color-kumo-subtle);
+}
+.plan-change-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.plan-changes article {
+  display: grid;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--color-kumo-line);
+}
+.plan-changes blockquote {
+  margin: 0;
+  padding: 8px 12px;
+  border-left: 2px solid var(--color-kumo-line);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.plan-change-source {
+  overflow-wrap: anywhere;
+}
+.plan-change-confirm {
+  display: grid;
+  gap: 8px;
+}

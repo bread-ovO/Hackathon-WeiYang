@@ -1,3 +1,28 @@
+import { createPetContext } from './pet-context'
+import {
+  migratePlanChanges,
+  migratePlanAssessments,
+  createPlanChanges,
+} from './plan-changes'
+import {
+  migrateSourceAssociations,
+  createSourceAssociations,
+} from './source-associations'
+import { migrateEventMetadata } from './event-metadata'
+export { eventMetadataFields } from './event-metadata'
+import { migrateReferenceAudit } from './reference-audit'
+import { createTimeline } from './timeline'
+import { createFeishu, migrateFeishu } from './feishu'
+export type {
+  FeishuConnection,
+  FeishuAuthorized,
+  FeishuAuthorizeInput,
+  FeishuBatchInput,
+  FeishuFailureInput,
+  FeishuFailureCode,
+  FeishuFence,
+} from './feishu'
+export { feishuFailureCodes } from './feishu'
 import { createGithub, migrateGithub } from './github'
 export type {
   GithubConnection,
@@ -65,12 +90,19 @@ import type { SourceEvent, Health } from '@memo/contracts'
 export function openStore(path: string) {
   const db = new Database(path)
   try {
+    // The opt-in foundation store uses a different v2 schema. Never migrate it as production.
+    if (
+      (db.pragma('table_info(source_events)') as { name: string }[]).some(
+        (column) => column.name === 'envelope',
+      )
+    )
+      throw new Error('INCOMPATIBLE_DATABASE_FORMAT')
     db.pragma('foreign_keys = ON')
     db.pragma('journal_mode = WAL')
     db.pragma('synchronous = FULL')
     db.pragma('busy_timeout = 3000')
     const version = db.pragma('user_version', { simple: true }) as number
-    if (version > 12) throw new Error('DATABASE_TOO_NEW')
+    if (version > 18) throw new Error('DATABASE_TOO_NEW')
     if (version < 1)
       db.transaction(() => {
         db.exec(`
@@ -103,6 +135,12 @@ export function openStore(path: string) {
     if (version < 10) migrateRetractions(db)
     if (version < 11) migrateRevisionReview(db)
     if (version < 12) migrateGithub(db)
+    if (version < 13) migrateFeishu(db)
+    if (version < 14) migrateReferenceAudit(db)
+    if (version < 15) migrateEventMetadata(db)
+    if (version < 16) migratePlanChanges(db)
+    if (version < 17) migrateSourceAssociations(db)
+    if (version < 18) migratePlanAssessments(db)
     const revisionReview = createRevisionReview(db)
     const retractions = createRetractions(db)
     const ingestion = createIngestionBudget(db)
@@ -119,7 +157,17 @@ export function openStore(path: string) {
     const sources = createSources(db, receive, observeEvent)
     const plugins = createPlugins(db, receive, observeEvent)
     const github = createGithub(db, receive, observeEvent)
+    const feishu = createFeishu(db, receive, observeEvent)
     return {
+      petContext: createPetContext(db),
+      timeline: createTimeline(db),
+      planChanges: createPlanChanges(db),
+      sourceAssociations: createSourceAssociations(db),
+      feishu: {
+        ...feishu,
+        receiveBatch: (input: Parameters<typeof feishu.receiveBatch>[0]) =>
+          ingestion.withBatch(() => feishu.receiveBatch(input)),
+      },
       github: {
         ...github,
         receiveBatch: (input: Parameters<typeof github.receiveBatch>[0]) =>
@@ -160,6 +208,9 @@ export function openStore(path: string) {
             .get(event.sourceInstanceId) ||
           db
             .prepare('SELECT 1 FROM github_connections WHERE source_id=?')
+            .get(event.sourceInstanceId) ||
+          db
+            .prepare('SELECT 1 FROM feishu_connections WHERE source_id=?')
             .get(event.sourceInstanceId)
         )
           throw new Error('USE_AUTHORIZED_SOURCE_BATCH')
