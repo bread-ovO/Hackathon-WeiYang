@@ -50,6 +50,10 @@ export function prepareEventProcessing(
     sourceInstanceId: event.sourceInstanceId,
     externalId: event.externalId,
     revision: event.revision,
-    ...extractExplicitCommitments({ text: event.text, role: event.role }),
+    ...extractExplicitCommitments({
+      text: event.text,
+      role: event.role,
+      ...(event.operation ? { operation: event.operation } : {}),
+    }),
   }
 }

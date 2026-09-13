@@ -420,3 +420,57 @@ describe('declarative HTTPS JSON reader', () => {
     },
   )
 })
+
+describe('explicit HTTP retraction mapping', () => {
+  const configured = () => ({
+    ...manifest(),
+    mapping: { ...manifest().mapping, operation: { pointer: '/operation' } },
+  })
+  it('maps only a selected operation field and keeps host source identity', async () => {
+    const reader = createHttpJsonReader({
+      manifest: configured(),
+      authorization: auth,
+      transport: async () =>
+        bytes([{ ...item('r', 'user', ''), operation: 'retract' }]),
+    })
+    expect((await reader.read()).events[0]).toMatchObject({
+      operation: 'retract',
+      text: '',
+      sourceInstanceId: 'host-source',
+    })
+    const legacy = createHttpJsonReader({
+      manifest: manifest(),
+      authorization: auth,
+      transport: async () =>
+        bytes([
+          { ...item('r', 'user', ''), operation: 'retract', deleted: true },
+        ]),
+    })
+    expect((await legacy.read()).events[0]!.operation).toBeUndefined()
+  })
+  it.each([true, null, 'delete', {}])(
+    'rejects invalid mapped operation %j',
+    async (operation) => {
+      const reader = createHttpJsonReader({
+        manifest: configured(),
+        authorization: auth,
+        transport: async () => bytes([{ ...item('r', 'user', ''), operation }]),
+      })
+      await expect(reader.read()).rejects.toMatchObject({
+        code: 'INVALID_SOURCE_EVENT',
+      })
+    },
+  )
+  it('rejects missing explicitly selected operation and nonempty retract text', async () => {
+    for (const record of [item(), { ...item(), operation: 'retract' }]) {
+      const reader = createHttpJsonReader({
+        manifest: configured(),
+        authorization: auth,
+        transport: async () => bytes([record]),
+      })
+      await expect(reader.read()).rejects.toMatchObject({
+        code: 'INVALID_SOURCE_EVENT',
+      })
+    }
+  })
+})

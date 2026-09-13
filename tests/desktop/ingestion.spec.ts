@@ -41,6 +41,9 @@ test('queue pressure preserves local import progress and budget across restart',
   try {
     app = await launch()
     let page = await app.firstWindow()
+    await expect(
+      page.getByRole('heading', { name: '跟进', exact: true }),
+    ).toBeVisible()
     await expect
       .poll(() => page.evaluate(async () => (await window.memo.health()).ok))
       .toBe(true)
@@ -97,7 +100,7 @@ test('queue pressure preserves local import progress and budget across restart',
     await budget.getByRole('button', { name: '刷新预算状态' }).click()
     await expect(budget).toContainText('新增收录已暂停')
     await page.screenshot({
-      path: 'docs/engineering/images/ingestion-paused.png',
+      path: 'test-results/ingestion-paused.png',
     })
     await budget.getByLabel('队列上限').fill('2')
     await budget.getByRole('button', { name: '保存收录预算' }).click()
@@ -111,7 +114,7 @@ test('queue pressure preserves local import progress and budget across restart',
     await budget.getByRole('button', { name: '刷新预算状态' }).click()
     await expect(budget).toContainText('预算允许继续收录')
     await page.screenshot({
-      path: 'docs/engineering/images/ingestion-resumed.png',
+      path: 'test-results/ingestion-resumed.png',
     })
     await sourcePanel
       .getByRole('button', { name: '继续同步', exact: true })
@@ -126,6 +129,9 @@ test('queue pressure preserves local import progress and budget across restart',
     await app.close().catch(() => {})
     app = await launch()
     page = await app.firstWindow()
+    await expect(
+      page.getByRole('heading', { name: '跟进', exact: true }),
+    ).toBeVisible()
     await expect
       .poll(() => page.evaluate(async () => (await window.memo.health()).ok))
       .toBe(true)

@@ -69,6 +69,7 @@ export function migrateSources(db: Database.Database) {
 export function createSources(
   db: Database.Database,
   receive: (event: SourceEvent, cursor: string) => { inserted: boolean },
+  onEventReceived?: (projectId: string, eventId: number) => void,
 ) {
   function get(sourceId: string): SourceSummary {
     id(sourceId)
@@ -195,6 +196,7 @@ export function createSources(
           db.prepare(
             'INSERT INTO event_projects(project_id,event_id) VALUES(?,?) ON CONFLICT DO NOTHING',
           ).run(source.projectId, stored.id)
+          onEventReceived?.(source.projectId, stored.id)
         }
         // An empty valid page still advances the checkpoint in the same transaction.
         db.prepare('UPDATE source_instances SET cursor=? WHERE id=?').run(

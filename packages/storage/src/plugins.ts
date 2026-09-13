@@ -230,6 +230,7 @@ export function migratePlugins(db: Database.Database) {
 export function createPlugins(
   db: Database.Database,
   receive: (event: SourceEvent, cursor: string) => { inserted: boolean },
+  onEventReceived?: (projectId: string, eventId: number) => void,
 ) {
   function safe(id: string): SafePlugin {
     text(id)
@@ -424,6 +425,7 @@ export function createPlugins(
           db.prepare(
             'INSERT INTO event_projects(project_id,event_id) VALUES(?,?) ON CONFLICT DO NOTHING',
           ).run(plugin.projectId, row.id)
+          onEventReceived?.(plugin.projectId, row.id)
         }
         db.prepare('UPDATE source_instances SET cursor=? WHERE id=?').run(
           input.cursor,

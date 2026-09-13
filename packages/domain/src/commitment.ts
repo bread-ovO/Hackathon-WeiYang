@@ -18,11 +18,13 @@ export interface ExplicitCommitmentResult {
     | 'no_explicit_commitment'
     | 'plan_change'
     | 'candidate_limit'
+    | 'source_retracted'
   candidates: ExplicitCommitment[]
 }
 export function extractExplicitCommitments(input: {
   text: string
   role: string
+  operation?: 'upsert' | 'retract'
 }): ExplicitCommitmentResult {
   if (
     !input ||
@@ -35,6 +37,15 @@ export function extractExplicitCommitments(input: {
     outcome: ExplicitCommitmentResult['outcome'],
     reason: ExplicitCommitmentResult['reason'],
   ): ExplicitCommitmentResult => ({ outcome, reason, candidates: [] })
+  if (
+    input.operation !== undefined &&
+    !['upsert', 'retract'].includes(input.operation)
+  )
+    throw new Error('INVALID_COMMITMENT_INPUT')
+  if (input.operation === 'retract') {
+    if (input.text !== '') throw new Error('INVALID_COMMITMENT_INPUT')
+    return result('needs_review', 'source_retracted')
+  }
   if (input.role !== 'user') return result('ignored', 'non_user_role')
   if (
     /^\s*(?:示例|例子|引用|转述|他说|她说|example|quote)\s*[:：]/iu.test(

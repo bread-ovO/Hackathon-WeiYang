@@ -1,3 +1,4 @@
+import { createRetractions } from './retractions'
 import type Database from 'better-sqlite3'
 import {
   createCandidateSearch,
@@ -675,6 +676,8 @@ export function createTaskModel(db: Database.Database) {
         choice(evidence.relation, ['supports', 'opposes', 'related'])
         choice(evidence.validity, ['unknown', 'valid', 'invalid'])
         eventInProject(input.projectId, evidence.eventId)
+        if (createRetractions(db).forEvent(input.projectId, evidence.eventId))
+          throw new Error('EVENT_RETRACTED')
         db.prepare(
           'INSERT INTO evidence_links(id,task_id,project_id,criterion_version,criterion_id,event_id,relation,validity,reason) VALUES(?,?,?,?,?,?,?,?,?)',
         ).run(

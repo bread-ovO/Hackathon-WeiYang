@@ -52,7 +52,8 @@ describe('FeishuHistoryAdapter', () => {
     )
     expect(result.nextCursor).toBe('')
     expect(result.events[0]).toMatchObject({
-      revision: 'v2',
+      revision: 'v2:retract',
+      operation: 'retract',
       role: 'assistant',
       text: '',
     })

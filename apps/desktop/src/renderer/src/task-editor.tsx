@@ -45,6 +45,9 @@ export function TaskEditor({
     [error, setError] = useState(''),
     [loading, setLoading] = useState(false)
   const [provenance, setProvenance] = useState<CandidateProvenance[]>([])
+  const [evidenceLoading, setEvidenceLoading] = useState(false)
+  const [evidenceError, setEvidenceError] = useState('')
+  const evidenceGeneration = useRef(0)
   const generation = useRef(0)
   useEffect(() => {
     setTitle(task.title)
@@ -53,6 +56,9 @@ export function TaskEditor({
   }, [task.id, task.version])
   useEffect(() => {
     const seq = ++generation.current
+    evidenceGeneration.current++
+    setEvidenceLoading(false)
+    setEvidenceError('')
     if (!task.projectId) return
     setLoading(true)
     setProvenance([])
@@ -76,6 +82,30 @@ export function TaskEditor({
       generation.current++
     }
   }, [task.id, task.version, version])
+  async function refreshEvidence() {
+    if (!task.projectId || evidenceLoading || loading) return
+    const seq = ++evidenceGeneration.current
+    const current = generation.current
+    setEvidenceLoading(true)
+    setEvidenceError('')
+    try {
+      const reply = await window.memo.workspace.detail(
+        task.projectId,
+        task.id,
+        version,
+      )
+      if (seq !== evidenceGeneration.current || current !== generation.current)
+        return
+      if (reply.ok) setProvenance(reply.data.provenance ?? [])
+      else setEvidenceError('依据读取失败，原有显示保留，请稍后刷新。')
+    } catch {
+      if (seq === evidenceGeneration.current && current === generation.current)
+        setEvidenceError('本地核心暂不可用，原有显示保留。')
+    } finally {
+      if (seq === evidenceGeneration.current && current === generation.current)
+        setEvidenceLoading(false)
+    }
+  }
   const readonly = version !== task.criteriaVersion
   return (
     <section className="detail" aria-label="事项详情">
@@ -96,6 +126,18 @@ export function TaskEditor({
             }[task.evidenceStatus]
           }
         </p>
+        {task.projectId && (
+          <div className="source-import-actions">
+            <AppButton
+              disabled={loading || evidenceLoading}
+              onClick={() => void refreshEvidence()}
+            >
+              刷新依据
+            </AppButton>
+            {evidenceLoading && <span>正在读取依据…</span>}
+            {evidenceError && <p role="alert">{evidenceError}</p>}
+          </div>
+        )}
         {!loading && provenance.length > 0 && (
           <section className="candidate-provenance" aria-label="候选来源依据">
             <h3>候选来源依据</h3>
@@ -105,15 +147,39 @@ export function TaskEditor({
             {provenance.map((item) => (
               <details key={`${item.eventId}:${item.quoteStart}`}>
                 <summary>
-                  {item.quoteKind === 'revision_excerpt'
-                    ? '查看待复核修订摘录'
-                    : '查看原文引用'}{' '}
+                  {item.referenceStatus === 'invalidated' && (
+                    <strong>原记录已撤回 · 引用已失效 · </strong>
+                  )}
+                  {item.reason === 'source_retracted'
+                    ? '查看撤回依据'
+                    : item.quoteKind === 'revision_excerpt'
+                      ? '查看待复核修订摘录'
+                      : '查看原文引用'}{' '}
                   · 修订 {item.revision}
                 </summary>
-                <blockquote>{item.quote}</blockquote>
-                {item.quoteKind === 'revision_excerpt' && (
-                  <p>这是后续修订的摘录，尚未应用到事项，也不作为完成证据。</p>
+                {item.quote && <blockquote>{item.quote}</blockquote>}
+                {item.retraction && (
+                  <div>
+                    <p>
+                      事项保留，不会因消息撤回自动取消或覆盖人工决定，请人工复核。
+                    </p>
+                    <p>撤回依据：事件 #{item.retraction.eventId}</p>
+                    <p>
+                      来源标注时间：
+                      {new Date(item.retraction.occurredAt).toLocaleString()}
+                    </p>
+                    <p>
+                      收录撤回时间：
+                      {new Date(item.retraction.receivedAt).toLocaleString()}
+                    </p>
+                  </div>
                 )}
+                {item.quoteKind === 'revision_excerpt' &&
+                  item.reason !== 'source_retracted' && (
+                    <p>
+                      这是后续修订的摘录，尚未应用到事项，也不作为完成证据。
+                    </p>
+                  )}
                 {item.revisionStatus === 'review_required' && (
                   <p>来源有后续修订，请复核此候选；原引用仍保留。</p>
                 )}

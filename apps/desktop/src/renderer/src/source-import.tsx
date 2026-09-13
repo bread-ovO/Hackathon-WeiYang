@@ -130,6 +130,12 @@ export function SourceImport() {
         id、revision、created_at、role 和 content；role 支持
         user、assistant、tool、system。
       </p>
+      <p>
+        operation 可省略（默认为 upsert）。撤回须使用同一 id、新
+        revision，明确填写
+        <code>{' "operation":"retract","content":"" '}</code>
+        ；content（正文）必须为空。仅清空正文不会被视为撤回。
+      </p>
       {message && <p role="status">{message}</p>}
       {data.sources.length ? (
         data.sources.map((s) => (

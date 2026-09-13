@@ -17,14 +17,20 @@ export function createEventReceiver(
       throw new Error('UNKNOWN_SOURCE')
     const prior = db
       .prepare(
-        'SELECT content,role,occurred_at FROM source_events WHERE source_id=? AND external_id=? AND revision=?',
+        'SELECT content,role,occurred_at,operation FROM source_events WHERE source_id=? AND external_id=? AND revision=?',
       )
       .get(event.sourceInstanceId, event.externalId, event.revision) as
-      | { content: string; role: string; occurred_at: string }
+      | {
+          content: string
+          role: string
+          occurred_at: string
+          operation: string
+        }
       | undefined
     if (
       prior &&
-      (prior.content !== event.text ||
+      (prior.operation !== (event.operation ?? 'upsert') ||
+        prior.content !== event.text ||
         prior.role !== event.role ||
         prior.occurred_at !== event.occurredAt)
     )
@@ -41,7 +47,7 @@ export function createEventReceiver(
     const result = db
       .prepare(
         `INSERT INTO source_events
-      (source_id,external_id,revision,occurred_at,received_at,role,content) VALUES (?,?,?,?,?,?,?)`,
+      (source_id,external_id,revision,occurred_at,received_at,role,content,operation) VALUES (?,?,?,?,?,?,?,?)`,
       )
       .run(
         event.sourceInstanceId,
@@ -51,6 +57,7 @@ export function createEventReceiver(
         receivedAt,
         event.role,
         event.text,
+        event.operation ?? 'upsert',
       )
     const id = Number(result.lastInsertRowid)
     if (!Number.isSafeInteger(id)) throw new Error('INVALID_EVENT_ID')
