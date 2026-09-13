@@ -150,6 +150,7 @@ export function RealWorkspace({
   async function run(
     action: () => Promise<CoreReply<unknown>>,
     success: string,
+    after?: (reply: Extract<CoreReply<unknown>, { ok: true }>) => void,
   ) {
     if (mutating.current) return
     mutating.current = true
@@ -160,6 +161,7 @@ export function RealWorkspace({
       const r = await action()
       if (r.ok) {
         setMessage(success)
+        after?.(r)
         await latestLoad.current()
       } else
         setMessage(
@@ -246,6 +248,13 @@ export function RealWorkspace({
               void run(
                 () => window.memo.workspace.createProject(name.trim()),
                 '项目已创建。',
+                (r) => {
+                  setName('')
+                  const created = (
+                    r.data as { projects?: { id: string }[] } | undefined
+                  )?.projects?.[0]
+                  if (created) setProject(created.id)
+                },
               )
           }}
         >
@@ -271,6 +280,7 @@ export function RealWorkspace({
               void run(
                 () => window.memo.workspace.createTask(project, title.trim()),
                 '事项已保存。',
+                () => setTitle(''),
               )
           }}
         >
