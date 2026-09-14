@@ -1,3 +1,4 @@
+import { TaskAnalysisPanel } from './task-analysis-panel'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type {
   CoreReply,
@@ -39,11 +40,14 @@ export function RealWorkspace({
   onCount,
   openTask,
   onConnect,
+  onModelSettings,
 }: {
   onCount: (count: number) => void
   openTask?: { projectId: string; taskId: string; nonce: number } | null
+  onModelSettings?: () => void
   onConnect?: () => void
 }) {
+  const [analysisOpen, setAnalysisOpen] = useState(false)
   const [data, setData] = useState<WorkspaceSnapshot>({
     projects: [],
     tasks: [],
@@ -344,7 +348,7 @@ export function RealWorkspace({
           </h1>
 
         </div>
-        <div className="workspace-actions">
+        <div className="workspace-actions" hidden={analysisOpen}>
           <TaskExport
             projects={data.projects}
             selected={current}
@@ -501,23 +505,25 @@ export function RealWorkspace({
       </AppDialog>
       <div className="workspace-toolbar">
         <div className="workspace-tabs">
+          <AppButton aria-pressed={analysisOpen} onClick={() => setAnalysisOpen(true)}>AI 整理</AppButton>
+
           <AppButton
             aria-label="未归档"
-            aria-pressed={!archive}
+            aria-pressed={!archive && !analysisOpen}
             disabled={saving}
-            onClick={() => setArchive(false)}
+            onClick={() => { setAnalysisOpen(false); setArchive(false) }}
           >
             跟进清单
           </AppButton>
           <AppButton
-            aria-pressed={archive}
+            aria-pressed={archive && !analysisOpen}
             disabled={saving}
-            onClick={() => setArchive(true)}
+            onClick={() => { setAnalysisOpen(false); setArchive(true) }}
           >
             已归档
           </AppButton>
         </div>
-        <div className="workspace-search">
+        <div className="workspace-search" hidden={analysisOpen}>
           <MagnifyingGlass aria-hidden />
           <AppInput
             disabled={saving}
@@ -529,6 +535,10 @@ export function RealWorkspace({
           />
         </div>
       </div>
+      {analysisOpen && <div className="workspace-analysis">
+        <TaskAnalysisPanel onConnect={onConnect} onModelSettings={onModelSettings} onAccepted={() => { void load() }} />
+      </div>}
+      <div hidden={analysisOpen} className="workspace-list-content">
       {filterCount > 0 && !filtersOpen && (
         <div className="active-filter-summary">
           <span>
@@ -786,6 +796,7 @@ export function RealWorkspace({
             </AppButton>
           )}
         </section>
+      </div>
       </div>
       <AppDialog
         open={!!current}
