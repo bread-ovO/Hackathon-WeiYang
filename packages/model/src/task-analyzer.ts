@@ -8,7 +8,8 @@ import {
 
 export interface TaskModelRequest {
   messages: { role: 'system' | 'user'; content: string }[]
-  schema: typeof taskAnalysisSchema
+  schema: object
+  purpose?: 'task-chat'
   signal: AbortSignal
 }
 export type TaskModelTransport = (request: TaskModelRequest) => Promise<string>

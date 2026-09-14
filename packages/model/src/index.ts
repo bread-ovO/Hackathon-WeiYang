@@ -11,3 +11,4 @@ export type {
   PetModelErrorCode,
   PetTemplateSelection,
 } from './pet-selector'
+export { runTaskChat } from './task-chat-runner'

@@ -10,6 +10,20 @@ let store = openStore(path)
 try {
   store.tasks.createProject('a', '合成分析测试')
   store.tasks.createProject('b', '隔离项目')
+  const start=Date.parse('2026-09-14T00:00:00Z')
+  const f=store.feishu.authorize({projectId:'b',chatId:'oc_synthetic_analysis',credentialId:'00000000-0000-4000-8000-000000000001',startTime:start,endTime:start+86400000})
+  const fg=store.feishu.getAuthorized(f.id)
+  store.feishu.receiveBatch({id:f.id,expectedGrantVersion:fg.grantVersion,expectedPollVersion:fg.pollVersion,expectedPageToken:fg.pageToken,expectedWindowStart:fg.windowStart,expectedWindowEnd:fg.windowEnd,events:[{schemaVersion:1,sourceInstanceId:f.id,externalId:'fake_message',revision:'1',occurredAt:new Date(start+1000).toISOString(),role:'user',text:'请准备周会材料。'}],nextPageToken:'',nextPollAt:0})
+  const fc=store.taskAnalysis.context(f.id)
+  const fr=store.taskAnalysis.save(fc,{tasks:[{title:'准备周会材料',stage:'requested',nextAction:'整理材料',evidence:[{messageId:fc.messages[0]!.id,quote:'请准备周会材料。'}]}]},'fixture','feishu-test')
+  assert.equal(store.taskAnalysis.latest('feishu-test')?.runId,fr)
+  store.feishu.setEnabled(f.id,false)
+  assert.throws(()=>store.taskAnalysis.accept(fr,0),/ANALYSIS_SOURCE_UNAVAILABLE/)
+  store.feishu.setEnabled(f.id,true)
+  assert.throws(()=>store.taskAnalysis.accept(fr,0),/ANALYSIS_CONTEXT_CHANGED/)
+  store.feishu.revoke(f.id)
+  assert.throws(()=>store.taskAnalysis.context(f.id),/ANALYSIS_SOURCE_UNAVAILABLE/)
+
   const grant = store.sources.authorize({
     path: join(folder, 'synthetic.jsonl'),
     projectId: 'a',

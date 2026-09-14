@@ -1,3 +1,5 @@
+import { taskChatRequestSchema, type ChatSnapshot } from './task-chat'
+export * from './task-chat'
 import { modelProviderRequestSchema, type ModelConfig, type ModelProviderSnapshot } from './model-provider'
 export * from './model-provider'
 export * from './task-analysis'
@@ -233,6 +235,7 @@ const coreRequestSchema = {
     exportSaveRequestSchema,
     credentialRequestSchema,
     modelProviderRequestSchema,
+    taskChatRequestSchema,
     pluginsRequestSchema,
     ...petRequestSchemas,
   ],
@@ -534,6 +537,13 @@ export interface DesktopBridge {
   ingestion: {
     status(): Promise<CoreReply<IngestionStatus>>
     configure(patch: IngestionLimitsPatch): Promise<CoreReply<IngestionStatus>>
+  }
+  chat: {
+    status(projectId: string): Promise<CoreReply<ChatSnapshot>>
+    send(projectId: string, message: string): Promise<CoreReply<ChatSnapshot>>
+    confirm(projectId: string, runId: string): Promise<CoreReply<ChatSnapshot>>
+    cancel(projectId: string, runId: string): Promise<CoreReply<ChatSnapshot>>
+    reject(projectId: string, runId: string): Promise<CoreReply<ChatSnapshot>>
   }
   modelProvider: {
     status(): Promise<CoreReply<ModelProviderSnapshot>>

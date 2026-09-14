@@ -1,3 +1,4 @@
+import { createTaskChatService } from './task-chat'
 import { createTaskModelBridge } from './task-model-bridge'
 import { handleFeishuHost, isFeishuHostRequest } from './feishu'
 import { handleGithubHost, isGithubHostRequest } from './github'
@@ -21,7 +22,9 @@ if (!path || !parentPort) throw new Error('CORE_STARTUP_INVALID')
 const store = openStore(path)
 const sources = createSourceHandler(store)
 const processing = createLocalProcessing(store)
-const analysis = createTaskAnalysisService(store, createTaskModelBridge(parentPort))
+const modelBridge = createTaskModelBridge(parentPort)
+const analysis = createTaskAnalysisService(store, modelBridge)
+const chat = createTaskChatService(store, modelBridge)
 parentPort.on('message', async ({ data }) => {
   if (
     !data ||
@@ -37,7 +40,9 @@ parentPort.on('message', async ({ data }) => {
     if (request.method.startsWith('pet.')) throw new Error('INVALID_REQUEST')
     reply = {
       ok: true,
-      data: request.method === 'analysis.start' || request.method === 'analysis.status' || request.method === 'analysis.accept'
+      data: request.method === 'chat.status' || request.method === 'chat.send' || request.method === 'chat.confirm' || request.method === 'chat.cancel' || request.method === 'chat.reject'
+        ? chat.handle(request)
+        : request.method === 'analysis.start' || request.method === 'analysis.status' || request.method === 'analysis.accept'
         ? analysis.handle(request)
         : isFeishuHostRequest(request)
         ? handleFeishuHost(store, request)
@@ -126,6 +131,7 @@ parentPort.on('message', async ({ data }) => {
 process.on('exit', () => {
   processing.dispose()
   analysis.dispose()
+  chat.dispose()
   store.close()
 })
 parentPort.postMessage({ ready: true })

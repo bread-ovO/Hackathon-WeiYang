@@ -6,6 +6,7 @@ const require = createRequire(resolve('apps/desktop/package.json'))
 const selected = process.argv.slice(2)
 const names = [
   'task-analysis-integration',
+  'task-chat-integration',
   'delivery-integration',
   'five-requirements-integration',
   'storage-integration',

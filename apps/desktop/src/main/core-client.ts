@@ -1,6 +1,6 @@
 import { utilityProcess, type UtilityProcess } from 'electron'
 import { randomUUID } from 'node:crypto'
-import { taskAnalysisSchema } from '@memo/contracts'
+import { taskAnalysisSchema, taskChatOutputSchema } from '@memo/contracts'
 import type { TaskModelRequest } from '@memo/model'
 import type { CoreReply, HostRequest } from '@memo/contracts'
 export class CoreClient {
@@ -49,13 +49,13 @@ export class CoreClient {
             this.modelCalls.size ||
             !('messages' in message) ||
             !Array.isArray(message.messages) ||
-            message.messages.length > 4 ||
+            message.messages.length > 6 ||
             !message.messages.every(
               (m) =>
                 m &&
                 ['system', 'user'].includes(m.role) &&
                 typeof m.content === 'string' &&
-                m.content.length <= 100000,
+                m.content.length <= 200000,
             )
           ) {
             child.postMessage({
@@ -69,7 +69,7 @@ export class CoreClient {
           this.modelCalls.set(id, controller)
           void this.modelHandler({
             messages: message.messages,
-            schema: taskAnalysisSchema,
+            schema: 'purpose' in message && message.purpose === 'task-chat' ? taskChatOutputSchema : taskAnalysisSchema,
             signal: controller.signal,
           })
             .then((result) => {
