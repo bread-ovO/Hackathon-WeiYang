@@ -88,8 +88,8 @@ test('packaged renderer connects to isolated SQLite core without exposing Node',
       'chat-completions',
     )
     await page.getByRole('button', { name: '连接', exact: true }).click()
-    await page.locator('#ai-task-analysis > summary').click()
-    await page.locator('.model-provider-settings > summary').click()
+    await page.getByRole('button', { name: '设置', exact: true }).click()
+    await page.locator('#settings-model > summary').click()
     await expect(page.getByLabel('模型接入方式')).toHaveValue(
       'chat-completions',
     )

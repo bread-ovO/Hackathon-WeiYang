@@ -30,6 +30,7 @@ test('compact pages disclose configuration on demand and align icons at both wid
         width,
       )
       await page.getByRole('button', { name: '连接', exact: true }).click()
+      await expect(page.getByRole('region', { name: 'AI 事项分析' })).toHaveCount(0)
       await expect(page.getByLabel('飞书会话ID')).not.toBeVisible()
       await expect(
         page.getByRole('button', { name: '一键体验', exact: true }),
@@ -37,12 +38,12 @@ test('compact pages disclose configuration on demand and align icons at both wid
       await page.screenshot({
         path: info.outputPath(`connections-${width}.png`),
       })
-      const help = page.getByRole('button', { name: 'AI 事项分析说明', exact: true })
+      const help = page.getByRole('button', { name: '扩展插件说明', exact: true })
       await help.hover()
-      await expect(page.getByRole('tooltip')).toContainText('理解会话')
+      await expect(page.getByRole('tooltip')).toContainText('安装和管理')
       await help.focus()
       await page.keyboard.press('Enter')
-      await expect(page.locator('#ai-task-analysis')).not.toHaveAttribute('open', '')
+      await expect(page.locator('#preset-plugins')).not.toHaveAttribute('open', '')
       await page.keyboard.press('Escape')
       await expect(page.getByRole('tooltip')).not.toBeVisible()
       await page.getByRole('button', { name: '配置飞书', exact: true }).click()
@@ -90,6 +91,12 @@ test('compact pages disclose configuration on demand and align icons at both wid
     })
     await page.getByRole('button', { name: '跟进 5', exact: true }).click()
     await page.getByRole('button', { name: '我的工作区', exact: true }).click()
+    await page.getByRole('button', { name: 'AI 整理', exact: true }).click()
+    await expect(page.getByRole('region', { name: 'AI 事项分析' })).toBeVisible()
+    await expect(page.getByText('还没有可分析的内容。')).toBeVisible()
+    await page.getByRole('button', { name: '模型设置', exact: true }).click()
+    await expect(page.getByLabel('模型接入方式')).toBeVisible()
+    await page.getByRole('button', { name: /^跟进/ }).first().click()
     await page.getByRole('button', { name: /核对接口说明并反馈给同事/ }).click()
     await expect(
       page.getByRole('region', { name: '事项时间线', exact: true }),

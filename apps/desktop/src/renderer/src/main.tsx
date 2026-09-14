@@ -10,7 +10,7 @@ import { FeishuPanel } from './feishu-panel'
 import { GithubPanel } from './github-panel'
 import { IngestionPanel } from './ingestion-panel'
 import { ProcessingPanel } from './processing-panel'
-import { TaskAnalysisPanel } from './task-analysis-panel'
+import { ModelProviderSettings } from './model-provider-settings'
 import { PluginManager } from './plugin-manager'
 import { PetModels } from './pet-models'
 import { CredentialsPanel } from './credentials-panel'
@@ -165,6 +165,16 @@ function App() {
     window.addEventListener('keydown', key)
     return () => window.removeEventListener('keydown', key)
   }, [modal])
+  function goModelSettings() {
+    setPage('设置')
+    requestAnimationFrame(() => {
+      const target = document.getElementById('settings-model')
+      if (!(target instanceof HTMLDetailsElement)) return
+      target.open = true
+      target.scrollIntoView({ block: 'start' })
+      target.querySelector('summary')?.focus({ preventScroll: true })
+    })
+  }
   function goCredentials() {
     setPage('设置')
     // Expand and focus the credentials group once the settings page has rendered.
@@ -380,6 +390,7 @@ function App() {
             onCount={setRealCount}
             openTask={petTarget}
             onConnect={() => setPage('连接')}
+            onModelSettings={goModelSettings}
           />
         ) : page === '跟进' ? (
           <>
@@ -751,9 +762,6 @@ function App() {
               <h1>应用与文件</h1>
               <HelpTip label="连接页面说明">把工作发生的地方连接起来。你决定读取哪些内容，内置来源配置后即可使用。</HelpTip>
             </header>
-            <Disclosure descriptionAsHelp id="ai-task-analysis" title="AI 事项分析" description="理解会话，整理下一步">
-              <TaskAnalysisPanel />
-            </Disclosure>
             <SourcePresets
               onDemoReady={() => {
                 setDemo(false)
@@ -808,6 +816,9 @@ function App() {
               设置<span className="heading-dot">.</span>
             </h1>
 
+            <Disclosure descriptionAsHelp id="settings-model" title="AI 模型" description="分析与聊天共用的模型服务和调用授权">
+              <ModelProviderSettings defaultOpen />
+            </Disclosure>
             <Disclosure descriptionAsHelp
               id="settings-pet"
               title="桌宠外观"

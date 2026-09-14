@@ -1,5 +1,4 @@
 import { HelpTip } from './ui/help-tip'
-import { ModelProviderSettings } from './model-provider-settings'
 import { useEffect, useState } from 'react'
 import type { AnalysisSnapshot, SourcesSnapshot } from '@memo/contracts'
 import { AppButton } from './ui'
@@ -11,7 +10,11 @@ const stages = {
   accepted: '用户已验收',
   cancelled: '用户已取消',
 }
-export function TaskAnalysisPanel() {
+export function TaskAnalysisPanel({ onConnect, onModelSettings, onAccepted }: {
+  onConnect?: () => void
+  onModelSettings?: () => void
+  onAccepted?: () => void
+} = {}) {
   const [sources, setSources] = useState<SourcesSnapshot | null>(null)
   const [feishu, setFeishu] = useState<{id:string;chatId:string;status:string;eventCount:number}[]>([])
   const [sourceId, setSourceId] = useState('')
@@ -56,7 +59,7 @@ export function TaskAnalysisPanel() {
     setError('')
     try {
       const r = await window.memo.analysis.accept(state.runId, index)
-      if (r.ok) setState(r.data)
+      if (r.ok) { setState(r.data); onAccepted?.() }
       else setError('会话可能已更新，请重新分析后确认。')
     } catch {
       setError('加入结果未确认，请刷新查看。')
@@ -67,9 +70,12 @@ export function TaskAnalysisPanel() {
   return (
     <section className="source-import" aria-label="AI 事项分析">
 
-      <ModelProviderSettings />
+      <div className="analysis-heading">
+        <div className="connection-label"><h2>发现任务与进展</h2><HelpTip label="AI 整理说明">从已授权内容识别任务与进展，结合原文确认后加入跟进。当前需主动选择来源分析。</HelpTip></div>
+        {onModelSettings && <AppButton onClick={onModelSettings}>模型设置</AppButton>}
+      </div>
+      {sources && !sources.sources.some(s => s.status !== 'revoked' && s.eventCount > 0) && !feishu.some(s => s.status !== 'revoked' && s.status !== 'paused' && s.eventCount > 0) && <div className="analysis-empty"><p>还没有可分析的内容。</p>{onConnect && <AppButton onClick={onConnect}>连接来源</AppButton>}</div>}
       <div className="source-import-actions">
-        <HelpTip label="AI 分析说明">理解会话里的需求、补充与交付，整理出下一步。使用你选择的模型服务，确认后加入跟进。</HelpTip>
         <label>
           选择已授权会话{' '}
           <select
@@ -78,7 +84,7 @@ export function TaskAnalysisPanel() {
             disabled={running}
             onChange={(e) => setSourceId(e.target.value)}
           >
-            <option value="">请选择会话</option>
+            <option value="">选择要整理的内容</option>
             {sources?.sources
               .filter((s) => s.status !== 'revoked' && s.eventCount > 0)
               .map((s) => (
@@ -94,15 +100,14 @@ export function TaskAnalysisPanel() {
           disabled={!sourceId || running}
           onClick={() => void start()}
         >
-          {running ? '正在理解会话…' : '分析会话'}
+          {running ? '正在整理…' : '开始整理'}
         </AppButton>
       </div>
       {state && state.state !== 'idle' && (
-        <p>
-          本次读取 {state.messageCount} 条消息
-          {state.truncated ? '，仅分析最近的有限上下文' : ''}
-          。{state.state === 'ready' ? `分析服务：${state.model.split(' (')[0]}。` : ''}模型判断待复核，不自动完成事项。
-        </p>
+        <div className="analysis-run-summary">
+          <span>读取 {state.messageCount} 条消息{state.truncated ? ' · 上下文已截取' : ''}</span>
+          <HelpTip label="本次分析说明">{state.state === 'ready' ? `分析服务：${state.model.split(' (')[0]}。` : ''}模型判断待复核，不自动完成事项。</HelpTip>
+        </div>
       )}
       {(error || state?.state === 'error') && (
         <p role="alert">
@@ -110,7 +115,7 @@ export function TaskAnalysisPanel() {
             (state?.error === 'ANALYSIS_CONTEXT_CHANGED'
               ? '会话在分析期间已更新，请重新分析。'
               : state?.error === 'MODEL_NOT_CONFIGURED'
-                ? '请展开「分析模型」，配置并启用一个模型服务。'
+                ? '请在「设置 → AI 模型」配置并启用模型服务。'
                 : state?.error === 'MODEL_AUTH_REQUIRED'
                   ? '模型服务拒绝授权，请检查 API Key。'
                   : state?.error === 'MODEL_RATE_LIMITED'
@@ -128,7 +133,7 @@ export function TaskAnalysisPanel() {
           <article
             key={index}
             style={{
-              padding: '24px 0',
+              padding: '16px 0',
               borderTop: '1px solid var(--line, #e5e5e5)',
             }}
           >
