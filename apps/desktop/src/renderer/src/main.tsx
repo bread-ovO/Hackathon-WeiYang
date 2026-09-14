@@ -243,11 +243,7 @@ function App() {
     <div className="app-shell">
       <aside className="sidebar">
         <div className="brand">
-          <span className="brand-mark">
-            <i />
-            <i />
-            <i />
-          </span>
+          <img className="brand-icon" src="/icon.png" alt="" width={40} height={40} />
           <strong>BUGU 不咕</strong>
         </div>
         <div className="space-label">个人工作空间</div>

@@ -138,11 +138,7 @@ export function TaskChatPanel() {
         {!snapshot.runs.length && (
           <div className="task-chat-empty">
             <div className="task-chat-emblem" aria-hidden="true">
-              <span className="brand-mark">
-                <i />
-                <i />
-                <i />
-              </span>
+              <img src="/icon.png" alt="" width={96} height={96} />
             </div>
             <h2>今天，想推进哪件事？</h2>
             <p>一起理清进展，找到下一步。</p>
@@ -199,9 +195,13 @@ export function TaskChatPanel() {
             <div className="task-chat-user">{run.prompt}</div>
             <article className="task-chat-assistant">
               <div className="task-chat-speaker">
-                <span className="task-chat-avatar" aria-hidden="true">
-                  咕
-                </span>
+                <img
+                  className="task-chat-avatar"
+                  src="/icon.png"
+                  alt=""
+                  width={32}
+                  height={32}
+                />
                 <strong>不咕</strong>
               </div>
               {run.reply && <p>{run.reply}</p>}

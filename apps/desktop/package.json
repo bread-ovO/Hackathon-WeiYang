@@ -53,6 +53,9 @@
       "identity": null,
       "icon": "build/icon.png"
     },
+    "linux": {
+      "icon": "build/icon.png"
+    },
     "npmRebuild": true,
     "win": {
       "icon": "build/icon.ico"
