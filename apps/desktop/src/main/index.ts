@@ -786,6 +786,9 @@ function createWindow() {
     height: 780,
     minWidth: 860,
     minHeight: 620,
+    // CSS app regions are only draggable in a frameless window. Keep native
+    // controls on macOS while leaving the standard frame on other platforms.
+    frame: process.platform === 'darwin' ? false : true,
     title: 'BUGU 不咕',
     titleBarStyle: 'hiddenInset',
     trafficLightPosition: { x: 16, y: 18 },
@@ -802,6 +805,10 @@ function createWindow() {
       webSecurity: true,
     },
   })
+  if (process.platform === 'darwin') {
+    window.setWindowButtonVisibility(true)
+    window.setWindowButtonPosition({ x: 16, y: 18 })
+  }
   window.webContents.setWindowOpenHandler(() => ({ action: 'deny' }))
   window.webContents.on('will-navigate', (event, url) => {
     if (!isTrustedPage(url, pageURL)) event.preventDefault()
