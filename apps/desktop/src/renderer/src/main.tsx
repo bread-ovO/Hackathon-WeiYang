@@ -113,6 +113,16 @@ function App() {
   const [page, setPage] = useState('跟进'),
     [demo, setDemo] = useState(DEMO_ENABLED && window.memo.startupMode !== 'real'),
     [tasks, setTasks] = useState<Task[]>(DEMO_ENABLED ? demoTasks : [])
+  useEffect(() => window.memo.onOpenPetSettings?.(() => {
+    setPage('设置')
+    requestAnimationFrame(() => {
+      const target = document.getElementById('settings-pet')
+      if (!(target instanceof HTMLDetailsElement)) return
+      target.open = true
+      target.scrollIntoView({ block: 'start' })
+      target.querySelector('summary')?.focus({ preventScroll: true })
+    })
+  }), [])
   const [filter, setFilter] = useState<string>('全部'),
     [project, setProject] = useState('全部项目'),
     [query, setQuery] = useState(''),

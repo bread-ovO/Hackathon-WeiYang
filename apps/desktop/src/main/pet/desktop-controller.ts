@@ -1,7 +1,9 @@
+import { petMenuTemplate } from './context-menu'
 import { createPresentationQueue } from './presentation-queue'
 import { parsePetActionCatalog } from '@memo/contracts'
 import {
   BrowserWindow,
+  Menu,
   ipcMain,
   screen,
   session,
@@ -38,6 +40,7 @@ export interface PetDesktopDeps {
   speechState?(): PetSpeechState | undefined
   configureSpeech?(patch: PetSpeechPatch): Promise<boolean>
   onDisplayChanged?(): void
+  openMain?(settings: boolean): void
   openContext?(id: string): Promise<boolean>
   voicePlayback?(): PetVoicePlayback
   voiceAudio?(input: {
@@ -300,6 +303,24 @@ export function createPetDesktopController(deps: PetDesktopDeps) {
         })
         pet = created
         created.webContents.setWindowOpenHandler(() => ({ action: 'deny' }))
+        created.webContents.on('context-menu', () => {
+          if (disposed || pet !== created || !windows.displaying()) return
+          const ticket = generation
+          const valid = () => !disposed && pet === created &&
+            !created.isDestroyed() && generation === ticket && windows.displaying()
+          windows.drag('end')
+          const menu = Menu.buildFromTemplate(petMenuTemplate({
+            preferences: windows.preferences(), catalog,
+            ready: renderStatus === 'ready',
+            open: settings => { if (valid()) deps.openMain?.(settings) },
+            play: actionId => { if (valid()) enqueue({ kind: 'action', actionId }) },
+            scale: value => { if (valid()) windows.setScale(value) },
+            pin: value => { if (valid()) windows.setAlwaysOnTop(value) },
+            passthrough: value => { if (valid()) windows.setMousePassthrough(value) },
+            hide: () => { if (valid()) stop() },
+          }))
+          menu.popup({ window: created })
+        })
         created.webContents.on('will-navigate', (event) =>
           event.preventDefault(),
         )

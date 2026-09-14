@@ -367,6 +367,8 @@ export async function bootLive2D(
       F.CubismShaderManager_WebGL.getInstance().getShader(gl),
     )
     renderer.setIsPremultipliedAlpha(true)
+    let viewportWidth = 0,
+      viewportHeight = 0
     const resize = () => {
       const ratio = Math.min(2, devicePixelRatio || 1),
         width = Math.max(
@@ -381,6 +383,9 @@ export async function bootLive2D(
         canvas.width = width
         canvas.height = height
       }
+      if (viewportWidth === width && viewportHeight === height) return
+      viewportWidth = width
+      viewportHeight = height
       // Fit native model geometry to the viewport with uniform pixel scale.
       const scale =
           0.92 * Math.min(width / (maxX - minX), height / (maxY - minY)),
@@ -830,7 +835,7 @@ export async function bootLive2D(
         }
         const delta =
           lastTime === undefined
-            ? 1 / 30
+            ? 1 / 60
             : Math.min(0.1, Math.max(0, (now - lastTime) / 1000))
         lastTime = now
         elapsed += delta
