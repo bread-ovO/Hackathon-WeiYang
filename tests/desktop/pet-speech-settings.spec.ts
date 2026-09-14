@@ -61,7 +61,9 @@ test('automatic speech settings remain opt-in and persist across restart without
       pausedUntil: null,
     })
     expect(initial.ok && initial.data.speech?.status).toBe('disabled')
-    await expect(settings).toContainText('只有开启后才会自动显示')
+    await settings.getByRole('button', { name: '自动话语说明' }).hover()
+    await expect(page.getByRole('tooltip')).toContainText('只有开启后才会自动显示')
+    await page.keyboard.press('Escape')
     await settings
       .getByRole('switch', { name: '自动话语', exact: true })
       .click()

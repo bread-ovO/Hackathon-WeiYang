@@ -807,8 +807,8 @@ function App() {
             <h1>
               设置<span className="heading-dot">.</span>
             </h1>
-            <p className="page-description">管理桌宠、连接凭据与本机偏好。</p>
-            <Disclosure
+
+            <Disclosure descriptionAsHelp
               id="settings-pet"
               title="桌宠外观"
               description="模型、动作与桌面显示"
@@ -817,7 +817,7 @@ function App() {
             </Disclosure>
             <div id="settings-context" className="settings-card"><PetContextSettings /></div>
             <div id="settings-voice" className="settings-card"><PetVoiceSettings /></div>
-            <Disclosure
+            <Disclosure descriptionAsHelp
               id="settings-credentials"
               title="连接凭据"
               description="管理来源的访问令牌"
@@ -825,7 +825,7 @@ function App() {
               <CredentialsPanel />
             </Disclosure>
             <p className="settings-group-label">诊断与说明</p>
-            <Disclosure
+            <Disclosure descriptionAsHelp
               id="settings-runtime"
               title="运行状态"
               description="本地数据与故障诊断"
@@ -862,7 +862,7 @@ function App() {
                 </p>
               </section>
             </Disclosure>
-            <Disclosure
+            <Disclosure descriptionAsHelp
               id="settings-privacy"
               title="数据与隐私"
               description="本机存储与外部访问说明"
@@ -877,7 +877,7 @@ function App() {
                     仓库与本地文件会按你授权的范围读取，不发现其他会话或仓库。
                   </li>
                   <li>
-                    当前版本不接入云模型推理服务：候选建议由本机规则生成，不会把你的内容发送给模型服务商。
+                    主动分析或发送 AI 聊天时，必要上下文会发送到你配置并授权的模型服务；任务变更需要另行确认。
                   </li>
                   <li>
                     本机可选的 Ollama 模型默认关闭，启用前不会进行任何模型调用。

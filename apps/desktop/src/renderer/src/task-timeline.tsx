@@ -1,3 +1,4 @@
+import { HelpTip } from './ui/help-tip'
 import { useEffect, useRef, useState } from 'react'
 import type { TimelineEntry, TimelinePage } from '@memo/contracts'
 import { AppButton } from './ui'
@@ -296,14 +297,12 @@ export function TaskTimeline({
   return (
     <section className="task-timeline" aria-label="事项时间线">
       <div className="task-timeline-heading">
-        <h3>事项时间线</h3>
+        <div className="connection-label"><h3>事项时间线</h3><HelpTip label="事项时间线说明">记录人工调整、规则整理与引用变化。分页查看完整记录；刷新不会覆盖未保存的编辑。历史变化不等同于当前有效依据。</HelpTip></div>
         <AppButton disabled={busy} onClick={() => void load()}>
           {page ? '刷新时间线' : '查看事项时间线'}
         </AppButton>
       </div>
-      <p>
-        记录人工调整、规则整理与引用变化。分页查看完整记录；刷新不会覆盖未保存的编辑。历史变化不等同于当前有效依据。
-      </p>
+
       {message && <p role="alert">{message}</p>}
       {busy && <p role="status">正在读取时间线…</p>}
       {page && page.entries.length === 0 && <p>暂无可展示的事项记录。</p>}

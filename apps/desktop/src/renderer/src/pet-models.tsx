@@ -1,3 +1,4 @@
+import { HelpTip } from './ui/help-tip'
 import { useEffect, useRef, useState } from 'react'
 import type {
   CoreReply,
@@ -259,9 +260,9 @@ export function PetModels() {
       aria-busy={busy}
     >
       <div className="pet-models-heading">
-        <div>
-          <h2 id="pet-models-title">桌宠模型管理</h2>
-          <p>导入 Live2D 运行时模型，保存在这台设备上。</p>
+        <div className="connection-label">
+          <h2 id="pet-models-title">桌宠模型</h2>
+          <HelpTip label="桌宠模型说明">导入 Live2D 运行时模型，保存在本机。支持 .model3.json 及配套资源，不支持 .cmo3 编辑工程。</HelpTip>
         </div>
         <div className="pet-models-actions">
           <AppButton disabled={busy} onClick={() => void refresh()}>
@@ -277,20 +278,12 @@ export function PetModels() {
           </AppButton>
         </div>
       </div>
-      <p className="pet-models-note">
-        支持 .model3.json 及其配套资源；不支持 .cmo3
-        编辑工程。选择当前模型后，可在桌面显示。
-      </p>
       <div className="pet-models-runtime">
         <div>
           <strong>
             {data.runtimeReady ? '运行库已就绪' : '尚未安装运行库'}
           </strong>
-          <p>
-            {data.runtimeReady
-              ? '可以显示当前 Live2D 模型。'
-              : '首次使用请选择受支持的 Cubism 5-r.5 运行库目录。'}
-          </p>
+          {!data.runtimeReady && <p>首次使用请选择受支持的 Cubism 5-r.5 运行库目录。</p>}
         </div>
         <div className="pet-models-actions">
           <AppButton
@@ -383,9 +376,7 @@ export function PetModels() {
         >
           找回桌宠
         </AppButton>
-        <p>
-          拖动角色调整位置。透明区域可点击下方应用；始终可以从这里隐藏桌宠。
-        </p>
+        <HelpTip label="桌宠操作说明">拖动角色调整位置。透明区域可点击下方应用；可以从这里隐藏或找回桌宠。</HelpTip>
       </div>
       <PetSpeechSettings
         state={data.speech}

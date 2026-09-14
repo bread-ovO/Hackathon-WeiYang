@@ -1,3 +1,4 @@
+import { HelpTip } from './ui/help-tip'
 import { useEffect, useRef, useState } from 'react'
 import { Switch } from '@cloudflare/kumo/components/switch'
 import { Disclosure } from './ui/disclosure'
@@ -97,10 +98,7 @@ export function PetVoiceSettings() {
   return (
     <section className="pet-voice-settings" aria-label="桌宠声音">
       <div className="setting-card-heading">
-        <div>
-          <h2>桌宠声音</h2>
-          <p>用系统声音读出话语。调整后保存生效。</p>
-        </div>{' '}
+        <div className="connection-label"><h2>桌宠声音</h2><HelpTip label="桌宠声音说明">用系统声音读出话语。调整后保存生效。</HelpTip></div>{' '}
         <Switch
           aria-label="允许桌宠播音"
           checked={draft.enabled}

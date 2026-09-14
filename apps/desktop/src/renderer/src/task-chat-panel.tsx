@@ -1,3 +1,4 @@
+import { HelpTip } from './ui/help-tip'
 import { useEffect, useRef, useState } from 'react'
 import {
   ArrowUpIcon,
@@ -141,7 +142,7 @@ export function TaskChatPanel() {
               <img src="/icon.png" alt="" width={96} height={96} />
             </div>
             <h2>今天，想推进哪件事？</h2>
-            <p>一起理清进展，找到下一步。</p>
+
             <div className="task-chat-starters">
               {[
                 {
@@ -162,7 +163,7 @@ export function TaskChatPanel() {
                   hint: '查看回收站里的事项',
                   prompt: '查找回收站里的任务',
                 },
-              ].map(({ icon: Icon, title, hint, prompt }) => (
+              ].map(({ icon: Icon, title, prompt }) => (
                 <AppButton
                   key={title}
                   className="task-chat-starter"
@@ -177,7 +178,6 @@ export function TaskChatPanel() {
                     <Icon size={20} aria-hidden="true" />
                     <span className="task-chat-starter-text">
                       <strong>{title}</strong>
-                      <small>{hint}</small>
                     </span>
                     <ArrowUpRightIcon
                       size={16}
@@ -319,6 +319,7 @@ export function TaskChatPanel() {
             <ChatCircleIcon size={16} aria-hidden="true" /> 询问不咕
           </span>
           <div className="task-chat-composer-actions">
+            <HelpTip label="聊天操作说明">变更先预览，确认后生效。Enter 发送，Shift + Enter 换行。</HelpTip>
             <IconButton label="模型设置" onClick={() => setSettingsOpen(true)}>
               <SlidersHorizontalIcon size={18} />
             </IconButton>
@@ -343,9 +344,7 @@ export function TaskChatPanel() {
           </div>
         </div>
       </form>
-      <p className="task-chat-footnote">
-        变更先预览，确认后生效 <span>· Shift + Enter 换行</span>
-      </p>
+
       <AppDialog
         open={settingsOpen}
         onOpenChange={setSettingsOpen}

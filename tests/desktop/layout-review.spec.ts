@@ -54,6 +54,8 @@ test('compact pages disclose configuration on demand and align icons at both wid
       await page.getByRole('button', { name: '设置', exact: true }).click()
       await expect(page.getByLabel('凭据名称')).not.toBeVisible()
       await page.screenshot({ path: info.outputPath(`settings-${width}.png`) })
+      await expect(page.locator('.settings-page .disclosure-description')).toHaveCount(0)
+      await expect(page.locator('.setting-card-heading > div > p')).toHaveCount(0)
       const summary = page.locator('#settings-credentials > summary')
       await summary.focus()
       await page.keyboard.press('Enter')
@@ -61,6 +63,11 @@ test('compact pages disclose configuration on demand and align icons at both wid
       await summary.focus()
       await page.keyboard.press('Space')
       await expect(page.getByLabel('凭据名称')).not.toBeVisible()
+      await page.getByRole('button', { name: 'AI 聊天', exact: true }).click()
+      await expect(page.getByRole('button', { name: '聊天操作说明', exact: true })).toBeVisible()
+      await expect(page.locator('.task-chat-footnote')).toHaveCount(0)
+      await expect(page.getByRole('textbox', { name: '发送给不咕' })).toBeVisible()
+      await page.screenshot({ path: info.outputPath(`chat-${width}.png`) })
       const geometry = await page.evaluate(() => ({
         overflow: document.documentElement.scrollWidth > innerWidth,
         icons: Array.from(document.querySelectorAll('.nav-item svg')).map((svg) => {

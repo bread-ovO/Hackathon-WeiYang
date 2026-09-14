@@ -330,3 +330,29 @@
   font-size: 14px;
   line-height: 24px;
 }
+
+/* Shared compact rhythm: explanations live beside their title, not in a second row. */
+.settings-page.standalone { padding: 24px 32px; }
+.settings-page.standalone > h1 { margin: 0 auto 16px; }
+.settings-page > .disclosure { margin-bottom: 12px; }
+.settings-page > .disclosure > summary { padding: 16px 20px; }
+.settings-page > .disclosure > .disclosure-body { padding: 0 20px 20px; }
+.settings-card { padding: 16px 20px; margin-bottom: 12px; }
+.setting-card-heading { align-items: center; gap: 16px; }
+.setting-card-heading .connection-label h2,
+.pet-speech-heading .connection-label h3,
+.pet-models-heading .connection-label h2,
+.connection-label > h3 { margin: 0; }
+.settings-group-label { margin: 16px 0 8px; }
+.compact-heading h1 { margin-bottom: 0; }
+.settings-card .disclosure-body { gap: 12px; }
+@media (max-width: 900px) {
+  .settings-page.standalone { padding: 16px; }
+  .settings-card { padding: 16px; }
+  .settings-page > .disclosure > summary { padding: 16px; }
+  .settings-page > .disclosure > .disclosure-body { padding: 0 16px 16px; }
+}
+
+.settings-page.standalone, .connections-page.standalone { flex: 1; }
+
+.real-editor .disclosure > summary { padding: 12px 0; }

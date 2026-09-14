@@ -1,3 +1,4 @@
+import { HelpTip } from './ui/help-tip'
 import { useEffect, useRef, useState } from 'react'
 import type {
   PetContextConfig,
@@ -98,10 +99,7 @@ export function PetContextSettings() {
   return (
     <section className="pet-context-settings" aria-label="基于事项的话语">
       <div className="setting-card-heading">
-        <div>
-          <h2>基于事项的话语</h2>
-          <p>提醒你回顾所选项目中的事项。调整后保存生效。</p>
-        </div>{' '}
+        <div className="connection-label"><h2>基于事项的话语</h2><HelpTip label="基于事项的话语说明">提醒你回顾所选项目中的事项。调整后保存生效。</HelpTip></div>{' '}
         <Switch
           aria-label="允许基于事项生成话语"
           checked={draft.enabled}

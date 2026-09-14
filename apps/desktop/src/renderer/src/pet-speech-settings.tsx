@@ -1,3 +1,4 @@
+import { HelpTip } from './ui/help-tip'
 import { useEffect, useState } from 'react'
 import type { PetSpeechPatch, PetSpeechState } from '@memo/contracts'
 import { Switch } from '@cloudflare/kumo/components/switch'
@@ -41,10 +42,7 @@ export function PetSpeechSettings({
   return (
     <section className="pet-speech-settings" aria-label="自动话语设置">
       <div className="pet-speech-heading">
-        <div>
-          <h3>自动话语</h3>
-          <p>开启后，桌宠偶尔显示一句文字气泡；没有声音，不会改变事项状态。</p>
-        </div>
+        <div className="connection-label"><h3>自动话语</h3><HelpTip label="自动话语说明">桌宠偶尔显示文字气泡，不改变事项状态。每天最多 6 次，默认关闭。只有开启后才会自动显示。使用本机时间，默认 22:00 至次日 09:00；起止时间相同表示全天静默。</HelpTip></div>
         <Switch
           aria-label="自动话语"
           disabled={disabled}
@@ -67,9 +65,7 @@ export function PetSpeechSettings({
           <option value="normal">普通 · 45–90 分钟</option>
           <option value="low">较少 · 90–180 分钟</option>
         </select>
-        <span className="pet-speech-note">
-          每天最多 6 次，默认关闭。只有开启后才会自动显示。
-        </span>
+
         <label htmlFor="pet-quiet-start">静默时段</label>
         <div className="pet-speech-time-range">
           <input
@@ -101,9 +97,7 @@ export function PetSpeechSettings({
             保存时段
           </AppButton>
         </div>
-        <span className="pet-speech-note">
-          使用本机时间，默认 22:00 至次日 09:00；起止时间相同表示全天静默。
-        </span>
+
       </div>
       <div className="pet-speech-footer">
         <p role="status">

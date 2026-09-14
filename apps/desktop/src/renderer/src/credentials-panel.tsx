@@ -1,3 +1,4 @@
+import { HelpTip } from './ui/help-tip'
 import { useEffect, useRef, useState } from 'react'
 import type { CoreReply, CredentialsSnapshot } from '@memo/contracts'
 import { AppButton, AppInput } from './ui'
@@ -66,7 +67,7 @@ export function CredentialsPanel() {
   return (
     <section className="credential-panel" aria-labelledby="credentials-heading">
       <div className="section-heading">
-        <h2 id="credentials-heading">凭据</h2>
+        <div className="connection-label"><h2 id="credentials-heading">凭据</h2><HelpTip label="凭据导入说明">凭据由系统加密服务保护，按域名与用途限制使用。选择仅含一行 Token 的 UTF-8 文件（最多 8 KiB），原文件保留，请自行保管。</HelpTip></div>
         <AppButton
           className="text-button"
           disabled={busy}
@@ -77,14 +78,13 @@ export function CredentialsPanel() {
           刷新凭据
         </AppButton>
       </div>
-      <p className="credential-note">
-        凭据由系统加密服务保护，界面仅保存引用。按域名与用途限制使用。
-      </p>
+
       <p className="credential-status">
         {data.encryptionAvailable
           ? '系统加密可用'
           : '系统加密不可用，无法导入凭据'}
       </p>
+
       <form
         className="credential-form"
         onSubmit={(e) => {
@@ -144,10 +144,7 @@ export function CredentialsPanel() {
           导入凭据文件
         </AppButton>
       </form>
-      <p className="credential-note">
-        选择仅含一行 Token 的 UTF-8 文本文件（最多 8
-        KiB）。原文件不会删除，请自行保管。连接授权与模型调用尚未接入。
-      </p>
+
       {message && <p role="status">{message}</p>}
       <div className="credential-list">
         {data.credentials.length ? (
