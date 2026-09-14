@@ -1,0 +1,27 @@
+.connections-page.standalone { background: var(--color-kumo-tint); padding: 24px 32px; }
+.connections-page.standalone > * { max-width: 1000px; }
+.connections-heading { display: flex; align-items: center; gap: 8px; margin-bottom: 24px; }
+.connections-heading h1 { margin: 0; }
+.connections-page > .disclosure { border: 1px solid var(--line); border-radius: 12px; background: var(--color-kumo-base); margin: 12px 0; }
+.connections-page > .disclosure > summary { padding: 16px 20px; }
+.connections-page > .disclosure > .disclosure-body { padding: 0 20px 20px; }
+.connections-page > .disclosure .disclosure-title { font-weight: 600; }
+.connections-page #preset-claude:not([open]),
+.connections-page #preset-codex:not([open]),
+.connections-page #preset-kimi:not([open]) { display: none; }
+.connections-page .source-presets { margin: 16px 0; }
+.connections-page .source-starter { padding: 12px 16px; }
+.connections-page .source-starter h2 { margin: 0; font-size: 14px; }
+.connections-page .source-preset-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.connections-page .source-preset-grid article { background: var(--color-kumo-base); flex-direction: row; align-items: center; justify-content: space-between; gap: 8px; padding: 16px; }
+.connections-page .source-preset-title { min-width: 0; gap: 4px; }
+.connections-page .source-preset-title h3 { font-weight: 500; }
+.connections-page .source-preset-grid article > button { flex-shrink: 0; }
+.connections-page .source-preset-title .help-tip { font-size: inherit; }
+.connections-page .source-import > .connection-label { margin-bottom: 8px; }
+@media (max-width: 900px) {
+ .connections-page.standalone { padding: 16px; }
+ .connections-page .source-preset-grid { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+ .connections-page > .disclosure > summary { padding: 16px; }
+ .connections-page > .disclosure > .disclosure-body { padding: 0 16px 16px; }
+}

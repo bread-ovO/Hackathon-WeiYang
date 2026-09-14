@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { AppButton } from './ui'
 import './source-presets.css'
+import { HelpTip } from './ui/help-tip'
 
 export function SourcePresets({ onDemoReady }: { onDemoReady(): void }) {
   const [busy, setBusy] = useState(false),
@@ -53,10 +54,9 @@ export function SourcePresets({ onDemoReady }: { onDemoReady(): void }) {
   return (
     <section className="source-presets" aria-label="预置来源">
       <div className="source-starter">
-        <div>
-          <span className="source-eyebrow">快速开始</span>
+        <div className="connection-label">
           <h2>体验不咕</h2>
-          <p>用三条虚构记录试试，无需连接账号。</p>
+          <HelpTip label="体验不咕说明">用三条虚构记录试试，无需连接账号。</HelpTip>
         </div>
         <AppButton
           variant="primary"
@@ -109,9 +109,8 @@ export function SourcePresets({ onDemoReady }: { onDemoReady(): void }) {
           <article key={id}>
             <div className="source-preset-title">
               <h3>{name}</h3>
-              <span>内置</span>
+              <HelpTip label={`${name}说明`}>{description}</HelpTip>
             </div>
-            <p>{description}</p>
             <AppButton
               id={`${id}-trigger`}
               variant="secondary"
@@ -122,7 +121,6 @@ export function SourcePresets({ onDemoReady }: { onDemoReady(): void }) {
           </article>
         ))}
       </div>
-      <p className="source-preset-note">内置来源，配置后即可使用。</p>
     </section>
   )
 }

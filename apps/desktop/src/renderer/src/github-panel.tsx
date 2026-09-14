@@ -264,10 +264,7 @@ export function GithubPanel({
   }
   return (
     <section className="source-import github-panel" aria-label="GitHub仓库连接">
-      <p>
-        支持单仓库 PR，或整个账户下凭据可访问仓库的 PR、Issue
-        和评论。凭据保存在本机；分批读取，首轮可能较久。权限不足会停止并提示，可调整凭据后继续。不会自动完成事项。
-      </p>
+
       <form
         onSubmit={(e) => {
           e.preventDefault()

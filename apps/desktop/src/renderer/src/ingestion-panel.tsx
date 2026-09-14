@@ -1,3 +1,4 @@
+import { HelpTip } from './ui/help-tip'
 import { useEffect, useRef, useState } from 'react'
 import type { IngestionStatus } from '@memo/contracts'
 import { AppButton, AppInput } from './ui'
@@ -102,10 +103,7 @@ export function IngestionPanel() {
   }
   return (
     <section className="source-import" aria-label="收录预算">
-      <h2>收录预算</h2>
-      <p>
-        超过预算时暂停新增记录，不删除已收录数据，也不提前推进读取进度。单批记录整批提交；若一批新增记录超过队列额度，需提高额度后再同步。预算恢复后，已启用插件继续自动采样；本地文件可点击继续同步。
-      </p>
+<div className="connection-label"><h2>收录预算</h2><HelpTip label="收录预算说明">超过预算时暂停新增记录，不删除已收录数据，也不提前推进读取进度。单批记录整批提交；若一批新增记录超过队列额度，需提高额度后再同步。预算恢复后，已启用插件继续自动采样；本地文件可点击继续同步。</HelpTip></div>
       {status && (
         <>
           <strong>

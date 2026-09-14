@@ -19,12 +19,12 @@
   outline-offset: 4px;
   border-radius: 4px;
 }
-.disclosure > summary > svg {
+.disclosure-tools > svg {
   display: block;
   flex: 0 0 16px;
   color: var(--muted);
 }
-.disclosure[open] > summary > svg {
+.disclosure[open] > summary .disclosure-tools > svg {
   transform: rotate(90deg);
 }
 .disclosure-copy {
@@ -65,3 +65,5 @@
   border-top: 1px solid var(--line);
   border-bottom: 0;
 }
+
+.disclosure-tools { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
