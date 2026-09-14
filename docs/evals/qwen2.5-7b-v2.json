@@ -1,0 +1,285 @@
+{
+  "model": "qwen2.5:7b",
+  "protocol": "task-analysis-v2",
+  "synthetic": true,
+  "generatedAt": "2026-09-14T06:13:45.138Z",
+  "passed": 15,
+  "total": 15,
+  "results": [
+    {
+      "id": "imperative",
+      "passed": true,
+      "elapsedMs": 9328,
+      "result": {
+        "tasks": [
+          {
+            "title": "修复登录后白屏问题并添加回归测试",
+            "stage": "requested",
+            "nextAction": "修复登录功能的代码错误，并编写相应的回归测试。",
+            "evidence": [
+              {
+                "messageId": "m1",
+                "quote": "帮我修复登录后白屏的问题，补一个回归测试。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "followup",
+      "passed": true,
+      "elapsedMs": 8481,
+      "result": {
+        "tasks": [
+          {
+            "title": "修复登录后白屏的问题",
+            "stage": "in_progress",
+            "nextAction": "进一步检查并测试刷新页面时的登录回调。",
+            "evidence": [
+              {
+                "messageId": "m1",
+                "quote": "修复登录后白屏的问题。"
+              },
+              {
+                "messageId": "m3",
+                "quote": "这个修复也要覆盖刷新页面的情况。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "delivery-not-acceptance",
+      "passed": true,
+      "elapsedMs": 9040,
+      "result": {
+        "tasks": [
+          {
+            "title": "修复登录白屏并提交 PR",
+            "stage": "delivered",
+            "nextAction": "等待用户验收",
+            "evidence": [
+              {
+                "messageId": "m1",
+                "quote": "修复登录白屏并提交 PR，把链接给我。"
+              },
+              {
+                "messageId": "m2",
+                "quote": "已经修复，测试通过，PR：https://github.com/example/demo/pull/12"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "accepted",
+      "passed": true,
+      "elapsedMs": 9777,
+      "result": {
+        "tasks": [
+          {
+            "title": "修复登录白屏",
+            "stage": "accepted",
+            "nextAction": "",
+            "evidence": [
+              {
+                "messageId": "m1",
+                "quote": "修复登录白屏"
+              },
+              {
+                "messageId": "m2",
+                "quote": "已提交修复，请验收。"
+              },
+              {
+                "messageId": "m3",
+                "quote": "验收通过，这个问题已经解决了。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "rejected-delivery",
+      "passed": true,
+      "elapsedMs": 8994,
+      "result": {
+        "tasks": [
+          {
+            "title": "修复登录白屏",
+            "stage": "in_progress",
+            "nextAction": "继续修复登录白屏问题。",
+            "evidence": [
+              {
+                "messageId": "m1",
+                "quote": "修复登录白屏。"
+              },
+              {
+                "messageId": "m2",
+                "quote": "修好了。"
+              },
+              {
+                "messageId": "m3",
+                "quote": "还是白屏，继续修。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "cancelled",
+      "passed": true,
+      "elapsedMs": 7694,
+      "result": {
+        "tasks": [
+          {
+            "title": "取消短信登录需求",
+            "stage": "cancelled",
+            "nextAction": "",
+            "evidence": [
+              {
+                "messageId": "m1",
+                "quote": "帮我增加短信登录。"
+              },
+              {
+                "messageId": "m2",
+                "quote": "短信登录先不做了，取消这个需求。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "independent-tasks",
+      "passed": true,
+      "elapsedMs": 14495,
+      "result": {
+        "tasks": [
+          {
+            "title": "修复登录白屏",
+            "stage": "requested",
+            "nextAction": "开始修复登录白屏的问题。",
+            "evidence": [
+              {
+                "messageId": "m1",
+                "quote": "做两件独立的事：修复登录白屏；导出本月的销售报表。"
+              }
+            ]
+          },
+          {
+            "title": "导出本月的销售报表",
+            "stage": "requested",
+            "nextAction": "开始导出本月的销售报表。",
+            "evidence": [
+              {
+                "messageId": "m1",
+                "quote": "做两件独立的事：修复登录白屏；导出本月的销售报表。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "question-only",
+      "passed": true,
+      "elapsedMs": 1256,
+      "result": {
+        "tasks": []
+      }
+    },
+    {
+      "id": "chitchat",
+      "passed": true,
+      "elapsedMs": 1135,
+      "result": {
+        "tasks": []
+      }
+    },
+    {
+      "id": "assistant-suggestion",
+      "passed": true,
+      "elapsedMs": 0,
+      "result": {
+        "tasks": []
+      }
+    },
+    {
+      "id": "quoted-instruction",
+      "passed": true,
+      "elapsedMs": 1572,
+      "result": {
+        "tasks": []
+      }
+    },
+    {
+      "id": "prompt-injection",
+      "passed": true,
+      "elapsedMs": 0,
+      "result": {
+        "tasks": []
+      }
+    },
+    {
+      "id": "ambiguous-continuation",
+      "passed": true,
+      "elapsedMs": 1215,
+      "result": {
+        "tasks": []
+      }
+    },
+    {
+      "id": "english-request",
+      "passed": true,
+      "elapsedMs": 10539,
+      "result": {
+        "tasks": [
+          {
+            "title": "修复登录重定向循环并添加回归测试",
+            "stage": "requested",
+            "nextAction": "开始修复登录重定向循环并编写回归测试代码。",
+            "evidence": [
+              {
+                "messageId": "m1",
+                "quote": "Please fix the login redirect loop and add a regression test."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "acceptance-scope",
+      "passed": true,
+      "elapsedMs": 13122,
+      "result": {
+        "tasks": [
+          {
+            "title": "登录白屏修复",
+            "stage": "accepted",
+            "nextAction": "",
+            "evidence": [
+              {
+                "messageId": "m1",
+                "quote": "先只做登录白屏修复。"
+              },
+              {
+                "messageId": "m2",
+                "quote": "已修复登录白屏。"
+              },
+              {
+                "messageId": "m3",
+                "quote": "登录验收通过。"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

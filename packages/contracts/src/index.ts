@@ -1,3 +1,5 @@
+export * from './task-analysis'
+import { analysisRequestSchema, type AnalysisSnapshot } from './task-analysis'
 import type { DeliverySummary } from './delivery'
 import type { PetVoiceState, PetVoicePreferences } from './pet-voice'
 export * from './pet-voice'
@@ -222,6 +224,7 @@ const coreRequestSchema = {
     githubRequestSchema,
     feishuRequestSchema,
     processingRequestSchema,
+    analysisRequestSchema,
     ingestionRequestSchema,
     workspaceRequestSchema,
     sourcesRequestSchema,
@@ -524,6 +527,11 @@ export interface DesktopBridge {
   ingestion: {
     status(): Promise<CoreReply<IngestionStatus>>
     configure(patch: IngestionLimitsPatch): Promise<CoreReply<IngestionStatus>>
+  }
+  analysis: {
+    start(sourceId: string): Promise<CoreReply<AnalysisSnapshot>>
+    status(): Promise<CoreReply<AnalysisSnapshot>>
+    accept(runId: string, index: number): Promise<CoreReply<AnalysisSnapshot>>
   }
   processing: {
     status(): Promise<CoreReply<ProcessingStatus>>

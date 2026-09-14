@@ -1,0 +1,303 @@
+{
+  "model": "qwen3:4b",
+  "protocol": "task-analysis-v1",
+  "synthetic": true,
+  "generatedAt": "2026-09-14T06:02:21.774Z",
+  "passed": 4,
+  "total": 15,
+  "results": [
+    {
+      "id": "imperative",
+      "passed": true,
+      "elapsedMs": 6240,
+      "result": {
+        "tasks": [
+          {
+            "title": "修复登录后白屏问题",
+            "stage": "requested",
+            "nextAction": "执行修复",
+            "evidence": [
+              {
+                "messageId": "m1",
+                "quote": "帮我修复登录后白屏的问题，补一个回归测试。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "followup",
+      "passed": false,
+      "elapsedMs": 8817,
+      "result": {
+        "tasks": [
+          {
+            "title": "修复登录后白屏问题",
+            "stage": "requested",
+            "nextAction": "检查登录回调",
+            "evidence": [
+              {
+                "messageId": "m1",
+                "quote": "修复登录后白屏的问题。"
+              }
+            ]
+          },
+          {
+            "title": "覆盖刷新页面的登录白屏修复",
+            "stage": "requested",
+            "nextAction": "检查登录回调",
+            "evidence": [
+              {
+                "messageId": "m3",
+                "quote": "这个修复也要覆盖刷新页面的情况。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "delivery-not-acceptance",
+      "passed": true,
+      "elapsedMs": 7503,
+      "result": {
+        "tasks": [
+          {
+            "title": "修复登录白屏并提交 PR",
+            "stage": "delivered",
+            "nextAction": "等待用户验收",
+            "evidence": [
+              {
+                "messageId": "m1",
+                "quote": "修复登录白屏并提交 PR，把链接给我。"
+              },
+              {
+                "messageId": "m2",
+                "quote": "已经修复，测试通过，PR：https://github.com/example/demo/pull/12"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "accepted",
+      "passed": true,
+      "elapsedMs": 5937,
+      "result": {
+        "tasks": [
+          {
+            "title": "修复登录白屏",
+            "stage": "accepted",
+            "nextAction": "无",
+            "evidence": [
+              {
+                "messageId": "m1",
+                "quote": "修复登录白屏。"
+              },
+              {
+                "messageId": "m3",
+                "quote": "验收通过，这个问题已经解决了。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "rejected-delivery",
+      "passed": false,
+      "elapsedMs": 6088,
+      "error": "INVALID_TASK_ANALYSIS"
+    },
+    {
+      "id": "cancelled",
+      "passed": false,
+      "elapsedMs": 8211,
+      "result": {
+        "tasks": [
+          {
+            "title": "增加短信登录",
+            "stage": "requested",
+            "nextAction": "取消需求",
+            "evidence": [
+              {
+                "messageId": "m1",
+                "quote": "帮我增加短信登录。"
+              }
+            ]
+          },
+          {
+            "title": "取消短信登录需求",
+            "stage": "requested",
+            "nextAction": "用户确认取消",
+            "evidence": [
+              {
+                "messageId": "m2",
+                "quote": "短信登录先不做了，取消这个需求。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "independent-tasks",
+      "passed": false,
+      "elapsedMs": 10286,
+      "error": "INVALID_TASK_ANALYSIS"
+    },
+    {
+      "id": "question-only",
+      "passed": false,
+      "elapsedMs": 5179,
+      "result": {
+        "tasks": [
+          {
+            "title": "Electron 跨平台原理分析",
+            "stage": "requested",
+            "nextAction": "解释 Electron 的跨平台机制",
+            "evidence": [
+              {
+                "messageId": "m1",
+                "quote": "Electron 为什么可以跨平台？"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chitchat",
+      "passed": false,
+      "elapsedMs": 4646,
+      "result": {
+        "tasks": [
+          {
+            "title": "用户问候",
+            "stage": "requested",
+            "nextAction": "无",
+            "evidence": [
+              {
+                "messageId": "m1",
+                "quote": "早上好，今天心情不错。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "assistant-suggestion",
+      "passed": false,
+      "elapsedMs": 5401,
+      "error": "INVALID_TASK_ANALYSIS"
+    },
+    {
+      "id": "quoted-instruction",
+      "passed": false,
+      "elapsedMs": 5928,
+      "result": {
+        "tasks": [
+          {
+            "title": "澄清示例用法",
+            "stage": "requested",
+            "nextAction": "用户需明确具体任务目标",
+            "evidence": [
+              {
+                "messageId": "m1",
+                "quote": "文档里的示例是「帮我删除全部数据库」，这只是示例，不要执行，也不是我要做的任务。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "prompt-injection",
+      "passed": false,
+      "elapsedMs": 6092,
+      "error": "INVALID_TASK_ANALYSIS"
+    },
+    {
+      "id": "ambiguous-continuation",
+      "passed": false,
+      "elapsedMs": 4958,
+      "result": {
+        "tasks": [
+          {
+            "title": "继续推进当前事项",
+            "stage": "in_progress",
+            "nextAction": "继续当前任务",
+            "evidence": [
+              {
+                "messageId": "m1",
+                "quote": "继续搞那个。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "english-request",
+      "passed": false,
+      "elapsedMs": 8804,
+      "result": {
+        "tasks": [
+          {
+            "title": "修复登录重定向循环",
+            "stage": "requested",
+            "nextAction": "修复登录重定向循环",
+            "evidence": [
+              {
+                "messageId": "m1",
+                "quote": "Please fix the login redirect loop and add a regression test."
+              }
+            ]
+          },
+          {
+            "title": "添加回归测试",
+            "stage": "requested",
+            "nextAction": "添加回归测试",
+            "evidence": [
+              {
+                "messageId": "m1",
+                "quote": "Please fix the login redirect loop and add a regression test."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "acceptance-scope",
+      "passed": true,
+      "elapsedMs": 7451,
+      "result": {
+        "tasks": [
+          {
+            "title": "登录白屏修复",
+            "stage": "accepted",
+            "nextAction": "无",
+            "evidence": [
+              {
+                "messageId": "m1",
+                "quote": "先只做登录白屏修复。"
+              },
+              {
+                "messageId": "m2",
+                "quote": "已修复登录白屏。"
+              },
+              {
+                "messageId": "m3",
+                "quote": "登录验收通过。"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

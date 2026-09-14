@@ -1,4 +1,5 @@
 import { DeliveryPanel } from './delivery-panel'
+import { TaskModelSuggestion } from './task-model-suggestion'
 import { TaskMerge } from './task-merge'
 import { Disclosure } from './ui/disclosure'
 import { X, ArrowClockwise, FloppyDisk } from '@phosphor-icons/react'
@@ -286,6 +287,7 @@ export function TaskEditor({
           </section>
         )}
 
+        {task.projectId && <TaskModelSuggestion projectId={task.projectId} taskId={task.id} />}
         <div className="task-state-control">
           {' '}
           <label>

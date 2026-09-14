@@ -135,6 +135,7 @@ export function handleWorkspace(
       if (!task) throw new Error('TASK_NOT_IN_PROJECT')
       return {
         task,
+        modelSuggestion: store.taskAnalysis.forTask(request.projectId, request.id),
         merge: store.tasks.mergeInfo(request.projectId, request.id),
         provenance: store.processing.getTaskEvidence(
           request.projectId,
