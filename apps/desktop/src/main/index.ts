@@ -759,6 +759,9 @@ else {
         trayHost,
         electronTrayPlatform({ Tray, Menu, nativeImage }),
       )
+      if (process.platform === 'darwin') {
+        app.dock?.setIcon(join(__dirname, '../renderer/icon.png'))
+      }
       createWindow()
       if (showBundledPet) void petDesktop.show()
       app.on('activate', () => trayHost.restoreWindow())
