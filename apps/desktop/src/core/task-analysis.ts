@@ -32,8 +32,31 @@ export function createTaskAnalysisService(
   function snapshot() {
     return structuredClone(state)
   }
-  return {
-    handle(request: AnalysisRequest) {
+  let disposed = false
+  let timer: ReturnType<typeof setTimeout> | undefined
+  let providerRetryAt = 0
+  const retryAfter = new Map<string, number>()
+  function tick() {
+    if (disposed) return
+    try {
+      if (state.state !== 'running' && Date.now() >= providerRetryAt) {
+        const next = store.taskAnalysis.pending(TASK_ANALYSIS_VERSION)
+          .find(item => (retryAfter.get(item.sourceId) ?? 0) <= Date.now())
+        if (next) {
+          // Serialize model calls, retry failures at most once per five minutes/source.
+          retryAfter.set(next.sourceId, Date.now() + 300_000)
+          service.handle({ method: 'analysis.start', sourceId: next.sourceId }, true)
+        }
+      }
+    } catch {
+      // A transient storage/source error must never stop the core process.
+    } finally {
+      if (!disposed) timer = setTimeout(tick, 30_000)
+    }
+  }
+  const service = {
+    start() { if (!timer && !disposed) timer = setTimeout(tick, 10_000) },
+    handle(request: AnalysisRequest, automatic = false) {
       if (request.method === 'analysis.status') return snapshot()
       if (request.method === 'analysis.accept') {
         if (state.state !== 'ready' || state.runId !== request.runId)
@@ -66,7 +89,8 @@ export function createTaskAnalysisService(
         signal: controller.signal,
       })
         .then((result) => {
-          const runId = store.taskAnalysis.save(
+          if (disposed) return
+          const runId = (automatic ? store.taskAnalysis.discover : store.taskAnalysis.save)(
             context,
             result,
             state.model,
@@ -82,6 +106,7 @@ export function createTaskAnalysisService(
         })
         .catch((error) => {
           const code = error instanceof Error ? error.message : ''
+          if (automatic) providerRetryAt = Date.now() + 300_000
           state = {
             ...state,
             state: 'error',
@@ -103,7 +128,10 @@ export function createTaskAnalysisService(
       return snapshot()
     },
     dispose() {
+      disposed = true
+      if (timer) clearTimeout(timer)
       controller?.abort()
     },
   }
+  return service
 }

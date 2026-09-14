@@ -366,3 +366,6 @@
 .analysis-empty { display: flex; align-items: center; gap: 12px; padding: 16px 0; }
 
 .analysis-run-summary { display: flex; align-items: center; gap: 4px; color: var(--muted); font-size: 12px; margin: 12px 0; }
+
+.automatic-analysis-status { display: flex; align-items: center; gap: 4px; color: var(--muted); font-size: 12px; }
+.task-ai-source { display: inline-block; max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: bottom; }

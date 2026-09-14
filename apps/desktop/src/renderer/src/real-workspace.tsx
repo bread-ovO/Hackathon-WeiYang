@@ -1,4 +1,4 @@
-import { TaskAnalysisPanel } from './task-analysis-panel'
+import { AutomaticAnalysisStatus } from './automatic-analysis-status'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type {
   CoreReply,
@@ -47,7 +47,6 @@ export function RealWorkspace({
   onModelSettings?: () => void
   onConnect?: () => void
 }) {
-  const [analysisOpen, setAnalysisOpen] = useState(false)
   const [data, setData] = useState<WorkspaceSnapshot>({
     projects: [],
     tasks: [],
@@ -218,6 +217,7 @@ export function RealWorkspace({
   )
   const latestLoad = useRef(load)
   latestLoad.current = load
+  const refreshAutomatic = useCallback(() => { void latestLoad.current() }, [])
   useEffect(() => {
     setSelected(null)
     void load()
@@ -348,7 +348,8 @@ export function RealWorkspace({
           </h1>
 
         </div>
-        <div className="workspace-actions" hidden={analysisOpen}>
+        <div className="workspace-actions">
+          <AutomaticAnalysisStatus onModelSettings={onModelSettings} onUpdated={refreshAutomatic} />
           <TaskExport
             projects={data.projects}
             selected={current}
@@ -505,25 +506,24 @@ export function RealWorkspace({
       </AppDialog>
       <div className="workspace-toolbar">
         <div className="workspace-tabs">
-          <AppButton aria-pressed={analysisOpen} onClick={() => setAnalysisOpen(true)}>AI 整理</AppButton>
 
           <AppButton
             aria-label="未归档"
-            aria-pressed={!archive && !analysisOpen}
+            aria-pressed={!archive}
             disabled={saving}
-            onClick={() => { setAnalysisOpen(false); setArchive(false) }}
+            onClick={() => { setArchive(false) }}
           >
             跟进清单
           </AppButton>
           <AppButton
-            aria-pressed={archive && !analysisOpen}
+            aria-pressed={archive}
             disabled={saving}
-            onClick={() => { setAnalysisOpen(false); setArchive(true) }}
+            onClick={() => { setArchive(true) }}
           >
             已归档
           </AppButton>
         </div>
-        <div className="workspace-search" hidden={analysisOpen}>
+        <div className="workspace-search">
           <MagnifyingGlass aria-hidden />
           <AppInput
             disabled={saving}
@@ -535,10 +535,7 @@ export function RealWorkspace({
           />
         </div>
       </div>
-      {analysisOpen && <div className="workspace-analysis">
-        <TaskAnalysisPanel onConnect={onConnect} onModelSettings={onModelSettings} onAccepted={() => { void load() }} />
-      </div>}
-      <div hidden={analysisOpen} className="workspace-list-content">
+      <div className="workspace-list-content">
       {filterCount > 0 && !filtersOpen && (
         <div className="active-filter-summary">
           <span>
@@ -698,6 +695,7 @@ export function RealWorkspace({
                     {data.projects.find((p) => p.id === t.projectId)?.name ??
                       '旧事项 · 未分配项目'}{' '}
                     ·{' '}
+                    {t.aiSource && <span className="task-ai-source" title={t.aiSource.name}>AI · {t.aiSource.name}</span>}
                     {t.admission === 'candidate' ? (
                       <Badge variant="warning">待确认收录</Badge>
                     ) : t.admission === 'ignored' ? (

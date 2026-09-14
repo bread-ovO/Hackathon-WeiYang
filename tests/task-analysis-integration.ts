@@ -137,6 +137,22 @@ try {
   const inspectDistinct = new Database(path, {readonly:true})
   assert.equal((inspectDistinct.prepare('SELECT count(*) AS n FROM tasks').get() as {n:number}).n,2)
   inspectDistinct.close()
+  // Background discovery persists candidates and provenance atomically, without accepting work.
+  const autoProtocol = 'automatic-test'
+  assert.equal(store.taskAnalysis.pending(autoProtocol).some(x => x.sourceId === grant.id), true)
+  const automatic = { tasks: [{ ...proposal.tasks[0]!, title: '自动发现的独立事项' }] }
+  const autoRun = store.taskAnalysis.discover(newer, automatic, 'fixture', autoProtocol)
+  assert.equal(store.taskAnalysis.pending(autoProtocol).some(x => x.sourceId === grant.id), false)
+  store.taskAnalysis.discover(newer, automatic, 'fixture', autoProtocol)
+  const autoDb = new Database(path, {readonly:true})
+  const candidates = autoDb.prepare("SELECT id,admission,status FROM tasks WHERE title='自动发现的独立事项'").all() as {id:string;admission:string;status:string}[]
+  assert.equal(candidates.length, 1)
+  assert.equal(candidates[0]!.admission, 'candidate')
+  assert.equal(candidates[0]!.status, 'todo')
+  assert.equal(store.taskAnalysis.forTask('a', candidates[0]!.id)?.sourceName, 'synthetic.jsonl')
+  assert.equal(store.taskAnalysis.forTask('a', candidates[0]!.id)?.sourceId, grant.id)
+  assert.deepEqual(store.taskAnalysis.accepted(autoRun), [0])
+  autoDb.close()
   store.sources.revoke(grant.id)
   assert.throws(
     () => store.taskAnalysis.context(grant.id),

@@ -21,11 +21,12 @@ export function TaskModelSuggestion({
   if (!value) return null
   return (
     <section className="candidate-provenance" aria-label="AI 分析建议">
-      <h3>下一步建议</h3>
+      <h3>自动整理的进展</h3>
+      <p>来源：{value.sourceName} · AI 判断：{{ requested: '待开始', in_progress: '进行中', delivered: '待验收', accepted: '原文已确认完成', cancelled: '原文已取消' }[value.candidate.stage]}</p>
       <p>{value.candidate.nextAction || '暂无后续动作，请核对当前状态。'}</p>
       <details>
         <summary>AI 分析原文依据（{value.candidate.evidence.length}）</summary>
-        <p>来自 {value.model} 的历史分析建议，不替代当前状态与人工验收。</p>
+        <p>整理于 {new Date(value.createdAt).toLocaleString()} · {value.model}。进展建议不替代人工验收。</p>
         {value.candidate.evidence.map((e, i) => (
           <blockquote key={i}>{e.quote}</blockquote>
         ))}
