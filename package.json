@@ -18,6 +18,7 @@
     "check": "pnpm check:boundaries && pnpm typecheck && pnpm test && pnpm build && pnpm test:storage && pnpm test:desktop",
     "package:dir": "pnpm --filter @memo/desktop package:dir",
     "package:demo": "pnpm --filter @memo/desktop package:demo",
+    "package:real": "pnpm --filter @memo/desktop package:real",
     "package:dmg": "pnpm --filter @memo/desktop package:dmg",
     "start:demo": "node scripts/start-desktop.mjs --mode=demo",
     "start:real": "node scripts/start-desktop.mjs --mode=real"

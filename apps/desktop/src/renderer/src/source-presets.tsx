@@ -3,6 +3,8 @@ import { AppButton } from './ui'
 import './source-presets.css'
 import { HelpTip } from './ui/help-tip'
 
+const DEMO_ENABLED = import.meta.env.VITE_MEMO_NO_DEMO !== '1'
+
 export function SourcePresets({ onDemoReady }: { onDemoReady(): void }) {
   const [busy, setBusy] = useState(false),
     [message, setMessage] = useState('')
@@ -53,20 +55,22 @@ export function SourcePresets({ onDemoReady }: { onDemoReady(): void }) {
   }
   return (
     <section className="source-presets" aria-label="预置来源">
-      <div className="source-starter">
-        <div className="connection-label">
-          <h2>体验不咕</h2>
-          <HelpTip label="体验不咕说明">用三条虚构记录试试，无需连接账号。</HelpTip>
+      {DEMO_ENABLED && (
+        <div className="source-starter">
+          <div className="connection-label">
+            <h2>体验不咕</h2>
+            <HelpTip label="体验不咕说明">用三条虚构记录试试，无需连接账号。</HelpTip>
+          </div>
+          <AppButton
+            variant="primary"
+            disabled={busy}
+            onClick={() => void start()}
+          >
+            {busy ? '正在准备…' : '一键体验'}
+          </AppButton>
         </div>
-        <AppButton
-          variant="primary"
-          disabled={busy}
-          onClick={() => void start()}
-        >
-          {busy ? '正在准备…' : '一键体验'}
-        </AppButton>
-      </div>
-      {message && <p role="status">{message}</p>}
+      )}
+      {DEMO_ENABLED && message && <p role="status">{message}</p>}
       <div className="source-preset-grid">
         {[
           [

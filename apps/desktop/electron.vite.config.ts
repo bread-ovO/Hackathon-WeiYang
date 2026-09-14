@@ -27,8 +27,13 @@ const alias = {
     ]),
   ),
 }
+// Share the release gate with the host so demo data generation is also removed.
+const releaseDefines = {
+  'import.meta.env.VITE_MEMO_NO_DEMO': JSON.stringify(process.env.VITE_MEMO_NO_DEMO ?? '0'),
+}
 export default defineConfig({
   main: {
+    define: releaseDefines,
     plugins: [
       {
         name: 'clear-stale-bundled-assets',
@@ -65,6 +70,7 @@ export default defineConfig({
     },
   },
   renderer: {
+    define: releaseDefines,
     build: {
       rollupOptions: {
         input: {
