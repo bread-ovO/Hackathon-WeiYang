@@ -1,7 +1,13 @@
 import { utilityProcess, type UtilityProcess } from 'electron'
 import { randomUUID } from 'node:crypto'
+import { taskAnalysisSchema } from '@memo/contracts'
+import type { TaskModelRequest } from '@memo/model'
 import type { CoreReply, HostRequest } from '@memo/contracts'
 export class CoreClient {
+  modelHandler?: (
+    input: TaskModelRequest,
+  ) => Promise<{ content: string; model: string }>
+  private modelCalls = new Map<string, AbortController>()
   private child: UtilityProcess | null = null
   private ready = false
   private stopped = false
@@ -27,6 +33,67 @@ export class CoreClient {
     this.child = child
     child.on('message', (message: unknown) => {
       if (!message || typeof message !== 'object') return
+      if (
+        'kind' in message &&
+        'id' in message &&
+        typeof message.id === 'string'
+      ) {
+        const id = message.id
+        if (message.kind === 'model.cancel') {
+          this.modelCalls.get(id)?.abort()
+          return
+        }
+        if (message.kind === 'model.analyze') {
+          if (
+            !this.modelHandler ||
+            this.modelCalls.size ||
+            !('messages' in message) ||
+            !Array.isArray(message.messages) ||
+            message.messages.length > 4 ||
+            !message.messages.every(
+              (m) =>
+                m &&
+                ['system', 'user'].includes(m.role) &&
+                typeof m.content === 'string' &&
+                m.content.length <= 100000,
+            )
+          ) {
+            child.postMessage({
+              kind: 'model.result',
+              id,
+              error: 'MODEL_UNAVAILABLE',
+            })
+            return
+          }
+          const controller = new AbortController()
+          this.modelCalls.set(id, controller)
+          void this.modelHandler({
+            messages: message.messages,
+            schema: taskAnalysisSchema,
+            signal: controller.signal,
+          })
+            .then((result) => {
+              if (this.child === child)
+                child.postMessage({ kind: 'model.result', id, ...result })
+            })
+            .catch((error) => {
+              if (this.child === child)
+                child.postMessage({
+                  kind: 'model.result',
+                  id,
+                  error:
+                    error instanceof Error &&
+                    /^MODEL_[A-Z_]+$|^INVALID_TASK_ANALYSIS$/.test(
+                      error.message,
+                    )
+                      ? error.message
+                      : 'MODEL_UNAVAILABLE',
+                })
+            })
+            .finally(() => this.modelCalls.delete(id))
+          return
+        }
+      }
       if ('ready' in message && message.ready === true) {
         this.ready = true
         return
@@ -69,6 +136,8 @@ export class CoreClient {
     })
   }
   private flush() {
+    for (const c of this.modelCalls.values()) c.abort()
+    this.modelCalls.clear()
     for (const p of this.pending.values()) {
       clearTimeout(p.timer)
       p.resolve({ ok: false, error: 'CORE_UNAVAILABLE' })

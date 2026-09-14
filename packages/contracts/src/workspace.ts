@@ -253,6 +253,7 @@ export interface CandidateProvenance {
   createdAt: string
 }
 export interface WorkspaceDetail {
+  modelSuggestion?: { model: string; createdAt: string; candidate: import('./task-analysis').TaskAnalysis['tasks'][number] } | null
   merge?: {
     mergedInto: string | null
     mergedFrom: { id: string; title: string }[]

@@ -1,3 +1,5 @@
+export { analyzeTasks, TASK_ANALYSIS_VERSION } from './task-analyzer'
+export type { TaskModelRequest, TaskModelTransport } from './task-analyzer'
 // Provider results must be validated by application contracts before use.
 export {
   selectPetTemplate,

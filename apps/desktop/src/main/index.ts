@@ -1,3 +1,4 @@
+import { createTaskModelProvider } from './task-model-provider'
 import { initializeBundledPet } from './pet/bundled-demo'
 import { prepareBuiltinDemo } from './builtin-demo'
 import { createPetVoiceService } from './pet/voice-service'
@@ -323,6 +324,9 @@ else {
         petWorker.stop()
       })
       const vault = createSystemCredentialVault(join(data, 'credentials'))
+      const taskModels = createTaskModelProvider(join(data, 'model-provider.json'), (id, scope) => vault.read(id, scope))
+      core.modelHandler = taskModels.analyze
+      app.on('before-quit', () => taskModels.cancel())
       const feishu = createFeishuRuntime({
         request: (request) =>
           core
@@ -553,7 +557,10 @@ else {
               request.method === 'feishu.restartWindow'
             )
               return feishu.handle(request)
+            if (request.method === 'modelProvider.status') return { ok: true, data: await taskModels.status() }
+            if (request.method === 'modelProvider.configure') return { ok: true, data: await taskModels.configure(request.config) }
             if (request.method === 'credentials.remove') {
+              taskModels.cancel()
               plugins.cancel()
               return github.removeCredential(request.id, () =>
                 feishu.removeCredential(request.id, () => credentials(request)),

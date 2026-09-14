@@ -42,6 +42,8 @@ test('packaged renderer connects to isolated SQLite core without exposing Node',
         'github',
         'pet',
         'ingestion',
+        'modelProvider',
+        'analysis',
         'processing',
         'health',
         'plugins',
@@ -66,8 +68,24 @@ test('packaged renderer connects to isolated SQLite core without exposing Node',
     expect(reply.ok).toBe(true)
     if (reply.ok) {
       expect(reply.data.eventCount).toBe(0)
-      expect(reply.data.schemaVersion).toBe(22)
+      expect(reply.data.schemaVersion).toBe(23)
     }
+    const modelStatus = await page.evaluate(() => window.memo.modelProvider.status())
+    expect(modelStatus.ok && modelStatus.data.config.enabled).toBe(false)
+    const savedModel = await page.evaluate(() => window.memo.modelProvider.configure({
+      provider: 'chat-completions', enabled: false,
+      baseUrl: 'https://example.com/v1', model: 'fixture-model', credentialId: '',
+    }))
+    expect(savedModel.ok && savedModel.data.config.provider).toBe('chat-completions')
+    await page.getByRole('button', { name: '连接', exact: true }).click()
+    await page.locator('#ai-task-analysis > summary').click()
+    await page.locator('.model-provider-settings > summary').click()
+    await expect(page.getByLabel('模型接入方式')).toHaveValue('chat-completions')
+    await expect(page.getByLabel('分析模型名称')).toHaveValue('fixture-model')
+    await page.getByLabel('模型接入方式').selectOption('responses')
+    await page.getByRole('button', { name: '保存模型配置', exact: true }).click()
+    await expect(page.getByText('配置已保存。下次分析使用此服务。')).toBeVisible()
+    expect((await page.evaluate(() => window.memo.modelProvider.status())).ok).toBe(true)
     // Terminate only our named child process and verify a different, healthy core replaces it.
     const oldPid = await app.evaluate(({ app }) => {
       const metric = app

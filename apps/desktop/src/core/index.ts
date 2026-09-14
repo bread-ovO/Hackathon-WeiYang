@@ -1,9 +1,11 @@
+import { createTaskModelBridge } from './task-model-bridge'
 import { handleFeishuHost, isFeishuHostRequest } from './feishu'
 import { handleGithubHost, isGithubHostRequest } from './github'
 import { handlePluginHost } from './plugins'
 import { createSourceHandler } from './sources'
 import { handleWorkspace } from './workspace'
 import { createLocalProcessing } from './processing'
+import { createTaskAnalysisService } from './task-analysis'
 import { openStore } from '@memo/storage'
 import { parseHostRequest, type CoreReply } from '@memo/contracts'
 const parentPort = (
@@ -19,6 +21,7 @@ if (!path || !parentPort) throw new Error('CORE_STARTUP_INVALID')
 const store = openStore(path)
 const sources = createSourceHandler(store)
 const processing = createLocalProcessing(store)
+const analysis = createTaskAnalysisService(store, createTaskModelBridge(parentPort))
 parentPort.on('message', async ({ data }) => {
   if (
     !data ||
@@ -34,7 +37,9 @@ parentPort.on('message', async ({ data }) => {
     if (request.method.startsWith('pet.')) throw new Error('INVALID_REQUEST')
     reply = {
       ok: true,
-      data: isFeishuHostRequest(request)
+      data: request.method === 'analysis.start' || request.method === 'analysis.status' || request.method === 'analysis.accept'
+        ? analysis.handle(request)
+        : isFeishuHostRequest(request)
         ? handleFeishuHost(store, request)
         : isGithubHostRequest(request)
           ? handleGithubHost(store, request)
@@ -120,6 +125,7 @@ parentPort.on('message', async ({ data }) => {
 })
 process.on('exit', () => {
   processing.dispose()
+  analysis.dispose()
   store.close()
 })
 parentPort.postMessage({ ready: true })

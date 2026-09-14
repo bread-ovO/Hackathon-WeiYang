@@ -1,0 +1,53 @@
+.model-provider-settings {
+  margin: 16px 0;
+}
+.model-provider-settings > summary {
+  cursor: pointer;
+  color: var(--muted);
+}
+.model-provider-form {
+  display: grid;
+  gap: 16px;
+  padding: 24px;
+  margin-top: 12px;
+  max-width: 640px;
+  border: 1px solid var(--line, #e5e5e5);
+  border-radius: 12px;
+  background: var(--surface, #fff);
+}
+.model-provider-form > label {
+  display: grid;
+  grid-template-columns: 144px minmax(0, 1fr);
+  align-items: center;
+  gap: 16px;
+}
+.model-provider-form > label input,
+.model-provider-form > label select {
+  width: 100%;
+  min-width: 0;
+}
+.model-provider-form > button {
+  justify-self: start;
+}
+.model-provider-form > p {
+  color: var(--muted);
+  margin: 0;
+  line-height: 1.6;
+}
+.model-provider-permission {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border-top: 1px solid var(--line, #e5e5e5);
+  padding-top: 16px;
+}
+@media (max-width: 900px) {
+  .model-provider-form {
+    padding: 16px;
+  }
+  .model-provider-form > label {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+}

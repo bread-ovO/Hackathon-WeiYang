@@ -6,6 +6,7 @@ import { FeishuPanel } from './feishu-panel'
 import { GithubPanel } from './github-panel'
 import { IngestionPanel } from './ingestion-panel'
 import { ProcessingPanel } from './processing-panel'
+import { TaskAnalysisPanel } from './task-analysis-panel'
 import { PluginManager } from './plugin-manager'
 import { PetModels } from './pet-models'
 import { CredentialsPanel } from './credentials-panel'
@@ -751,6 +752,9 @@ function App() {
             <p className="page-description">
               把工作发生的地方连接起来。你决定读取哪些内容。
             </p>
+            <Disclosure id="ai-task-analysis" title="AI 事项分析" description="理解会话，整理下一步">
+              <TaskAnalysisPanel />
+            </Disclosure>
             <SourcePresets
               onDemoReady={() => {
                 setDemo(false)

@@ -149,6 +149,15 @@ const bridge: DesktopBridge = {
         patch,
       }),
   }),
+  modelProvider: Object.freeze({
+    status: () => ipcRenderer.invoke('memo:request', { method: 'modelProvider.status' }),
+    configure: (config: import('@memo/contracts').ModelConfig) => ipcRenderer.invoke('memo:request', { method: 'modelProvider.configure', config }),
+  }),
+  analysis: Object.freeze({
+    start: (sourceId) => ipcRenderer.invoke('memo:request', { method: 'analysis.start', sourceId }),
+    status: () => ipcRenderer.invoke('memo:request', { method: 'analysis.status' }),
+    accept: (runId, index) => ipcRenderer.invoke('memo:request', { method: 'analysis.accept', runId, index }),
+  }),
   processing: Object.freeze({
     status: () =>
       ipcRenderer.invoke('memo:request', { method: 'processing.status' }),

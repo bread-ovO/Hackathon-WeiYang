@@ -1,3 +1,7 @@
+import { modelProviderRequestSchema, type ModelConfig, type ModelProviderSnapshot } from './model-provider'
+export * from './model-provider'
+export * from './task-analysis'
+import { analysisRequestSchema, type AnalysisSnapshot } from './task-analysis'
 import type { DeliverySummary } from './delivery'
 import type { PetVoiceState, PetVoicePreferences } from './pet-voice'
 export * from './pet-voice'
@@ -222,11 +226,13 @@ const coreRequestSchema = {
     githubRequestSchema,
     feishuRequestSchema,
     processingRequestSchema,
+    analysisRequestSchema,
     ingestionRequestSchema,
     workspaceRequestSchema,
     sourcesRequestSchema,
     exportSaveRequestSchema,
     credentialRequestSchema,
+    modelProviderRequestSchema,
     pluginsRequestSchema,
     ...petRequestSchemas,
   ],
@@ -255,6 +261,8 @@ export type HostRequest =
           | 'sources.chooseFile'
           | 'sources.authorizeDirectory'
           | 'exports.save'
+          | 'modelProvider.status'
+          | 'modelProvider.configure'
           | 'credentials.list'
           | 'credentials.importFile'
           | 'credentials.remove'
@@ -361,6 +369,8 @@ export function parseHostRequest(value: unknown): HostRequest {
     request.method === 'sources.chooseFile' ||
     request.method === 'sources.authorizeDirectory' ||
     request.method === 'exports.save' ||
+    request.method === 'modelProvider.status' ||
+    request.method === 'modelProvider.configure' ||
     request.method === 'credentials.list' ||
     request.method === 'credentials.importFile' ||
     request.method === 'credentials.remove' ||
@@ -524,6 +534,15 @@ export interface DesktopBridge {
   ingestion: {
     status(): Promise<CoreReply<IngestionStatus>>
     configure(patch: IngestionLimitsPatch): Promise<CoreReply<IngestionStatus>>
+  }
+  modelProvider: {
+    status(): Promise<CoreReply<ModelProviderSnapshot>>
+    configure(config: ModelConfig): Promise<CoreReply<ModelProviderSnapshot>>
+  }
+  analysis: {
+    start(sourceId: string): Promise<CoreReply<AnalysisSnapshot>>
+    status(): Promise<CoreReply<AnalysisSnapshot>>
+    accept(runId: string, index: number): Promise<CoreReply<AnalysisSnapshot>>
   }
   processing: {
     status(): Promise<CoreReply<ProcessingStatus>>
