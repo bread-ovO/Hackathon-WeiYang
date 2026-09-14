@@ -25,3 +25,9 @@ Edit this BUGU brand mascot into a finished square desktop APPLICATION ICON. Pre
 ## 验证
 
 macOS arm64 目录包构建通过，包内包含新 icon.icns；在打包应用中确认侧栏、聊天欢迎图和头像正常加载，并检查宽窄窗口字标不换行。类型检查、7 项托盘单元测试和单个 app.spec.ts 通过。Windows ICO 与 Linux 配置已更新，未在对应操作系统打包验收。截图见 docs/evals/screenshots/birdgirl-brand。
+
+## macOS 圆角图标
+
+Dock 和 macOS 打包图标使用独立的 `bugu-dock.svg` 构图：1024 画布、100 透明边距、824 圆角底板（圆角半径 184）。SVG 内嵌已选定的位图角色，不是纯矢量重绘。圆角裁切仅用于图标外框，应用内头像仍使用原始视觉稿。
+
+运行 `node apps/desktop/scripts/generate-dock-icon.mjs` 会从原稿重建 SVG、`build/icon-mac.png` 和 `src/renderer/public/dock-icon.png`。完整图标生成脚本也会调用它。macOS 打包从透明 PNG 生成 ICNS，开发态 Dock 使用同一构图。
