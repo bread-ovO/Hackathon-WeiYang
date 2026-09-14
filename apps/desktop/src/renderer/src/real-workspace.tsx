@@ -342,7 +342,7 @@ export function RealWorkspace({
           <h1>
             跟进<span className="heading-dot">.</span>
           </h1>
-          <p>选择一件事，查看进展与下一步。</p>
+
         </div>
         <div className="workspace-actions">
           <TaskExport

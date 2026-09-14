@@ -1,3 +1,4 @@
+import { HelpTip } from './ui/help-tip'
 import { useEffect, useRef, useState } from 'react'
 import type {
   CoreReply,
@@ -174,10 +175,8 @@ export function SourceAssociations({
     <details className="source-associations">
       <summary>来源关联与身份确认</summary>
       <section aria-label="来源关联与身份确认">
-        <p>
-          关联具体来源对象，不会新增完成证据或修改事项。跨来源身份只采用你确认的直接对应关系，不按姓名合并。
-        </p>
-        <div className="association-actions">
+
+        <div className="association-actions"><HelpTip label="来源关联说明">关联来源对象不修改事项或新增完成证据。跨来源身份只采用你确认的对应关系。仅显示当前项目已收录记录，先选记录再操作。</HelpTip>
           <AppButton disabled={disabled} onClick={() => void refresh()}>
             刷新来源关联
           </AppButton>
@@ -187,7 +186,7 @@ export function SourceAssociations({
         </div>
         {opened && (
           <div className="association-picker" aria-label="项目来源记录">
-            <p>仅展示当前项目已收录的记录。先选择记录，再执行下方操作。</p>
+
             {events.map((e) => (
               <label className="association-event" key={e.id}>
                 <input

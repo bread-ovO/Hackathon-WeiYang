@@ -8,7 +8,7 @@ export function Disclosure({
   id,
   title,
   description,
-  descriptionAsHelp = false,
+  descriptionAsHelp = true,
   children,
   open,
 }: {

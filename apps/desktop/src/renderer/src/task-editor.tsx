@@ -1,3 +1,4 @@
+import { HelpTip } from './ui/help-tip'
 import { DeliveryPanel } from './delivery-panel'
 import { TaskModelSuggestion } from './task-model-suggestion'
 import { TaskMerge } from './task-merge'
@@ -338,8 +339,7 @@ export function TaskEditor({
         </div>
         {!loading && provenance.length > 0 && (
           <section className="candidate-provenance" aria-label="候选来源依据">
-            <h3>候选来源依据</h3>
-            <p>根据原文整理，收录前请核对。引用不代表已完成。</p>
+            <div className="connection-label"><h3>候选来源依据</h3><HelpTip label="候选来源说明">根据原文整理，收录前请核对。引用不代表已完成。</HelpTip></div>
             {provenance.map((item) => (
               <details key={`${item.eventId}:${item.quoteStart}`}>
                 <summary>
@@ -604,7 +604,7 @@ export function TaskEditor({
                 >
                   {task.archivedAt ? '恢复显示' : '归档事项'}
                 </AppButton>
-                <p>归档只改变显示范围；手动完成不改变证据核验结果。</p>
+                <HelpTip label="归档说明">归档只改变显示范围；手动完成不改变证据核验结果。</HelpTip>
               </div>
             </Disclosure>
           </>

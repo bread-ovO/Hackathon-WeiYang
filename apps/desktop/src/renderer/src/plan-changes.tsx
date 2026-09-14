@@ -1,3 +1,4 @@
+import { HelpTip } from './ui/help-tip'
 import { useEffect, useRef, useState } from 'react'
 import type { PlanChangeProposal, WorkspaceTask } from '@memo/contracts'
 import { AppButton, AppInput } from './ui'
@@ -163,14 +164,12 @@ export function PlanChanges({
   return (
     <section className="plan-changes" aria-label="计划变更建议">
       <div className="plan-change-heading">
-        <h3>计划变更建议</h3>
+        <div className="connection-label"><h3>计划变更建议</h3><HelpTip label="计划变更建议说明">仅使用已明确关联的来源对象与经确认的直接身份映射。改期需要你确认；不会按标题或记录到达顺序覆盖事项。</HelpTip></div>
         <AppButton disabled={pending || busy} onClick={() => void load()}>
           刷新计划建议
         </AppButton>
       </div>
-      <p>
-        仅使用已明确关联的来源对象与经确认的直接身份映射。改期需要你确认；不会按标题或记录到达顺序覆盖事项。
-      </p>
+
       <p>
         当前已保存截止时间：<strong>{time(task.dueAt)}</strong>
       </p>

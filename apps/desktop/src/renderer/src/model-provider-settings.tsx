@@ -1,3 +1,4 @@
+import { HelpTip } from './ui/help-tip'
 import { Switch } from '@cloudflare/kumo/components/switch'
 import './model-provider-settings.css'
 import { useEffect, useState } from 'react'
@@ -177,7 +178,7 @@ export function ModelProviderSettings({
           />
         </label>
         <div className="model-provider-permission">
-          <span>允许分析所选会话</span>
+          <span className="connection-label">允许分析所选会话<HelpTip label="模型授权说明">主动分析或发送聊天时，才向此服务提供必要上下文。任务变更需另行确认。来源读取授权与模型调用授权分别管理。</HelpTip></span>
           <Switch
             aria-label="允许使用此服务分析所选会话"
             checked={config.enabled}
@@ -185,9 +186,7 @@ export function ModelProviderSettings({
             disabled={busy}
           />
         </div>
-        <p>
-          主动分析或发送聊天时，才向此服务提供必要上下文。任务变更需另行确认。来源读取授权与模型调用授权分别管理。
-        </p>
+
         <AppButton
           variant="primary"
           disabled={busy}
