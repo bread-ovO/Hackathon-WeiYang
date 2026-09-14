@@ -47,6 +47,53 @@ function sessionKindOf(grant: {
 const MAX_DIRECTORY_FILES = 200
 export function createSourceHandler(store: ReturnType<typeof openStore>) {
   const active = new Set<string>()
+  const queued = new Set<string>()
+  let draining = false
+  async function drain() {
+    if (draining) return
+    draining = true
+    try {
+      while (queued.size) {
+        const id = queued.values().next().value!
+        queued.delete(id)
+        try {
+          const done = await sync(id)
+          if (!done) queued.add(id)
+        } catch (error) {
+          if (
+            error instanceof Error &&
+            (pressureCodes.has(error.message) ||
+              error.message === 'SOURCE_BUSY')
+          ) {
+            queued.add(id)
+            setTimeout(() => {
+              void drain()
+            }, 30000).unref()
+            return
+          }
+          // Per-file errors are persisted by sync; other files continue.
+        }
+        await new Promise<void>((resolve) => setImmediate(resolve))
+      }
+    } finally {
+      draining = false
+    }
+  }
+  // Resume previously authorized session files after a core/application restart.
+  function resumeAuthorizedSessions() {
+    for (const source of store.sources.list()) {
+      if (
+        source.status !== 'revoked' &&
+        Object.values(SESSION_DISPLAY_PREFIX).some((prefix) =>
+          source.displayName.startsWith(prefix),
+        )
+      )
+        queued.add(source.id)
+    }
+    void drain()
+  }
+  setImmediate(resumeAuthorizedSessions)
+  setInterval(resumeAuthorizedSessions, 30000).unref()
   async function sync(id: string) {
     if (active.has(id)) throw new Error('SOURCE_BUSY')
     active.add(id)
@@ -76,6 +123,7 @@ export function createSourceHandler(store: ReturnType<typeof openStore>) {
         JSON.stringify(batch.cursor),
         grant.cursor,
       )
+      return batch.done
     } catch (error) {
       if (
         grant &&
@@ -103,6 +151,7 @@ export function createSourceHandler(store: ReturnType<typeof openStore>) {
   async function collectSessionFiles(
     directory: string,
     kind: SessionSourceKind,
+    allSessions = false,
   ) {
     const files: string[] = []
     let truncated = false
@@ -121,7 +170,7 @@ export function createSourceHandler(store: ReturnType<typeof openStore>) {
             ? entry.name === 'wire.jsonl'
             : entry.name.toLowerCase().endsWith('.jsonl'))
         ) {
-          if (files.length >= MAX_DIRECTORY_FILES) {
+          if (!allSessions && files.length >= MAX_DIRECTORY_FILES) {
             truncated = true
             return
           }
@@ -176,16 +225,21 @@ export function createSourceHandler(store: ReturnType<typeof openStore>) {
         const { files, truncated } = await collectSessionFiles(
           directory,
           request.kind,
+          request.allSessions,
         )
         const summary: DirectoryImportSummary = {
           files: files.length,
           imported: 0,
           skipped: 0,
           truncated,
+          ...(request.allSessions ? { background: true } : {}),
         }
         for (const path of files) {
           const stat = await lstat(path)
-          if (!stat.isFile() || stat.size > 16 * 1024 * 1024) {
+          if (
+            !stat.isFile() ||
+            (!request.allSessions && stat.size > 16 * 1024 * 1024)
+          ) {
             summary.skipped++
             continue
           }
@@ -194,6 +248,11 @@ export function createSourceHandler(store: ReturnType<typeof openStore>) {
             projectId: request.projectId,
             displayName: `${SESSION_DISPLAY_PREFIX[request.kind]} · ${nodePath.basename(path)}`,
           })
+          if (request.allSessions) {
+            queued.add(grant.id)
+            summary.imported++
+            continue
+          }
           try {
             await sync(grant.id)
             summary.imported++
@@ -205,6 +264,10 @@ export function createSourceHandler(store: ReturnType<typeof openStore>) {
             summary.skipped++
           }
         }
+        if (request.allSessions)
+          setImmediate(() => {
+            void drain()
+          })
         return { sources: store.sources.list(), directoryImport: summary }
       }
       case 'sources.sync':

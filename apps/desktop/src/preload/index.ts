@@ -201,9 +201,10 @@ const bridge: DesktopBridge = {
         method: 'sources.chooseFile',
         projectId,
       }),
-    authorizeDirectory: (projectId, kind) =>
+    authorizeDirectory: (projectId, kind, allLocal) =>
       ipcRenderer.invoke('memo:request', {
         method: 'sources.authorizeDirectory',
+        ...(allLocal === undefined ? {} : { allLocal }),
         projectId,
         kind,
       }),

@@ -32,7 +32,7 @@ import {
 } from 'electron'
 import { join, resolve, sep } from 'node:path'
 import { homedir } from 'node:os'
-import { mkdirSync } from 'node:fs'
+import { mkdirSync, existsSync } from 'node:fs'
 import { pathToFileURL } from 'node:url'
 import { CoreClient } from './core-client'
 import { createPluginRuntime } from './plugin-runtime'
@@ -637,6 +637,69 @@ else {
               } finally {
                 choosingSource = false
               }
+            }
+            if (
+              request.method === 'sources.authorizeDirectory' &&
+              request.allLocal
+            ) {
+              // The renderer chooses only a known tool, never an arbitrary path.
+              const base =
+                request.kind === 'codex'
+                  ? process.env.CODEX_HOME
+                    ? resolve(process.env.CODEX_HOME)
+                    : join(homedir(), '.codex')
+                  : request.kind === 'claude-code'
+                    ? process.env.CLAUDE_CONFIG_DIR
+                      ? resolve(process.env.CLAUDE_CONFIG_DIR)
+                      : join(homedir(), '.claude')
+                    : join(homedir(), '.kimi')
+              const roots = (
+                request.kind === 'codex'
+                  ? [join(base, 'sessions'), join(base, 'archived_sessions')]
+                  : [
+                      join(
+                        base,
+                        request.kind === 'claude-code'
+                          ? 'projects'
+                          : 'sessions',
+                      ),
+                    ]
+              ).filter(existsSync)
+              const totals = {
+                files: 0,
+                imported: 0,
+                skipped: 0,
+                truncated: false,
+                background: true,
+              }
+              let sources: import('@memo/contracts').SourcesSnapshot['sources'] =
+                []
+              for (const path of roots) {
+                const reply = await core.request({
+                  method: 'sources.importDirectory',
+                  path,
+                  projectId: request.projectId,
+                  kind: request.kind,
+                  allSessions: true,
+                })
+                if (!reply.ok) return reply
+                const snapshot =
+                  reply.data as import('@memo/contracts').SourcesSnapshot
+                sources = snapshot.sources
+                if (snapshot.directoryImport) {
+                  totals.files += snapshot.directoryImport.files
+                  totals.imported += snapshot.directoryImport.imported
+                  totals.skipped += snapshot.directoryImport.skipped
+                }
+              }
+              if (!roots.length) {
+                const reply = await core.request({ method: 'sources.list' })
+                if (!reply.ok) return reply
+                sources = (
+                  reply.data as import('@memo/contracts').SourcesSnapshot
+                ).sources
+              }
+              return { ok: true, data: { sources, directoryImport: totals } }
             }
             if (request.method === 'sources.authorizeDirectory') {
               if (!window || choosingSource)

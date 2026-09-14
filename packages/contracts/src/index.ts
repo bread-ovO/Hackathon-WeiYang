@@ -596,6 +596,7 @@ export interface DesktopBridge {
     authorizeDirectory(
       projectId: string,
       kind: SessionSourceKind,
+      allLocal?: boolean,
     ): Promise<CoreReply<SourcesSnapshot>>
     sync(id: string): Promise<CoreReply<SourcesSnapshot>>
     revoke(id: string): Promise<CoreReply<SourcesSnapshot>>

@@ -15,19 +15,19 @@ const kindMeta: Record<
     label: 'Claude Code 会话',
     prefix: 'Claude Code 会话',
     intro:
-      '只读收录所选目录中的 Claude Code 会话文件（.jsonl），每个来源每次最多 100 条。正文保存在本机，当前尚未加密；不会发送给模型。',
+      '授权读取本机 Claude Code 的全部已有会话，分批收录到所选项目。正文仅保存在本机。',
   },
   kimi: {
     label: 'Kimi 会话',
     prefix: 'Kimi 会话',
     intro:
-      '只读收录所选目录中的 Kimi Code CLI wire.jsonl 用户输入与助手文本，保留消息时间。正文在本机保存；不读取缺少时间的 context.jsonl。',
+      '授权读取本机 Kimi Code CLI 的全部已有会话，收录带时间的用户输入与助手回复。正文仅保存在本机。',
   },
   codex: {
     label: 'Codex 会话',
     prefix: 'Codex 会话',
     intro:
-      '只读收录所选目录中的 Codex 会话文件（.jsonl），每个来源每次最多 100 条。正文保存在本机，当前尚未加密；不会发送给模型。',
+      '授权读取本机 Codex 的全部已有会话（含归档），分批收录到所选项目。正文仅保存在本机。',
   },
 }
 const errors: Record<string, string> = {
@@ -50,7 +50,9 @@ const errors: Record<string, string> = {
 function resultMessage(snapshot: SourcesSnapshot): string {
   const summary = snapshot.directoryImport
   if (!summary) return '会话目录已授权。'
-  if (summary.files === 0) return '该目录下没有找到会话文件。'
+  if (summary.files === 0) return '未发现本机会话，可在高级选项中指定其他目录。'
+  if (summary.background)
+    return `已授权 ${summary.imported} 个会话，正在后台分批读取。读取失败会显示原因。`
   let message = `发现 ${summary.files} 个会话文件，已收录 ${summary.imported} 个`
   if (summary.skipped > 0) message += `，跳过 ${summary.skipped} 个`
   if (summary.truncated) message += '；文件较多，本次仅处理前 200 个'
@@ -75,14 +77,21 @@ export function SessionSources({ kind }: { kind: SessionSourceKind }) {
     ])
     if (!mounted.current || seq !== generation.current) return
     if (s.ok) setData(s.data)
-    if (w.ok) setProjects(w.data.projects)
+    if (w.ok) {
+      setProjects(w.data.projects)
+      if (w.data.projects.length === 1) setProject(w.data.projects[0]!.id)
+    }
   }
   useEffect(() => {
     mounted.current = true
     void refresh().catch(() => {
       if (mounted.current) setMessage('本地核心暂不可用，请刷新。')
     })
+    const timer = setInterval(() => {
+      if (!pending.current) void refresh().catch(() => {})
+    }, 3000)
     return () => {
+      clearInterval(timer)
       mounted.current = false
       generation.current++
     }
@@ -150,12 +159,12 @@ export function SessionSources({ kind }: { kind: SessionSourceKind }) {
           disabled={busy || !project}
           onClick={() =>
             void run(
-              () => window.memo.sources.authorizeDirectory(project, kind),
+              () => window.memo.sources.authorizeDirectory(project, kind, true),
               resultMessage,
             )
           }
         >
-          授权会话目录
+          授权读取本机全部会话
         </AppButton>
         <AppButton
           disabled={busy}
@@ -166,60 +175,88 @@ export function SessionSources({ kind }: { kind: SessionSourceKind }) {
           刷新连接
         </AppButton>
       </div>
-      <p>需要先在“我的工作区”创建项目。会话追加内容会按行去重后继续同步。</p>
+      <p>
+        授权后扫描当前全部会话；再次点击可发现新会话并补齐新增内容，不重复收录。
+      </p>
+      <details>
+        <summary>高级选项</summary>
+        <AppButton
+          disabled={busy || !project}
+          onClick={() =>
+            void run(
+              () => window.memo.sources.authorizeDirectory(project, kind),
+              resultMessage,
+            )
+          }
+        >
+          选择其他会话目录
+        </AppButton>
+      </details>
       {message && <p role="status">{message}</p>}
-      {sources.length ? (
-        sources.map((s) => (
-          <article className="source-import-row" key={s.id}>
-            <div>
-              <strong>{s.displayName}</strong>
-              <p>
-                {projects.find((p) => p.id === s.projectId)?.name ?? '项目'} ·
-                已接收 {s.eventCount} 条 ·{' '}
-                {s.status === 'revoked'
-                  ? '已撤销'
-                  : s.status === 'error'
-                    ? '需要处理'
-                    : '已授权'}
-              </p>
-              <small>
-                {s.lastSuccessAt
-                  ? `最后成功：${new Date(s.lastSuccessAt).toLocaleString()}`
-                  : '尚未成功读取'}
-                {s.errorCode ? ` · ${errors[s.errorCode] ?? '导入失败'}` : ''}
-              </small>
-            </div>
-            <div className="source-import-actions">
-              <AppButton
-                className="secondary"
-                disabled={busy || s.status === 'revoked'}
-                onClick={() =>
-                  void run(
-                    () => window.memo.sources.sync(s.id),
-                    '本批记录已接收。可继续同步后续内容。',
-                  )
-                }
-              >
-                继续同步
-              </AppButton>
-              <AppButton
-                disabled={s.status === 'revoked' || revoking.current.has(s.id)}
-                onClick={() =>
-                  void run(
-                    () => window.memo.sources.revoke(s.id),
-                    '授权已撤销，后续读取已停止。历史记录保留。',
-                    s.id,
-                  )
-                }
-              >
-                撤销授权
-              </AppButton>
-            </div>
-          </article>
-        ))
-      ) : (
-        <p>尚未授权会话目录。</p>
+      {sources.length > 0 && (
+        <p>
+          已授权 {sources.filter((s) => s.status !== 'revoked').length} 个会话 ·
+          已接收 {sources.reduce((total, s) => total + s.eventCount, 0)} 条 ·{' '}
+          {sources.filter((s) => s.status === 'error').length} 个需要处理
+        </p>
       )}
+      <details>
+        <summary>会话读取明细</summary>
+        {sources.length ? (
+          sources.map((s) => (
+            <article className="source-import-row" key={s.id}>
+              <div>
+                <strong>{s.displayName}</strong>
+                <p>
+                  {projects.find((p) => p.id === s.projectId)?.name ?? '项目'} ·
+                  已接收 {s.eventCount} 条 ·{' '}
+                  {s.status === 'revoked'
+                    ? '已撤销'
+                    : s.status === 'error'
+                      ? '需要处理'
+                      : '已授权'}
+                </p>
+                <small>
+                  {s.lastSuccessAt
+                    ? `最后成功：${new Date(s.lastSuccessAt).toLocaleString()}`
+                    : '尚未成功读取'}
+                  {s.errorCode ? ` · ${errors[s.errorCode] ?? '导入失败'}` : ''}
+                </small>
+              </div>
+              <div className="source-import-actions">
+                <AppButton
+                  className="secondary"
+                  disabled={busy || s.status === 'revoked'}
+                  onClick={() =>
+                    void run(
+                      () => window.memo.sources.sync(s.id),
+                      '本批记录已接收。可继续同步后续内容。',
+                    )
+                  }
+                >
+                  继续同步
+                </AppButton>
+                <AppButton
+                  disabled={
+                    s.status === 'revoked' || revoking.current.has(s.id)
+                  }
+                  onClick={() =>
+                    void run(
+                      () => window.memo.sources.revoke(s.id),
+                      '授权已撤销，后续读取已停止。历史记录保留。',
+                      s.id,
+                    )
+                  }
+                >
+                  撤销授权
+                </AppButton>
+              </div>
+            </article>
+          ))
+        ) : (
+          <p>尚未授权会话目录。</p>
+        )}
+      </details>
       <p>
         重复授权同一目录会从上次进度继续读取；撤销停止后续读取，历史删除是单独操作。
       </p>

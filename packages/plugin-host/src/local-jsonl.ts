@@ -78,7 +78,7 @@ function validCursor(value: unknown): value is LocalJsonlCursor {
     cursor.version === 1 &&
     Number.isSafeInteger(cursor.offset) &&
     cursor.offset >= 0 &&
-    cursor.offset <= 16 * 1024 * 1024 &&
+    cursor.offset <= 256 * 1024 * 1024 &&
     [
       cursor.fileIdentity,
       cursor.prefixSha256,
@@ -195,8 +195,14 @@ export async function readLocalJsonl(
           },
     ),
   )
-  const fileLimit = Math.min(16 * 1024 * 1024, manifest.transport.maxFileBytes)
-  const lineLimit = Math.min(128 * 1024, manifest.transport.maxLineBytes)
+  const fileLimit =
+    input.normalizeRecord && input.manifest == null
+      ? 256 * 1024 * 1024
+      : Math.min(16 * 1024 * 1024, manifest.transport.maxFileBytes)
+  const lineLimit =
+    input.normalizeRecord && input.manifest == null
+      ? 32 * 1024 * 1024
+      : Math.min(128 * 1024, manifest.transport.maxLineBytes)
   const batchLimit = Math.min(100, manifest.sampling.maxRecordsPerRun)
   let file: Awaited<ReturnType<typeof open>> | undefined
   try {
@@ -306,17 +312,47 @@ export async function readLocalJsonl(
           continue
         }
       }
-      const event = mapRecord(
-        record,
-        manifest,
-        input.sourceInstanceId,
-        input.manifest == null,
+      const records: unknown[] = []
+      if (
+        input.normalizeRecord &&
+        input.manifest == null &&
+        ownObject(record) &&
+        typeof record.content === 'string' &&
+        record.content.length > 65536
+      ) {
+        const text = record.content
+        const baseId = String(record.id)
+        let part = 0
+        for (let start = 0; start < text.length; ) {
+          let end = Math.min(start + 65000, text.length)
+          if (end < text.length && /[\uD800-\uDBFF]/.test(text[end - 1]!)) end--
+          records.push({
+            ...record,
+            id: `${baseId.length < 230 ? baseId : hash(baseId)}:part:${part++}`,
+            content: text.slice(start, end),
+          })
+          start = end
+        }
+      } else records.push(record)
+      const mapped = records.map((item) =>
+        mapRecord(
+          item,
+          manifest,
+          input.sourceInstanceId,
+          input.manifest == null,
+        ),
       )
-      // Match receiveBatch's UTF-16 string-length budget. Leave this complete line
-      // unconfirmed when it belongs in the next batch. One valid event is <= 65536.
-      if (batchTextLength + event.text.length > 4 * 1024 * 1024) break
-      events.push(event)
-      batchTextLength += event.text.length
+      const textLength = mapped.reduce(
+        (sum, event) => sum + event.text.length,
+        0,
+      )
+      if (
+        events.length + mapped.length > batchLimit ||
+        batchTextLength + textLength > 4 * 1024 * 1024
+      )
+        break
+      events.push(...mapped)
+      batchTextLength += textLength
       offset = newline + 1
     }
     // If a batch ends before further complete lines, parent can request another batch.
