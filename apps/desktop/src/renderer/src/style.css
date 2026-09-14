@@ -55,6 +55,18 @@ svg {
   display: flex;
   flex-direction: column;
   background: transparent;
+  /* Keep the whole neutral rail draggable, including the space above BUGU. */
+  -webkit-app-region: drag;
+}
+.sidebar button,
+.sidebar a,
+.sidebar input,
+.sidebar select,
+.sidebar textarea,
+.sidebar summary,
+.sidebar [role='button'] {
+  /* A draggable parent otherwise swallows clicks on navigation controls. */
+  -webkit-app-region: no-drag;
 }
 .workspace {
   flex: 1;
