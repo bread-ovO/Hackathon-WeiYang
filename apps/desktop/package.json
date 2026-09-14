@@ -5,6 +5,7 @@
   "main": "./out/main/index.js",
   "description": "BUGU 不咕 · 工作事项与桌面陪伴助手",
   "author": "Project contributors",
+  "homepage": "https://github.com/bread-ovO/bugu-notes",
   "scripts": {
     "dev": "node ../../scripts/build-pet-native.mjs && electron-vite dev",
     "build": "node ../../scripts/build-pet-native.mjs && electron-vite build",
@@ -12,7 +13,8 @@
     "package:dir": "node ../../scripts/build-pet-native.mjs && node ../../scripts/build-release.mjs && electron-builder --dir",
     "package:demo": "node ../../scripts/build-pet-native.mjs && node ../../scripts/build-release.mjs && electron-builder --dir --config.directories.output=../../release/demo",
     "package:real": "node ../../scripts/build-pet-native.mjs && node ../../scripts/build-release.mjs && electron-builder --dir --config.directories.output=../../release/real",
-    "package:dmg": "node ../../scripts/build-pet-native.mjs && node ../../scripts/build-release.mjs && electron-builder --mac dmg"
+    "package:dmg": "node ../../scripts/build-pet-native.mjs && node ../../scripts/build-release.mjs && electron-builder --mac dmg",
+    "package:release": "node ../../scripts/build-pet-native.mjs && node ../../scripts/build-release.mjs && electron-builder --publish never"
   },
   "dependencies": {
     "@cloudflare/kumo": "2.13.2",
@@ -49,16 +51,33 @@
       "out/bundled-pet/**"
     ],
     "mac": {
+      "target": ["dmg"],
+      "artifactName": "BUGU-${version}-macOS-${arch}.${ext}",
       "category": "public.app-category.productivity",
       "identity": null,
       "icon": "build/icon-mac.png"
     },
     "linux": {
+      "target": ["AppImage", "deb"],
+      "artifactName": "BUGU-${version}-Linux-${arch}.${ext}",
+      "category": "Office",
+      "executableName": "bugu-notes",
+      "maintainer": "Project contributors",
       "icon": "build/icon.png"
     },
     "npmRebuild": true,
     "win": {
+      "target": ["nsis"],
+      "artifactName": "BUGU-${version}-Windows-${arch}-Setup.${ext}",
       "icon": "build/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true
+    },
+    "deb": {
+      "packageName": "bugu-notes"
     },
     "beforePack": "../../scripts/bundle-default-pet.mjs",
     "afterPack": "../../scripts/verify-packaged-pet.mjs"
