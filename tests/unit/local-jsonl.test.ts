@@ -500,3 +500,40 @@ it('reader offsets survive UTF-8, metadata, batch boundaries, append and a v1 cu
     (await readLocalJsonl({ ...settings, cursor: old.cursor })).events,
   ).toEqual(first.events)
 })
+
+it('reads large native sessions and losslessly segments long messages without widening generic imports', async () => {
+  const text = '甲'.repeat(64999) + '😀' + '乙'.repeat(50000)
+  const records =
+    line({ type: 'session_meta', padding: 'x'.repeat(17 * 1024 * 1024) }) +
+    line({
+      timestamp: '2026-09-13T01:00:00Z',
+      type: 'response_item',
+      payload: {
+        type: 'message',
+        role: 'user',
+        content: [{ type: 'input_text', text }],
+      },
+    })
+  await fs.writeFile(file, records)
+  await expect(
+    readLocalJsonl({ path: file, sourceInstanceId: 'large' }),
+  ).rejects.toMatchObject({ code: 'FILE_TOO_LARGE' })
+  const result = await readLocalJsonl({
+    path: file,
+    sourceInstanceId: 'large',
+    normalizeRecord: codexSessionMapper,
+    normalizerId: 'codex-session@3',
+  })
+  expect(result.done).toBe(true)
+  expect(result.events).toHaveLength(2)
+  expect(result.events.map((e) => e.text).join('')).toBe(text)
+  expect(result.events.every((e) => e.text.length <= 65536)).toBe(true)
+  const next = await readLocalJsonl({
+    path: file,
+    sourceInstanceId: 'large',
+    normalizeRecord: codexSessionMapper,
+    normalizerId: 'codex-session@3',
+    cursor: result.cursor,
+  })
+  expect(next.events).toHaveLength(0)
+})

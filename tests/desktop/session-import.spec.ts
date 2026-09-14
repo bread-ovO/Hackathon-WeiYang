@@ -151,8 +151,9 @@ test('built-in Claude Code and Codex session directories import without exposing
       name: 'Claude Code 会话导入',
     })
     await claudePanel.getByLabel('授权项目').selectOption(project)
+    await claudePanel.getByText('高级选项', { exact: true }).click()
     await claudePanel
-      .getByRole('button', { name: '授权会话目录', exact: true })
+      .getByRole('button', { name: '选择其他会话目录', exact: true })
       .click()
     await expect(claudePanel.getByRole('status')).toContainText(
       '发现 3 个会话文件，已收录 2 个，跳过 1 个',
@@ -165,8 +166,9 @@ test('built-in Claude Code and Codex session directories import without exposing
     await page.getByRole('button', { name: '配置 Codex', exact: true }).click()
     const codexPanel = page.getByRole('region', { name: 'Codex 会话导入' })
     await codexPanel.getByLabel('授权项目').selectOption(project)
+    await codexPanel.getByText('高级选项', { exact: true }).click()
     await codexPanel
-      .getByRole('button', { name: '授权会话目录', exact: true })
+      .getByRole('button', { name: '选择其他会话目录', exact: true })
       .click()
     await expect(codexPanel.getByRole('status')).toContainText(
       '发现 2 个会话文件，已收录 1 个，跳过 1 个',
@@ -179,16 +181,16 @@ test('built-in Claude Code and Codex session directories import without exposing
     // Empty directories are a normal outcome, not an error.
     await patchDialog(app, emptyDir)
     await codexPanel
-      .getByRole('button', { name: '授权会话目录', exact: true })
+      .getByRole('button', { name: '选择其他会话目录', exact: true })
       .click()
     await expect(codexPanel.getByRole('status')).toContainText(
-      '该目录下没有找到会话文件',
+      '未发现本机会话',
     )
 
     // Cancel keeps existing connections untouched.
     await patchDialog(app, null)
     await claudePanel
-      .getByRole('button', { name: '授权会话目录', exact: true })
+      .getByRole('button', { name: '选择其他会话目录', exact: true })
       .click()
     await expect(claudePanel.getByRole('status')).toContainText('已取消')
 

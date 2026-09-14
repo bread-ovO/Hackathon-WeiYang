@@ -36,6 +36,7 @@ test('packaged renderer connects to isolated SQLite core without exposing Node',
     ).toEqual({
       node: 'undefined',
       keys: [
+        'startupMode',
         'onOpenTask',
         'feishu',
         'github',

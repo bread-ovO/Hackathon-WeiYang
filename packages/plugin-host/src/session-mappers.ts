@@ -18,8 +18,8 @@ export type SessionMapper = (
   context?: { byteOffset: number },
 ) => NormalizedSessionRecord | null
 
-/** Reject oversize text rather than changing the original quoted message. */
-const TEXT_LIMIT = 65536
+/** The reader splits long messages into exact, lossless text segments. */
+const TEXT_LIMIT = 4 * 1024 * 1024
 
 const ownObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value)
@@ -124,6 +124,9 @@ const codexNonMessages = new Set([
   'task_started',
   'task_complete',
   'item_completed',
+  'agent_message',
+  'tool_search_call',
+  'tool_search_output',
 ])
 
 const claudeRoles = new Set(['user', 'assistant'])
@@ -284,9 +287,9 @@ export const kimiSessionMapper: SessionMapper = (record, context) => {
  * fingerprint; bump the suffix when a mapper's keep/extract rules change so
  * existing sources rescan instead of resuming with stale rules. */
 export const SESSION_NORMALIZER_IDS = {
-  'claude-code': 'claude-code-session@2',
-  codex: 'codex-session@2',
-  kimi: 'kimi-wire-session@1',
+  'claude-code': 'claude-code-session@3',
+  codex: 'codex-session@3',
+  kimi: 'kimi-wire-session@2',
 } as const
 export type SessionSourceKind = keyof typeof SESSION_NORMALIZER_IDS
 export const SESSION_MAPPERS: Record<SessionSourceKind, SessionMapper> = {

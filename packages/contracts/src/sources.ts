@@ -30,6 +30,7 @@ export const sourcesRequestSchema = {
       required: ['method', 'projectId', 'kind'],
       properties: {
         method: { const: 'sources.authorizeDirectory' },
+        allLocal: { type: 'boolean' },
         projectId,
         kind: sessionKind,
       },
@@ -65,13 +66,14 @@ export const importFileRequestSchema = {
     path: hostPath,
   },
 } as const
-/** Host-only capability: only a native directory picker may originate this request. */
+/** Host-only capability: only the native picker or host-resolved local agent roots may originate this request. */
 export const importDirectoryRequestSchema = {
   type: 'object',
   additionalProperties: false,
   required: ['method', 'path', 'projectId', 'kind'],
   properties: {
     method: { const: 'sources.importDirectory' },
+    allSessions: { type: 'boolean' },
     projectId,
     kind: sessionKind,
     path: hostPath,
@@ -116,6 +118,7 @@ export interface DirectoryImportSummary {
   imported: number
   skipped: number
   truncated: boolean
+  background?: boolean
 }
 export interface SourcesSnapshot {
   sources: SourceSummary[]

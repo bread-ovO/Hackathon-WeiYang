@@ -473,6 +473,7 @@ export type CoreReply<T = Health> =
         | 'INGESTION_PROBE_UNAVAILABLE'
     }
 export interface DesktopBridge {
+  readonly startupMode: 'demo' | 'real' | null
   onOpenTask(
     callback: (target: { projectId: string; taskId: string }) => void,
   ): () => void
@@ -595,6 +596,7 @@ export interface DesktopBridge {
     authorizeDirectory(
       projectId: string,
       kind: SessionSourceKind,
+      allLocal?: boolean,
     ): Promise<CoreReply<SourcesSnapshot>>
     sync(id: string): Promise<CoreReply<SourcesSnapshot>>
     revoke(id: string): Promise<CoreReply<SourcesSnapshot>>

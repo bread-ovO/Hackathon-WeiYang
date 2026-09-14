@@ -106,7 +106,7 @@ function App() {
   const [health, setHealth] = useState<Health | null>(null),
     [error, setError] = useState(false)
   const [page, setPage] = useState('跟进'),
-    [demo, setDemo] = useState(DEMO_ENABLED),
+    [demo, setDemo] = useState(DEMO_ENABLED && window.memo.startupMode !== 'real'),
     [tasks, setTasks] = useState(demoTasks)
   const [filter, setFilter] = useState<string>('全部'),
     [project, setProject] = useState('全部项目'),
@@ -343,7 +343,7 @@ function App() {
             个人空间<span>/</span>
             <strong>{page}</strong>
           </div>
-          {DEMO_ENABLED && (
+          {DEMO_ENABLED && !window.memo.startupMode && (
             <div className="mode-switch" aria-label="数据模式">
               <AppButton
                 aria-pressed={demo}
@@ -882,7 +882,7 @@ function App() {
                 </ul>
               </section>
             </Disclosure>
-            {DEMO_ENABLED && (
+            {DEMO_ENABLED && !window.memo.startupMode && (
               <Disclosure title="关于示例体验">
                 <h3 className="sr-only">关于设计预览</h3>
                 <p>

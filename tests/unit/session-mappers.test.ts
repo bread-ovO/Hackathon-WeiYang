@@ -80,7 +80,7 @@ describe('claudeSessionMapper', () => {
       { message: { role: 'user' } },
       { type: 'future-version' },
       { uuid: 'x'.repeat(257) },
-      { message: { role: 'user', content: 'x'.repeat(65537) } },
+      { message: { role: 'user', content: 'x'.repeat(4 * 1024 * 1024 + 1) } },
       { message: { role: 'user', content: [{ type: 'future_block' }] } },
     ])
       expect(() => claudeSessionMapper(claudeLine(value))).toThrow(
