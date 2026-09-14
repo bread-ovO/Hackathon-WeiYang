@@ -791,8 +791,8 @@ function createWindow() {
     // controls on macOS while leaving the standard frame on other platforms.
     frame: process.platform === 'darwin' ? false : true,
     title: 'BUGU 不咕',
-    titleBarStyle: 'hiddenInset',
-    trafficLightPosition: { x: 16, y: 18 },
+    titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',
+    trafficLightPosition: process.platform === 'darwin' ? { x: 16, y: 18 } : undefined,
     backgroundColor: '#faf9f6',
     // Taskbar/titlebar identity; resolved from the packaged renderer root so
     // it works identically in dev and production builds.

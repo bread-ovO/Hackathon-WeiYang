@@ -252,7 +252,7 @@ function App() {
     setNotice('示例事项已添加，仅在本次预览中保留。')
   }
   return (
-    <div className="app-shell">
+    <div className="app-shell" data-platform={window.memo.platform}>
       <aside className="sidebar">
         <div className="brand">
           <img className="brand-icon" src="/icon.png" alt="" width={40} height={40} />

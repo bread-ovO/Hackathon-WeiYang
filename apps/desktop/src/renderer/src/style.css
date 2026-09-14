@@ -51,12 +51,16 @@ svg {
 .sidebar {
   width: 184px;
   flex-shrink: 0;
-  padding: 48px 12px 8px;
+  padding: 8px 12px;
   display: flex;
   flex-direction: column;
   background: transparent;
   /* Keep the whole neutral rail draggable, including the space above BUGU. */
   -webkit-app-region: drag;
+}
+.app-shell[data-platform='darwin'] .sidebar {
+  /* Only macOS embeds its window controls above the brand. */
+  padding-top: 48px;
 }
 .sidebar button,
 .sidebar a,
