@@ -51,12 +51,16 @@ svg {
 .sidebar {
   width: 184px;
   flex-shrink: 0;
-  padding: 48px 12px 8px;
+  padding: 8px 12px;
   display: flex;
   flex-direction: column;
   background: transparent;
   /* Keep the whole neutral rail draggable, including the space above BUGU. */
   -webkit-app-region: drag;
+}
+.app-shell[data-platform='darwin'] .sidebar {
+  /* Only macOS embeds its window controls above the brand. */
+  padding-top: 48px;
 }
 .sidebar button,
 .sidebar a,
@@ -184,11 +188,6 @@ svg {
 .sidebar-foot {
   margin-top: auto;
 }
-.preview-label {
-  padding: 12px 8px;
-  font-size: 12px;
-  color: var(--muted);
-}
 .tiny-dot {
   display: inline-block;
   width: 4px;
@@ -198,13 +197,25 @@ svg {
   margin-right: 8px;
 }
 .profile {
-  display: flex;
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) 32px;
   align-items: center;
   gap: 8px;
   border-top: 1px solid var(--line);
-  margin-top: 12px;
-  padding: 12px 8px 0;
+  padding: 12px 4px 4px;
   font-size: 12px;
+}
+.profile-name {
+  white-space: nowrap;
+}
+.profile .avatar {
+  width: 24px;
+  height: 24px;
+}
+.profile-settings.active {
+  background: var(--color-kumo-base);
+  box-shadow: inset 0 0 0 1px var(--line);
+  color: var(--text-color-kumo-default);
 }
 .avatar {
   width: 28px;
@@ -215,12 +226,6 @@ svg {
   box-shadow: 0 0 0 1px var(--line);
   border-radius: 50%;
   font-size: 12px;
-}
-.profile small {
-  display: block;
-  font-size: 12px;
-  color: var(--muted);
-  margin-top: 4px;
 }
 .topbar {
   display: flex;

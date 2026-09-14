@@ -112,7 +112,7 @@ function App() {
     [error, setError] = useState(false)
   const [page, setPage] = useState('跟进'),
     [demo, setDemo] = useState(DEMO_ENABLED && window.memo.startupMode !== 'real'),
-    [tasks, setTasks] = useState(demoTasks)
+    [tasks, setTasks] = useState<Task[]>(DEMO_ENABLED ? demoTasks : [])
   const [filter, setFilter] = useState<string>('全部'),
     [project, setProject] = useState('全部项目'),
     [query, setQuery] = useState(''),
@@ -252,7 +252,7 @@ function App() {
     setNotice('示例事项已添加，仅在本次预览中保留。')
   }
   return (
-    <div className="app-shell">
+    <div className="app-shell" data-platform={window.memo.platform}>
       <aside className="sidebar">
         <div className="brand">
           <img className="brand-icon" src="/icon.png" alt="" width={40} height={40} />
@@ -308,23 +308,17 @@ function App() {
           ))}
         </div>
         <div className="sidebar-foot">
-          <div className="preview-label">
-            <span className="tiny-dot" />
-            {demo ? '设计预览' : '本地工作区'}
-          </div>
-          <AppButton
-            className={page === '设置' ? 'nav-item active' : 'nav-item'}
-            aria-current={page === '设置' ? 'page' : undefined}
-            onClick={() => setPage('设置')}
-          >
-            <Icon name="settings" />
-            设置
-          </AppButton>
           <div className="profile">
-            <span className="avatar">我</span>
-            <div>
-              个人空间<small>保存在此设备</small>
-            </div>
+            <span className="avatar" aria-hidden="true">我</span>
+            <span className="profile-name">个人空间</span>
+            <IconButton
+              label="设置"
+              className={page === '设置' ? 'profile-settings active' : 'profile-settings'}
+              aria-current={page === '设置' ? 'page' : undefined}
+              onClick={() => setPage('设置')}
+            >
+              <Icon name="settings" />
+            </IconButton>
           </div>
         </div>
       </aside>

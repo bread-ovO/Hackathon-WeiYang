@@ -103,7 +103,8 @@ if (!app.isPackaged && process.env.MEMO_TEST_USER_DATA)
   app.setPath('userData', resolve(process.env.MEMO_TEST_USER_DATA))
 const devURL = !app.isPackaged ? process.env.ELECTRON_RENDERER_URL : undefined
 const pageURL = devURL || 'memo://app/index.html'
-const startupMode = process.argv.includes('--mode=real')
+const demoEnabled = import.meta.env.VITE_MEMO_NO_DEMO !== '1'
+const startupMode = !demoEnabled || app.isPackaged || process.argv.includes('--mode=real')
   ? 'real'
   : process.argv.includes('--mode=demo')
     ? 'demo'
@@ -358,7 +359,7 @@ else {
         github.stop()
       })
       const plugins = createPluginRuntime({
-        prepareDemo: () => prepareBuiltinDemo(data),
+        prepareDemo: demoEnabled && !app.isPackaged ? () => prepareBuiltinDemo(data) : undefined,
         request: (request) =>
           core
             ? core.request(request)
@@ -790,8 +791,8 @@ function createWindow() {
     // controls on macOS while leaving the standard frame on other platforms.
     frame: process.platform === 'darwin' ? false : true,
     title: 'BUGU 不咕',
-    titleBarStyle: 'hiddenInset',
-    trafficLightPosition: { x: 16, y: 18 },
+    titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',
+    trafficLightPosition: process.platform === 'darwin' ? { x: 16, y: 18 } : undefined,
     backgroundColor: '#faf9f6',
     // Taskbar/titlebar identity; resolved from the packaged renderer root so
     // it works identically in dev and production builds.

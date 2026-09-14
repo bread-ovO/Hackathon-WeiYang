@@ -1,6 +1,9 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import type { DesktopBridge } from '@memo/contracts'
 const bridge: DesktopBridge = {
+  platform: ['darwin', 'win32', 'linux'].includes(process.platform)
+    ? process.platform as 'darwin' | 'win32' | 'linux'
+    : 'other',
   startupMode: process.argv.includes('--bugu-mode=real')
     ? 'real'
     : process.argv.includes('--bugu-mode=demo')
