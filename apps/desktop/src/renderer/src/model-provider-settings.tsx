@@ -14,7 +14,9 @@ const names = {
   'claude-cli': '本机 Claude Code',
   'kimi-cli': 'Kimi Code（尚未开放）',
 }
-export function ModelProviderSettings() {
+export function ModelProviderSettings({
+  defaultOpen = false,
+}: { defaultOpen?: boolean } = {}) {
   const [state, setState] = useState<ModelProviderSnapshot | null>(null)
   const [config, setConfig] = useState<ModelConfig | null>(null)
   const [credentials, setCredentials] = useState<CredentialSummary[]>([])
@@ -91,7 +93,10 @@ export function ModelProviderSettings() {
     }
   }
   return (
-    <details className="model-provider-settings">
+    <details
+      className="model-provider-settings"
+      open={defaultOpen || undefined}
+    >
       <summary>
         分析模型 ·{' '}
         {state.config.enabled ? names[state.config.provider] : '未启用'}
@@ -181,7 +186,7 @@ export function ModelProviderSettings() {
           />
         </div>
         <p>
-          点击「分析会话」时才发送所选会话的有限上下文。来源读取授权与模型调用授权分别管理。
+          主动分析或发送聊天时，才向此服务提供必要上下文。任务变更需另行确认。来源读取授权与模型调用授权分别管理。
         </p>
         <AppButton
           variant="primary"
