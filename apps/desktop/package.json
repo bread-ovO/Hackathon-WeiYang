@@ -51,7 +51,7 @@
     "mac": {
       "category": "public.app-category.productivity",
       "identity": null,
-      "icon": "build/icon.png"
+      "icon": "build/icon-mac.png"
     },
     "linux": {
       "icon": "build/icon.png"
