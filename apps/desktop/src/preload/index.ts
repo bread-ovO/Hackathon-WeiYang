@@ -1,6 +1,11 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import type { DesktopBridge } from '@memo/contracts'
 const bridge: DesktopBridge = {
+  startupMode: process.argv.includes('--bugu-mode=real')
+    ? 'real'
+    : process.argv.includes('--bugu-mode=demo')
+      ? 'demo'
+      : null,
   onOpenTask(callback) {
     const listener = (_event: unknown, value: unknown) => {
       if (!value || typeof value !== 'object' || Array.isArray(value)) return
@@ -208,10 +213,27 @@ const bridge: DesktopBridge = {
       ipcRenderer.invoke('memo:request', { method: 'sources.revoke', id }),
   }),
   workspace: Object.freeze({
-    delivery:(projectId,taskId)=>ipcRenderer.invoke('memo:request',{method:'workspace.delivery',projectId,taskId}),
-    startDelivery:(input)=>ipcRenderer.invoke('memo:request',{...input,method:'workspace.startDelivery'}),
-    resolveDelivery:(input)=>ipcRenderer.invoke('memo:request',{...input,method:'workspace.resolveDelivery'}),
-    completeDelivery:(input)=>ipcRenderer.invoke('memo:request',{...input,method:'workspace.completeDelivery'}),
+    delivery: (projectId, taskId) =>
+      ipcRenderer.invoke('memo:request', {
+        method: 'workspace.delivery',
+        projectId,
+        taskId,
+      }),
+    startDelivery: (input) =>
+      ipcRenderer.invoke('memo:request', {
+        ...input,
+        method: 'workspace.startDelivery',
+      }),
+    resolveDelivery: (input) =>
+      ipcRenderer.invoke('memo:request', {
+        ...input,
+        method: 'workspace.resolveDelivery',
+      }),
+    completeDelivery: (input) =>
+      ipcRenderer.invoke('memo:request', {
+        ...input,
+        method: 'workspace.completeDelivery',
+      }),
     sourceEvents: (request) =>
       ipcRenderer.invoke('memo:request', {
         ...request,

@@ -102,6 +102,11 @@ if (!app.isPackaged && process.env.MEMO_TEST_USER_DATA)
   app.setPath('userData', resolve(process.env.MEMO_TEST_USER_DATA))
 const devURL = !app.isPackaged ? process.env.ELECTRON_RENDERER_URL : undefined
 const pageURL = devURL || 'memo://app/index.html'
+const startupMode = process.argv.includes('--mode=real')
+  ? 'real'
+  : process.argv.includes('--mode=demo')
+    ? 'demo'
+    : null
 // Windows taskbar identity: pins notifications and the icon to this app
 // instead of generic Electron (matters in unpackaged dev runs).
 app.setAppUserModelId('dev.multisource.memo')
@@ -717,6 +722,7 @@ function createWindow() {
     icon: join(__dirname, '../renderer/icon.png'),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
+      additionalArguments: startupMode ? [`--bugu-mode=${startupMode}`] : [],
       sandbox: true,
       contextIsolation: true,
       nodeIntegration: false,

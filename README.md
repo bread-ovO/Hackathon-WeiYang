@@ -75,6 +75,15 @@ npx --yes pnpm@10.34.5 dev
 
 正常 pnpm 已安装时可直接使用 `pnpm`。项目不修改全局工具。变更 Electron 或 SQLite 驱动版本后重新执行 `rebuild:native`。SQLite 集成测试使用 Electron 自带 Node，避免宿主 Node 与 Electron 的 native ABI 混用。
 
+验收启动（自动构建并准备内置日和模型）：
+
+```bash
+pnpm start:demo  # 示例模式，展示内存中的示例事项
+pnpm start:real  # 本人工作区，读取本机已有数据
+```
+
+两种显式模式隐藏页面内的模式切换。直接启动 Electron 或已打包应用也支持 `--mode=demo` / `--mode=real`；切换启动模式前请退出已有实例。无参数启动保留原有模式切换，无示例构建始终进入真实工作区。
+
 ## 验证与构建
 
 仓库已移除 GitHub Actions CI 工作流，提交与 PR 不再自动运行全量检查、打包或公网来源探针。开发时按改动范围做本地验证，默认只跑受影响的 E2E 用例。

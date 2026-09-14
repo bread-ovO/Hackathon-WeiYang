@@ -473,6 +473,7 @@ export type CoreReply<T = Health> =
         | 'INGESTION_PROBE_UNAVAILABLE'
     }
 export interface DesktopBridge {
+  readonly startupMode: 'demo' | 'real' | null
   onOpenTask(
     callback: (target: { projectId: string; taskId: string }) => void,
   ): () => void
