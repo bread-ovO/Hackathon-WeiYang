@@ -32,7 +32,7 @@ ERD 入口沿用此前创建的「技术方案」，尚无单独命名的 ERD �
 
 ## 路演材料
 
-[路演 PPT](deliverables/BUGU_不咕_路演_v1.1.pptx) · [实机截图](docs/evals/screenshots)
+[路演 PPT · 鸟娘品牌版](deliverables/BUGU_不咕_路演_v4.0.pptx) · [实机截图](docs/evals/screenshots)
 
 ## 大模型事项分析（首版）
 
