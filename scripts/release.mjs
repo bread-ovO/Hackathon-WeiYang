@@ -18,8 +18,8 @@ export function installerNames(version) {
     `BUGU-${version}-Windows-x64-Setup.exe`,
     `BUGU-${version}-macOS-arm64.dmg`,
     `BUGU-${version}-macOS-x64.dmg`,
-    `BUGU-${version}-Linux-x64.AppImage`,
-    `BUGU-${version}-Linux-x64.deb`,
+    `BUGU-${version}-Linux-x86_64.AppImage`,
+    `BUGU-${version}-Linux-amd64.deb`,
   ].sort()
 }
 
