@@ -4,7 +4,7 @@
 
 BUGU 不咕：把分散在工作上下文里的承诺、进展与依据整理成可跟进的事项。
 
-本项目提交至 [Hackathon-WeiYang](https://github.com/bread-ovO/Hackathon-WeiYang)。采用 Electron + React + TypeScript + Cloudflare Kumo。业务目标见 [PRD](docs/product/多信源AI事项助手_PRD_v0.3.md)，设计见 [技术方案](docs/architecture/多信源AI事项助手_技术方案_v0.1.md)，进度见 [需求拆解](docs/planning/README.md)。
+本项目提交至 [bugu-notes](https://github.com/bread-ovO/bugu-notes)（原 Hackathon-WeiYang，GitHub 已改名并自动重定向）。采用 Electron + React + TypeScript + Cloudflare Kumo。业务目标见 [PRD](docs/product/多信源AI事项助手_PRD_v0.3.md)，设计见 [技术方案](docs/architecture/多信源AI事项助手_技术方案_v0.1.md)，进度见 [需求拆解](docs/planning/README.md)。
 
 本轮验证与限制见 [基建交付记录](docs/engineering/基建交付记录_2026-09-12.md)。
 
