@@ -9,6 +9,11 @@ const bridge: DesktopBridge = {
     : process.argv.includes('--bugu-mode=demo')
       ? 'demo'
       : null,
+  onOpenPetSettings(callback) {
+    const listener = () => callback()
+    ipcRenderer.on('memo:open-pet-settings', listener)
+    return () => ipcRenderer.removeListener('memo:open-pet-settings', listener)
+  },
   onOpenTask(callback) {
     const listener = (_event: unknown, value: unknown) => {
       if (!value || typeof value !== 'object' || Array.isArray(value)) return

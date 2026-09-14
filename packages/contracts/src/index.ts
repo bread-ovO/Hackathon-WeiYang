@@ -488,6 +488,7 @@ export type CoreReply<T = Health> =
 export interface DesktopBridge {
   readonly platform: 'darwin' | 'win32' | 'linux' | 'other'
   readonly startupMode: 'demo' | 'real' | null
+  onOpenPetSettings?(callback: () => void): () => void
   onOpenTask(
     callback: (target: { projectId: string; taskId: string }) => void,
   ): () => void

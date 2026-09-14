@@ -49,7 +49,7 @@ declare global {
       error: PetRenderErrorCode | null
       frames: number
       totalFrames: number
-      targetFps: 15 | 30
+      targetFps: 30 | 60
       recoveries: number
       contextState: 'ready' | 'lost' | 'recovering' | 'failed'
       modelId: string | null
@@ -100,7 +100,7 @@ const diagnostics = (window.__petRender = {
   error: null as PetRenderErrorCode | null,
   frames: 0,
   totalFrames: 0,
-  targetFps: 15 as 15 | 30,
+  targetFps: 30 as 30 | 60,
   recoveries: 0,
   contextState: 'ready' as 'ready' | 'lost' | 'recovering' | 'failed',
   modelId: null as string | null,
@@ -558,7 +558,10 @@ function render(now: number) {
   }
   const active =
     dragging || !bubble.hidden || session.currentAction().kind !== 'idle'
-  diagnostics.targetFps = petTargetFps(now, lastInteraction, active)
+  // An Idle motion can contain a full looping animation, even without interaction.
+  diagnostics.targetFps = petTargetFps(
+    now, lastInteraction, active, session.mode === 'live2d',
+  )
   if (frameBudget.due(now, diagnostics.targetFps)) {
     try {
       audio.tick()

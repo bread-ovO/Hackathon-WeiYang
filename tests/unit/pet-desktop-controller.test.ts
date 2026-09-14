@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 const mock = vi.hoisted(() => ({
+  menuTemplate: [] as any[],
+  popup: vi.fn(),
   handlers: new Map<string, Function>(),
   windows: [] as any[],
   runtime: vi.fn(async () => true),
@@ -13,6 +15,7 @@ const mock = vi.hoisted(() => ({
   network: undefined as Function | undefined,
 }))
 vi.mock('../../apps/desktop/node_modules/electron', () => ({
+  Menu: { buildFromTemplate: (items: any[]) => { mock.menuTemplate = items; return { popup: mock.popup } } },
   ipcMain: {
     handle: (name: string, handler: Function) =>
       mock.handlers.set(name, handler),
@@ -140,6 +143,19 @@ beforeEach(() => {
   })
 })
 describe('isolated pet desktop host', () => {
+  it('opens a native menu and ignores callbacks from an obsolete pet window', async () => {
+    const openMain = vi.fn()
+    const host = create(undefined, {}, undefined, undefined, { openMain })
+    await host.show()
+    const win = mock.windows[0]
+    const listener = win.webContents.on.mock.calls.find((call: any[]) => call[0] === 'context-menu')![1]
+    listener()
+    expect(mock.popup).toHaveBeenCalledWith({ window: win })
+    const open = mock.menuTemplate.find(item => item.label === '打开 BUGU').click
+    open(); expect(openMain).toHaveBeenCalledOnce()
+    host.dispose()
+    open(); expect(openMain).toHaveBeenCalledOnce()
+  })
   it('destroys a failed renderer and preserves its safe error for settings', async () => {
     const host = create()
     await host.show()

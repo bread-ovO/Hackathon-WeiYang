@@ -30,7 +30,7 @@ export async function diagnostics(page: Page): Promise<RenderDiagnostics> {
     ...window.__petRender,
   })) as Promise<RenderDiagnostics>
 }
-export async function prepareLifecycle() {
+export async function prepareLifecycle(modelDirectory = hiyori, entry = 'Hiyori.model3.json') {
   const root = await realpath(
     await mkdtemp(join(tmpdir(), 'bugu-pet-lifecycle-')),
   )
@@ -65,13 +65,13 @@ export async function prepareLifecycle() {
           }),
         path,
       )
-    await pick(hiyori)
+    await pick(modelDirectory)
     const chosen = await main.evaluate(() => window.memo.pet.openImportDialog())
     if (!chosen.ok || !('sessionId' in chosen.data))
       throw Error('CHOOSE_FAILED')
     const imported = await main.evaluate(
-      (id) => window.memo.pet.importChosen(id, 'Hiyori.model3.json'),
-      chosen.data.sessionId,
+      ({ id, entry }) => window.memo.pet.importChosen(id, entry),
+      { id: chosen.data.sessionId, entry },
     )
     if (!imported.ok || imported.data.status === 'invalid')
       throw Error('IMPORT_FAILED')

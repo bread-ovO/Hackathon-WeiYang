@@ -197,6 +197,20 @@ else {
         environment.setEnabled(enabled)
       }
       const petDesktop = createPetDesktopController({
+        openMain: (settings) => {
+          if (!window || window.isDestroyed()) createWindow()
+          if (!window) return
+          window.show()
+          window.focus()
+          if (settings) {
+            const contents = window.webContents
+            const navigate = () => {
+              if (!contents.isDestroyed()) contents.send('memo:open-pet-settings')
+            }
+            if (contents.isLoading()) contents.once('did-finish-load', navigate)
+            else navigate()
+          }
+        },
         voicePlayback: () =>
           voice?.playback() ?? { id: null, version: 1, status: 'disabled' },
         voiceAudio: (input) => voice?.audio(input) ?? Promise.resolve(null),

@@ -6,8 +6,8 @@ import {
 } from '../../apps/desktop/src/renderer/src/pet-frame-budget'
 
 describe('pet render frame budget', () => {
-  it.each([60, 120, 144])('preserves 15/30 fps on a %i Hz display', (hz) => {
-    for (const fps of [15, 30] as const) {
+  it.each([60, 120, 144])('preserves 30/60 fps on a %i Hz display', (hz) => {
+    for (const fps of [30, 60] as const) {
       const budget = createPetFrameBudget()
       let frames = 0
       for (let i = 0; i < hz * 10; i++)
@@ -21,10 +21,10 @@ describe('pet render frame budget', () => {
     let frames = 0
     for (let i = 0; i < 600; i++) {
       const now = (i * 1000) / 60 + (i % 2 ? 2 : 0)
-      if (budget.due(now, i < 300 ? 15 : 30)) frames++
+      if (budget.due(now, i < 300 ? 30 : 60)) frames++
     }
-    expect(frames).toBeGreaterThanOrEqual(224)
-    expect(frames).toBeLessThanOrEqual(226)
+    expect(frames).toBeGreaterThanOrEqual(449)
+    expect(frames).toBeLessThanOrEqual(451)
   })
   it('resets after a hidden interval without catching up multiple frames', () => {
     const budget = createPetFrameBudget()
@@ -36,11 +36,15 @@ describe('pet render frame budget', () => {
     expect(budget.due(NaN, 30)).toBe(false)
     expect(budget.due(100034, 30)).toBe(true)
   })
+  it('keeps looping animation smooth even without pointer interaction', () => {
+    expect(petTargetFps(60000, -Infinity, false, true)).toBe(60)
+    expect(petTargetFps(60000, -Infinity, false, false)).toBe(30)
+  })
   it('uses interaction and presentation activity, then returns to idle', () => {
-    expect(petTargetFps(10000, -Infinity, false)).toBe(15)
-    expect(petTargetFps(10000, 6001, false)).toBe(30)
-    expect(petTargetFps(10000, 6000, false)).toBe(15)
-    expect(petTargetFps(10000, -Infinity, true)).toBe(30)
+    expect(petTargetFps(10000, -Infinity, false)).toBe(30)
+    expect(petTargetFps(10000, 6001, false)).toBe(60)
+    expect(petTargetFps(10000, 6000, false)).toBe(30)
+    expect(petTargetFps(10000, -Infinity, true)).toBe(60)
   })
 })
 describe('pet context recovery budget', () => {

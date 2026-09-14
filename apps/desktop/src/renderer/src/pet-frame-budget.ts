@@ -7,7 +7,7 @@ export function createPetFrameBudget() {
       last = undefined
       credit = 0
     },
-    due(now: number, fps: 15 | 30): boolean {
+    due(now: number, fps: 30 | 60): boolean {
       if (!Number.isFinite(now)) return false
       const interval = 1000 / fps
       if (last === undefined || now < last) {
@@ -27,10 +27,13 @@ export function petTargetFps(
   now: number,
   lastInteraction: number,
   active: boolean,
-): 15 | 30 {
-  return active || (now >= lastInteraction && now - lastInteraction < 4000)
-    ? 30
-    : 15
+  animated = false,
+): 30 | 60 {
+  return animated ||
+    active ||
+    (now >= lastInteraction && now - lastInteraction < 4000)
+    ? 60
+    : 30
 }
 /** Recovery is bounded per renderer, independent of model changes or async outcomes. */
 export function createPetRecoveryBudget() {
