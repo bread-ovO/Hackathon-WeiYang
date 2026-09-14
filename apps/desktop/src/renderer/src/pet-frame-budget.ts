@@ -27,9 +27,9 @@ export function petTargetFps(
   now: number,
   lastInteraction: number,
   active: boolean,
-  animated = false,
+  smooth = false,
 ): 30 | 60 {
-  return animated ||
+  return smooth ||
     active ||
     (now >= lastInteraction && now - lastInteraction < 4000)
     ? 60

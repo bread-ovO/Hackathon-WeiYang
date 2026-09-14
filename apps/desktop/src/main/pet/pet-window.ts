@@ -52,6 +52,7 @@ export interface PetWindowPersistState {
   scale: number
   alwaysOnTop?: boolean
   clickThrough?: boolean
+  performanceMode?: 'balanced' | 'smooth'
 }
 export interface PetWindowDeps {
   platform: PetWindowPlatform
@@ -146,6 +147,7 @@ export function createPetWindowController(deps: PetWindowDeps) {
         scale: clampScale(loaded.scale),
         alwaysOnTop: loaded.alwaysOnTop === true,
         clickThrough: loaded.clickThrough !== false,
+        performanceMode: loaded.performanceMode === 'smooth' ? 'smooth' : 'balanced',
       }
   } catch {
     /* Invalid saved placement falls back to defaults. */
@@ -155,6 +157,7 @@ export function createPetWindowController(deps: PetWindowDeps) {
   let disposed = false
   let generation = 0
   let alwaysOnTop = state.alwaysOnTop === true
+  let performanceMode = state.performanceMode ?? 'balanced'
   let clickThrough = state.clickThrough !== false
   let interactive = false
   let drag: { x: number; y: number; cursorX: number; cursorY: number } | null =
@@ -167,7 +170,7 @@ export function createPetWindowController(deps: PetWindowDeps) {
   }
   const persist = () => {
     try {
-      saveState({ ...state, alwaysOnTop, clickThrough })
+      saveState({ ...state, alwaysOnTop, clickThrough, performanceMode })
     } catch {
       /* Best effort. */
     }
@@ -328,8 +331,13 @@ export function createPetWindowController(deps: PetWindowDeps) {
       applyMouse()
       persist()
     },
+    setPerformanceMode(value: 'balanced' | 'smooth') {
+      if (disposed || !['balanced', 'smooth'].includes(value)) return
+      performanceMode = value
+      persist()
+    },
     preferences() {
-      return { scale: state.scale, alwaysOnTop, clickThrough }
+      return { scale: state.scale, alwaysOnTop, clickThrough, performanceMode }
     },
     hitTest(value: boolean) {
       if (disposed) return

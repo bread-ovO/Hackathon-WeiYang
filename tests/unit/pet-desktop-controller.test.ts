@@ -209,7 +209,7 @@ describe('isolated pet desktop host', () => {
       visible: true,
       catalog: { motions: [], expressions: [] },
       presentation: null,
-      preferences: { scale: 1, alwaysOnTop: false, clickThrough: true },
+      preferences: { scale: 1, alwaysOnTop: false, clickThrough: true, performanceMode: 'balanced' },
     })
     const hit = mock.handlers.get('memo-pet:hitTest')!,
       drag = mock.handlers.get('memo-pet:drag')!

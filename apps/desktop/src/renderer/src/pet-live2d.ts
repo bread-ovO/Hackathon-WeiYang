@@ -1,3 +1,5 @@
+import { cachePetParameterIndexes } from './pet-parameter-cache'
+import { createPetPixelReadback } from './pet-pixel-readback'
 import { createDeclaredLipSync } from './pet-lip-sync'
 import {
   guardShaderRegistration,
@@ -57,6 +59,7 @@ interface Model {
   loadParameters(): void
   getParameterCount(): number
   getParameterId(index: number): Id
+  getParameterIndex(id: Id): number
   getParameterValueByIndex(index: number): number
   getParameterMinimumValue(index: number): number
   getParameterMaximumValue(index: number): number
@@ -328,6 +331,7 @@ export async function bootLive2D(
       drawableCount = model.getDrawableCount()
     if (parameterCount <= 0 || drawableCount <= 0)
       throw new Error('empty model')
+    cachePetParameterIndexes(model)
     const defaults = Array.from({ length: parameterCount }, (_, i) =>
       model.getParameterValueByIndex(i),
     )
@@ -711,11 +715,14 @@ export async function bootLive2D(
     if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE)
       throw new PetRenderError('RENDER_FAILED')
     gl.bindFramebuffer(gl.FRAMEBUFFER, null)
-    const hitPixels = new Uint8Array(HIT_MAP_SIZE * HIT_MAP_SIZE * 4)
+    const readback = createPetPixelReadback(gl, HIT_MAP_SIZE)
+    release.push(() => readback.dispose())
     let lastHitRead = -Infinity
     const updateHitMap = () => {
       const now = performance.now()
-      if (now - lastHitRead < HIT_MAP_INTERVAL_MS) return
+      const ready = readback.collect()
+      if (ready) hitMap.update(ready)
+      if (readback.pending || now - lastHitRead < HIT_MAP_INTERVAL_MS) return
       lastHitRead = now
       const scissorEnabled = gl.isEnabled(gl.SCISSOR_TEST)
       try {
@@ -735,21 +742,13 @@ export async function bootLive2D(
           gl.NEAREST,
         )
         gl.bindFramebuffer(gl.READ_FRAMEBUFFER, hitBuffer)
-        gl.readPixels(
-          0,
-          0,
-          HIT_MAP_SIZE,
-          HIT_MAP_SIZE,
-          gl.RGBA,
-          gl.UNSIGNED_BYTE,
-          hitPixels,
-        )
-        hitMap.update(hitPixels)
+        readback.enqueue()
       } finally {
         gl.bindFramebuffer(gl.FRAMEBUFFER, null)
         if (scissorEnabled) gl.enable(gl.SCISSOR_TEST)
       }
     }
+    let lastErrorCheck = -Infinity
     const draw = () => {
       if (disposed || gl.isContextLost()) return
       resize()
@@ -761,8 +760,14 @@ export async function bootLive2D(
       renderer.setRenderState(null, [0, 0, canvas.width, canvas.height])
       renderer.drawModel(shaders)
       updateHitMap()
-      if (!gl.isContextLost() && gl.getError() !== gl.NO_ERROR)
-        throw new PetRenderError('RENDER_FAILED')
+      // getError can synchronize the renderer and GPU processes. Context loss
+      // is handled by events; sample other GL errors instead of polling at 60 Hz.
+      const now = performance.now()
+      if (now - lastErrorCheck >= 1000) {
+        lastErrorCheck = now
+        if (!gl.isContextLost() && gl.getError() !== gl.NO_ERROR)
+          throw new PetRenderError('RENDER_FAILED')
+      }
     }
     failure = 'SHADER_TIMEOUT'
     renderer.loadShaders(shaders)

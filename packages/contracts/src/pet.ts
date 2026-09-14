@@ -99,6 +99,7 @@ export const petRequestSchemas = [
           scale: { type: 'number', minimum: 0.5, maximum: 2 },
           alwaysOnTop: { type: 'boolean' },
           clickThrough: { type: 'boolean' },
+          performanceMode: { enum: ['balanced', 'smooth'] },
         },
         minProperties: 1,
         additionalProperties: false,
@@ -206,6 +207,7 @@ export interface PetPreferences {
   scale: number
   alwaysOnTop: boolean
   clickThrough: boolean
+  performanceMode?: 'balanced' | 'smooth'
 }
 export interface PetState {
   voice?: PetVoicePlayback

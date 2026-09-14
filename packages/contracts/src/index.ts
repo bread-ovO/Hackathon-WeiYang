@@ -587,6 +587,7 @@ export interface DesktopBridge {
       scale?: number
       alwaysOnTop?: boolean
       clickThrough?: boolean
+      performanceMode?: 'balanced' | 'smooth'
     }): Promise<CoreReply<PetState>>
     resetPosition(): Promise<CoreReply<PetState>>
     show(): Promise<CoreReply<PetState>>

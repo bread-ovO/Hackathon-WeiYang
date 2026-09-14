@@ -317,6 +317,7 @@ export function createPetDesktopController(deps: PetDesktopDeps) {
             scale: value => { if (valid()) windows.setScale(value) },
             pin: value => { if (valid()) windows.setAlwaysOnTop(value) },
             passthrough: value => { if (valid()) windows.setMousePassthrough(value) },
+            performance: value => { if (valid()) windows.setPerformanceMode(value) },
             hide: () => { if (valid()) stop() },
           }))
           menu.popup({ window: created })
@@ -747,6 +748,7 @@ export function createPetDesktopController(deps: PetDesktopDeps) {
       scale?: number
       alwaysOnTop?: boolean
       clickThrough?: boolean
+      performanceMode?: 'balanced' | 'smooth'
     }): Promise<CoreReply<PetState>> {
       if (
         disposed ||
@@ -755,16 +757,18 @@ export function createPetDesktopController(deps: PetDesktopDeps) {
         Array.isArray(patch) ||
         !Object.keys(patch).length ||
         Object.keys(patch).some(
-          (k) => !['scale', 'alwaysOnTop', 'clickThrough'].includes(k),
+          (k) => !['scale', 'alwaysOnTop', 'clickThrough', 'performanceMode'].includes(k),
         ) ||
         ('scale' in patch &&
           (!Number.isFinite(patch.scale) ||
             patch.scale! < 0.5 ||
             patch.scale! > 2)) ||
         ('alwaysOnTop' in patch && typeof patch.alwaysOnTop !== 'boolean') ||
-        ('clickThrough' in patch && typeof patch.clickThrough !== 'boolean')
+        ('clickThrough' in patch && typeof patch.clickThrough !== 'boolean') ||
+        ('performanceMode' in patch && !['balanced', 'smooth'].includes(patch.performanceMode!))
       )
         return { ok: false, error: 'INVALID_REQUEST' }
+      if (patch.performanceMode !== undefined) windows.setPerformanceMode(patch.performanceMode)
       if (patch.scale !== undefined) windows.setScale(patch.scale)
       if (patch.alwaysOnTop !== undefined)
         windows.setAlwaysOnTop(patch.alwaysOnTop)
