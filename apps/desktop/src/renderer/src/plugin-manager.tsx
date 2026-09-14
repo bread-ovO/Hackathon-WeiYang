@@ -1,3 +1,4 @@
+import { HelpTip } from './ui/help-tip'
 import { ingestionErrors } from './ingestion-panel'
 import { useEffect, useRef, useState } from 'react'
 import type {
@@ -98,8 +99,7 @@ export function PluginManager() {
     <section className="plugin-panel" aria-label="声明式插件管理">
       <div className="plugin-heading">
         <div>
-          <h2>来源插件</h2>
-          <p>安装只读的声明式来源，先确认权限与样例，再开始采集。</p>
+          <div className="connection-label"><h2>来源插件</h2><HelpTip label="来源插件说明">安装只读的声明式来源，先确认权限与样例，再开始采集。飞书、GitHub 和本地 JSONL 已预置，也可安装自定义插件。</HelpTip></div>
         </div>
         <AppButton
           disabled={busy}
@@ -319,9 +319,6 @@ export function PluginManager() {
           </div>
         ))}
       </div>
-      {!data.plugins.length && !selected && (
-        <p className="muted">需要更多来源？可以安装自定义插件；飞书、GitHub 和本地 JSONL 已预置。</p>
-      )}
       <div className="plugin-actions">
         <AppButton
           disabled={busy}

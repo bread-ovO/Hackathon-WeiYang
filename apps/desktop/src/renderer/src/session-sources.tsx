@@ -1,3 +1,4 @@
+import { HelpTip } from './ui/help-tip'
 import { ingestionErrors } from './ingestion-panel'
 import { useEffect, useRef, useState } from 'react'
 import type {
@@ -139,8 +140,10 @@ export function SessionSources({ kind }: { kind: SessionSourceKind }) {
   )
   return (
     <section className="source-import" aria-label={`${meta.label}导入`}>
-      <p>{meta.intro}</p>
       <div className="source-import-actions">
+        <HelpTip label={`${meta.label}授权说明`}>
+          {meta.intro} 授权后扫描当前全部会话；再次授权可补齐新会话与新增内容，不重复收录。撤销停止后续读取，历史删除是单独操作。
+        </HelpTip>
         <select
           aria-label="授权项目"
           value={project}
@@ -175,9 +178,7 @@ export function SessionSources({ kind }: { kind: SessionSourceKind }) {
           刷新连接
         </AppButton>
       </div>
-      <p>
-        授权后扫描当前全部会话；再次点击可发现新会话并补齐新增内容，不重复收录。
-      </p>
+
       <details>
         <summary>高级选项</summary>
         <AppButton
@@ -257,9 +258,7 @@ export function SessionSources({ kind }: { kind: SessionSourceKind }) {
           <p>尚未授权会话目录。</p>
         )}
       </details>
-      <p>
-        重复授权同一目录会从上次进度继续读取；撤销停止后续读取，历史删除是单独操作。
-      </p>
+
     </section>
   )
 }

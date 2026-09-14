@@ -1,3 +1,4 @@
+import { HelpTip } from './ui/help-tip'
 import { ModelProviderSettings } from './model-provider-settings'
 import { useEffect, useState } from 'react'
 import type { AnalysisSnapshot, SourcesSnapshot } from '@memo/contracts'
@@ -65,11 +66,10 @@ export function TaskAnalysisPanel() {
   }
   return (
     <section className="source-import" aria-label="AI 事项分析">
-      <p>
-        理解会话里的需求、补充与交付，整理出下一步。使用你选择的模型服务，确认后加入跟进。
-      </p>
+
       <ModelProviderSettings />
       <div className="source-import-actions">
+        <HelpTip label="AI 分析说明">理解会话里的需求、补充与交付，整理出下一步。使用你选择的模型服务，确认后加入跟进。</HelpTip>
         <label>
           选择已授权会话{' '}
           <select

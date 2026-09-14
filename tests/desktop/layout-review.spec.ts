@@ -37,6 +37,14 @@ test('compact pages disclose configuration on demand and align icons at both wid
       await page.screenshot({
         path: info.outputPath(`connections-${width}.png`),
       })
+      const help = page.getByRole('button', { name: 'AI 事项分析说明', exact: true })
+      await help.hover()
+      await expect(page.getByRole('tooltip')).toContainText('理解会话')
+      await help.focus()
+      await page.keyboard.press('Enter')
+      await expect(page.locator('#ai-task-analysis')).not.toHaveAttribute('open', '')
+      await page.keyboard.press('Escape')
+      await expect(page.getByRole('tooltip')).not.toBeVisible()
       await page.getByRole('button', { name: '配置飞书', exact: true }).click()
       await expect(page.getByLabel('飞书会话ID')).toBeVisible()
       await page.getByLabel('飞书会话ID').fill('oc_draft')

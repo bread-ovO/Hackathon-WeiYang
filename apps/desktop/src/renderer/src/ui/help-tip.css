@@ -1,0 +1,20 @@
+.help-tip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 24px;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  cursor: help;
+  vertical-align: middle;
+}
+.help-tip:hover { background: var(--color-kumo-tint); color: var(--text-color-kumo-default); }
+.help-tip:focus-visible { outline: 2px solid var(--color-kumo-focus); outline-offset: 2px; }
+.help-tip > svg { display: block; }
+.help-tip-content { display: block; max-width: 320px; white-space: normal; line-height: 1.6; font-size: 12px; font-weight: 400; }
+.connection-label { display: flex; align-items: center; gap: 4px; }

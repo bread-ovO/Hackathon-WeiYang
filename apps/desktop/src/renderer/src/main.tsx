@@ -1,5 +1,7 @@
 import { TaskChatPanel } from './task-chat-panel'
 import { ChatCircleIcon } from '@phosphor-icons/react'
+import { HelpTip } from './ui/help-tip'
+import './connections-page.css'
 import { Disclosure } from './ui/disclosure'
 import { SourcePresets } from './source-presets'
 import { PetVoiceSettings } from './pet-voice-settings'
@@ -744,14 +746,12 @@ function App() {
             </AppDialog>
           </>
         ) : page === '连接' ? (
-          <div className="standalone" key="connections">
-            <h1>
-              应用与文件<span className="heading-dot">.</span>
-            </h1>
-            <p className="page-description">
-              把工作发生的地方连接起来。你决定读取哪些内容。
-            </p>
-            <Disclosure id="ai-task-analysis" title="AI 事项分析" description="理解会话，整理下一步">
+          <div className="standalone connections-page" key="connections">
+            <header className="connections-heading">
+              <h1>应用与文件</h1>
+              <HelpTip label="连接页面说明">把工作发生的地方连接起来。你决定读取哪些内容，内置来源配置后即可使用。</HelpTip>
+            </header>
+            <Disclosure descriptionAsHelp id="ai-task-analysis" title="AI 事项分析" description="理解会话，整理下一步">
               <TaskAnalysisPanel />
             </Disclosure>
             <SourcePresets
@@ -760,40 +760,40 @@ function App() {
                 setPage('跟进')
               }}
             />
-            <Disclosure id="preset-feishu" title="飞书连接">
+            <Disclosure descriptionAsHelp id="preset-feishu" title="飞书连接" description="指定会话与历史起点，只读取凭据有权访问的范围，不发现其他会话，也不自动刷新过期令牌。">
               <FeishuPanel onGoCredentials={goCredentials} />
             </Disclosure>
-            <Disclosure id="preset-github" title="GitHub 连接">
+            <Disclosure descriptionAsHelp id="preset-github" title="GitHub 连接" description="支持单仓库或账户下有权限仓库的 PR、Issue 和评论。凭据保存在本机，分批读取；权限不足会停止并提示，不自动完成事项。">
               <GithubPanel onGoCredentials={goCredentials} />
             </Disclosure>
-            <Disclosure id="preset-local" title="本地记录">
+            <Disclosure descriptionAsHelp id="preset-local" title="本地记录">
               <SourceImport />
             </Disclosure>
-            <Disclosure
+            <Disclosure descriptionAsHelp
               id="preset-claude"
               title="Claude Code 会话"
               description="收录本机 Claude Code 会话"
             >
               <SessionSources kind="claude-code" />
             </Disclosure>
-            <Disclosure
+            <Disclosure descriptionAsHelp
               id="preset-codex"
               title="Codex 会话"
               description="收录本机 Codex 会话"
             >
               <SessionSources kind="codex" />
             </Disclosure>
-            <Disclosure id="preset-kimi" title="Kimi 会话">
+            <Disclosure descriptionAsHelp id="preset-kimi" title="Kimi 会话">
               <SessionSources kind="kimi" />
             </Disclosure>
-            <Disclosure
+            <Disclosure descriptionAsHelp
               id="preset-plugins"
               title="扩展插件"
               description="安装和管理其他来源"
             >
               <PluginManager />
             </Disclosure>
-            <Disclosure
+            <Disclosure descriptionAsHelp
               id="preset-processing"
               title="采集与整理"
               description="后台状态、暂停与存储预算"

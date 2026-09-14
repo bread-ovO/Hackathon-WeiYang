@@ -1,3 +1,4 @@
+import { HelpTip } from './ui/help-tip'
 import { useEffect, useRef, useState } from 'react'
 import type { ProcessingStatus } from '@memo/contracts'
 import { AppButton } from './ui'
@@ -62,11 +63,7 @@ export function ProcessingPanel() {
   }
   return (
     <section className="source-import" aria-label="本地候选整理">
-      <h2>本地候选整理</h2>
-      <p>
-        自动整理已授权收录的记录，只按有限规则提取明确承诺，生成待确认候选。全程在本机运行，不联网推理，不修改已收录事项或自动标记完成。
-      </p>
-      <p>默认开启。暂停会停止后续处理，已生成的候选与原文引用保留。</p>
+<div className="connection-label"><h2>本地候选整理</h2><HelpTip label="本地候选整理说明">自动整理已授权收录的记录，只按有限规则提取明确承诺，生成待确认候选。全程在本机运行，不联网推理，不修改已收录事项或自动标记完成。 默认开启。暂停会停止后续处理，已生成的候选与原文引用保留。</HelpTip></div>
       <div className="source-import-actions">
         <strong>{status ? labels[status.state] : '正在读取状态…'}</strong>
         <AppButton disabled={!status || busy} onClick={() => void configure()}>
