@@ -208,6 +208,7 @@ export const workspaceRequestSchema = {
 } as const
 export type WorkspaceRequest = FromSchema<typeof workspaceRequestSchema>
 export interface WorkspaceTask {
+  aiSource?: { name: string; sourceId: string } | null
   id: string
   projectId: string | null
   title: string
@@ -253,7 +254,7 @@ export interface CandidateProvenance {
   createdAt: string
 }
 export interface WorkspaceDetail {
-  modelSuggestion?: { model: string; createdAt: string; candidate: import('./task-analysis').TaskAnalysis['tasks'][number] } | null
+  modelSuggestion?: { sourceId: string; sourceName: string; model: string; createdAt: string; candidate: import('./task-analysis').TaskAnalysis['tasks'][number] } | null
   merge?: {
     mergedInto: string | null
     mergedFrom: { id: string; title: string }[]

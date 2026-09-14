@@ -218,7 +218,10 @@ export function handleWorkspace(
   )
   return {
     projects: store.tasks.listProjects(),
-    tasks: page.items,
+    tasks: page.items.map(task => {
+      const analysis = task.projectId ? store.taskAnalysis.forTask(task.projectId, task.id) : null
+      return { ...task, aiSource: analysis ? { name: analysis.sourceName, sourceId: analysis.sourceId } : null }
+    }),
     nextCursor: page.nextCursor,
     totalCount: page.totalCount,
     activeCount: page.activeCount,

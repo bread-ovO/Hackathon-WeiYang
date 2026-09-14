@@ -63,8 +63,29 @@ export function createTaskAnalysis(db: Database.Database) {
       truncated: rows.length > messages.length,
     }
   }
-  return {
+  const api = {
     context,
+    pending(protocol: string) {
+      // Bound background provider spend across restarts; unchanged content is cached below.
+      const recent = db.prepare('SELECT count(*) AS n FROM model_analyses WHERE created_at>=?').get(new Date(Date.now()-3600_000).toISOString()) as {n:number}
+      if (recent.n >= 12) return []
+      const ids = db.prepare(`SELECT source_id AS id FROM source_grants WHERE revoked=0
+        UNION SELECT source_id AS id FROM feishu_connections WHERE revoked=0 AND enabled=1`).all() as {id:string}[]
+      return ids.flatMap(({id}) => {
+        try {
+          const input = context(id)
+          const done = db.prepare('SELECT 1 FROM model_analyses WHERE source_id=? AND fingerprint=? AND protocol=?').get(id,input.fingerprint,protocol)
+          return done ? [] : [{sourceId:id, fingerprint:input.fingerprint}]
+        } catch { return [] }
+      })
+    },
+    discover(input: ReturnType<typeof context>, result: TaskAnalysis, model: string, protocol: string): string {
+      return db.transaction(() => {
+        const runId = api.save(input, result, model, protocol)
+        result.tasks.forEach((_, index) => api.accept(runId, index, true))
+        return runId
+      })()
+    },
     read(runId: string) {
       const row = db
         .prepare('SELECT result,messages FROM model_analyses WHERE id=?')
@@ -75,10 +96,15 @@ export function createTaskAnalysis(db: Database.Database) {
     forTask(projectId: string, taskId: string) {
       const row = db
         .prepare(
-          `SELECT a.model,a.created_at,a.result,a.messages,c.candidate_index FROM model_analyses a JOIN model_analysis_acceptances c ON c.run_id=a.id WHERE a.project_id=? AND c.task_id=? ORDER BY a.created_at DESC LIMIT 1`,
+          `SELECT a.model,a.created_at,a.result,a.messages,c.candidate_index,a.source_id,
+          COALESCE(g.display_name, '飞书 · ' || f.chat_id, a.source_id) AS source_name
+          FROM model_analyses a JOIN model_analysis_acceptances c ON c.run_id=a.id
+          LEFT JOIN source_grants g ON g.source_id=a.source_id LEFT JOIN feishu_connections f ON f.source_id=a.source_id WHERE a.project_id=? AND c.task_id=? ORDER BY a.created_at DESC LIMIT 1`,
         )
         .get(projectId, taskId) as
         | {
+            source_id: string
+            source_name: string
             model: string
             created_at: string
             result: string
@@ -93,7 +119,7 @@ export function createTaskAnalysis(db: Database.Database) {
           JSON.parse(row.messages),
         ).tasks[row.candidate_index]
         return candidate
-          ? { model: row.model, createdAt: row.created_at, candidate }
+          ? { model: row.model, createdAt: row.created_at, sourceId: row.source_id, sourceName: row.source_name, candidate }
           : null
       } catch {
         return null
@@ -167,7 +193,7 @@ export function createTaskAnalysis(db: Database.Database) {
           .all(runId) as { idx: number }[]
       ).map((r) => r.idx)
     },
-    accept: db.transaction((runId: string, index: number) => {
+    accept: db.transaction((runId: string, index: number, automatic = false) => {
       const row = db
         .prepare('SELECT * FROM model_analyses WHERE id=?')
         .get(runId) as
@@ -222,11 +248,11 @@ export function createTaskAnalysis(db: Database.Database) {
           id: taskId,
           projectId: row.project_id,
           title: candidate.title,
-          admission: 'accepted',
+          admission: automatic ? 'candidate' : 'accepted',
         },
         {
-          actorId: 'local-user',
-          reason: `用户确认大模型建议（${row.model}，分析 ${runId}）。阶段建议 ${candidate.stage} 未自动修改业务状态。`,
+          actorId: automatic ? 'ai-organizer' : 'local-user',
+          reason: `${automatic ? '后台整理为待确认事项：' : '用户确认'}大模型建议（${row.model}，分析 ${runId}）。阶段建议 ${candidate.stage} 未自动修改业务状态。`,
         },
       )
       db.prepare('INSERT INTO model_analysis_acceptances VALUES(?,?,?,?)').run(
@@ -237,4 +263,5 @@ export function createTaskAnalysis(db: Database.Database) {
       )
     }),
   }
+  return api
 }

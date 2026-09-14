@@ -25,6 +25,7 @@ const processing = createLocalProcessing(store)
 const modelBridge = createTaskModelBridge(parentPort)
 const analysis = createTaskAnalysisService(store, modelBridge)
 const chat = createTaskChatService(store, modelBridge)
+analysis.start()
 parentPort.on('message', async ({ data }) => {
   if (
     !data ||
