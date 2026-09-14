@@ -20,6 +20,7 @@
     "package:demo": "pnpm --filter @memo/desktop package:demo",
     "package:real": "pnpm --filter @memo/desktop package:real",
     "package:dmg": "pnpm --filter @memo/desktop package:dmg",
+    "package:release": "pnpm --filter @memo/desktop package:release",
     "start:demo": "node scripts/start-desktop.mjs --mode=demo",
     "start:real": "node scripts/start-desktop.mjs --mode=real"
   },

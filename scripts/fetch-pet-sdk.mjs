@@ -30,6 +30,10 @@ const ZIP_URL =
 const ZIP_SHA256 =
   '67064a7fb1812cf502f5c4a03bfe12cc638c75a621bb4acf06bb28763df06ba0'
 const sdkDir = join(target, 'CubismSdkForWeb-5-r.5')
+// macOS and Windows ship libarchive tar. GNU tar on Linux cannot read ZIP.
+const archiveTool = process.platform === 'win32'
+  ? join(process.env.SystemRoot || 'C:/Windows', 'System32/tar.exe')
+  : process.platform === 'linux' ? 'bsdtar' : 'tar'
 
 const download = (url, to) =>
   new Promise((done, fail) => {
@@ -101,11 +105,11 @@ console.log(`zip ok (sha256 ${actual.slice(0, 16)}…)`)
 // Recreate the extracted tree from the pinned archive, never trust a stale cache.
 const staging = mkdtempSync(join(target, '.extract-'))
 try {
-  const members = execFileSync(process.platform === 'win32' ? 'C:/Windows/System32/tar.exe' : 'tar', ['-tf', zipPath], {
+  const members = execFileSync(archiveTool, ['-tf', zipPath], {
     encoding: 'utf8',
     maxBuffer: 8 * 1024 * 1024,
   })
-    .split('\n')
+    .split(/\r?\n/)
     .filter(Boolean)
   if (
     members.some(
@@ -117,7 +121,7 @@ try {
     )
   )
     throw new Error('SDK_ARCHIVE_PATH_INVALID')
-  execFileSync(process.platform === 'win32' ? 'C:/Windows/System32/tar.exe' : 'tar', ['-xf', zipPath, '-C', staging], { stdio: 'inherit' })
+  execFileSync(archiveTool, ['-xf', zipPath, '-C', staging], { stdio: 'inherit' })
   const incoming = join(staging, 'CubismSdkForWeb-5-r.5')
   for (const file of [
     'Core/live2dcubismcore.min.js',

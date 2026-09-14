@@ -20,11 +20,17 @@ ERD 入口沿用此前创建的「技术方案」，尚无单独命名的 ERD �
 
 ## 安装后开始体验
 
-连接页已预置 **飞书、GitHub、本地 JSONL、Claude Code 会话、Codex 会话**，无需先安装插件；配置读取范围与凭据即可使用。Claude Code 与 Codex 会话来源通过原生目录选择器授权本机会话目录（默认 `~/.claude/projects` 与 `~/.codex/sessions`），按会话文件增量收录，路径不进入界面与导出。点击 **一键体验** 可用三条虚构记录运行真实插件采集与候选整理流程，生成独立体验项目，不访问个人数据。
+正式安装包从 [GitHub Releases](https://github.com/bread-ovO/bugu-notes/releases) 下载，首次打开为零项目、零事项的个人工作区。正式版没有示例切换或一键体验入口。
+
+连接页已预置 **飞书、GitHub、本地 JSONL、Claude Code 会话、Codex 会话**，无需先安装插件；配置读取范围与凭据即可使用。Claude Code 与 Codex 会话来源通过原生目录选择器授权本机会话目录（默认 `~/.claude/projects` 与 `~/.codex/sessions`），按会话文件增量收录，路径不进入界面与导出。开发模式保留 **一键体验**，可用三条虚构记录验证插件采集与候选整理流程；正式安装包不包含该入口和样例记录。
 
 默认打包内置 **桃濑日和 Hiyori © Live2D Inc.** 及固定版本 Live2D 运行库，新用户首次启动自动导入、选中并显示角色，无需联网下载。普通目录包、DMG、`package:real` 和 `package:demo` 都必须包含 Hiyori，不再打包 Haru；已有模型库及用户删除/取消选择保持不变。
 
 打包前执行 `node scripts/fetch-pet-sdk.mjs` 准备固定版本资源，然后运行 `pnpm package:dir` 或 `pnpm package:dmg`。缺模型、贴图、许可文件或运行库，或任一哈希不匹配，打包直接失败；不会降级为空角色包。源码仓库只保存资源清单及校验值，模型二进制保留在被忽略的 `.pet-sdk`。详见 [默认 Hiyori 打包](docs/engineering/默认Hiyori打包_2026-09-14.md)。
+
+## 自动发布
+
+推送 `v0.1.0` 这样的版本 tag，自动构建 Windows x64 安装程序、macOS Apple Silicon / Intel 两版 DMG，以及 Linux x64 AppImage / deb。全部构建成功后上传至 GitHub Release，并附带 `SHA256SUMS`。普通提交和 PR 不触发这条 CD；手动运行仅试构建。发布步骤与签名范围见 [版本发布](docs/engineering/版本发布.md)。
 
 ## PR 交付闭环
 
