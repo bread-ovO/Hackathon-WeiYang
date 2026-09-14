@@ -81,7 +81,7 @@
   gap: 8px 16px;
   margin-bottom: 12px;
 }
-.task-chat-proposals span,
+.task-chat-proposals > div:not(.task-chat-proposal-actions) > span,
 .task-chat-note,
 .task-chat-trace {
   color: var(--muted);
