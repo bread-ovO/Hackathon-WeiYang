@@ -4,7 +4,7 @@ import { petMenuTemplate } from '../../apps/desktop/src/main/pet/context-menu'
 function setup(ready = true) {
   const callbacks = {
     open: vi.fn(), play: vi.fn(), scale: vi.fn(), pin: vi.fn(),
-    passthrough: vi.fn(), hide: vi.fn(),
+    passthrough: vi.fn(), performance: vi.fn(), hide: vi.fn(),
   }
   const menu = petMenuTemplate({
     preferences: { scale: 1.25, alwaysOnTop: true, clickThrough: true },
@@ -28,6 +28,9 @@ describe('native pet menu', () => {
   })
   it('reflects persisted preferences and supplies bounded scale choices', () => {
     const { item, callbacks } = setup()
+    const modes = item('动画性能').submenu as any[]
+    expect(modes[0].checked).toBe(true)
+    click(modes[1]); expect(callbacks.performance).toHaveBeenCalledWith('smooth')
     const scales = item('角色大小').submenu as any[]
     expect(scales.filter(s => s.checked).map(s => s.label)).toEqual(['125%'])
     click(scales.at(-1)); expect(callbacks.scale).toHaveBeenCalledWith(2)

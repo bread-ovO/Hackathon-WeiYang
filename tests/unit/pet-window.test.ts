@@ -368,6 +368,7 @@ describe('pet pointer interaction and preferences', () => {
     await controller.show()
     const win = harness.windows[0]!
     expect(controller.preferences()).toEqual({
+      performanceMode: 'balanced',
       scale: 1,
       alwaysOnTop: false,
       clickThrough: true,
@@ -417,6 +418,7 @@ it('atomically persists real preferences and restores them in a new controller',
     first.setScale(1.5)
     first.setAlwaysOnTop(true)
     first.setMousePassthrough(false)
+    first.setPerformanceMode('smooth')
     first.dispose()
     const saved = JSON.parse(readFileSync(stateFile, 'utf8'))
     expect(saved).toMatchObject({
@@ -431,6 +433,7 @@ it('atomically persists real preferences and restores them in a new controller',
       stateFile,
     })
     expect(second.preferences()).toEqual({
+      performanceMode: 'smooth',
       scale: 1.5,
       alwaysOnTop: true,
       clickThrough: false,

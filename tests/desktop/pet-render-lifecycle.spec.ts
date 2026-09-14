@@ -16,15 +16,15 @@ test('Hiyori frame pacing, context restoration and renderer crash isolation', as
   const fixture = await prepareLifecycle()
   try {
     const { app, main, pet } = fixture
-    await expect.poll(async () => (await diagnostics(pet)).targetFps).toBe(60)
+    await expect.poll(async () => (await diagnostics(pet)).targetFps).toBe(30)
     const start = await diagnostics(pet),
       startAt = Date.now()
     await pet.waitForTimeout(10000)
     const idle =
       ((await diagnostics(pet)).frames - start.frames) /
       ((Date.now() - startAt) / 1000)
-    expect(idle).toBeGreaterThanOrEqual(45)
-    expect(idle).toBeLessThanOrEqual(64)
+    expect(idle).toBeGreaterThanOrEqual(25)
+    expect(idle).toBeLessThanOrEqual(34)
     expect(
       (
         await main.evaluate(() =>
@@ -42,6 +42,8 @@ test('Hiyori frame pacing, context restoration and renderer crash isolation', as
     expect(active).toBeGreaterThanOrEqual(45)
     expect(active).toBeLessThanOrEqual(64)
     await main.evaluate(() => window.memo.pet.dismissBubble())
+    expect((await main.evaluate(() => window.memo.pet.configure({ performanceMode: 'smooth' }))).ok).toBe(true)
+    await expect.poll(async () => (await diagnostics(pet)).targetFps).toBe(60)
     await contextCycle(pet)
     expect((await main.evaluate(() => window.memo.health())).ok).toBe(true)
     await app.evaluate(({ BrowserWindow }) =>

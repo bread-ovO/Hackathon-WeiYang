@@ -3,7 +3,7 @@ import type { PetActionCatalog } from '@memo/contracts'
 
 /** Native menu actions are supplied by the host, never by model or renderer data. */
 export function petMenuTemplate(input: {
-  preferences: { scale: number; alwaysOnTop: boolean; clickThrough: boolean }
+  preferences: { scale: number; alwaysOnTop: boolean; clickThrough: boolean; performanceMode?: 'balanced' | 'smooth' }
   catalog: PetActionCatalog
   ready: boolean
   open(settings: boolean): void
@@ -11,6 +11,7 @@ export function petMenuTemplate(input: {
   scale(value: number): void
   pin(value: boolean): void
   passthrough(value: boolean): void
+  performance(value: 'balanced' | 'smooth'): void
   hide(): void
 }): MenuItemConstructorOptions[] {
   const actions = [...input.catalog.motions, ...input.catalog.expressions]
@@ -41,6 +42,10 @@ export function petMenuTemplate(input: {
       label: '透明区域穿透', type: 'checkbox', checked: input.preferences.clickThrough,
       click: item => input.passthrough(item.checked),
     },
+    { label: '动画性能', submenu: [
+      { label: '省电 · 空闲 30 FPS，交互 60 FPS', type: 'radio', checked: input.preferences.performanceMode !== 'smooth', click: () => input.performance('balanced') },
+      { label: '流畅 · 始终 60 FPS', type: 'radio', checked: input.preferences.performanceMode === 'smooth', click: () => input.performance('smooth') },
+    ] },
     { type: 'separator' },
     { label: '隐藏桌宠', click: input.hide },
   ]

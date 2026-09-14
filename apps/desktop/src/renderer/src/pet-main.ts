@@ -30,7 +30,7 @@ interface PetInput {
     visible: boolean
     presentation: PetPresentation | null
     voice?: PetVoicePlayback
-    preferences: { scale: number; alwaysOnTop: boolean; clickThrough: boolean }
+    preferences: { scale: number; alwaysOnTop: boolean; clickThrough: boolean; performanceMode?: 'balanced' | 'smooth' }
   }>
   ack(input: { id: string; status: 'done' | 'unavailable' }): Promise<void>
   hitTest(input: { interactive: boolean }): Promise<void>
@@ -228,21 +228,24 @@ function bubbleHit() {
     pointer.y < r.bottom
   )
 }
+let performanceMode: 'balanced' | 'smooth' = 'balanced'
 function refreshHit() {
-  const rect = message.getBoundingClientRect()
+  const rect = pointer && !message.hidden ? message.getBoundingClientRect() : null
   const statusHit =
     !!pointer &&
-    !message.hidden &&
+    !!rect &&
     pointer.x >= rect.left &&
     pointer.x < rect.right &&
     pointer.y >= rect.top &&
     pointer.y < rect.bottom
+  const overModel = modelHit()
   const interactive =
     dragging ||
     (!document.hidden &&
       visible &&
-      (!clickThrough || statusHit || bubbleHit() || modelHit()))
-  canvas.style.cursor = dragging ? 'grabbing' : modelHit() ? 'grab' : 'default'
+      (!clickThrough || statusHit || bubbleHit() || overModel))
+  const cursor = dragging ? 'grabbing' : overModel ? 'grab' : 'default'
+  if (canvas.style.cursor !== cursor) canvas.style.cursor = cursor
   sendHit(interactive)
 }
 function endDrag() {
@@ -466,6 +469,7 @@ async function poll() {
       throw new Error('bad state')
     if (typeof result.preferences?.clickThrough !== 'boolean')
       throw new Error('bad preferences')
+    performanceMode = result.preferences.performanceMode === 'smooth' ? 'smooth' : 'balanced'
     clickThrough = result.preferences.clickThrough
     visible = result.visible
     if (!visible) endDrag()
@@ -558,9 +562,9 @@ function render(now: number) {
   }
   const active =
     dragging || !bubble.hidden || session.currentAction().kind !== 'idle'
-  // An Idle motion can contain a full looping animation, even without interaction.
+  // Quiet animation stays at 30 FPS in balanced mode; interaction restores 60.
   diagnostics.targetFps = petTargetFps(
-    now, lastInteraction, active, session.mode === 'live2d',
+    now, lastInteraction, active, performanceMode === 'smooth',
   )
   if (frameBudget.due(now, diagnostics.targetFps)) {
     try {
