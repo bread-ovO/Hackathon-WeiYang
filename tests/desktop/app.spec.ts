@@ -71,22 +71,39 @@ test('packaged renderer connects to isolated SQLite core without exposing Node',
       expect(reply.data.eventCount).toBe(0)
       expect(reply.data.schemaVersion).toBe(24)
     }
-    const modelStatus = await page.evaluate(() => window.memo.modelProvider.status())
+    const modelStatus = await page.evaluate(() =>
+      window.memo.modelProvider.status(),
+    )
     expect(modelStatus.ok && modelStatus.data.config.enabled).toBe(false)
-    const savedModel = await page.evaluate(() => window.memo.modelProvider.configure({
-      provider: 'chat-completions', enabled: false,
-      baseUrl: 'https://example.com/v1', model: 'fixture-model', credentialId: '',
-    }))
-    expect(savedModel.ok && savedModel.data.config.provider).toBe('chat-completions')
+    const savedModel = await page.evaluate(() =>
+      window.memo.modelProvider.configure({
+        provider: 'chat-completions',
+        enabled: false,
+        baseUrl: 'https://example.com/v1',
+        model: 'fixture-model',
+        credentialId: '',
+      }),
+    )
+    expect(savedModel.ok && savedModel.data.config.provider).toBe(
+      'chat-completions',
+    )
     await page.getByRole('button', { name: '连接', exact: true }).click()
     await page.locator('#ai-task-analysis > summary').click()
     await page.locator('.model-provider-settings > summary').click()
-    await expect(page.getByLabel('模型接入方式')).toHaveValue('chat-completions')
+    await expect(page.getByLabel('模型接入方式')).toHaveValue(
+      'chat-completions',
+    )
     await expect(page.getByLabel('分析模型名称')).toHaveValue('fixture-model')
     await page.getByLabel('模型接入方式').selectOption('responses')
-    await page.getByRole('button', { name: '保存模型配置', exact: true }).click()
-    await expect(page.getByText('配置已保存。下次分析使用此服务。')).toBeVisible()
-    expect((await page.evaluate(() => window.memo.modelProvider.status())).ok).toBe(true)
+    await page
+      .getByRole('button', { name: '保存模型配置', exact: true })
+      .click()
+    await expect(
+      page.getByText('配置已保存。下次分析使用此服务。'),
+    ).toBeVisible()
+    expect(
+      (await page.evaluate(() => window.memo.modelProvider.status())).ok,
+    ).toBe(true)
     // Terminate only our named child process and verify a different, healthy core replaces it.
     const oldPid = await app.evaluate(({ app }) => {
       const metric = app
@@ -232,13 +249,42 @@ test('packaged renderer connects to isolated SQLite core without exposing Node',
         ),
       ).toBe(true)
     }
-    await page.evaluate(() => window.memo.workspace.createProject('聊天隔离测试'))
-    await page.getByRole('button', {name:'AI 聊天',exact:true}).click()
-    await expect(page.getByRole('heading',{name:'和不咕聊聊'})).toBeVisible()
-    await page.getByRole('textbox',{name:'发送给不咕'}).fill('新增一个虚构任务')
-    await page.getByRole('button',{name:'发送消息',exact:true}).click()
-    await expect(page.getByText('请先配置并启用分析模型。')).toBeVisible({timeout:10000})
-    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true)
+    await page.evaluate(() =>
+      window.memo.workspace.createProject('聊天隔离测试'),
+    )
+    await page.getByRole('button', { name: 'AI 聊天', exact: true }).click()
+    await expect(
+      page.getByRole('heading', { name: '和不咕聊聊' }),
+    ).toBeVisible()
+    await page.getByRole('button', { name: /看看待办/ }).click()
+    await expect(
+      page.getByRole('textbox', { name: '发送给不咕' }),
+    ).toBeFocused()
+    await expect(page.getByRole('textbox', { name: '发送给不咕' })).toHaveValue(
+      '有哪些任务还没完成？',
+    )
+    await page.getByRole('button', { name: '模型设置', exact: true }).click()
+    await expect(page.getByRole('dialog')).toBeVisible()
+    await expect(
+      page.getByRole('combobox', { name: '模型接入方式' }),
+    ).toBeVisible()
+    await page.keyboard.press('Escape')
+    await expect(page.getByRole('dialog')).not.toBeVisible()
+    await expect(
+      page.getByRole('button', { name: '模型设置', exact: true }),
+    ).toBeFocused()
+    await page
+      .getByRole('textbox', { name: '发送给不咕' })
+      .fill('新增一个虚构任务')
+    await page.getByRole('button', { name: '发送消息', exact: true }).click()
+    await expect(page.getByText('请先配置并启用分析模型。')).toBeVisible({
+      timeout: 10000,
+    })
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true)
   } finally {
     await app.close()
     await rm(data, { recursive: true, force: true })

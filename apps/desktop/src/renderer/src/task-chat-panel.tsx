@@ -1,7 +1,23 @@
 import { useEffect, useRef, useState } from 'react'
-import { ArrowUpIcon, StopIcon, ChatCircleIcon } from '@phosphor-icons/react'
+import {
+  ArrowUpIcon,
+  StopIcon,
+  ChatCircleIcon,
+  SlidersHorizontalIcon,
+  XIcon,
+  ListChecksIcon,
+  PlusIcon,
+  ArchiveIcon,
+  ArrowUpRightIcon,
+} from '@phosphor-icons/react'
 import type { ChatSnapshot, ChatRun } from '@memo/contracts'
-import { AppButton, IconButton } from './ui'
+import {
+  AppButton,
+  IconButton,
+  AppDialog,
+  DialogTitle,
+  DialogDescription,
+} from './ui'
 import { ModelProviderSettings } from './model-provider-settings'
 import './task-chat.css'
 const statusNames: Record<string, string> = {
@@ -24,8 +40,10 @@ export function TaskChatPanel() {
     [snapshot, setSnapshot] = useState<ChatSnapshot>({ runs: [] }),
     [draft, setDraft] = useState(''),
     [busy, setBusy] = useState(false),
-    [error, setError] = useState('')
+    [error, setError] = useState(''),
+    [settingsOpen, setSettingsOpen] = useState(false)
   const bottom = useRef<HTMLDivElement>(null)
+  const input = useRef<HTMLTextAreaElement>(null)
   useEffect(() => {
     let live = true
     void window.memo.workspace.list().then((r) => {
@@ -90,9 +108,9 @@ export function TaskChatPanel() {
   return (
     <section className="task-chat" aria-label="AI 任务聊天">
       <header className="task-chat-header">
-        <div>
+        <div className="task-chat-heading">
+          <ChatCircleIcon size={20} aria-hidden="true" />
           <h1>和不咕聊聊</h1>
-          <p>找出要跟进的事，也可以直接管理任务。</p>
         </div>
         <label>
           项目
@@ -110,9 +128,7 @@ export function TaskChatPanel() {
           </select>
         </label>
       </header>
-      <div className="task-chat-settings">
-        <ModelProviderSettings />
-      </div>
+
       <div
         className="task-chat-messages"
         role="log"
@@ -121,28 +137,73 @@ export function TaskChatPanel() {
       >
         {!snapshot.runs.length && (
           <div className="task-chat-empty">
-            <ChatCircleIcon size={32} />
-            <h2>从一件事开始</h2>
-            <p>试试“有哪些任务还没完成”，或“新增一个准备路演材料的任务”。</p>
-            <div>
+            <div className="task-chat-emblem" aria-hidden="true">
+              <span className="brand-mark">
+                <i />
+                <i />
+                <i />
+              </span>
+            </div>
+            <h2>今天，想推进哪件事？</h2>
+            <p>一起理清进展，找到下一步。</p>
+            <div className="task-chat-starters">
               {[
-                '有哪些任务还没完成？',
-                '新增一个准备路演材料的任务',
-                '查找回收站里的任务',
-              ].map((t) => (
-                <AppButton key={t} onClick={() => setDraft(t)}>
-                  {t}
+                {
+                  icon: ListChecksIcon,
+                  title: '看看待办',
+                  hint: '还有哪些事需要跟进',
+                  prompt: '有哪些任务还没完成？',
+                },
+                {
+                  icon: PlusIcon,
+                  title: '记下一件事',
+                  hint: '从一个简单的任务开始',
+                  prompt: '新增一个准备路演材料的任务',
+                },
+                {
+                  icon: ArchiveIcon,
+                  title: '找回任务',
+                  hint: '查看回收站里的事项',
+                  prompt: '查找回收站里的任务',
+                },
+              ].map(({ icon: Icon, title, hint, prompt }) => (
+                <AppButton
+                  key={title}
+                  className="task-chat-starter"
+                  variant="outline"
+                  disabled={!projectId}
+                  onClick={() => {
+                    setDraft(prompt)
+                    input.current?.focus()
+                  }}
+                >
+                  <span className="task-chat-starter-content">
+                    <Icon size={20} aria-hidden="true" />
+                    <span className="task-chat-starter-text">
+                      <strong>{title}</strong>
+                      <small>{hint}</small>
+                    </span>
+                    <ArrowUpRightIcon
+                      size={16}
+                      className="task-chat-starter-arrow"
+                      aria-hidden="true"
+                    />
+                  </span>
                 </AppButton>
               ))}
             </div>
-            <p>会话与飞书提取入口在「连接 → AI 事项分析」。</p>
           </div>
         )}
         {snapshot.runs.map((run) => (
           <div key={run.id} className="task-chat-turn">
             <div className="task-chat-user">{run.prompt}</div>
             <article className="task-chat-assistant">
-              <strong>不咕</strong>
+              <div className="task-chat-speaker">
+                <span className="task-chat-avatar" aria-hidden="true">
+                  咕
+                </span>
+                <strong>不咕</strong>
+              </div>
               {run.reply && <p>{run.reply}</p>}
               {run.state === 'running' && (
                 <p role="status">{run.trace.at(-1) || '正在思考…'}</p>
@@ -155,6 +216,9 @@ export function TaskChatPanel() {
               )}
               {!!run.actions.length && (
                 <div className="task-chat-proposals">
+                  <p className="task-chat-proposal-heading">
+                    任务变更 <span>{run.actions.length} 项</span>
+                  </p>
                   {run.actions.map((a, i) => (
                     <div key={i}>
                       <span>
@@ -230,9 +294,10 @@ export function TaskChatPanel() {
       >
         {error && <p role="alert">{error}</p>}
         <textarea
+          ref={input}
           aria-label="发送给不咕"
           placeholder={
-            projectId ? '查询、新增或修改一个任务…' : '请先创建一个项目'
+            projectId ? '问问进展，或说说你想做什么…' : '请先创建一个项目'
           }
           value={draft}
           maxLength={4000}
@@ -250,27 +315,56 @@ export function TaskChatPanel() {
           }}
         />
         <div>
-          <small>变更会先预览，确认后生效。Shift + Enter 换行</small>
-          {running ? (
-            <IconButton
-              label="停止生成"
-              disabled={busy}
-              onClick={() => void act(running, 'cancel')}
-            >
-              <StopIcon size={16} />
+          <span className="task-chat-composer-label">
+            <ChatCircleIcon size={16} aria-hidden="true" /> 询问不咕
+          </span>
+          <div className="task-chat-composer-actions">
+            <IconButton label="模型设置" onClick={() => setSettingsOpen(true)}>
+              <SlidersHorizontalIcon size={18} />
             </IconButton>
-          ) : (
-            <IconButton
-              label="发送消息"
-              variant="primary"
-              disabled={busy || !projectId || !draft.trim()}
-              onClick={() => void send()}
-            >
-              <ArrowUpIcon size={16} />
-            </IconButton>
-          )}
+            {running ? (
+              <IconButton
+                label="停止生成"
+                disabled={busy}
+                onClick={() => void act(running, 'cancel')}
+              >
+                <StopIcon size={16} />
+              </IconButton>
+            ) : (
+              <IconButton
+                label="发送消息"
+                variant="primary"
+                disabled={busy || !projectId || !draft.trim()}
+                onClick={() => void send()}
+              >
+                <ArrowUpIcon size={16} />
+              </IconButton>
+            )}
+          </div>
         </div>
       </form>
+      <p className="task-chat-footnote">
+        变更先预览，确认后生效 <span>· Shift + Enter 换行</span>
+      </p>
+      <AppDialog
+        open={settingsOpen}
+        onOpenChange={setSettingsOpen}
+        className="task-chat-model-dialog"
+      >
+        <div className="task-chat-dialog-heading">
+          <DialogTitle>模型设置</DialogTitle>
+          <IconButton
+            label="关闭模型设置"
+            onClick={() => setSettingsOpen(false)}
+          >
+            <XIcon size={18} />
+          </IconButton>
+        </div>
+        <DialogDescription>
+          选择和不咕聊天时使用的模型服务，与事项分析共用配置。
+        </DialogDescription>
+        <ModelProviderSettings defaultOpen />
+      </AppDialog>
     </section>
   )
 }
