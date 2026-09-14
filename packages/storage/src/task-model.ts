@@ -222,6 +222,9 @@ export function migrateTaskSplits(db: Database.Database) {
 }
 
 export function createTaskModel(db: Database.Database) {
+  const hasTrash = !!db.prepare("SELECT 1 FROM sqlite_master WHERE name='agent_task_trash'").get()
+  const notDeleted = hasTrash ? 'NOT EXISTS (SELECT 1 FROM agent_task_trash trash WHERE trash.task_id=tasks.id)' : '1'
+
   const search = createCandidateSearch(db)
   function read(taskId: string): StoredTask | undefined {
     return db.prepare(`${selectTask} WHERE id=?`).get(taskId) as
@@ -229,6 +232,7 @@ export function createTaskModel(db: Database.Database) {
       | undefined
   }
   function requireTask(input: TaskExpectation) {
+    if (hasTrash && db.prepare('SELECT 1 FROM agent_task_trash WHERE task_id=?').get(input.taskId)) throw Error('TASK_NOT_IN_PROJECT')
     text(input.projectId)
     text(input.taskId)
     integer(input.expectedVersion)
@@ -758,7 +762,7 @@ export function createTaskModel(db: Database.Database) {
       if (limit > 100) throw new Error('INVALID_TASK_INPUT')
       const archive = input.archive ?? 'active'
       choice(archive, ['active', 'archived', 'all'])
-      const where: string[] = []
+      const where: string[] = [notDeleted]
       const params: (string | number)[] = []
       if (input.projectId === null) where.push('project_id IS NULL')
       else if (input.projectId !== undefined) {
@@ -861,7 +865,7 @@ export function createTaskModel(db: Database.Database) {
       const activeCount = (
         db
           .prepare(
-            "SELECT count(*) AS count FROM tasks WHERE archived_at IS NULL AND status NOT IN ('completed','cancelled') AND admission!='ignored'",
+            `SELECT count(*) AS count FROM tasks WHERE ${notDeleted} AND archived_at IS NULL AND status NOT IN ('completed','cancelled') AND admission!='ignored'`,
           )
           .get() as { count: number }
       ).count

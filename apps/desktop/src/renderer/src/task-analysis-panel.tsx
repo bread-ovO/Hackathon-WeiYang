@@ -12,6 +12,7 @@ const stages = {
 }
 export function TaskAnalysisPanel() {
   const [sources, setSources] = useState<SourcesSnapshot | null>(null)
+  const [feishu, setFeishu] = useState<{id:string;chatId:string;status:string;eventCount:number}[]>([])
   const [sourceId, setSourceId] = useState('')
   const [state, setState] = useState<AnalysisSnapshot | null>(null)
   const [busy, setBusy] = useState(false)
@@ -21,6 +22,7 @@ export function TaskAnalysisPanel() {
     void window.memo.sources.list().then((r) => {
       if (mounted && r.ok) setSources(r.data)
     })
+    void window.memo.feishu.list().then(r => { if(mounted && r.ok) setFeishu(r.data.connections) })
     const refresh = () => {
       void window.memo.analysis.status().then((r) => {
         if (mounted && r.ok) setState(r.data)
@@ -84,6 +86,7 @@ export function TaskAnalysisPanel() {
                   {s.displayName}（{s.eventCount} 条）
                 </option>
               ))}
+            {feishu.filter(s=>s.status!=='revoked'&&s.status!=='paused'&&s.eventCount>0).map(s=><option key={s.id} value={s.id}>飞书会话 {s.chatId}（{s.eventCount} 条）</option>)}
           </select>
         </label>
         <AppButton

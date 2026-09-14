@@ -52,6 +52,7 @@ export function createTaskModelBridge(port: {
         reject,
         cleanup: () => input.signal.removeEventListener('abort', cancel),
       })
-      port.postMessage({ kind: 'model.analyze', id, messages: input.messages })
+      port.postMessage({ kind: 'model.analyze',
+      purpose: input.purpose, id, messages: input.messages })
     })
 }

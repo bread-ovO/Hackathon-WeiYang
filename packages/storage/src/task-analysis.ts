@@ -26,9 +26,10 @@ export function createTaskAnalysis(db: Database.Database) {
   function context(sourceId: string) {
     const grant = db
       .prepare(
-        'SELECT project_id AS projectId,grant_version AS grantVersion FROM source_grants WHERE source_id=? AND revoked=0',
+        `SELECT project_id AS projectId,grant_version AS grantVersion FROM source_grants WHERE source_id=? AND revoked=0
+         UNION ALL SELECT project_id AS projectId,grant_version AS grantVersion FROM feishu_connections WHERE source_id=? AND revoked=0 AND enabled=1`,
       )
-      .get(sourceId) as { projectId: string; grantVersion: number } | undefined
+      .get(sourceId, sourceId) as { projectId: string; grantVersion: number } | undefined
     if (!grant) throw new Error('ANALYSIS_SOURCE_UNAVAILABLE')
     const rows = db
       .prepare(
@@ -101,7 +102,7 @@ export function createTaskAnalysis(db: Database.Database) {
     latest(protocol: string) {
       const row = db
         .prepare(
-          `SELECT a.id,a.source_id,a.result,a.messages,a.model FROM model_analyses a JOIN source_grants g ON g.source_id=a.source_id AND g.revoked=0 WHERE a.protocol=? ORDER BY a.created_at DESC LIMIT 1`,
+          `SELECT a.id,a.source_id,a.result,a.messages,a.model FROM model_analyses a WHERE a.protocol=? AND (EXISTS(SELECT 1 FROM source_grants g WHERE g.source_id=a.source_id AND g.revoked=0) OR EXISTS(SELECT 1 FROM feishu_connections f WHERE f.source_id=a.source_id AND f.revoked=0 AND f.enabled=1)) ORDER BY a.created_at DESC LIMIT 1`,
         )
         .get(protocol) as
         | { id: string; source_id: string; result: string; messages: string; model: string }

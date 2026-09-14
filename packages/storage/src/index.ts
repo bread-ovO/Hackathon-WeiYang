@@ -1,3 +1,4 @@
+import { createTaskChat, migrateTaskChat } from './task-chat'
 import { createTaskAnalysis, migrateTaskAnalysis } from './task-analysis'
 import { createDelivery, migrateDelivery } from './delivery'
 import { createPetContext } from './pet-context'
@@ -92,7 +93,7 @@ export function openStore(path: string) {
     db.pragma('synchronous = FULL')
     db.pragma('busy_timeout = 3000')
     const version = db.pragma('user_version', { simple: true }) as number
-    if (version > 23) throw new Error('DATABASE_TOO_NEW')
+    if (version > 24) throw new Error('DATABASE_TOO_NEW')
     if (version < 1)
       db.transaction(() => {
         db.exec(`
@@ -139,6 +140,7 @@ export function openStore(path: string) {
     const retractions = createRetractions(db)
     const ingestion = createIngestionBudget(db)
     if (version < 23) migrateTaskAnalysis(db)
+    if (version < 24) migrateTaskChat(db)
     const contexts = createEventContexts(db)
     const receive = createEventReceiver(
       db,
@@ -155,6 +157,7 @@ export function openStore(path: string) {
     const feishu = createFeishu(db, receive, observeEvent)
     return {
       taskAnalysis: createTaskAnalysis(db),
+      taskChat: createTaskChat(db),
       delivery:createDelivery(db),
       petContext: createPetContext(db),
       timeline: createTimeline(db),

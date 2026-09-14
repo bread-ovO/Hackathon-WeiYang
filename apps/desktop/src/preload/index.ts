@@ -149,6 +149,13 @@ const bridge: DesktopBridge = {
         patch,
       }),
   }),
+  chat: Object.freeze({
+    status: (projectId: string) => ipcRenderer.invoke('memo:request', {method:'chat.status',projectId}),
+    send: (projectId: string,message: string) => ipcRenderer.invoke('memo:request', {method:'chat.send',projectId,message}),
+    confirm: (projectId: string,runId: string) => ipcRenderer.invoke('memo:request', {method:'chat.confirm',projectId,runId}),
+    cancel: (projectId: string,runId: string) => ipcRenderer.invoke('memo:request', {method:'chat.cancel',projectId,runId}),
+    reject: (projectId: string,runId: string) => ipcRenderer.invoke('memo:request', {method:'chat.reject',projectId,runId}),
+  }),
   modelProvider: Object.freeze({
     status: () => ipcRenderer.invoke('memo:request', { method: 'modelProvider.status' }),
     configure: (config: import('@memo/contracts').ModelConfig) => ipcRenderer.invoke('memo:request', { method: 'modelProvider.configure', config }),

@@ -1,3 +1,5 @@
+import { TaskChatPanel } from './task-chat-panel'
+import { ChatCircleIcon } from '@phosphor-icons/react'
 import { Disclosure } from './ui/disclosure'
 import { SourcePresets } from './source-presets'
 import { PetVoiceSettings } from './pet-voice-settings'
@@ -271,6 +273,7 @@ function App() {
             <Icon name="link" />
             连接
           </AppButton>
+          <AppButton className={page === 'AI 聊天' ? 'nav-item active' : 'nav-item'} aria-current={page === 'AI 聊天' ? 'page' : undefined} onClick={() => setPage('AI 聊天')}><ChatCircleIcon size={16}/>AI 聊天</AppButton>
         </nav>
         <div className="projects">
           <div className="section-label">项目</div>
@@ -374,7 +377,7 @@ function App() {
             </div>
           )}
         </header>
-        {page === '跟进' && !demo ? (
+        {page === 'AI 聊天' ? <TaskChatPanel/> : page === '跟进' && !demo ? (
           <RealWorkspace
             onCount={setRealCount}
             openTask={petTarget}
