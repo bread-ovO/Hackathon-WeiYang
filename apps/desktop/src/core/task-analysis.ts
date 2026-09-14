@@ -1,15 +1,20 @@
 import type { AnalysisRequest, AnalysisSnapshot } from '@memo/contracts'
 import { analyzeTasks, TASK_ANALYSIS_VERSION } from '@memo/model'
 import type { openStore } from '@memo/storage'
-import { localTaskModelTransport } from './task-model-transport'
+import type { TaskModelRequest } from '@memo/model'
 
-export function createTaskAnalysisService(store: ReturnType<typeof openStore>) {
+export function createTaskAnalysisService(
+  store: ReturnType<typeof openStore>,
+  infer: (
+    input: TaskModelRequest,
+  ) => Promise<{ content: string; model: string }>,
+) {
   let state: AnalysisSnapshot = {
     state: 'idle',
     error: null,
     runId: null,
     sourceId: null,
-    model: 'qwen2.5:7b',
+    model: '尚未分析',
     messageCount: 0,
     truncated: false,
     result: null,
@@ -53,7 +58,11 @@ export function createTaskAnalysisService(store: ReturnType<typeof openStore>) {
       }
       void analyzeTasks({
         messages: context.messages,
-        transport: localTaskModelTransport,
+        transport: async (input) => {
+          const response = await infer(input)
+          state.model = response.model
+          return response.content
+        },
         signal: controller.signal,
       })
         .then((result) => {
@@ -77,6 +86,11 @@ export function createTaskAnalysisService(store: ReturnType<typeof openStore>) {
             ...state,
             state: 'error',
             error: [
+              'MODEL_NOT_CONFIGURED',
+              'MODEL_AUTH_REQUIRED',
+              'MODEL_RATE_LIMITED',
+              'MODEL_CLI_MISSING',
+              'MODEL_CLI_FAILED',
               'MODEL_TIMEOUT',
               'INVALID_TASK_ANALYSIS',
               'ANALYSIS_CONTEXT_CHANGED',

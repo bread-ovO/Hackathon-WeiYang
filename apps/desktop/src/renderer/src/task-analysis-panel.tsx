@@ -1,3 +1,4 @@
+import { ModelProviderSettings } from './model-provider-settings'
 import { useEffect, useState } from 'react'
 import type { AnalysisSnapshot, SourcesSnapshot } from '@memo/contracts'
 import { AppButton } from './ui'
@@ -63,9 +64,9 @@ export function TaskAnalysisPanel() {
   return (
     <section className="source-import" aria-label="AI 事项分析">
       <p>
-        理解会话里的需求、补充与交付，整理出下一步。本机 Qwen2.5
-        推理，确认后加入跟进。
+        理解会话里的需求、补充与交付，整理出下一步。使用你选择的模型服务，确认后加入跟进。
       </p>
+      <ModelProviderSettings />
       <div className="source-import-actions">
         <label>
           选择已授权会话{' '}
@@ -97,7 +98,7 @@ export function TaskAnalysisPanel() {
         <p>
           本次读取 {state.messageCount} 条消息
           {state.truncated ? '，仅分析最近的有限上下文' : ''}
-          。模型判断待复核，不自动完成事项。
+          。{state.state === 'ready' ? `分析服务：${state.model.split(' (')[0]}。` : ''}模型判断待复核，不自动完成事项。
         </p>
       )}
       {(error || state?.state === 'error') && (
@@ -105,7 +106,15 @@ export function TaskAnalysisPanel() {
           {error ||
             (state?.error === 'ANALYSIS_CONTEXT_CHANGED'
               ? '会话在分析期间已更新，请重新分析。'
-              : '模型分析未成功，请确认 Ollama 已运行且安装 qwen2.5:7b，再重试。')}
+              : state?.error === 'MODEL_NOT_CONFIGURED'
+                ? '请展开「分析模型」，配置并启用一个模型服务。'
+                : state?.error === 'MODEL_AUTH_REQUIRED'
+                  ? '模型服务拒绝授权，请检查 API Key。'
+                  : state?.error === 'MODEL_RATE_LIMITED'
+                    ? '模型服务额度或速率受限，请稍后重试。'
+                    : state?.error === 'MODEL_CLI_FAILED'
+                      ? 'CLI 调用失败，请确认该工具已登录、额度可用且版本支持非交互分析。'
+                      : '模型分析未成功，请检查模型配置或 CLI 登录状态后重试。')}
         </p>
       )}
       {state?.state === 'ready' && state.result?.tasks.length === 0 && (

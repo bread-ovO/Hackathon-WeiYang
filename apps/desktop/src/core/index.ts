@@ -1,3 +1,4 @@
+import { createTaskModelBridge } from './task-model-bridge'
 import { handleFeishuHost, isFeishuHostRequest } from './feishu'
 import { handleGithubHost, isGithubHostRequest } from './github'
 import { handlePluginHost } from './plugins'
@@ -20,7 +21,7 @@ if (!path || !parentPort) throw new Error('CORE_STARTUP_INVALID')
 const store = openStore(path)
 const sources = createSourceHandler(store)
 const processing = createLocalProcessing(store)
-const analysis = createTaskAnalysisService(store)
+const analysis = createTaskAnalysisService(store, createTaskModelBridge(parentPort))
 parentPort.on('message', async ({ data }) => {
   if (
     !data ||

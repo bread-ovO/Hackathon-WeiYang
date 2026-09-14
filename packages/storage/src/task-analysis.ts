@@ -101,15 +101,16 @@ export function createTaskAnalysis(db: Database.Database) {
     latest(protocol: string) {
       const row = db
         .prepare(
-          `SELECT a.id,a.source_id,a.result,a.messages FROM model_analyses a JOIN source_grants g ON g.source_id=a.source_id AND g.revoked=0 WHERE a.protocol=? ORDER BY a.created_at DESC LIMIT 1`,
+          `SELECT a.id,a.source_id,a.result,a.messages,a.model FROM model_analyses a JOIN source_grants g ON g.source_id=a.source_id AND g.revoked=0 WHERE a.protocol=? ORDER BY a.created_at DESC LIMIT 1`,
         )
         .get(protocol) as
-        | { id: string; source_id: string; result: string; messages: string }
+        | { id: string; source_id: string; result: string; messages: string; model: string }
         | undefined
       if (!row) return null
       try {
         return {
           runId: row.id,
+          model: row.model,
           sourceId: row.source_id,
           result: parseTaskAnalysis(
             JSON.parse(row.result),

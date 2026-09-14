@@ -4,7 +4,7 @@ import {
   analyzeTasks,
   TASK_ANALYSIS_VERSION,
 } from '../packages/model/src/task-analyzer'
-import { localTaskModelTransport } from '../apps/desktop/src/core/task-model-transport'
+import { localTaskModelTransport } from './fixtures/llm/legacy-ollama-transport'
 import { taskAnalysisCases } from './fixtures/llm/task-analysis'
 
 const results = []

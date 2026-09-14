@@ -114,6 +114,7 @@ try {
   )
   inspectAgain.close()
   assert.equal(store.taskAnalysis.latest('v1')?.runId, nextRun)
+  assert.equal(store.taskAnalysis.latest('v1')?.model, 'test-model')
   assert.equal(store.taskAnalysis.latest('unavailable'), null)
   const two = { tasks: [proposal.tasks[0]!, { ...proposal.tasks[0]!, title: '补充回归测试' }] }
   const twoRun = store.taskAnalysis.save(newer, two, 'test-model','two-distinct-tasks')
