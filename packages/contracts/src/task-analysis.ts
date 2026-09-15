@@ -7,7 +7,7 @@ export interface AnalysisMessage {
   text: string
   occurredAt?: string
 }
-export const TASK_ANALYSIS_PROTOCOL = 'task-analysis-v3'
+export const TASK_ANALYSIS_PROTOCOL = 'task-analysis-v4.2'
 export const analysisRequestSchema = {
   oneOf: [
     {
@@ -62,6 +62,16 @@ export const taskAnalysisSchema = {
         additionalProperties: false,
         required: ['title', 'stage', 'nextAction', 'evidence'],
         properties: {
+          changeKind: {
+            enum: [
+              'commitment',
+              'attempt',
+              'failure',
+              'feedback',
+              'reschedule',
+              'cancellation',
+            ],
+          },
           title: { type: 'string', minLength: 1, maxLength: 240 },
           stage: {
             type: 'string',
@@ -138,6 +148,7 @@ export const taskExtractionSchema = {
           ...taskAnalysisSchema.properties.tasks.items.required,
           'existingTaskId',
           'deadline',
+          'changeKind',
         ],
       },
     },
@@ -149,14 +160,8 @@ const validate = new Ajv({ strict: true }).compile<TaskAnalysis>(
 function fail(): never {
   throw new Error('INVALID_TASK_ANALYSIS')
 }
-export function validateAnalysisMessages(
-  messages: AnalysisMessage[],
-): void {
-  if (
-    !Array.isArray(messages) ||
-    messages.length < 1 ||
-    messages.length > 64
-  )
+export function validateAnalysisMessages(messages: AnalysisMessage[]): void {
+  if (!Array.isArray(messages) || messages.length < 1 || messages.length > 64)
     fail()
   const ids = new Set<string>()
   let length = 0
@@ -226,12 +231,9 @@ export function parseTaskAnalysis(
         !task.evidence.some(
           (e) => e.messageId === d.messageId && e.quote.includes(d.quote),
         ) ||
-        !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?Z$/.test(
-          d.dueAt,
-        ) ||
+        !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?Z$/.test(d.dueAt) ||
         !Number.isFinite(Date.parse(d.dueAt)) ||
-        new Date(d.dueAt).toISOString().slice(0, 19) !==
-          d.dueAt.slice(0, 19)
+        new Date(d.dueAt).toISOString().slice(0, 19) !== d.dueAt.slice(0, 19)
       )
         fail()
     }

@@ -1,0 +1,9 @@
+{
+  "protocol": "task-analysis-v4.1",
+  "fixture": "tests/fixtures/codex-native/session.jsonl",
+  "check": "visible task row count after automatic discovery",
+  "expected": 1,
+  "observed": 2,
+  "result": "failed",
+  "fix": "same-deliverable preparation and environment-check steps remain inside the parent goal even with different actors"
+}

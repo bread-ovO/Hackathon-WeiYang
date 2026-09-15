@@ -51,3 +51,25 @@
     gap: 8px;
   }
 }
+
+.model-send-preview {
+  min-width: 0;
+  color: var(--muted);
+}
+.model-send-preview p {
+  margin: 8px 0;
+  overflow-wrap: anywhere;
+}
+.model-send-preview details {
+  margin-top: 8px;
+}
+.model-send-preview pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-height: 240px;
+  overflow: auto;
+  padding: 12px;
+  background: var(--surface-subtle, #f5f5f5);
+  border-radius: 8px;
+  font: inherit;
+}

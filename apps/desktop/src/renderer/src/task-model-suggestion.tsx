@@ -41,10 +41,24 @@ export function TaskModelSuggestion({
         {suggestions.map((item, index) => (
           <div key={`${item.sourceId}-${index}`}>
             <p className="task-analysis-source">
-              {item.sourceName} ·{' '}
-              {new Date(item.createdAt).toLocaleString()}
+              {item.sourceName} · {new Date(item.createdAt).toLocaleString()}
               {suggestions.length > 1 && ` · ${item.candidate.title}`}
             </p>
+            {item.candidate.changeKind && (
+              <p className="task-analysis-source">
+                最近变化：
+                {
+                  {
+                    commitment: '承诺',
+                    attempt: '尝试',
+                    failure: '失败',
+                    feedback: '反馈',
+                    reschedule: '改期',
+                    cancellation: '取消',
+                  }[item.candidate.changeKind]
+                }
+              </p>
+            )}
             {item.candidate.deadline && (
               <p className="task-analysis-source">
                 原文约定：

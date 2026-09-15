@@ -1,0 +1,1983 @@
+{
+  "schemaVersion": 1,
+  "thresholds": {
+    "warmupMinutes": 5,
+    "windowMinutes": 5,
+    "workingSetSlopeKiBPerMinute": 1024,
+    "jsHeapSlopeBytesPerMinute": 262144,
+    "significantWindowIncreaseWorkingSetKiB": 2048,
+    "significantWindowIncreaseHeapBytes": 1048576,
+    "minimumConsecutiveIncreasingWindows": 3,
+    "processMedianGrowth": "max(32 MiB, 10% of baseline)",
+    "heapMedianGrowth": "max(8 MiB, 20% of baseline)",
+    "trendRule": "Reject excessive median growth or positive regression slope above threshold with three consecutive significantly increasing windows; five-minute medians smooth GC spikes. GPU working set reported separately, never GPU VRAM."
+  },
+  "status": "completed",
+  "startedAt": "2026-09-15T10:26:32.616Z",
+  "requestedMinutes": 30,
+  "clock": "real wall clock, no virtual time",
+  "cpuMeaning": "percentCPUUsage is the raw Electron process metric over its sampling interval; not system energy consumption or battery usage.",
+  "memoryMeaning": "Electron app.getAppMetrics memory.workingSetSize in KiB (OS working set, not a strict cross-platform RSS measure). Renderer V8 usedJSHeapSize in bytes. GPU-process working set is NOT GPU VRAM.",
+  "environment": {
+    "os": "darwin",
+    "release": "25.5.0",
+    "arch": "arm64",
+    "cpu": "Apple M4",
+    "logicalCpus": 10,
+    "totalMemoryBytes": 17179869184
+  },
+  "model": {
+    "id": "348a899269ebb5364b12a62ff15e96a81fe61a350341484c5436f39c4879b54a",
+    "entry": "Hiyori.model3.json",
+    "importedAt": "2026-09-15T10:26:23.314Z",
+    "totalBytes": 4923918,
+    "resources": [
+      {
+        "path": "Hiyori.2048/texture_00.png",
+        "bytes": 1814312,
+        "sha256": "560aea0d910dc04950d669640b2ef17c0d817969e9909f477f166bb5cbd8ffbe"
+      },
+      {
+        "path": "Hiyori.2048/texture_01.png",
+        "bytes": 2504416,
+        "sha256": "87fe9ab7db81ab3025e0407229e449233581e00fa92c8e911923bc6c7d98ce84"
+      },
+      {
+        "path": "Hiyori.cdi3.json",
+        "bytes": 9660,
+        "sha256": "0fc3fc76b7a68136056c8832c930c8af9f93899f359eded7349b481ea2342d03"
+      },
+      {
+        "path": "Hiyori.moc3",
+        "bytes": 443648,
+        "sha256": "0323f5f377b9afef54318be09e9b4eea2a8cb266190ff9d2f843f95ecb77716c"
+      },
+      {
+        "path": "Hiyori.model3.json",
+        "bytes": 1736,
+        "sha256": "973cb3392f7b01f5f73e9d3fedc495a81a0f3ee8014e5df72ef943311c56ee12"
+      },
+      {
+        "path": "Hiyori.physics3.json",
+        "bytes": 26160,
+        "sha256": "c7a6d641893519c0bbc615545887f03f6c5b8031b4096873740b618370452fc1"
+      },
+      {
+        "path": "Hiyori.pose3.json",
+        "bytes": 166,
+        "sha256": "ff1cc242790f196c87a7379dc1340b608723db60af1b2825e00da8f351ffc1bf"
+      },
+      {
+        "path": "Hiyori.userdata3.json",
+        "bytes": 623,
+        "sha256": "75fe50a89ea695b46c98dce8991c2f3d67e3d7a479786e6310460289b552d29b"
+      },
+      {
+        "path": "motions/Hiyori_m01.motion3.json",
+        "bytes": 10622,
+        "sha256": "c4f0d982c685b81c1af0ced96c8f6bd5118b8a3fa972c3a12a46652b8d78461d"
+      },
+      {
+        "path": "motions/Hiyori_m02.motion3.json",
+        "bytes": 14248,
+        "sha256": "858c582874a0c4badfec38d4caf19e232fea5ba714f5a2ac6a282c617910c154"
+      },
+      {
+        "path": "motions/Hiyori_m03.motion3.json",
+        "bytes": 12732,
+        "sha256": "de33a8ce78226a5ff80cfa941fb5a4c50b6c1c4b346031ed44b384f772b62cf9"
+      },
+      {
+        "path": "motions/Hiyori_m04.motion3.json",
+        "bytes": 8772,
+        "sha256": "54ddb94d0494772e10355429c547bb7e29601f38d663087804b0c793b29cc51f"
+      },
+      {
+        "path": "motions/Hiyori_m05.motion3.json",
+        "bytes": 16061,
+        "sha256": "7f71061c9207ac1da6e06098ede9318307a7e75715a3ef97c82646acd9ee8620"
+      },
+      {
+        "path": "motions/Hiyori_m06.motion3.json",
+        "bytes": 19492,
+        "sha256": "55c007646febe4cb76d20cbb0623086986dbb55c7ef82212693a5e26636a32ef"
+      },
+      {
+        "path": "motions/Hiyori_m07.motion3.json",
+        "bytes": 9636,
+        "sha256": "3f06cb70f5654eed3389978885e4dff151b6cf9e8d59248680addcd267ff793a"
+      },
+      {
+        "path": "motions/Hiyori_m08.motion3.json",
+        "bytes": 10551,
+        "sha256": "66022fff5cff3c30b7fc1295bf92e4975e3ab9980d5cb296b5e24a2a8acc6daf"
+      },
+      {
+        "path": "motions/Hiyori_m09.motion3.json",
+        "bytes": 11479,
+        "sha256": "9edbd6a88e977221fa90625b5f94c9fd27212e1183288105584be8272543ade7"
+      },
+      {
+        "path": "motions/Hiyori_m10.motion3.json",
+        "bytes": 9604,
+        "sha256": "ba0ba6764a80459432ffd48d6bd5ba261fd25f196208ade3016be74efb9d3dfc"
+      }
+    ]
+  },
+  "samples": [
+    {
+      "minute": 0,
+      "elapsedSeconds": 0.01,
+      "at": "2026-09-15T10:26:32.626Z",
+      "mode": "live2d",
+      "error": null,
+      "frames": 34,
+      "totalFrames": 34,
+      "targetFps": 30,
+      "recoveries": 0,
+      "contextState": "ready",
+      "modelId": "348a899269ebb5364b12a62ff15e96a81fe61a350341484c5436f39c4879b54a",
+      "audioPlaying": false,
+      "lipSyncAvailable": true,
+      "lipSyncLevel": null,
+      "lipSyncAppliedFrames": 0,
+      "lipSyncParameters": [
+        {
+          "index": 19,
+          "value": 0
+        }
+      ],
+      "currentAction": {
+        "id": null,
+        "kind": "idle"
+      },
+      "observedFps": null,
+      "usedJSHeapBytes": 29305624,
+      "processes": [
+        {
+          "pid": 60205,
+          "role": "Browser",
+          "workingSetKiB": 231392,
+          "percentCPUUsage": 0
+        },
+        {
+          "pid": 60206,
+          "role": "GPU",
+          "workingSetKiB": 144832,
+          "percentCPUUsage": 0
+        },
+        {
+          "pid": 60213,
+          "role": "pet-renderer",
+          "workingSetKiB": 170992,
+          "percentCPUUsage": 0
+        }
+      ]
+    },
+    {
+      "minute": 1,
+      "elapsedSeconds": 60.009,
+      "at": "2026-09-15T10:27:32.625Z",
+      "mode": "live2d",
+      "error": null,
+      "frames": 1921,
+      "totalFrames": 1921,
+      "targetFps": 30,
+      "recoveries": 0,
+      "contextState": "ready",
+      "modelId": "348a899269ebb5364b12a62ff15e96a81fe61a350341484c5436f39c4879b54a",
+      "audioPlaying": false,
+      "lipSyncAvailable": true,
+      "lipSyncLevel": null,
+      "lipSyncAppliedFrames": 0,
+      "lipSyncParameters": [
+        {
+          "index": 19,
+          "value": 0
+        }
+      ],
+      "currentAction": {
+        "id": null,
+        "kind": "idle"
+      },
+      "observedFps": 31.450524175402922,
+      "usedJSHeapBytes": 31392132,
+      "processes": [
+        {
+          "pid": 60205,
+          "role": "Browser",
+          "workingSetKiB": 198000,
+          "percentCPUUsage": 0.07437580434985033
+        },
+        {
+          "pid": 60206,
+          "role": "GPU",
+          "workingSetKiB": 133360,
+          "percentCPUUsage": 1.2999181801892794
+        },
+        {
+          "pid": 60213,
+          "role": "pet-renderer",
+          "workingSetKiB": 162784,
+          "percentCPUUsage": 1.2276071500057582
+        }
+      ]
+    },
+    {
+      "minute": 2,
+      "elapsedSeconds": 120.01,
+      "at": "2026-09-15T10:28:32.626Z",
+      "mode": "live2d",
+      "error": null,
+      "frames": 3798,
+      "totalFrames": 3798,
+      "targetFps": 30,
+      "recoveries": 0,
+      "contextState": "ready",
+      "modelId": "348a899269ebb5364b12a62ff15e96a81fe61a350341484c5436f39c4879b54a",
+      "audioPlaying": false,
+      "lipSyncAvailable": true,
+      "lipSyncLevel": null,
+      "lipSyncAppliedFrames": 0,
+      "lipSyncParameters": [
+        {
+          "index": 19,
+          "value": 0
+        }
+      ],
+      "currentAction": {
+        "id": null,
+        "kind": "idle"
+      },
+      "observedFps": 31.282811953134114,
+      "usedJSHeapBytes": 31386752,
+      "processes": [
+        {
+          "pid": 60205,
+          "role": "Browser",
+          "workingSetKiB": 187360,
+          "percentCPUUsage": 0.04134377596454228
+        },
+        {
+          "pid": 60206,
+          "role": "GPU",
+          "workingSetKiB": 108704,
+          "percentCPUUsage": 1.221138551585047
+        },
+        {
+          "pid": 60213,
+          "role": "pet-renderer",
+          "workingSetKiB": 151744,
+          "percentCPUUsage": 1.0547264346574021
+        }
+      ]
+    },
+    {
+      "minute": 3,
+      "elapsedSeconds": 180.009,
+      "at": "2026-09-15T10:29:32.625Z",
+      "mode": "live2d",
+      "error": null,
+      "frames": 5686,
+      "totalFrames": 5686,
+      "targetFps": 30,
+      "recoveries": 0,
+      "contextState": "ready",
+      "modelId": "348a899269ebb5364b12a62ff15e96a81fe61a350341484c5436f39c4879b54a",
+      "audioPlaying": false,
+      "lipSyncAvailable": true,
+      "lipSyncLevel": null,
+      "lipSyncAppliedFrames": 0,
+      "lipSyncParameters": [
+        {
+          "index": 19,
+          "value": 0
+        }
+      ],
+      "currentAction": {
+        "id": null,
+        "kind": "idle"
+      },
+      "observedFps": 31.467191119851996,
+      "usedJSHeapBytes": 33601536,
+      "processes": [
+        {
+          "pid": 60205,
+          "role": "Browser",
+          "workingSetKiB": 187536,
+          "percentCPUUsage": 0.04319227602122585
+        },
+        {
+          "pid": 60206,
+          "role": "GPU",
+          "workingSetKiB": 108736,
+          "percentCPUUsage": 1.2933365213900807
+        },
+        {
+          "pid": 60213,
+          "role": "pet-renderer",
+          "workingSetKiB": 156544,
+          "percentCPUUsage": 1.1486925402183616
+        }
+      ]
+    },
+    {
+      "minute": 4,
+      "elapsedSeconds": 240.009,
+      "at": "2026-09-15T10:30:32.625Z",
+      "mode": "live2d",
+      "error": null,
+      "frames": 7575,
+      "totalFrames": 7575,
+      "targetFps": 30,
+      "recoveries": 0,
+      "contextState": "ready",
+      "modelId": "348a899269ebb5364b12a62ff15e96a81fe61a350341484c5436f39c4879b54a",
+      "audioPlaying": false,
+      "lipSyncAvailable": true,
+      "lipSyncLevel": null,
+      "lipSyncAppliedFrames": 0,
+      "lipSyncParameters": [
+        {
+          "index": 19,
+          "value": 0
+        }
+      ],
+      "currentAction": {
+        "id": null,
+        "kind": "idle"
+      },
+      "observedFps": 31.483333333333334,
+      "usedJSHeapBytes": 32159328,
+      "processes": [
+        {
+          "pid": 60205,
+          "role": "Browser",
+          "workingSetKiB": 188144,
+          "percentCPUUsage": 0.04092589770720541
+        },
+        {
+          "pid": 60206,
+          "role": "GPU",
+          "workingSetKiB": 108736,
+          "percentCPUUsage": 1.2634104910363064
+        },
+        {
+          "pid": 60213,
+          "role": "pet-renderer",
+          "workingSetKiB": 166864,
+          "percentCPUUsage": 1.1177766079427325
+        }
+      ]
+    },
+    {
+      "minute": 5,
+      "elapsedSeconds": 300.008,
+      "at": "2026-09-15T10:31:32.624Z",
+      "mode": "live2d",
+      "error": null,
+      "frames": 9461,
+      "totalFrames": 9461,
+      "targetFps": 30,
+      "recoveries": 0,
+      "contextState": "ready",
+      "modelId": "348a899269ebb5364b12a62ff15e96a81fe61a350341484c5436f39c4879b54a",
+      "audioPlaying": false,
+      "lipSyncAvailable": true,
+      "lipSyncLevel": null,
+      "lipSyncAppliedFrames": 0,
+      "lipSyncParameters": [
+        {
+          "index": 19,
+          "value": 0
+        }
+      ],
+      "currentAction": {
+        "id": null,
+        "kind": "idle"
+      },
+      "observedFps": 31.433857230953848,
+      "usedJSHeapBytes": 36539052,
+      "processes": [
+        {
+          "pid": 60205,
+          "role": "Browser",
+          "workingSetKiB": 157904,
+          "percentCPUUsage": 0.04350872418670561
+        },
+        {
+          "pid": 60206,
+          "role": "GPU",
+          "workingSetKiB": 102592,
+          "percentCPUUsage": 1.3020860755434565
+        },
+        {
+          "pid": 60213,
+          "role": "pet-renderer",
+          "workingSetKiB": 155744,
+          "percentCPUUsage": 1.144456226012324
+        }
+      ]
+    },
+    {
+      "minute": 6,
+      "elapsedSeconds": 360.006,
+      "at": "2026-09-15T10:32:32.622Z",
+      "mode": "live2d",
+      "error": null,
+      "frames": 1773,
+      "totalFrames": 11235,
+      "targetFps": 30,
+      "recoveries": 1,
+      "contextState": "ready",
+      "modelId": "348a899269ebb5364b12a62ff15e96a81fe61a350341484c5436f39c4879b54a",
+      "audioPlaying": false,
+      "lipSyncAvailable": true,
+      "lipSyncLevel": null,
+      "lipSyncAppliedFrames": 0,
+      "lipSyncParameters": [
+        {
+          "index": 19,
+          "value": 0
+        }
+      ],
+      "currentAction": {
+        "id": null,
+        "kind": "idle"
+      },
+      "observedFps": 29.56765225507517,
+      "usedJSHeapBytes": 31914982,
+      "processes": [
+        {
+          "pid": 60205,
+          "role": "Browser",
+          "workingSetKiB": 169072,
+          "percentCPUUsage": 0.0836894848058335
+        },
+        {
+          "pid": 60206,
+          "role": "GPU",
+          "workingSetKiB": 133520,
+          "percentCPUUsage": 1.1369935391866968
+        },
+        {
+          "pid": 60213,
+          "role": "pet-renderer",
+          "workingSetKiB": 194784,
+          "percentCPUUsage": 1.0572842418658879
+        }
+      ]
+    },
+    {
+      "minute": 7,
+      "elapsedSeconds": 420.006,
+      "at": "2026-09-15T10:33:32.622Z",
+      "mode": "live2d",
+      "error": null,
+      "frames": 3662,
+      "totalFrames": 13124,
+      "targetFps": 30,
+      "recoveries": 1,
+      "contextState": "ready",
+      "modelId": "348a899269ebb5364b12a62ff15e96a81fe61a350341484c5436f39c4879b54a",
+      "audioPlaying": false,
+      "lipSyncAvailable": true,
+      "lipSyncLevel": null,
+      "lipSyncAppliedFrames": 0,
+      "lipSyncParameters": [
+        {
+          "index": 19,
+          "value": 0
+        }
+      ],
+      "currentAction": {
+        "id": null,
+        "kind": "idle"
+      },
+      "observedFps": 31.483333333333334,
+      "usedJSHeapBytes": 23150655,
+      "processes": [
+        {
+          "pid": 60205,
+          "role": "Browser",
+          "workingSetKiB": 165488,
+          "percentCPUUsage": 0.03385902163719066
+        },
+        {
+          "pid": 60206,
+          "role": "GPU",
+          "workingSetKiB": 122304,
+          "percentCPUUsage": 0.9998953170696959
+        },
+        {
+          "pid": 60213,
+          "role": "pet-renderer",
+          "workingSetKiB": 152864,
+          "percentCPUUsage": 0.9118197949346083
+        }
+      ]
+    },
+    {
+      "minute": 8,
+      "elapsedSeconds": 480.008,
+      "at": "2026-09-15T10:34:32.624Z",
+      "mode": "live2d",
+      "error": null,
+      "frames": 5553,
+      "totalFrames": 15015,
+      "targetFps": 30,
+      "recoveries": 1,
+      "contextState": "ready",
+      "modelId": "348a899269ebb5364b12a62ff15e96a81fe61a350341484c5436f39c4879b54a",
+      "audioPlaying": false,
+      "lipSyncAvailable": true,
+      "lipSyncLevel": null,
+      "lipSyncAppliedFrames": 0,
+      "lipSyncParameters": [
+        {
+          "index": 19,
+          "value": 0
+        }
+      ],
+      "currentAction": {
+        "id": null,
+        "kind": "idle"
+      },
+      "observedFps": 31.515616146128462,
+      "usedJSHeapBytes": 25795006,
+      "processes": [
+        {
+          "pid": 60205,
+          "role": "Browser",
+          "workingSetKiB": 164352,
+          "percentCPUUsage": 0.035052569437919276
+        },
+        {
+          "pid": 60206,
+          "role": "GPU",
+          "workingSetKiB": 121264,
+          "percentCPUUsage": 0.9954804401785212
+        },
+        {
+          "pid": 60213,
+          "role": "pet-renderer",
+          "workingSetKiB": 150256,
+          "percentCPUUsage": 0.869195546403172
+        }
+      ]
+    },
+    {
+      "minute": 9,
+      "elapsedSeconds": 540.006,
+      "at": "2026-09-15T10:35:32.622Z",
+      "mode": "live2d",
+      "error": null,
+      "frames": 7437,
+      "totalFrames": 16899,
+      "targetFps": 30,
+      "recoveries": 1,
+      "contextState": "ready",
+      "modelId": "348a899269ebb5364b12a62ff15e96a81fe61a350341484c5436f39c4879b54a",
+      "audioPlaying": false,
+      "lipSyncAvailable": true,
+      "lipSyncLevel": null,
+      "lipSyncAppliedFrames": 0,
+      "lipSyncParameters": [
+        {
+          "index": 19,
+          "value": 0
+        }
+      ],
+      "currentAction": {
+        "id": null,
+        "kind": "idle"
+      },
+      "observedFps": 31.40104670155672,
+      "usedJSHeapBytes": 24281775,
+      "processes": [
+        {
+          "pid": 60205,
+          "role": "Browser",
+          "workingSetKiB": 158848,
+          "percentCPUUsage": 0.03366104082072252
+        },
+        {
+          "pid": 60206,
+          "role": "GPU",
+          "workingSetKiB": 84000,
+          "percentCPUUsage": 0.9687264194041589
+        },
+        {
+          "pid": 60213,
+          "role": "pet-renderer",
+          "workingSetKiB": 134160,
+          "percentCPUUsage": 0.8777321790175965
+        }
+      ]
+    },
+    {
+      "minute": 10,
+      "elapsedSeconds": 600.01,
+      "at": "2026-09-15T10:36:32.626Z",
+      "mode": "live2d",
+      "error": null,
+      "frames": 9325,
+      "totalFrames": 18787,
+      "targetFps": 30,
+      "recoveries": 1,
+      "contextState": "ready",
+      "modelId": "348a899269ebb5364b12a62ff15e96a81fe61a350341484c5436f39c4879b54a",
+      "audioPlaying": false,
+      "lipSyncAvailable": true,
+      "lipSyncLevel": null,
+      "lipSyncAppliedFrames": 0,
+      "lipSyncParameters": [
+        {
+          "index": 19,
+          "value": 0
+        }
+      ],
+      "currentAction": {
+        "id": null,
+        "kind": "idle"
+      },
+      "observedFps": 31.464569028731418,
+      "usedJSHeapBytes": 25900306,
+      "processes": [
+        {
+          "pid": 60205,
+          "role": "Browser",
+          "workingSetKiB": 159536,
+          "percentCPUUsage": 0.033420180328018294
+        },
+        {
+          "pid": 60206,
+          "role": "GPU",
+          "workingSetKiB": 84080,
+          "percentCPUUsage": 0.984909896645196
+        },
+        {
+          "pid": 60213,
+          "role": "pet-renderer",
+          "workingSetKiB": 130752,
+          "percentCPUUsage": 0.8589450145021023
+        }
+      ]
+    },
+    {
+      "minute": 11,
+      "elapsedSeconds": 660.007,
+      "at": "2026-09-15T10:37:32.623Z",
+      "mode": "live2d",
+      "error": null,
+      "frames": 1772,
+      "totalFrames": 20559,
+      "targetFps": 30,
+      "recoveries": 2,
+      "contextState": "ready",
+      "modelId": "348a899269ebb5364b12a62ff15e96a81fe61a350341484c5436f39c4879b54a",
+      "audioPlaying": false,
+      "lipSyncAvailable": true,
+      "lipSyncLevel": null,
+      "lipSyncAppliedFrames": 0,
+      "lipSyncParameters": [
+        {
+          "index": 19,
+          "value": 0
+        }
+      ],
+      "currentAction": {
+        "id": null,
+        "kind": "idle"
+      },
+      "observedFps": 29.534810073837026,
+      "usedJSHeapBytes": 26845640,
+      "processes": [
+        {
+          "pid": 60205,
+          "role": "Browser",
+          "workingSetKiB": 160544,
+          "percentCPUUsage": 0.0656774648104234
+        },
+        {
+          "pid": 60206,
+          "role": "GPU",
+          "workingSetKiB": 123856,
+          "percentCPUUsage": 0.8946919096084555
+        },
+        {
+          "pid": 60213,
+          "role": "pet-renderer",
+          "workingSetKiB": 163184,
+          "percentCPUUsage": 0.8245156215712178
+        }
+      ]
+    },
+    {
+      "minute": 12,
+      "elapsedSeconds": 720.007,
+      "at": "2026-09-15T10:38:32.623Z",
+      "mode": "live2d",
+      "error": null,
+      "frames": 3632,
+      "totalFrames": 22419,
+      "targetFps": 30,
+      "recoveries": 2,
+      "contextState": "ready",
+      "modelId": "348a899269ebb5364b12a62ff15e96a81fe61a350341484c5436f39c4879b54a",
+      "audioPlaying": false,
+      "lipSyncAvailable": true,
+      "lipSyncLevel": null,
+      "lipSyncAppliedFrames": 0,
+      "lipSyncParameters": [
+        {
+          "index": 19,
+          "value": 0
+        }
+      ],
+      "currentAction": {
+        "id": null,
+        "kind": "idle"
+      },
+      "observedFps": 31,
+      "usedJSHeapBytes": 22928164,
+      "processes": [
+        {
+          "pid": 60205,
+          "role": "Browser",
+          "workingSetKiB": 162032,
+          "percentCPUUsage": 0.034787723527221995
+        },
+        {
+          "pid": 60206,
+          "role": "GPU",
+          "workingSetKiB": 124128,
+          "percentCPUUsage": 1.0047110775574388
+        },
+        {
+          "pid": 60213,
+          "role": "pet-renderer",
+          "workingSetKiB": 154432,
+          "percentCPUUsage": 0.9042710286164548
+        }
+      ]
+    },
+    {
+      "minute": 13,
+      "elapsedSeconds": 780.006,
+      "at": "2026-09-15T10:39:32.622Z",
+      "mode": "live2d",
+      "error": null,
+      "frames": 5499,
+      "totalFrames": 24286,
+      "targetFps": 30,
+      "recoveries": 2,
+      "contextState": "ready",
+      "modelId": "348a899269ebb5364b12a62ff15e96a81fe61a350341484c5436f39c4879b54a",
+      "audioPlaying": false,
+      "lipSyncAvailable": true,
+      "lipSyncLevel": null,
+      "lipSyncAppliedFrames": 0,
+      "lipSyncParameters": [
+        {
+          "index": 19,
+          "value": 0
+        }
+      ],
+      "currentAction": {
+        "id": null,
+        "kind": "idle"
+      },
+      "observedFps": 31.11718528642144,
+      "usedJSHeapBytes": 25288351,
+      "processes": [
+        {
+          "pid": 60205,
+          "role": "Browser",
+          "workingSetKiB": 159504,
+          "percentCPUUsage": 0.03318784014523664
+        },
+        {
+          "pid": 60206,
+          "role": "GPU",
+          "workingSetKiB": 84464,
+          "percentCPUUsage": 0.9218649367685631
+        },
+        {
+          "pid": 60213,
+          "role": "pet-renderer",
+          "workingSetKiB": 130496,
+          "percentCPUUsage": 0.840151090570326
+        }
+      ]
+    },
+    {
+      "minute": 14,
+      "elapsedSeconds": 840.01,
+      "at": "2026-09-15T10:40:32.626Z",
+      "mode": "live2d",
+      "error": null,
+      "frames": 7368,
+      "totalFrames": 26155,
+      "targetFps": 30,
+      "recoveries": 2,
+      "contextState": "ready",
+      "modelId": "348a899269ebb5364b12a62ff15e96a81fe61a350341484c5436f39c4879b54a",
+      "audioPlaying": false,
+      "lipSyncAvailable": true,
+      "lipSyncLevel": null,
+      "lipSyncAppliedFrames": 0,
+      "lipSyncParameters": [
+        {
+          "index": 19,
+          "value": 0
+        }
+      ],
+      "currentAction": {
+        "id": null,
+        "kind": "idle"
+      },
+      "observedFps": 31.14792347176855,
+      "usedJSHeapBytes": 24384925,
+      "processes": [
+        {
+          "pid": 60205,
+          "role": "Browser",
+          "workingSetKiB": 159760,
+          "percentCPUUsage": 0.03456011598864278
+        },
+        {
+          "pid": 60206,
+          "role": "GPU",
+          "workingSetKiB": 84512,
+          "percentCPUUsage": 1.0084936731033662
+        },
+        {
+          "pid": 60213,
+          "role": "pet-renderer",
+          "workingSetKiB": 133520,
+          "percentCPUUsage": 0.9282400156984105
+        }
+      ]
+    },
+    {
+      "minute": 15,
+      "elapsedSeconds": 900.005,
+      "at": "2026-09-15T10:41:32.621Z",
+      "mode": "live2d",
+      "error": null,
+      "frames": 9226,
+      "totalFrames": 28013,
+      "targetFps": 30,
+      "recoveries": 2,
+      "contextState": "ready",
+      "modelId": "348a899269ebb5364b12a62ff15e96a81fe61a350341484c5436f39c4879b54a",
+      "audioPlaying": false,
+      "lipSyncAvailable": true,
+      "lipSyncLevel": null,
+      "lipSyncAppliedFrames": 0,
+      "lipSyncParameters": [
+        {
+          "index": 19,
+          "value": 0
+        }
+      ],
+      "currentAction": {
+        "id": null,
+        "kind": "idle"
+      },
+      "observedFps": 30.96924743728644,
+      "usedJSHeapBytes": 23086428,
+      "processes": [
+        {
+          "pid": 60205,
+          "role": "Browser",
+          "workingSetKiB": 160272,
+          "percentCPUUsage": 0.035502272921531235
+        },
+        {
+          "pid": 60206,
+          "role": "GPU",
+          "workingSetKiB": 84496,
+          "percentCPUUsage": 1.0014535221927656
+        },
+        {
+          "pid": 60213,
+          "role": "pet-renderer",
+          "workingSetKiB": 131584,
+          "percentCPUUsage": 0.901269070658685
+        }
+      ]
+    },
+    {
+      "minute": 16,
+      "elapsedSeconds": 960.003,
+      "at": "2026-09-15T10:42:32.619Z",
+      "mode": "live2d",
+      "error": null,
+      "frames": 1773,
+      "totalFrames": 29786,
+      "targetFps": 30,
+      "recoveries": 3,
+      "contextState": "ready",
+      "modelId": "348a899269ebb5364b12a62ff15e96a81fe61a350341484c5436f39c4879b54a",
+      "audioPlaying": false,
+      "lipSyncAvailable": true,
+      "lipSyncLevel": null,
+      "lipSyncAppliedFrames": 0,
+      "lipSyncParameters": [
+        {
+          "index": 19,
+          "value": 0
+        }
+      ],
+      "currentAction": {
+        "id": null,
+        "kind": "idle"
+      },
+      "observedFps": 29.55098503283443,
+      "usedJSHeapBytes": 26087592,
+      "processes": [
+        {
+          "pid": 60205,
+          "role": "Browser",
+          "workingSetKiB": 163216,
+          "percentCPUUsage": 0.06262705735348498
+        },
+        {
+          "pid": 60206,
+          "role": "GPU",
+          "workingSetKiB": 123712,
+          "percentCPUUsage": 0.9312383539725662
+        },
+        {
+          "pid": 60213,
+          "role": "pet-renderer",
+          "workingSetKiB": 164032,
+          "percentCPUUsage": 0.8586465010005998
+        }
+      ]
+    },
+    {
+      "minute": 17,
+      "elapsedSeconds": 1020.009,
+      "at": "2026-09-15T10:43:32.625Z",
+      "mode": "live2d",
+      "error": null,
+      "frames": 3693,
+      "totalFrames": 31706,
+      "targetFps": 30,
+      "recoveries": 3,
+      "contextState": "ready",
+      "modelId": "348a899269ebb5364b12a62ff15e96a81fe61a350341484c5436f39c4879b54a",
+      "audioPlaying": false,
+      "lipSyncAvailable": true,
+      "lipSyncLevel": null,
+      "lipSyncAppliedFrames": 0,
+      "lipSyncParameters": [
+        {
+          "index": 19,
+          "value": 0
+        }
+      ],
+      "currentAction": {
+        "id": null,
+        "kind": "idle"
+      },
+      "observedFps": 31.996800319968003,
+      "usedJSHeapBytes": 28606519,
+      "processes": [
+        {
+          "pid": 60205,
+          "role": "Browser",
+          "workingSetKiB": 162768,
+          "percentCPUUsage": 0.03353850295362697
+        },
+        {
+          "pid": 60206,
+          "role": "GPU",
+          "workingSetKiB": 123568,
+          "percentCPUUsage": 0.9757513390063167
+        },
+        {
+          "pid": 60213,
+          "role": "pet-renderer",
+          "workingSetKiB": 159712,
+          "percentCPUUsage": 0.860444658963629
+        }
+      ]
+    },
+    {
+      "minute": 18,
+      "elapsedSeconds": 1080.01,
+      "at": "2026-09-15T10:44:32.626Z",
+      "mode": "live2d",
+      "error": null,
+      "frames": 5619,
+      "totalFrames": 33632,
+      "targetFps": 30,
+      "recoveries": 3,
+      "contextState": "ready",
+      "modelId": "348a899269ebb5364b12a62ff15e96a81fe61a350341484c5436f39c4879b54a",
+      "audioPlaying": false,
+      "lipSyncAvailable": true,
+      "lipSyncLevel": null,
+      "lipSyncAppliedFrames": 0,
+      "lipSyncParameters": [
+        {
+          "index": 19,
+          "value": 0
+        }
+      ],
+      "currentAction": {
+        "id": null,
+        "kind": "idle"
+      },
+      "observedFps": 32.09946500891652,
+      "usedJSHeapBytes": 24294191,
+      "processes": [
+        {
+          "pid": 60205,
+          "role": "Browser",
+          "workingSetKiB": 163616,
+          "percentCPUUsage": 0.03519597873001719
+        },
+        {
+          "pid": 60206,
+          "role": "GPU",
+          "workingSetKiB": 123568,
+          "percentCPUUsage": 1.0212746241714723
+        },
+        {
+          "pid": 60213,
+          "role": "pet-renderer",
+          "workingSetKiB": 163216,
+          "percentCPUUsage": 0.895779738723993
+        }
+      ]
+    },
+    {
+      "minute": 19,
+      "elapsedSeconds": 1140.009,
+      "at": "2026-09-15T10:45:32.625Z",
+      "mode": "live2d",
+      "error": null,
+      "frames": 7537,
+      "totalFrames": 35550,
+      "targetFps": 30,
+      "recoveries": 3,
+      "contextState": "ready",
+      "modelId": "348a899269ebb5364b12a62ff15e96a81fe61a350341484c5436f39c4879b54a",
+      "audioPlaying": false,
+      "lipSyncAvailable": true,
+      "lipSyncLevel": null,
+      "lipSyncAppliedFrames": 0,
+      "lipSyncParameters": [
+        {
+          "index": 19,
+          "value": 0
+        }
+      ],
+      "currentAction": {
+        "id": null,
+        "kind": "idle"
+      },
+      "observedFps": 31.96719945332422,
+      "usedJSHeapBytes": 25904351,
+      "processes": [
+        {
+          "pid": 60205,
+          "role": "Browser",
+          "workingSetKiB": 162576,
+          "percentCPUUsage": 0.031520585238488136
+        },
+        {
+          "pid": 60206,
+          "role": "GPU",
+          "workingSetKiB": 109312,
+          "percentCPUUsage": 0.9115820843074767
+        },
+        {
+          "pid": 60213,
+          "role": "pet-renderer",
+          "workingSetKiB": 161632,
+          "percentCPUUsage": 0.81853413989323
+        }
+      ]
+    },
+    {
+      "minute": 20,
+      "elapsedSeconds": 1200.007,
+      "at": "2026-09-15T10:46:32.623Z",
+      "mode": "live2d",
+      "error": null,
+      "frames": 9455,
+      "totalFrames": 37468,
+      "targetFps": 30,
+      "recoveries": 3,
+      "contextState": "ready",
+      "modelId": "348a899269ebb5364b12a62ff15e96a81fe61a350341484c5436f39c4879b54a",
+      "audioPlaying": false,
+      "lipSyncAvailable": true,
+      "lipSyncLevel": null,
+      "lipSyncAppliedFrames": 0,
+      "lipSyncParameters": [
+        {
+          "index": 19,
+          "value": 0
+        }
+      ],
+      "currentAction": {
+        "id": null,
+        "kind": "idle"
+      },
+      "observedFps": 31.967732257741925,
+      "usedJSHeapBytes": 28281698,
+      "processes": [
+        {
+          "pid": 60205,
+          "role": "Browser",
+          "workingSetKiB": 159968,
+          "percentCPUUsage": 0.02969124495371257
+        },
+        {
+          "pid": 60206,
+          "role": "GPU",
+          "workingSetKiB": 100864,
+          "percentCPUUsage": 0.910255483298387
+        },
+        {
+          "pid": 60213,
+          "role": "pet-renderer",
+          "workingSetKiB": 155616,
+          "percentCPUUsage": 0.8018048041718971
+        }
+      ]
+    },
+    {
+      "minute": 21,
+      "elapsedSeconds": 1260.003,
+      "at": "2026-09-15T10:47:32.619Z",
+      "mode": "live2d",
+      "error": null,
+      "frames": 1773,
+      "totalFrames": 39241,
+      "targetFps": 30,
+      "recoveries": 4,
+      "contextState": "ready",
+      "modelId": "348a899269ebb5364b12a62ff15e96a81fe61a350341484c5436f39c4879b54a",
+      "audioPlaying": false,
+      "lipSyncAvailable": true,
+      "lipSyncLevel": null,
+      "lipSyncAppliedFrames": 0,
+      "lipSyncParameters": [
+        {
+          "index": 19,
+          "value": 0
+        }
+      ],
+      "currentAction": {
+        "id": null,
+        "kind": "idle"
+      },
+      "observedFps": 29.551970131342088,
+      "usedJSHeapBytes": 33131431,
+      "processes": [
+        {
+          "pid": 60205,
+          "role": "Browser",
+          "workingSetKiB": 161424,
+          "percentCPUUsage": 0.05954668017694842
+        },
+        {
+          "pid": 60206,
+          "role": "GPU",
+          "workingSetKiB": 124464,
+          "percentCPUUsage": 0.7614343943521892
+        },
+        {
+          "pid": 60213,
+          "role": "pet-renderer",
+          "workingSetKiB": 162544,
+          "percentCPUUsage": 0.6753397115075506
+        }
+      ]
+    },
+    {
+      "minute": 22,
+      "elapsedSeconds": 1320.009,
+      "at": "2026-09-15T10:48:32.625Z",
+      "mode": "live2d",
+      "error": null,
+      "frames": 3660,
+      "totalFrames": 41128,
+      "targetFps": 30,
+      "recoveries": 4,
+      "contextState": "ready",
+      "modelId": "348a899269ebb5364b12a62ff15e96a81fe61a350341484c5436f39c4879b54a",
+      "audioPlaying": false,
+      "lipSyncAvailable": true,
+      "lipSyncLevel": null,
+      "lipSyncAppliedFrames": 0,
+      "lipSyncParameters": [
+        {
+          "index": 19,
+          "value": 0
+        }
+      ],
+      "currentAction": {
+        "id": null,
+        "kind": "idle"
+      },
+      "observedFps": 31.446855314468554,
+      "usedJSHeapBytes": 23269796,
+      "processes": [
+        {
+          "pid": 60205,
+          "role": "Browser",
+          "workingSetKiB": 162336,
+          "percentCPUUsage": 0.02750714237173768
+        },
+        {
+          "pid": 60206,
+          "role": "GPU",
+          "workingSetKiB": 124608,
+          "percentCPUUsage": 0.7942647808563935
+        },
+        {
+          "pid": 60213,
+          "role": "pet-renderer",
+          "workingSetKiB": 164960,
+          "percentCPUUsage": 0.7187149537954806
+        }
+      ]
+    },
+    {
+      "minute": 23,
+      "elapsedSeconds": 1380.005,
+      "at": "2026-09-15T10:49:32.621Z",
+      "mode": "live2d",
+      "error": null,
+      "frames": 5560,
+      "totalFrames": 43028,
+      "targetFps": 30,
+      "recoveries": 4,
+      "contextState": "ready",
+      "modelId": "348a899269ebb5364b12a62ff15e96a81fe61a350341484c5436f39c4879b54a",
+      "audioPlaying": false,
+      "lipSyncAvailable": true,
+      "lipSyncLevel": null,
+      "lipSyncAppliedFrames": 0,
+      "lipSyncParameters": [
+        {
+          "index": 19,
+          "value": 0
+        }
+      ],
+      "currentAction": {
+        "id": null,
+        "kind": "idle"
+      },
+      "observedFps": 31.6687779185279,
+      "usedJSHeapBytes": 35720420,
+      "processes": [
+        {
+          "pid": 60205,
+          "role": "Browser",
+          "workingSetKiB": 157712,
+          "percentCPUUsage": 0.031515047790691426
+        },
+        {
+          "pid": 60206,
+          "role": "GPU",
+          "workingSetKiB": 101200,
+          "percentCPUUsage": 0.9166570367975011
+        },
+        {
+          "pid": 60213,
+          "role": "pet-renderer",
+          "workingSetKiB": 171264,
+          "percentCPUUsage": 0.8376405988126315
+        }
+      ]
+    },
+    {
+      "minute": 24,
+      "elapsedSeconds": 1440.011,
+      "at": "2026-09-15T10:50:32.627Z",
+      "mode": "live2d",
+      "error": null,
+      "frames": 7444,
+      "totalFrames": 44912,
+      "targetFps": 30,
+      "recoveries": 4,
+      "contextState": "ready",
+      "modelId": "348a899269ebb5364b12a62ff15e96a81fe61a350341484c5436f39c4879b54a",
+      "audioPlaying": false,
+      "lipSyncAvailable": true,
+      "lipSyncLevel": null,
+      "lipSyncAppliedFrames": 0,
+      "lipSyncParameters": [
+        {
+          "index": 19,
+          "value": 0
+        }
+      ],
+      "currentAction": {
+        "id": null,
+        "kind": "idle"
+      },
+      "observedFps": 31.396860313968602,
+      "usedJSHeapBytes": 32980507,
+      "processes": [
+        {
+          "pid": 60205,
+          "role": "Browser",
+          "workingSetKiB": 157840,
+          "percentCPUUsage": 0.03290818361137994
+        },
+        {
+          "pid": 60206,
+          "role": "GPU",
+          "workingSetKiB": 84016,
+          "percentCPUUsage": 0.904654033114082
+        },
+        {
+          "pid": 60213,
+          "role": "pet-renderer",
+          "workingSetKiB": 150784,
+          "percentCPUUsage": 0.7974756639828546
+        }
+      ]
+    },
+    {
+      "minute": 25,
+      "elapsedSeconds": 1500.007,
+      "at": "2026-09-15T10:51:32.623Z",
+      "mode": "live2d",
+      "error": null,
+      "frames": 9334,
+      "totalFrames": 46802,
+      "targetFps": 30,
+      "recoveries": 4,
+      "contextState": "ready",
+      "modelId": "348a899269ebb5364b12a62ff15e96a81fe61a350341484c5436f39c4879b54a",
+      "audioPlaying": false,
+      "lipSyncAvailable": true,
+      "lipSyncLevel": null,
+      "lipSyncAppliedFrames": 0,
+      "lipSyncParameters": [
+        {
+          "index": 19,
+          "value": 0
+        }
+      ],
+      "currentAction": {
+        "id": null,
+        "kind": "idle"
+      },
+      "observedFps": 31.502100140009333,
+      "usedJSHeapBytes": 29614623,
+      "processes": [
+        {
+          "pid": 60205,
+          "role": "Browser",
+          "workingSetKiB": 158880,
+          "percentCPUUsage": 0.03467384972607152
+        },
+        {
+          "pid": 60206,
+          "role": "GPU",
+          "workingSetKiB": 84112,
+          "percentCPUUsage": 1.014997302488746
+        },
+        {
+          "pid": 60213,
+          "role": "pet-renderer",
+          "workingSetKiB": 154864,
+          "percentCPUUsage": 0.8954556498112337
+        }
+      ]
+    },
+    {
+      "minute": 26,
+      "elapsedSeconds": 1560.006,
+      "at": "2026-09-15T10:52:32.622Z",
+      "mode": "live2d",
+      "error": null,
+      "frames": 1774,
+      "totalFrames": 48576,
+      "targetFps": 30,
+      "recoveries": 5,
+      "contextState": "ready",
+      "modelId": "348a899269ebb5364b12a62ff15e96a81fe61a350341484c5436f39c4879b54a",
+      "audioPlaying": false,
+      "lipSyncAvailable": true,
+      "lipSyncLevel": null,
+      "lipSyncAppliedFrames": 0,
+      "lipSyncParameters": [
+        {
+          "index": 19,
+          "value": 0
+        }
+      ],
+      "currentAction": {
+        "id": null,
+        "kind": "idle"
+      },
+      "observedFps": 29.567159452657542,
+      "usedJSHeapBytes": 22972636,
+      "processes": [
+        {
+          "pid": 60205,
+          "role": "Browser",
+          "workingSetKiB": 161840,
+          "percentCPUUsage": 0.0685146244159816
+        },
+        {
+          "pid": 60206,
+          "role": "GPU",
+          "workingSetKiB": 118240,
+          "percentCPUUsage": 0.9760472845309691
+        },
+        {
+          "pid": 60213,
+          "role": "pet-renderer",
+          "workingSetKiB": 170144,
+          "percentCPUUsage": 0.9097490458494276
+        }
+      ]
+    },
+    {
+      "minute": 27,
+      "elapsedSeconds": 1620.009,
+      "at": "2026-09-15T10:53:32.625Z",
+      "mode": "live2d",
+      "error": null,
+      "frames": 3657,
+      "totalFrames": 50459,
+      "targetFps": 30,
+      "recoveries": 5,
+      "contextState": "ready",
+      "modelId": "348a899269ebb5364b12a62ff15e96a81fe61a350341484c5436f39c4879b54a",
+      "audioPlaying": false,
+      "lipSyncAvailable": true,
+      "lipSyncLevel": null,
+      "lipSyncAppliedFrames": 0,
+      "lipSyncParameters": [
+        {
+          "index": 19,
+          "value": 0
+        }
+      ],
+      "currentAction": {
+        "id": null,
+        "kind": "idle"
+      },
+      "observedFps": 31.381764245121076,
+      "usedJSHeapBytes": 32791867,
+      "processes": [
+        {
+          "pid": 60205,
+          "role": "Browser",
+          "workingSetKiB": 162464,
+          "percentCPUUsage": 0.033537130374107
+        },
+        {
+          "pid": 60206,
+          "role": "GPU",
+          "workingSetKiB": 118768,
+          "percentCPUUsage": 0.9893341137297582
+        },
+        {
+          "pid": 60213,
+          "role": "pet-renderer",
+          "workingSetKiB": 172624,
+          "percentCPUUsage": 0.8798295102268551
+        }
+      ]
+    },
+    {
+      "minute": 28,
+      "elapsedSeconds": 1680.01,
+      "at": "2026-09-15T10:54:32.626Z",
+      "mode": "live2d",
+      "error": null,
+      "frames": 5535,
+      "totalFrames": 52337,
+      "targetFps": 30,
+      "recoveries": 5,
+      "contextState": "ready",
+      "modelId": "348a899269ebb5364b12a62ff15e96a81fe61a350341484c5436f39c4879b54a",
+      "audioPlaying": false,
+      "lipSyncAvailable": true,
+      "lipSyncLevel": null,
+      "lipSyncAppliedFrames": 0,
+      "lipSyncParameters": [
+        {
+          "index": 19,
+          "value": 0
+        }
+      ],
+      "currentAction": {
+        "id": null,
+        "kind": "idle"
+      },
+      "observedFps": 31.299478342027633,
+      "usedJSHeapBytes": 28026119,
+      "processes": [
+        {
+          "pid": 60205,
+          "role": "Browser",
+          "workingSetKiB": 162304,
+          "percentCPUUsage": 0.03596105726804995
+        },
+        {
+          "pid": 60206,
+          "role": "GPU",
+          "workingSetKiB": 118848,
+          "percentCPUUsage": 1.020560869591376
+        },
+        {
+          "pid": 60213,
+          "role": "pet-renderer",
+          "workingSetKiB": 171136,
+          "percentCPUUsage": 0.912364906363678
+        }
+      ]
+    },
+    {
+      "minute": 29,
+      "elapsedSeconds": 1740.009,
+      "at": "2026-09-15T10:55:32.625Z",
+      "mode": "live2d",
+      "error": null,
+      "frames": 7420,
+      "totalFrames": 54222,
+      "targetFps": 30,
+      "recoveries": 5,
+      "contextState": "ready",
+      "modelId": "348a899269ebb5364b12a62ff15e96a81fe61a350341484c5436f39c4879b54a",
+      "audioPlaying": false,
+      "lipSyncAvailable": true,
+      "lipSyncLevel": null,
+      "lipSyncAppliedFrames": 0,
+      "lipSyncParameters": [
+        {
+          "index": 19,
+          "value": 0
+        }
+      ],
+      "currentAction": {
+        "id": null,
+        "kind": "idle"
+      },
+      "observedFps": 31.417190286504773,
+      "usedJSHeapBytes": 25264838,
+      "processes": [
+        {
+          "pid": 60205,
+          "role": "Browser",
+          "workingSetKiB": 158064,
+          "percentCPUUsage": 0.03188808058586104
+        },
+        {
+          "pid": 60206,
+          "role": "GPU",
+          "workingSetKiB": 95216,
+          "percentCPUUsage": 0.936126164423872
+        },
+        {
+          "pid": 60213,
+          "role": "pet-renderer",
+          "workingSetKiB": 163664,
+          "percentCPUUsage": 0.8648058986608687
+        }
+      ]
+    },
+    {
+      "minute": 30,
+      "elapsedSeconds": 1800.007,
+      "at": "2026-09-15T10:56:32.623Z",
+      "mode": "live2d",
+      "error": null,
+      "frames": 9299,
+      "totalFrames": 56101,
+      "targetFps": 30,
+      "recoveries": 5,
+      "contextState": "ready",
+      "modelId": "348a899269ebb5364b12a62ff15e96a81fe61a350341484c5436f39c4879b54a",
+      "audioPlaying": false,
+      "lipSyncAvailable": true,
+      "lipSyncLevel": null,
+      "lipSyncAppliedFrames": 0,
+      "lipSyncParameters": [
+        {
+          "index": 19,
+          "value": 0
+        }
+      ],
+      "currentAction": {
+        "id": null,
+        "kind": "idle"
+      },
+      "observedFps": 31.317710590353013,
+      "usedJSHeapBytes": 34835822,
+      "processes": [
+        {
+          "pid": 60205,
+          "role": "Browser",
+          "workingSetKiB": 159104,
+          "percentCPUUsage": 0.033592232278348386
+        },
+        {
+          "pid": 60206,
+          "role": "GPU",
+          "workingSetKiB": 95392,
+          "percentCPUUsage": 0.9851834409416128
+        },
+        {
+          "pid": 60213,
+          "role": "pet-renderer",
+          "workingSetKiB": 166752,
+          "percentCPUUsage": 0.8729785453734644
+        }
+      ]
+    }
+  ],
+  "versions": {
+    "node": "24.20.0",
+    "acorn": "8.18.0",
+    "ada": "4.0.0",
+    "amaro": "1.1.11",
+    "ares": "1.34.8",
+    "brotli": "1.2.0",
+    "cldr": "48.0",
+    "icu": "78.2",
+    "llhttp": "9.4.3",
+    "merve": "1.2.2",
+    "modules": "149",
+    "napi": "10",
+    "nbytes": "0.1.4",
+    "ncrypto": "0.0.1",
+    "nghttp2": "1.70.0",
+    "nghttp3": "",
+    "ngtcp2": "",
+    "openssl": "0.0.0",
+    "simdjson": "4.6.6",
+    "simdutf": "7.7.0",
+    "sqlite": "3.53.4",
+    "tz": "2025c",
+    "undici": "7.29.0",
+    "unicode": "17.0",
+    "uv": "1.52.1",
+    "uvwasi": "0.0.23",
+    "v8": "15.2.124.19-electron.0",
+    "zlib": "1.3.2.1-motley",
+    "zstd": "1.6.0",
+    "electron": "44.3.0",
+    "chrome": "152.0.7977.78"
+  },
+  "runtimePins": {
+    "version": "cubism-web-5-r.5-lifecycle2",
+    "files": [
+      {
+        "path": "core.js",
+        "bytes": 228042,
+        "sha256": "8741f739779b5d5210872bd3d7d99f0f1e56e6c87409e7d26d6bb4b80aa1ef47",
+        "source": "CubismSdkForWeb-5-r.5/Core/live2dcubismcore.min.js"
+      },
+      {
+        "path": "framework.js",
+        "bytes": 184570,
+        "sha256": "8c6e0c08ee3fbb4fa801f5178355ebf0ac04b224ed282046b12820078f6f7c58",
+        "source": "dist/live2dcubismframework.min.js"
+      },
+      {
+        "path": "licenses/core.md",
+        "bytes": 520,
+        "sha256": "b81e37048010ef1d336106151201a0323c3309cae44aecdedf57831fe88fa991",
+        "source": "CubismSdkForWeb-5-r.5/Core/LICENSE.md"
+      },
+      {
+        "path": "licenses/framework.md",
+        "bytes": 2234,
+        "sha256": "7ed849bff1e6499aa7cd882e47d246ddbbe06817c1e84cb974df949488302614",
+        "source": "CubismSdkForWeb-5-r.5/Framework/LICENSE.md"
+      },
+      {
+        "path": "licenses/sdk.md",
+        "bytes": 3042,
+        "sha256": "787a7d1454240865420b96ea9a20ab5e1a5ec3c1abced2e308288c2de8aac991",
+        "source": "CubismSdkForWeb-5-r.5/LICENSE.md"
+      },
+      {
+        "path": "licenses/redistributable.txt",
+        "bytes": 205,
+        "sha256": "d16c123688299e1e69a7f5ebc01b3bd75a8d408c024002a7d35b2aae94003f8c",
+        "source": "CubismSdkForWeb-5-r.5/Core/RedistributableFiles.txt"
+      },
+      {
+        "path": "shaders/fragshadersrcalphablend.frag",
+        "bytes": 2189,
+        "sha256": "855b247f02042a808a41e282ee4d7de7cc4533abeb5032b4ab8fe84f7dec107f",
+        "source": "CubismSdkForWeb-5-r.5/Framework/Shaders/WebGL/fragshadersrcalphablend.frag"
+      },
+      {
+        "path": "shaders/fragshadersrccolorblend.frag",
+        "bytes": 7525,
+        "sha256": "01d4bf6a14b4a738976e9a538767a21da0defa8816f3845a7df08a7713327538",
+        "source": "CubismSdkForWeb-5-r.5/Framework/Shaders/WebGL/fragshadersrccolorblend.frag"
+      },
+      {
+        "path": "shaders/fragshadersrccopy.frag",
+        "bytes": 429,
+        "sha256": "15c67a4ec3adda4c849aff2a8319a3f6aceef8a84d5e5e1f3fb7fd9cd681193c",
+        "source": "CubismSdkForWeb-5-r.5/Framework/Shaders/WebGL/fragshadersrccopy.frag"
+      },
+      {
+        "path": "shaders/fragshadersrcmaskinvertedpremultipliedalpha.frag",
+        "bytes": 1051,
+        "sha256": "1005cff8113de587cf1c0e295288d04d85f0f4ebc223684c8340e017fd8fc788",
+        "source": "CubismSdkForWeb-5-r.5/Framework/Shaders/WebGL/fragshadersrcmaskinvertedpremultipliedalpha.frag"
+      },
+      {
+        "path": "shaders/fragshadersrcmaskpremultipliedalpha.frag",
+        "bytes": 1043,
+        "sha256": "f84ff615393d26ea6ab7c28747803db6472524c92567c0ad01e8225fbab36a3b",
+        "source": "CubismSdkForWeb-5-r.5/Framework/Shaders/WebGL/fragshadersrcmaskpremultipliedalpha.frag"
+      },
+      {
+        "path": "shaders/fragshadersrcpremultipliedalpha.frag",
+        "bytes": 747,
+        "sha256": "c93abe215357cc782a25fc4ef20f5fe1f34e2cc193ee23d763b56b81fae5fce1",
+        "source": "CubismSdkForWeb-5-r.5/Framework/Shaders/WebGL/fragshadersrcpremultipliedalpha.frag"
+      },
+      {
+        "path": "shaders/fragshadersrcpremultipliedalphablend.frag",
+        "bytes": 2038,
+        "sha256": "2155076275199a2946959838391dfb856e9d1db91b6ca3abd19ed70d4ff27e15",
+        "source": "CubismSdkForWeb-5-r.5/Framework/Shaders/WebGL/fragshadersrcpremultipliedalphablend.frag"
+      },
+      {
+        "path": "shaders/fragshadersrcsetupmask.frag",
+        "bytes": 736,
+        "sha256": "3cccc0b68a56cfbf4bd4841b0a759431dd159812c38dc280981ba633fa0afe7a",
+        "source": "CubismSdkForWeb-5-r.5/Framework/Shaders/WebGL/fragshadersrcsetupmask.frag"
+      },
+      {
+        "path": "shaders/vertshadersrc.vert",
+        "bytes": 465,
+        "sha256": "291ed3f35f71f1e71e6df33fb055f009a8a9b36ee664f74f24f6cefef0c4029b",
+        "source": "CubismSdkForWeb-5-r.5/Framework/Shaders/WebGL/vertshadersrc.vert"
+      },
+      {
+        "path": "shaders/vertshadersrcblend.vert",
+        "bytes": 738,
+        "sha256": "2589837bd7a6a550a1c3af41b4fa776011e6e71f2531320fa39afcb83b209bf4",
+        "source": "CubismSdkForWeb-5-r.5/Framework/Shaders/WebGL/vertshadersrcblend.vert"
+      },
+      {
+        "path": "shaders/vertshadersrccopy.vert",
+        "bytes": 392,
+        "sha256": "b7bc4ba7517f405af4812ac47d99bc2b633c99f463c1224029556b00e8dff3cf",
+        "source": "CubismSdkForWeb-5-r.5/Framework/Shaders/WebGL/vertshadersrccopy.vert"
+      },
+      {
+        "path": "shaders/vertshadersrcmasked.vert",
+        "bytes": 559,
+        "sha256": "6704a9df2e6d3ee5176c72fca4ba59358ba4827a07054b1e0a72a3c574e281fd",
+        "source": "CubismSdkForWeb-5-r.5/Framework/Shaders/WebGL/vertshadersrcmasked.vert"
+      },
+      {
+        "path": "shaders/vertshadersrcsetupmask.vert",
+        "bytes": 536,
+        "sha256": "649aad2f6c0af55a7a4adcf33dbf78937ef9d77ed6ba917fd716176adce25afe",
+        "source": "CubismSdkForWeb-5-r.5/Framework/Shaders/WebGL/vertshadersrcsetupmask.vert"
+      }
+    ]
+  },
+  "display": [
+    {
+      "size": {
+        "width": 1920,
+        "height": 1080
+      },
+      "scaleFactor": 1
+    }
+  ],
+  "elapsedSeconds": 1800.022,
+  "trends": [
+    {
+      "role": "Browser",
+      "windows": [
+        {
+          "startMinute": 5,
+          "endMinute": 9,
+          "median": 164352,
+          "samples": 5
+        },
+        {
+          "startMinute": 10,
+          "endMinute": 14,
+          "median": 159760,
+          "samples": 5
+        },
+        {
+          "startMinute": 15,
+          "endMinute": 19,
+          "median": 162768,
+          "samples": 5
+        },
+        {
+          "startMinute": 20,
+          "endMinute": 24,
+          "median": 159968,
+          "samples": 5
+        },
+        {
+          "startMinute": 25,
+          "endMinute": 30,
+          "median": 161840,
+          "samples": 6
+        }
+      ],
+      "slopePerMinute": -92.34742505764797,
+      "maxConsecutiveSignificantIncreases": 1,
+      "baselineMedianWorkingSetKiB": 164352,
+      "finalMedianWorkingSetKiB": 161840,
+      "growthKiB": -2512,
+      "allowedGrowthKiB": 32768,
+      "processRestarts": 0,
+      "passed": true
+    },
+    {
+      "role": "GPU",
+      "windows": [
+        {
+          "startMinute": 5,
+          "endMinute": 9,
+          "median": 121264,
+          "samples": 5
+        },
+        {
+          "startMinute": 10,
+          "endMinute": 14,
+          "median": 84512,
+          "samples": 5
+        },
+        {
+          "startMinute": 15,
+          "endMinute": 19,
+          "median": 123568,
+          "samples": 5
+        },
+        {
+          "startMinute": 20,
+          "endMinute": 24,
+          "median": 101200,
+          "samples": 5
+        },
+        {
+          "startMinute": 25,
+          "endMinute": 30,
+          "median": 118240,
+          "samples": 6
+        }
+      ],
+      "slopePerMinute": 220.7594158339739,
+      "maxConsecutiveSignificantIncreases": 1,
+      "baselineMedianWorkingSetKiB": 121264,
+      "finalMedianWorkingSetKiB": 118240,
+      "growthKiB": -3024,
+      "allowedGrowthKiB": 32768,
+      "processRestarts": 0,
+      "passed": true
+    },
+    {
+      "role": "pet-renderer",
+      "windows": [
+        {
+          "startMinute": 5,
+          "endMinute": 9,
+          "median": 152864,
+          "samples": 5
+        },
+        {
+          "startMinute": 10,
+          "endMinute": 14,
+          "median": 133520,
+          "samples": 5
+        },
+        {
+          "startMinute": 15,
+          "endMinute": 19,
+          "median": 161632,
+          "samples": 5
+        },
+        {
+          "startMinute": 20,
+          "endMinute": 24,
+          "median": 162544,
+          "samples": 5
+        },
+        {
+          "startMinute": 25,
+          "endMinute": 30,
+          "median": 170144,
+          "samples": 6
+        }
+      ],
+      "slopePerMinute": 1248.737893927748,
+      "maxConsecutiveSignificantIncreases": 1,
+      "baselineMedianWorkingSetKiB": 152864,
+      "finalMedianWorkingSetKiB": 170144,
+      "growthKiB": 17280,
+      "allowedGrowthKiB": 32768,
+      "processRestarts": 0,
+      "passed": true
+    }
+  ],
+  "heapTrend": {
+    "windows": [
+      {
+        "startMinute": 5,
+        "endMinute": 9,
+        "median": 25795006,
+        "samples": 5
+      },
+      {
+        "startMinute": 10,
+        "endMinute": 14,
+        "median": 25288351,
+        "samples": 5
+      },
+      {
+        "startMinute": 15,
+        "endMinute": 19,
+        "median": 25904351,
+        "samples": 5
+      },
+      {
+        "startMinute": 20,
+        "endMinute": 24,
+        "median": 32980507,
+        "samples": 5
+      },
+      {
+        "startMinute": 25,
+        "endMinute": 30,
+        "median": 29614623,
+        "samples": 6
+      }
+    ],
+    "slopePerMinute": 297870.782859339,
+    "maxConsecutiveSignificantIncreases": 1,
+    "baselineMedianBytes": 25795006,
+    "finalMedianBytes": 28026119,
+    "growthBytes": 2231113,
+    "allowedGrowthBytes": 8388608,
+    "passed": true
+  },
+  "finishedAt": "2026-09-15T10:56:32.647Z"
+}

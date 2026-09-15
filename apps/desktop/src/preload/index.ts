@@ -158,6 +158,7 @@ const bridge: DesktopBridge = {
       }),
   }),
   chat: Object.freeze({
+    draft: (projectId: string, kind: 'daily' | 'feedback') => ipcRenderer.invoke('memo:request', {method:'chat.draft',projectId,kind}),
     status: (projectId: string) => ipcRenderer.invoke('memo:request', {method:'chat.status',projectId}),
     send: (projectId: string,message: string) => ipcRenderer.invoke('memo:request', {method:'chat.send',projectId,message}),
     confirm: (projectId: string,runId: string) => ipcRenderer.invoke('memo:request', {method:'chat.confirm',projectId,runId}),
