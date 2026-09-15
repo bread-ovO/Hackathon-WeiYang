@@ -23,14 +23,9 @@ export function parseDeadline(value: string): string | null {
   return Number.isNaN(time) ? null : new Date(time).toISOString()
 }
 
-export interface ProgressCandidate { kind: 'progress' | 'change'; text: string }
-export function extractProgressCandidates(text: string): ProgressCandidate[] { return text.split(/\n+/).map(x=>x.trim()).filter(Boolean).flatMap<ProgressCandidate>(line => line.includes('完成') ? [{kind:'progress',text:line}] : /更新|变更|改为/.test(line) ? [{kind:'change',text:line}] : []) }
-
 export { PET_SPEECH_LINES, PET_SPEECH_RESUME_GAP_MS, createPetSpeechState, parsePetSpeechState, configurePetSpeech, tickPetSpeech, isPetSpeechQuiet } from './pet-speech'
 export type { PetSpeechSettings, PetSpeechState, PetSpeechClock, PetSpeechEnvironment } from './pet-speech'
 
-export { EXPLICIT_COMMITMENT_VERSION, extractExplicitCommitments } from './commitment'
-export type { ExplicitCommitmentResult } from './commitment'
 
 export interface StoredTask extends Omit<Task, 'status'> {
   status: TaskStatus | null

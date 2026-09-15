@@ -102,7 +102,12 @@ const sourceMessages: Message[] = [
   { id: 'm5', role: 'user', text: '我会更新安装说明。' },
 ]
 for (const format of ['generic', 'codex', 'claude-code', 'kimi'] as const) {
-  test(`${format}: file authorization to visible candidates, citations and incremental sync`, async ({}, info) => {
+  test(`${format}: real model authorization to visible candidates, citations and incremental sync`, async ({}, info) => {
+    test.skip(
+      process.env.BUGU_EVAL_LIVE !== '1',
+      'Explicit real-model E2E; never replaces the accuracy corpus.',
+    )
+    test.setTimeout(180000)
     const root = await mkdtemp(join(tmpdir(), `bugu-e2e-extraction-${format}-`))
     const directory = join(root, 'sessions')
     await mkdir(directory)
@@ -114,32 +119,39 @@ for (const format of ['generic', 'codex', 'claude-code', 'kimi'] as const) {
     await writeFile(file, initial)
     const { app, page, projectId } = await launch(root)
     try {
+      const configured = await page.evaluate(() =>
+        window.memo.modelProvider.configure({
+          provider: 'codex-cli',
+          enabled: true,
+          model: '',
+          baseUrl: '',
+          credentialId: '',
+        }),
+      )
+      expect(configured.ok).toBe(true)
       await importFromUi(app, page, format, projectId, file, directory)
       const rows = page.locator('.real-task-row')
-      await expect(rows).toHaveCount(2, { timeout: 15000 })
+      await expect(rows).toHaveCount(2, { timeout: 90000 })
       await expect(
         page.getByRole('button', {
-          name: '提交季度验收报告 · 待确认收录',
-          exact: true,
+          name: /季度验收报告.*待确认收录/,
         }),
       ).toBeVisible()
       await expect(
         page.getByRole('button', {
-          name: '更新安装说明 · 待确认收录',
-          exact: true,
+          name: /安装说明.*待确认收录/,
         }),
       ).toBeVisible()
       await page
         .getByRole('button', {
-          name: '提交季度验收报告 · 待确认收录',
-          exact: true,
+          name: /季度验收报告.*待确认收录/,
         })
         .click()
       const detail = page.getByRole('region', { name: '事项详情' })
       await expect(detail.getByLabel('手动状态')).toHaveValue('todo')
-      const provenance = detail.getByRole('region', { name: '候选来源依据' })
+      const provenance = detail.getByRole('region', { name: 'AI 分析建议' })
       await provenance.locator('summary').click()
-      await expect(provenance.locator('blockquote')).toHaveText(
+      await expect(provenance.locator('blockquote')).toContainText(
         sourceMessages[0]!.text,
       )
       await detail.getByRole('button', { name: '关闭详情' }).click()
@@ -164,13 +176,50 @@ for (const format of ['generic', 'codex', 'claude-code', 'kimi'] as const) {
       await appendFile(file, tail.slice(0, -1))
       expect((await sync()).ok).toBe(true)
       await expect(rows).toHaveCount(2)
+      if (format === 'generic') {
+        await page
+          .getByRole('button', { name: /季度验收报告.*待确认收录/ })
+          .click()
+        await page
+          .getByRole('button', { name: '编辑事项', exact: true })
+          .click()
+        await page.getByLabel('编辑事项标题').fill('人工保留的标题')
+        await page
+          .getByRole('button', { name: '保存标题', exact: true })
+          .click()
+        await expect(
+          page.getByRole('heading', { name: '人工保留的标题', exact: true }),
+        ).toBeVisible()
+        await page.getByLabel('编辑事项标题').fill('尚未保存的标题草稿')
+      }
       await appendFile(file, '\n')
       expect((await sync()).ok).toBe(true)
-      await expect(rows).toHaveCount(3, { timeout: 15000 })
+      if (format === 'generic') {
+        await expect
+          .poll(
+            async () => {
+              const reply = await page.evaluate(
+                (projectId) => window.memo.workspace.list({ projectId }),
+                projectId,
+              )
+              return reply.ok ? reply.data.totalCount : 0
+            },
+            { timeout: 90000 },
+          )
+          .toBe(3)
+        await expect(page.getByLabel('编辑事项标题')).toHaveValue(
+          '尚未保存的标题草稿',
+        )
+        await expect(page.getByLabel('编辑事项标题')).toBeFocused()
+        await page.getByRole('button', { name: '关闭详情' }).click()
+        await expect(
+          page.getByRole('button', { name: /人工保留的标题.*待确认收录/ }),
+        ).toBeVisible()
+      }
+      await expect(rows).toHaveCount(3, { timeout: 90000 })
       await expect(
         page.getByRole('button', {
-          name: '补充支付接口文档 · 待确认收录',
-          exact: true,
+          name: /支付接口文档.*待确认收录/,
         }),
       ).toHaveClass(/task-arrived/)
       expect((await sync()).ok).toBe(true)
@@ -180,6 +229,19 @@ for (const format of ['generic', 'codex', 'claude-code', 'kimi'] as const) {
         path: info.outputPath(`${format}-candidates.png`),
       })
     } finally {
+      if (info.status !== info.expectedStatus) {
+        const diagnostic = await page
+          .evaluate(async () => ({
+            analysis: await window.memo.analysis.status(),
+            processing: await window.memo.processing.status(),
+            sources: await window.memo.sources.list(),
+          }))
+          .catch(() => null)
+        await info.attach('synthetic-analysis-status', {
+          body: JSON.stringify(diagnostic, null, 2),
+          contentType: 'application/json',
+        })
+      }
       await app.close()
       await rm(root, { recursive: true, force: true })
     }
@@ -224,6 +286,38 @@ test('live Codex: an imperative JSONL request becomes a candidate through automa
     await evidence.locator('summary').click()
     await expect(evidence.locator('blockquote')).toContainText('登录白屏')
     await page.screenshot({ path: info.outputPath('live-model-candidate.png') })
+  } finally {
+    await app.close()
+    await rm(root, { recursive: true, force: true })
+  }
+})
+
+// This path stays offline and proves that the removed rule chain cannot create tasks.
+test('without a configured model, imported commitments never become rule candidates', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'bugu-e2e-no-rules-'))
+  const file = join(root, 'synthetic.jsonl')
+  await writeFile(file, formatJsonl(sourceMessages, 'generic').content)
+  const { app, page, projectId } = await launch(root)
+  try {
+    await importFromUi(app, page, 'generic', projectId, file, root)
+    await expect
+      .poll(async () => {
+        const r = await page.evaluate(() => window.memo.processing.status())
+        return r.ok ? r.data.processedCount : 0
+      })
+      .toBe(5)
+    await expect
+      .poll(
+        async () => {
+          const r = await page.evaluate(() => window.memo.analysis.status())
+          return r.ok ? r.data.error : null
+        },
+        { timeout: 30000 },
+      )
+      .toBe('MODEL_NOT_CONFIGURED')
+    await expect(page.locator('.real-task-row')).toHaveCount(0)
+    await page.reload()
+    await expect(page.locator('.real-task-row')).toHaveCount(0)
   } finally {
     await app.close()
     await rm(root, { recursive: true, force: true })

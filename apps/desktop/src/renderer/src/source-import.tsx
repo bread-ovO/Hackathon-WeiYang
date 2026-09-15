@@ -87,8 +87,10 @@ export function SourceImport() {
   return (
     <section className="source-import" aria-label="本地导出导入">
       <div className="source-import-actions">
-        <HelpTip label="文件导入说明">只读导入所选文件，每次最多 100
-        条。正文保存在本机，当前尚未加密；不会发送给模型。</HelpTip>
+        <HelpTip label="文件导入说明">
+          只读导入所选文件，每次最多 100
+          条。正文保存在本机，当前尚未加密；不会发送给模型。
+        </HelpTip>
         <select
           aria-label="导入项目"
           value={project}
@@ -108,7 +110,7 @@ export function SourceImport() {
           onClick={() =>
             void run(
               () => window.memo.sources.chooseFile(project),
-              '导出记录已接收。本地有限规则会整理候选；若已暂停，请在上方继续整理。',
+              '记录已接收，启用 AI 模型后会自动整理；已暂停时可在后台整理中继续。',
             )
           }
         >
@@ -125,10 +127,10 @@ export function SourceImport() {
         <HelpTip label="JSONL 格式说明">
           需要先创建项目。每行一个 JSON 对象，以换行结尾，字段为
           id、revision、created_at、role 和 content；role 支持
-          user、assistant、tool、system。
-          operation 可省略（默认为 upsert）。撤回须使用同一 id、新 revision，
-          明确填写 <code>{'"operation":"retract","content":""'}</code>；
-          content 必须为空。仅清空正文不会被视为撤回。
+          user、assistant、tool、system。 operation 可省略（默认为
+          upsert）。撤回须使用同一 id、新 revision， 明确填写{' '}
+          <code>{'"operation":"retract","content":""'}</code>； content
+          必须为空。仅清空正文不会被视为撤回。
           文件追加、轮转或重复选择会按修订去重。未完成的末行等待下次追加；
           撤销停止后续读取，历史删除是单独操作。
         </HelpTip>

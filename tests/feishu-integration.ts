@@ -1,3 +1,4 @@
+import { commitHistoricalFixture } from './fixtures/legacy-rule-task'
 import { getSourceStatus } from '../packages/storage/src/source-status'
 import assert from 'node:assert/strict'
 import { mkdtempSync, rmSync } from 'node:fs'
@@ -144,7 +145,9 @@ try {
   const context = store.processing.load(job, now)!
   assert.equal(context.projectId, 'a')
   assert.equal(context.grant.kind, 'feishu')
-  const taskId = store.processing.commit(
+  const taskId = commitHistoricalFixture(
+    store,
+    path,
     job,
     context,
     prepareEventProcessing({
@@ -327,10 +330,17 @@ try {
     () => store.feishu.getAuthorized(other.id),
     /FEISHU_INVALID_RESPONSE/,
   )
-  assert.equal(store.health().schemaVersion, 22)
+  assert.equal(store.health().schemaVersion, 25)
   console.log('Feishu storage integration passed')
 } finally {
   db.close()
   store.close()
-  try { rmSync(dir, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 }) } catch {}
+  try {
+    rmSync(dir, {
+      recursive: true,
+      force: true,
+      maxRetries: 10,
+      retryDelay: 200,
+    })
+  } catch {}
 }

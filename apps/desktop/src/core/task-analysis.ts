@@ -39,13 +39,22 @@ export function createTaskAnalysisService(
   function tick() {
     if (disposed) return
     try {
-      if (state.state !== 'running' && Date.now() >= providerRetryAt) {
-        const next = store.taskAnalysis.pending(TASK_ANALYSIS_VERSION)
-          .find(item => (retryAfter.get(item.sourceId) ?? 0) <= Date.now())
+      if (
+        store.processing.isEnabled() &&
+        state.state !== 'running' &&
+        Date.now() >= providerRetryAt
+      ) {
+        const next = store.taskAnalysis
+          .pending(TASK_ANALYSIS_VERSION)
+          .find((item) => (retryAfter.get(item.sourceId) ?? 0) <= Date.now())
         if (next) {
           // Serialize model calls, retry failures at most once per five minutes/source.
           retryAfter.set(next.sourceId, Date.now() + 300_000)
-          service.handle({ method: 'analysis.start', sourceId: next.sourceId }, true)
+          service.handle(
+            { method: 'analysis.start', sourceId: next.sourceId },
+            true,
+            next.afterEventId,
+          )
         }
       }
     } catch {
@@ -55,8 +64,13 @@ export function createTaskAnalysisService(
     }
   }
   const service = {
-    start() { if (!timer && !disposed) timer = setTimeout(tick, 10_000) },
-    handle(request: AnalysisRequest, automatic = false) {
+    cancel() {
+      controller?.abort()
+    },
+    start() {
+      if (!timer && !disposed) timer = setTimeout(tick, 10_000)
+    },
+    handle(request: AnalysisRequest, automatic = false, afterEventId = 0) {
       if (request.method === 'analysis.status') return snapshot()
       if (request.method === 'analysis.accept') {
         if (state.state !== 'ready' || state.runId !== request.runId)
@@ -66,7 +80,31 @@ export function createTaskAnalysisService(
         return snapshot()
       }
       if (state.state === 'running') return snapshot()
-      const context = store.taskAnalysis.context(request.sourceId)
+      let context: ReturnType<typeof store.taskAnalysis.context>
+      try {
+        context = store.taskAnalysis.context(
+          request.sourceId,
+          afterEventId,
+          TASK_ANALYSIS_VERSION,
+        )
+      } catch (error) {
+        if (!automatic) throw error
+        retryAfter.set(request.sourceId, Date.now() + 300_000)
+        state = {
+          ...state,
+          state: 'error',
+          sourceId: request.sourceId,
+          error:
+            error instanceof Error &&
+            error.message === 'ANALYSIS_MESSAGE_TOO_LARGE'
+              ? error.message
+              : 'ANALYSIS_CONTEXT_CHANGED',
+          result: null,
+          runId: null,
+          accepted: [],
+        }
+        return snapshot()
+      }
       controller = new AbortController()
       state = {
         ...state,
@@ -81,7 +119,19 @@ export function createTaskAnalysisService(
       }
       void analyzeTasks({
         messages: context.messages,
+        knownTasks: context.knownTasks,
         transport: async (input) => {
+          // Recheck authorization before BOTH extraction and review requests.
+          const current = store.taskAnalysis.context(
+            context.sourceId,
+            context.afterEventId,
+            TASK_ANALYSIS_VERSION,
+            context.endEventId,
+          )
+          if (current.fingerprint !== context.fingerprint)
+            throw new Error('ANALYSIS_CONTEXT_CHANGED')
+          if (automatic && !store.processing.isEnabled())
+            throw new Error('MODEL_CANCELLED')
           const response = await infer(input)
           state.model = response.model
           return response.content
@@ -90,12 +140,12 @@ export function createTaskAnalysisService(
       })
         .then((result) => {
           if (disposed) return
-          const runId = (automatic ? store.taskAnalysis.discover : store.taskAnalysis.save)(
-            context,
-            result,
-            state.model,
-            TASK_ANALYSIS_VERSION,
-          )
+          if (automatic && !store.processing.isEnabled())
+            throw new Error('MODEL_CANCELLED')
+          const runId = (
+            automatic ? store.taskAnalysis.discover : store.taskAnalysis.save
+          )(context, result, state.model, TASK_ANALYSIS_VERSION)
+          retryAfter.delete(request.sourceId)
           state = {
             ...state,
             state: 'ready',
@@ -106,7 +156,14 @@ export function createTaskAnalysisService(
         })
         .catch((error) => {
           const code = error instanceof Error ? error.message : ''
-          if (automatic) providerRetryAt = Date.now() + 300_000
+          if (automatic && code !== 'MODEL_CANCELLED')
+            providerRetryAt = Date.now() + 300_000
+          if (code === 'MODEL_CANCELLED' && !store.processing.isEnabled()) {
+            retryAfter.delete(request.sourceId)
+            providerRetryAt = 0
+            state = { ...state, state: 'idle', error: null }
+            return
+          }
           state = {
             ...state,
             state: 'error',
@@ -119,6 +176,8 @@ export function createTaskAnalysisService(
               'MODEL_TIMEOUT',
               'INVALID_TASK_ANALYSIS',
               'ANALYSIS_CONTEXT_CHANGED',
+              'ANALYSIS_SOURCE_UNAVAILABLE',
+              'ANALYSIS_MESSAGE_TOO_LARGE',
               'MODEL_CANCELLED',
             ].includes(code)
               ? code

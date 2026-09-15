@@ -1,5 +1,5 @@
 import { it, expect } from 'vitest'
-import { resolveDeadline, extractExplicitCommitments } from '@memo/domain'
+import { resolveDeadline } from '@memo/domain'
 const at = '2026-09-14T23:30:00+08:00'
 it.each([
   ['我会明天下午5点前提交报告', '2026-09-15T09:00:00.000Z'],
@@ -17,14 +17,6 @@ it.each([
 ])('conservative occurrence-relative parsing: %s', (text, due) =>
   expect(resolveDeadline(text, at)).toBe(due),
 )
-it('preserves exact quote and title while extracting an offset-relative deadline', () => {
-  const text = '  明天下午5点前，我会提交报告。'
-  const c = extractExplicitCommitments({ text, role: 'user', occurredAt: at })
-    .candidates[0]!
-  expect(c.dueAt).toBe('2026-09-15T09:00:00.000Z')
-  expect(text.slice(c.quoteStart, c.quoteEnd)).toBe(text.trim())
-  expect(c.title).toBe('提交报告')
-})
 it('keeps day rollover tied to the occurrence timezone, not import clock', () => {
   expect(resolveDeadline('明天前', '2026-12-31T23:30:00-05:00')).toBe(
     '2027-01-02T04:59:59.999Z',

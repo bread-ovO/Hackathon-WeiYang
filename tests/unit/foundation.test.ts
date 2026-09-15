@@ -55,6 +55,3 @@ describe('parseDeadline', () => {
     expect(parseDeadline('2026-99-99')).toBeNull()
   })
 })
-
-import { extractProgressCandidates } from '../../packages/domain/src/index'
-it('extracts progress and change candidates', () => { expect(extractProgressCandidates('已完成导入\n状态更新为等待')).toEqual([{kind:'progress',text:'已完成导入'},{kind:'change',text:'状态更新为等待'}]) })

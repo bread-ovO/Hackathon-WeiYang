@@ -17,12 +17,12 @@ const task = () => ({
   ],
 })
 describe('LLM task proposals are untrusted suggestions', () => {
-  it('rejects delivery being mistaken for acceptance when a user only added scope', () => {
+  it('treats stage semantics as an unverified suggestion, not a keyword proof of completion', () => {
     const scoped = [
       ...messages.slice(0, 2),
       { id: 'm4', role: 'user' as const, text: '还要覆盖刷新页面。' },
     ]
-    expect(() =>
+    expect(
       parseTaskAnalysis(
         {
           tasks: [
@@ -38,7 +38,7 @@ describe('LLM task proposals are untrusted suggestions', () => {
         },
         scoped,
       ),
-    ).toThrow('INVALID_TASK_ANALYSIS')
+    ).toMatchObject({ tasks: [{ stage: 'accepted' }] })
   })
   it('does not invent a next step after an explicit acceptance', () => {
     expect(

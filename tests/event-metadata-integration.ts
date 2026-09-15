@@ -1,3 +1,4 @@
+import { commitHistoricalFixture } from './fixtures/legacy-rule-task'
 import assert from 'node:assert/strict'
 import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
@@ -46,7 +47,9 @@ try {
     lease = store.processing.claim(now)!,
     context = store.processing.load(lease, now)!
   assert.equal(context.event.metadata, undefined)
-  const task = store.processing.commit(
+  const task = commitHistoricalFixture(
+    store,
+    path,
     lease,
     context,
     prepareEventProcessing({
@@ -104,7 +107,9 @@ try {
   const contextView = store.contexts.get('a', loaded.eventId)!
   assert.deepEqual(contextView.metadata, metadata)
   assert.equal(store.contexts.get('b', loaded.eventId), null)
-  store.processing.commit(
+  commitHistoricalFixture(
+    store,
+    path,
     job,
     loaded,
     prepareEventProcessing({
@@ -210,5 +215,12 @@ try {
 } finally {
   db.close()
   store.close()
-  try { rmSync(dir, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 }) } catch {}
+  try {
+    rmSync(dir, {
+      recursive: true,
+      force: true,
+      maxRetries: 10,
+      retryDelay: 200,
+    })
+  } catch {}
 }

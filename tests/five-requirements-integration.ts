@@ -1,3 +1,4 @@
+import { commitHistoricalFixture } from './fixtures/legacy-rule-task'
 import { openStore, type StoredTask } from '@memo/storage'
 import { prepareEventProcessing } from '@memo/application'
 import { createGithubAccountFetcher } from '@memo/connectors'
@@ -46,7 +47,9 @@ async function main() {
     const now = new Date('2026-09-16T00:00:00Z'),
       job = store.processing.claim(now)!,
       context = store.processing.load(job, now)!
-    const result = store.processing.commit(
+    const result = commitHistoricalFixture(
+      store,
+      path,
       job,
       context,
       prepareEventProcessing({
@@ -281,7 +284,14 @@ async function main() {
     console.log('five requirements storage integration passed')
   } finally {
     store.close()
-    try { rmSync(dir, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 }) } catch {}
+    try {
+      rmSync(dir, {
+        recursive: true,
+        force: true,
+        maxRetries: 10,
+        retryDelay: 200,
+      })
+    } catch {}
   }
 }
 void main().catch((e) => {

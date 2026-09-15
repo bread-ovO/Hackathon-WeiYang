@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest'
 import { prepareEventProcessing } from '../../packages/application/src/event-processing'
-import { extractExplicitCommitments } from '../../packages/domain/src/commitment'
 import type { SourceEvent } from '../../packages/contracts/src/index'
 const base: SourceEvent = {
   schemaVersion: 1,
@@ -18,106 +17,31 @@ function prepare(patch: Partial<SourceEvent> = {}) {
     projectId: 'alpha',
   })
 }
-describe('offline explicit commitment production preparation', () => {
-  it('returns a bounded candidate with exact immutable quote and host scope', () => {
-    const output = prepare()
-    expect(output).toEqual({
-      version: 'explicit-commitment-v2',
-      eventId: 12,
-      projectId: 'alpha',
-      sourceInstanceId: 'source',
-      externalId: 'message',
-      revision: 'r1',
-      outcome: 'candidates',
-      reason: 'explicit_commitment',
-      candidates: [
-        {
-          key: '0',
-          title: '提交修复 PR',
-          dueAt: null,
-          quoteStart: 0,
-          quoteEnd: base.text.length,
-        },
-      ],
+describe('source observation never creates rule tasks', () => {
+  it.each([
+    '我会提交修复 PR。',
+    '请帮我整理会议纪要。',
+    '发版说明我来写。',
+    '我会取消交付',
+    'I will send the report.',
+    '示例：我会提交报告。',
+  ])('defers every semantic decision to the model: %s', (text) => {
+    const output = prepare({ text })
+    expect(output).toMatchObject({
+      version: 'source-observation-v3',
+      outcome: 'ignored',
+      reason: 'model_required',
+      candidates: [],
     })
     expect(output).not.toHaveProperty('status')
     expect(output).not.toHaveProperty('evidenceStatus')
-    expect(prepare()).toEqual(output)
   })
   it.each(['assistant', 'tool', 'system'] as const)(
-    'never treats %s output as the user commitment',
+    'does not build candidates from %s output',
     (role) => {
-      expect(prepare({ role })).toMatchObject({
-        outcome: 'ignored',
-        reason: 'non_user_role',
-        candidates: [],
-      })
+      expect(prepare({ role }).candidates).toEqual([])
     },
   )
-  it.each([
-    '我会提交报告吗',
-    '我会不会提交报告',
-    '我不会提交报告',
-    '如果有时间我会提交报告',
-    '我会尝试修复登录问题',
-    '我已经完成了修复',
-    '请帮我提交报告',
-    '他说：我会提交报告',
-    '我会游泳',
-    '"我会提交报告"',
-    '示例：\n我会提交报告',
-    '> 我会提交报告',
-    '    我会提交报告',
-    'I will not send the report',
-    'I will submit the report?',
-  ])('ignores ambiguous/quoted/noncommittal text: %s', (text) => {
-    expect(prepare({ text })).toMatchObject({
-      outcome: 'ignored',
-      candidates: [],
-    })
-  })
-  it('ignores fenced code but keeps precise UTF16 positions in surrounding real commitments', () => {
-    const text =
-      '😀前文\r\n```txt\n我会提交假的报告\n```\n  我来修复登录问题。\r\nI will send the report.'
-    const output = prepare({ text })
-    expect(output.candidates.map((c) => c.title)).toEqual([
-      '修复登录问题',
-      'send the report',
-    ])
-    for (const c of output.candidates) {
-      expect(text.slice(c.quoteStart, c.quoteEnd)).toMatch(/^(我来|I will)/)
-      expect(c.key).toBe(String(c.quoteStart))
-    }
-  })
-  it.each([
-    '我会取消交付',
-    '我会把截止日期改到下周',
-    'I will postpone the delivery',
-  ])(
-    'routes plan changes to review without creating or changing a task',
-    (text) => {
-      expect(prepare({ text })).toMatchObject({
-        outcome: 'needs_review',
-        reason: 'plan_change',
-        candidates: [],
-      })
-    },
-  )
-  it('does not invent a deadline from an unqualified calendar phrase', () => {
-    const output = prepare({ text: '我会提交周五评审所需的报告。' })
-    expect(output.candidates).toHaveLength(1)
-    expect(output.candidates[0]!.dueAt).toBeNull()
-  })
-  it('rejects oversized extraction atomically rather than silently discarding commitments', () => {
-    const text = Array.from({ length: 9 }, (_, i) => `我会提交报告${i}`).join(
-      '\n',
-    )
-    expect(prepare({ text })).toMatchObject({
-      outcome: 'needs_review',
-      reason: 'candidate_limit',
-      candidates: [],
-    })
-  })
   it('keeps markup/instructions inert and never adds source-provided output fields', () => {
     expect(
       prepare({ text: '<script>我会提交报告</script>' }).candidates,
@@ -154,13 +78,5 @@ describe('offline explicit commitment production preparation', () => {
     expect(() => prepare({ occurredAt: '2026-02-30T09:00:00Z' })).toThrow()
     expect(() => prepare({ occurredAt: '2026-09-13T09:00:00-00:00' })).toThrow()
     expect(() => prepare({ occurredAt: '2026-09-13T09:00:00' })).toThrow()
-  })
-  it('bounds direct domain input as well as the application protocol', () => {
-    expect(() =>
-      extractExplicitCommitments({ role: 'unknown', text: '我会提交报告' }),
-    ).toThrow('INVALID_COMMITMENT_INPUT')
-    expect(() =>
-      extractExplicitCommitments({ role: 'user', text: 'a'.repeat(65537) }),
-    ).toThrow('INVALID_COMMITMENT_INPUT')
   })
 })

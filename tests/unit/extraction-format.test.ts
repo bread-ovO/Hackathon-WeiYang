@@ -2,14 +2,17 @@ import { test, expect } from 'vitest'
 import { mkdtemp, writeFile, rm, realpath } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { holdoutCases } from '../fixtures/extraction/holdout'
 import { extractionCases } from '../fixtures/extraction/corpus'
 import { formatJsonl, normalizer } from '../evals/extraction-format'
 import { readLocalJsonl } from '../../packages/plugin-host/src/local-jsonl'
 
 test('every evaluation JSONL fixture round-trips through its production mapper with exact role, text and evidence IDs', async () => {
-  const root = await realpath(await mkdtemp(join(tmpdir(), 'bugu-eval-formats-')))
+  const root = await realpath(
+    await mkdtemp(join(tmpdir(), 'bugu-eval-formats-')),
+  )
   try {
-    for (const sample of extractionCases) {
+    for (const sample of [...extractionCases, ...holdoutCases]) {
       const encoded = formatJsonl(sample.messages, sample.format)
       const path = join(root, `${sample.id}.jsonl`)
       await writeFile(path, encoded.content)

@@ -1,0 +1,5064 @@
+{
+  "generatedAt": "2026-09-15T08:38:45.388Z",
+  "provider": "codex-cli",
+  "path": "JSONL → source observation → live model windows → persisted candidates",
+  "synthetic": true,
+  "requestedModel": null,
+  "resolvedModel": null,
+  "cliVersion": "codex-cli 0.154.0-alpha.6.2",
+  "corpusVersion": "jsonl-extraction-v1",
+  "holdoutVersion": "jsonl-extraction-holdout-v1",
+  "corpusSha256": "6d95494307130e496475ef7f2c52b1a5a5b0cdafe7699f9b9e1f45c01a2a0fcb",
+  "holdoutSha256": "28f6c6f1bcafc31857e1bad35dc5bd85e3fe2ad3ff188e635cd0b374c8c8aa5c",
+  "formatVersion": "synthetic-jsonl-v1",
+  "scorerVersion": "goal-evidence-matching-v1",
+  "analysisVersion": "task-analysis-v3",
+  "gitCommit": "d5085cf5f52f321891a269a7fc33408b43f51f0c",
+  "sourceHashes": {
+    "packages/model/src/task-analyzer.ts": "f6b7d8247c36785d4ec6db12e7e7eb9b1afb267a74472ea4416de4242db6d963",
+    "packages/contracts/src/task-analysis.ts": "dd26ce9e73e1c27325c9793da1b0e22fc27421ed34204948afe85f612c99805a",
+    "packages/application/src/event-processing.ts": "ad1069ead1365929df2b27435fdbc731ce14af1329a8528ceb5ec1c50059cbb3",
+    "packages/plugin-host/src/session-mappers.ts": "b8a22bda4dcfe764a791f284b93ef951ab2bef2b599f3c38e61a4b82093a5259",
+    "packages/storage/src/task-analysis.ts": "9abc4182ac705058f26420155d95b71da842ffef38b6b1728b219068165c177c",
+    "packages/storage/src/task-analysis-context.ts": "b2d45b6df58980441cbd2f3e25d2aa63188183fbc0d4f9a8b59359d80ce776db"
+  },
+  "suite": "baseline",
+  "plannedCases": 60,
+  "corpusCases": 60,
+  "repetitions": 1,
+  "subset": false,
+  "target": 0.99,
+  "completedCases": 60,
+  "modelCalls": 120,
+  "runs": [
+    {
+      "repetition": 1,
+      "combined": {
+        "cases": 60,
+        "errors": 0,
+        "expectedTasks": 49,
+        "predictedTasks": 50,
+        "tp": 49,
+        "fp": 1,
+        "fn": 0,
+        "precision": 0.98,
+        "recall": 1,
+        "f1": 0.98989898989899,
+        "exactCases": 59,
+        "exactCaseRate": 0.9833333333333333,
+        "exactCaseWilson95": [
+          0.9114487027240993,
+          0.9970518402052136
+        ],
+        "negativeCases": 16,
+        "cleanNegatives": 15,
+        "negativeSpecificity": 0.9375,
+        "stageAccuracyOnMatched": 1,
+        "evidenceCoverageOnMatched": 1,
+        "invalidEvidence": 0,
+        "duplicatePredictions": 0
+      },
+      "targetMet": false,
+      "suites": {
+        "baseline": {
+          "cases": 60,
+          "errors": 0,
+          "expectedTasks": 49,
+          "predictedTasks": 50,
+          "tp": 49,
+          "fp": 1,
+          "fn": 0,
+          "precision": 0.98,
+          "recall": 1,
+          "f1": 0.98989898989899,
+          "exactCases": 59,
+          "exactCaseRate": 0.9833333333333333,
+          "exactCaseWilson95": [
+            0.9114487027240993,
+            0.9970518402052136
+          ],
+          "negativeCases": 16,
+          "cleanNegatives": 15,
+          "negativeSpecificity": 0.9375,
+          "stageAccuracyOnMatched": 1,
+          "evidenceCoverageOnMatched": 1,
+          "invalidEvidence": 0,
+          "duplicatePredictions": 0
+        }
+      },
+      "categories": {
+        "commitment": {
+          "cases": 16,
+          "errors": 0,
+          "expectedTasks": 16,
+          "predictedTasks": 16,
+          "tp": 16,
+          "fp": 0,
+          "fn": 0,
+          "precision": 1,
+          "recall": 1,
+          "f1": 1,
+          "exactCases": 16,
+          "exactCaseRate": 1,
+          "exactCaseWilson95": [
+            0.8063923194655637,
+            1
+          ],
+          "negativeCases": 0,
+          "cleanNegatives": 0,
+          "negativeSpecificity": null,
+          "stageAccuracyOnMatched": 1,
+          "evidenceCoverageOnMatched": 1,
+          "invalidEvidence": 0,
+          "duplicatePredictions": 0
+        },
+        "request": {
+          "cases": 8,
+          "errors": 0,
+          "expectedTasks": 8,
+          "predictedTasks": 8,
+          "tp": 8,
+          "fp": 0,
+          "fn": 0,
+          "precision": 1,
+          "recall": 1,
+          "f1": 1,
+          "exactCases": 8,
+          "exactCaseRate": 1,
+          "exactCaseWilson95": [
+            0.6755924351161198,
+            1
+          ],
+          "negativeCases": 0,
+          "cleanNegatives": 0,
+          "negativeSpecificity": null,
+          "stageAccuracyOnMatched": 1,
+          "evidenceCoverageOnMatched": 1,
+          "invalidEvidence": 0,
+          "duplicatePredictions": 0
+        },
+        "multi-task": {
+          "cases": 4,
+          "errors": 0,
+          "expectedTasks": 8,
+          "predictedTasks": 8,
+          "tp": 8,
+          "fp": 0,
+          "fn": 0,
+          "precision": 1,
+          "recall": 1,
+          "f1": 1,
+          "exactCases": 4,
+          "exactCaseRate": 1,
+          "exactCaseWilson95": [
+            0.5101091635454027,
+            1
+          ],
+          "negativeCases": 0,
+          "cleanNegatives": 0,
+          "negativeSpecificity": null,
+          "stageAccuracyOnMatched": 1,
+          "evidenceCoverageOnMatched": 1,
+          "invalidEvidence": 0,
+          "duplicatePredictions": 0
+        },
+        "progress": {
+          "cases": 8,
+          "errors": 0,
+          "expectedTasks": 9,
+          "predictedTasks": 9,
+          "tp": 9,
+          "fp": 0,
+          "fn": 0,
+          "precision": 1,
+          "recall": 1,
+          "f1": 1,
+          "exactCases": 8,
+          "exactCaseRate": 1,
+          "exactCaseWilson95": [
+            0.6755924351161198,
+            1
+          ],
+          "negativeCases": 0,
+          "cleanNegatives": 0,
+          "negativeSpecificity": null,
+          "stageAccuracyOnMatched": 1,
+          "evidenceCoverageOnMatched": 1,
+          "invalidEvidence": 0,
+          "duplicatePredictions": 0
+        },
+        "negative": {
+          "cases": 16,
+          "errors": 0,
+          "expectedTasks": 0,
+          "predictedTasks": 1,
+          "tp": 0,
+          "fp": 1,
+          "fn": 0,
+          "precision": 0,
+          "recall": null,
+          "f1": 0,
+          "exactCases": 15,
+          "exactCaseRate": 0.9375,
+          "exactCaseWilson95": [
+            0.7167126242970107,
+            0.9888806552353576
+          ],
+          "negativeCases": 16,
+          "cleanNegatives": 15,
+          "negativeSpecificity": 0.9375,
+          "stageAccuracyOnMatched": null,
+          "evidenceCoverageOnMatched": null,
+          "invalidEvidence": 0,
+          "duplicatePredictions": 0
+        },
+        "context": {
+          "cases": 8,
+          "errors": 0,
+          "expectedTasks": 8,
+          "predictedTasks": 8,
+          "tp": 8,
+          "fp": 0,
+          "fn": 0,
+          "precision": 1,
+          "recall": 1,
+          "f1": 1,
+          "exactCases": 8,
+          "exactCaseRate": 1,
+          "exactCaseWilson95": [
+            0.6755924351161198,
+            1
+          ],
+          "negativeCases": 0,
+          "cleanNegatives": 0,
+          "negativeSpecificity": null,
+          "stageAccuracyOnMatched": 1,
+          "evidenceCoverageOnMatched": 1,
+          "invalidEvidence": 0,
+          "duplicatePredictions": 0
+        }
+      }
+    }
+  ],
+  "rows": [
+    {
+      "id": "commit-submit",
+      "suite": "baseline",
+      "format": "generic",
+      "category": "commitment",
+      "error": null,
+      "elapsedMs": 15778,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [
+        {
+          "title": "提交季度验收报告",
+          "stage": "requested",
+          "nextAction": "提交季度验收报告",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "我会提交季度验收报告。"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "anchors": [
+            [
+              "季度"
+            ],
+            [
+              "验收"
+            ],
+            [
+              "报告"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"提交季度验收报告\",\"stage\":\"requested\",\"nextAction\":\"提交季度验收报告\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"我会提交季度验收报告。\"}]}]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"提交季度验收报告\",\"stage\":\"requested\",\"nextAction\":\"提交季度验收报告\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"我会提交季度验收报告。\"}]}]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 1,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "expected": 1,
+        "predicted": 1,
+        "matchedStageCorrect": 1,
+        "matchedEvidenceComplete": 1,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "commit-fix",
+      "suite": "baseline",
+      "format": "codex",
+      "category": "commitment",
+      "error": null,
+      "elapsedMs": 15649,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [
+        {
+          "title": "修复登录后的白屏故障",
+          "stage": "requested",
+          "nextAction": "开始排查并修复登录后的白屏故障",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "我来修复登录后的白屏故障。"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "anchors": [
+            [
+              "登录",
+              "登陆"
+            ],
+            [
+              "白屏",
+              "空白"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"修复登录后的白屏故障\",\"stage\":\"requested\",\"nextAction\":\"开始排查并修复登录后的白屏故障\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"我来修复登录后的白屏故障。\"}]}]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"修复登录后的白屏故障\",\"stage\":\"requested\",\"nextAction\":\"开始排查并修复登录后的白屏故障\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"我来修复登录后的白屏故障。\"}]}]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 1,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "expected": 1,
+        "predicted": 1,
+        "matchedStageCorrect": 1,
+        "matchedEvidenceComplete": 1,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "commit-owner",
+      "suite": "baseline",
+      "format": "claude-code",
+      "category": "commitment",
+      "error": null,
+      "elapsedMs": 30387,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [
+        {
+          "title": "整理周会纪要",
+          "stage": "requested",
+          "nextAction": "整理并产出周会纪要。",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "由我负责整理周会纪要。"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "anchors": [
+            [
+              "周会"
+            ],
+            [
+              "纪要"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"整理周会纪要\",\"stage\":\"requested\",\"nextAction\":\"整理并产出周会纪要。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"由我负责整理周会纪要。\"}]}]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"整理周会纪要\",\"stage\":\"requested\",\"nextAction\":\"整理并产出周会纪要。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"由我负责整理周会纪要。\"}]}]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 1,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "expected": 1,
+        "predicted": 1,
+        "matchedStageCorrect": 1,
+        "matchedEvidenceComplete": 1,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "commit-date",
+      "suite": "baseline",
+      "format": "kimi",
+      "category": "commitment",
+      "error": null,
+      "elapsedMs": 19061,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [
+        {
+          "title": "发送预算说明",
+          "stage": "requested",
+          "nextAction": "明天下午三点前发送预算说明。",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "明天下午三点前，我会发送预算说明。"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "anchors": [
+            [
+              "预算"
+            ],
+            [
+              "说明"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"发送预算说明\",\"stage\":\"requested\",\"nextAction\":\"明天下午三点前发送预算说明。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"明天下午三点前，我会发送预算说明。\"}]}]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"发送预算说明\",\"stage\":\"requested\",\"nextAction\":\"明天下午三点前发送预算说明。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"明天下午三点前，我会发送预算说明。\"}]}]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 1,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "expected": 1,
+        "predicted": 1,
+        "matchedStageCorrect": 1,
+        "matchedEvidenceComplete": 1,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "commit-inline-date",
+      "suite": "baseline",
+      "format": "generic",
+      "category": "commitment",
+      "error": null,
+      "elapsedMs": 18134,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [
+        {
+          "title": "提交接口文档",
+          "stage": "requested",
+          "nextAction": "明天提交接口文档。",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "我会明天提交接口文档。"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "anchors": [
+            [
+              "接口"
+            ],
+            [
+              "文档"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"提交接口文档\",\"stage\":\"requested\",\"nextAction\":\"明天提交接口文档。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"我会明天提交接口文档。\"}]}]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"提交接口文档\",\"stage\":\"requested\",\"nextAction\":\"明天提交接口文档。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"我会明天提交接口文档。\"}]}]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 1,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "expected": 1,
+        "predicted": 1,
+        "matchedStageCorrect": 1,
+        "matchedEvidenceComplete": 1,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "commit-english",
+      "suite": "baseline",
+      "format": "codex",
+      "category": "commitment",
+      "error": null,
+      "elapsedMs": 18395,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [
+        {
+          "title": "Prepare the deployment checklist",
+          "stage": "requested",
+          "nextAction": "Prepare the deployment checklist.",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "I will prepare the deployment checklist."
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "anchors": [
+            [
+              "部署",
+              "deployment"
+            ],
+            [
+              "清单",
+              "checklist"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"Prepare the deployment checklist\",\"stage\":\"requested\",\"nextAction\":\"Prepare the deployment checklist.\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"I will prepare the deployment checklist.\"}]}]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"Prepare the deployment checklist\",\"stage\":\"requested\",\"nextAction\":\"Prepare the deployment checklist.\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"I will prepare the deployment checklist.\"}]}]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 1,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "expected": 1,
+        "predicted": 1,
+        "matchedStageCorrect": 1,
+        "matchedEvidenceComplete": 1,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "commit-feedback",
+      "suite": "baseline",
+      "format": "claude-code",
+      "category": "commitment",
+      "error": null,
+      "elapsedMs": 16801,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [
+        {
+          "title": "反馈支付联调结果",
+          "stage": "requested",
+          "nextAction": "完成支付联调后反馈结果",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "我负责反馈支付联调结果。"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "anchors": [
+            [
+              "支付"
+            ],
+            [
+              "联调"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"反馈支付联调结果\",\"stage\":\"requested\",\"nextAction\":\"完成支付联调后反馈结果\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"我负责反馈支付联调结果。\"}]}]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"反馈支付联调结果\",\"stage\":\"requested\",\"nextAction\":\"完成支付联调后反馈结果\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"我负责反馈支付联调结果。\"}]}]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 1,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "expected": 1,
+        "predicted": 1,
+        "matchedStageCorrect": 1,
+        "matchedEvidenceComplete": 1,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "commit-test",
+      "suite": "baseline",
+      "format": "kimi",
+      "category": "commitment",
+      "error": null,
+      "elapsedMs": 16307,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [
+        {
+          "title": "补充搜索分页的回归测试",
+          "stage": "requested",
+          "nextAction": "补充并运行搜索分页的回归测试",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "我将补充搜索分页的回归测试。"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "anchors": [
+            [
+              "搜索"
+            ],
+            [
+              "分页"
+            ],
+            [
+              "测试"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"补充搜索分页的回归测试\",\"stage\":\"requested\",\"nextAction\":\"补充并运行搜索分页的回归测试\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"我将补充搜索分页的回归测试。\"}]}]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"补充搜索分页的回归测试\",\"stage\":\"requested\",\"nextAction\":\"补充并运行搜索分页的回归测试\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"我将补充搜索分页的回归测试。\"}]}]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 1,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "expected": 1,
+        "predicted": 1,
+        "matchedStageCorrect": 1,
+        "matchedEvidenceComplete": 1,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "commit-contact",
+      "suite": "baseline",
+      "format": "generic",
+      "category": "commitment",
+      "error": null,
+      "elapsedMs": 18001,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [
+        {
+          "title": "联系设计同学确认首页配色",
+          "stage": "requested",
+          "nextAction": "联系设计同学确认首页配色。",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "我会联系设计同学确认首页配色。"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "anchors": [
+            [
+              "首页"
+            ],
+            [
+              "配色",
+              "颜色"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"联系设计同学确认首页配色\",\"stage\":\"requested\",\"nextAction\":\"联系设计同学，确认首页配色。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"我会联系设计同学确认首页配色。\"}]}]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"联系设计同学确认首页配色\",\"stage\":\"requested\",\"nextAction\":\"联系设计同学确认首页配色。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"我会联系设计同学确认首页配色。\"}]}]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 1,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "expected": 1,
+        "predicted": 1,
+        "matchedStageCorrect": 1,
+        "matchedEvidenceComplete": 1,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "commit-update",
+      "suite": "baseline",
+      "format": "codex",
+      "category": "commitment",
+      "error": null,
+      "elapsedMs": 14506,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [
+        {
+          "title": "更新安装说明",
+          "stage": "requested",
+          "nextAction": "更新安装说明并确认完成。",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "我会更新安装说明。"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "anchors": [
+            [
+              "安装"
+            ],
+            [
+              "说明",
+              "文档"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"更新安装说明\",\"stage\":\"requested\",\"nextAction\":\"更新安装说明并确认完成。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"我会更新安装说明。\"}]}]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"更新安装说明\",\"stage\":\"requested\",\"nextAction\":\"更新安装说明并确认完成。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"我会更新安装说明。\"}]}]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 1,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "expected": 1,
+        "predicted": 1,
+        "matchedStageCorrect": 1,
+        "matchedEvidenceComplete": 1,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "commit-check",
+      "suite": "baseline",
+      "format": "claude-code",
+      "category": "commitment",
+      "error": null,
+      "elapsedMs": 15580,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [
+        {
+          "title": "检查导出文件的编码",
+          "stage": "requested",
+          "nextAction": "检查导出文件所使用的编码并确认是否正确",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "我来检查导出文件的编码。"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "anchors": [
+            [
+              "导出"
+            ],
+            [
+              "编码"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"检查导出文件的编码\",\"stage\":\"requested\",\"nextAction\":\"检查导出文件所使用的编码并确认是否正确\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"我来检查导出文件的编码。\"}]}]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"检查导出文件的编码\",\"stage\":\"requested\",\"nextAction\":\"检查导出文件所使用的编码并确认是否正确\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"我来检查导出文件的编码。\"}]}]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 1,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "expected": 1,
+        "predicted": 1,
+        "matchedStageCorrect": 1,
+        "matchedEvidenceComplete": 1,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "commit-provide",
+      "suite": "baseline",
+      "format": "kimi",
+      "category": "commitment",
+      "error": null,
+      "elapsedMs": 15599,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [
+        {
+          "title": "提供合成测试数据",
+          "stage": "requested",
+          "nextAction": "提供承诺的合成测试数据。",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "我会提供合成测试数据。"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "anchors": [
+            [
+              "测试"
+            ],
+            [
+              "数据"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"提供合成测试数据\",\"stage\":\"requested\",\"nextAction\":\"等待用户提供合成测试数据。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"我会提供合成测试数据。\"}]}]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"提供合成测试数据\",\"stage\":\"requested\",\"nextAction\":\"提供承诺的合成测试数据。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"我会提供合成测试数据。\"}]}]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 1,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "expected": 1,
+        "predicted": 1,
+        "matchedStageCorrect": 1,
+        "matchedEvidenceComplete": 1,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "commit-casual",
+      "suite": "baseline",
+      "format": "generic",
+      "category": "commitment",
+      "error": null,
+      "elapsedMs": 17452,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [
+        {
+          "title": "整理发布说明",
+          "stage": "requested",
+          "nextAction": "整理发布说明并形成可交付内容。",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "行，发布说明我来整理。"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "anchors": [
+            [
+              "发布"
+            ],
+            [
+              "说明"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"整理发布说明\",\"stage\":\"requested\",\"nextAction\":\"整理发布说明并形成可交付内容。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"行，发布说明我来整理。\"}]}]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"整理发布说明\",\"stage\":\"requested\",\"nextAction\":\"整理发布说明并形成可交付内容。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"行，发布说明我来整理。\"}]}]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 1,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "expected": 1,
+        "predicted": 1,
+        "matchedStageCorrect": 1,
+        "matchedEvidenceComplete": 1,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "commit-unlisted-verb",
+      "suite": "baseline",
+      "format": "codex",
+      "category": "commitment",
+      "error": null,
+      "elapsedMs": 16130,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [
+        {
+          "title": "核对发布材料",
+          "stage": "requested",
+          "nextAction": "核对发布材料。",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "我会核对发布材料。"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "anchors": [
+            [
+              "发布"
+            ],
+            [
+              "材料"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"核对发布材料\",\"stage\":\"requested\",\"nextAction\":\"核对发布材料。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"我会核对发布材料。\"}]}]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"核对发布材料\",\"stage\":\"requested\",\"nextAction\":\"核对发布材料。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"我会核对发布材料。\"}]}]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 1,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "expected": 1,
+        "predicted": 1,
+        "matchedStageCorrect": 1,
+        "matchedEvidenceComplete": 1,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "commit-bullet",
+      "suite": "baseline",
+      "format": "claude-code",
+      "category": "commitment",
+      "error": null,
+      "elapsedMs": 16434,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [
+        {
+          "title": "修复搜索结果排序",
+          "stage": "requested",
+          "nextAction": "修复搜索结果排序并验证排序结果符合预期",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "- 我会修复搜索结果排序。"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "anchors": [
+            [
+              "搜索"
+            ],
+            [
+              "排序"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"修复搜索结果排序\",\"stage\":\"requested\",\"nextAction\":\"修复搜索结果排序并验证排序结果符合预期\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"- 我会修复搜索结果排序。\"}]}]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"修复搜索结果排序\",\"stage\":\"requested\",\"nextAction\":\"修复搜索结果排序并验证排序结果符合预期\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"- 我会修复搜索结果排序。\"}]}]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 1,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "expected": 1,
+        "predicted": 1,
+        "matchedStageCorrect": 1,
+        "matchedEvidenceComplete": 1,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "commit-two-lines",
+      "suite": "baseline",
+      "format": "kimi",
+      "category": "commitment",
+      "error": null,
+      "elapsedMs": 17785,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [
+        {
+          "title": "整理支付接口文档（错误码和重试机制）",
+          "stage": "requested",
+          "nextAction": "整理一份涵盖错误码和重试机制的支付接口文档。",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "我会整理支付接口文档。\n范围是错误码和重试机制，仍是一份文档。"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "anchors": [
+            [
+              "支付"
+            ],
+            [
+              "接口"
+            ],
+            [
+              "文档"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"整理支付接口文档（错误码和重试机制）\",\"stage\":\"requested\",\"nextAction\":\"整理一份涵盖错误码和重试机制的支付接口文档。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"我会整理支付接口文档。\\n范围是错误码和重试机制，仍是一份文档。\"}]}]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"整理支付接口文档（错误码和重试机制）\",\"stage\":\"requested\",\"nextAction\":\"整理一份涵盖错误码和重试机制的支付接口文档。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"我会整理支付接口文档。\\n范围是错误码和重试机制，仍是一份文档。\"}]}]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 1,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "expected": 1,
+        "predicted": 1,
+        "matchedStageCorrect": 1,
+        "matchedEvidenceComplete": 1,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "request-fix",
+      "suite": "baseline",
+      "format": "generic",
+      "category": "request",
+      "error": null,
+      "elapsedMs": 15767,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [
+        {
+          "title": "修复登录白屏并补充回归测试",
+          "stage": "requested",
+          "nextAction": "修复登录白屏问题，补充并运行相应回归测试。",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "帮我修复登录白屏，并为这个修复补回归测试。"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "anchors": [
+            [
+              "登录"
+            ],
+            [
+              "白屏"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"修复登录白屏并补充回归测试\",\"stage\":\"requested\",\"nextAction\":\"修复登录白屏问题，补充并运行相应回归测试。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"帮我修复登录白屏，并为这个修复补回归测试。\"}]}]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"修复登录白屏并补充回归测试\",\"stage\":\"requested\",\"nextAction\":\"修复登录白屏问题，补充并运行相应回归测试。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"帮我修复登录白屏，并为这个修复补回归测试。\"}]}]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 1,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "expected": 1,
+        "predicted": 1,
+        "matchedStageCorrect": 1,
+        "matchedEvidenceComplete": 1,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "request-politeness",
+      "suite": "baseline",
+      "format": "codex",
+      "category": "request",
+      "error": null,
+      "elapsedMs": 21481,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [
+        {
+          "title": "整理本周发布说明",
+          "stage": "requested",
+          "nextAction": "整理并交付本周发布说明。",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "麻烦你整理一下本周发布说明。"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "anchors": [
+            [
+              "发布"
+            ],
+            [
+              "说明"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"整理本周发布说明\",\"stage\":\"requested\",\"nextAction\":\"整理并交付本周发布说明，供用户确认。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"麻烦你整理一下本周发布说明。\"}]}]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"整理本周发布说明\",\"stage\":\"requested\",\"nextAction\":\"整理并交付本周发布说明。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"麻烦你整理一下本周发布说明。\"}]}]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 1,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "expected": 1,
+        "predicted": 1,
+        "matchedStageCorrect": 1,
+        "matchedEvidenceComplete": 1,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "request-imperative",
+      "suite": "baseline",
+      "format": "claude-code",
+      "category": "request",
+      "error": null,
+      "elapsedMs": 16197,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [
+        {
+          "title": "删除设置页的重复说明",
+          "stage": "requested",
+          "nextAction": "定位并删除设置页中的重复说明，然后检查页面内容。",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "把设置页的重复说明删掉。"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "anchors": [
+            [
+              "设置"
+            ],
+            [
+              "重复说明",
+              "说明",
+              "文案"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"删除设置页的重复说明\",\"stage\":\"requested\",\"nextAction\":\"定位设置页中的重复说明并删除，随后检查页面内容是否仍完整清晰。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"把设置页的重复说明删掉。\"}]}]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"删除设置页的重复说明\",\"stage\":\"requested\",\"nextAction\":\"定位并删除设置页中的重复说明，然后检查页面内容。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"把设置页的重复说明删掉。\"}]}]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 1,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "expected": 1,
+        "predicted": 1,
+        "matchedStageCorrect": 1,
+        "matchedEvidenceComplete": 1,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "request-question",
+      "suite": "baseline",
+      "format": "kimi",
+      "category": "request",
+      "error": null,
+      "elapsedMs": 16353,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [
+        {
+          "title": "为导出功能补充空数据测试",
+          "stage": "requested",
+          "nextAction": "为导出功能新增空数据场景的测试用例，并验证测试通过。",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "能帮我给导出功能补一个空数据测试吗？"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "anchors": [
+            [
+              "导出"
+            ],
+            [
+              "空数据",
+              "空"
+            ],
+            [
+              "测试"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"为导出功能补充空数据测试\",\"stage\":\"requested\",\"nextAction\":\"为导出功能新增空数据场景的测试用例，并验证测试通过。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"能帮我给导出功能补一个空数据测试吗？\"}]}]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"为导出功能补充空数据测试\",\"stage\":\"requested\",\"nextAction\":\"为导出功能新增空数据场景的测试用例，并验证测试通过。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"能帮我给导出功能补一个空数据测试吗？\"}]}]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 1,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "expected": 1,
+        "predicted": 1,
+        "matchedStageCorrect": 1,
+        "matchedEvidenceComplete": 1,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "request-english",
+      "suite": "baseline",
+      "format": "generic",
+      "category": "request",
+      "error": null,
+      "elapsedMs": 18686,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [
+        {
+          "title": "Fix the login redirect loop and add a regression test",
+          "stage": "requested",
+          "nextAction": "Investigate and fix the login redirect loop, then add a regression test that reproduces the bug and verifies the fix.",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "Please fix the login redirect loop and add a regression test for this bug."
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "anchors": [
+            [
+              "登录",
+              "login"
+            ],
+            [
+              "重定向",
+              "redirect"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"Fix the login redirect loop and add a regression test\",\"stage\":\"requested\",\"nextAction\":\"Investigate and fix the login redirect loop, then add a regression test that reproduces and verifies the bug is resolved.\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"Please fix the login redirect loop and add a regression test for this bug.\"}]}]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"Fix the login redirect loop and add a regression test\",\"stage\":\"requested\",\"nextAction\":\"Investigate and fix the login redirect loop, then add a regression test that reproduces the bug and verifies the fix.\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"Please fix the login redirect loop and add a regression test for this bug.\"}]}]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 1,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "expected": 1,
+        "predicted": 1,
+        "matchedStageCorrect": 1,
+        "matchedEvidenceComplete": 1,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "request-short",
+      "suite": "baseline",
+      "format": "codex",
+      "category": "request",
+      "error": null,
+      "elapsedMs": 14834,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [
+        {
+          "title": "更新 README 里的启动步骤",
+          "stage": "requested",
+          "nextAction": "修改 README，更新其中的启动步骤。",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "更新 README 里的启动步骤。"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "anchors": [
+            [
+              "readme"
+            ],
+            [
+              "启动"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"更新 README 里的启动步骤\",\"stage\":\"requested\",\"nextAction\":\"修改 README，更新其中的启动步骤。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"更新 README 里的启动步骤。\"}]}]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"更新 README 里的启动步骤\",\"stage\":\"requested\",\"nextAction\":\"修改 README，更新其中的启动步骤。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"更新 README 里的启动步骤。\"}]}]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 1,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "expected": 1,
+        "predicted": 1,
+        "matchedStageCorrect": 1,
+        "matchedEvidenceComplete": 1,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "request-two-turns",
+      "suite": "baseline",
+      "format": "claude-code",
+      "category": "request",
+      "error": null,
+      "elapsedMs": 18368,
+      "parsedMessages": 2,
+      "inputMessages": 2,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [
+        {
+          "title": "整理 API 接入说明并加入鉴权示例",
+          "stage": "requested",
+          "nextAction": "整理 API 接入流程，并在同一份说明中补充鉴权示例。",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "帮我整理 API 接入说明。"
+            },
+            {
+              "messageId": "m2",
+              "quote": "把鉴权示例也写进这份说明。"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "anchors": [
+            [
+              "api",
+              "接口"
+            ],
+            [
+              "接入",
+              "说明"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1",
+            "m2"
+          ]
+        }
+      ],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"整理 API 接入说明并加入鉴权示例\",\"stage\":\"requested\",\"nextAction\":\"整理 API 接入流程，并在同一份说明中补充鉴权示例。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"帮我整理 API 接入说明。\"},{\"messageId\":\"e2\",\"quote\":\"把鉴权示例也写进这份说明。\"}]}]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"整理 API 接入说明并加入鉴权示例\",\"stage\":\"requested\",\"nextAction\":\"整理 API 接入流程，并在同一份说明中补充鉴权示例。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"帮我整理 API 接入说明。\"},{\"messageId\":\"e2\",\"quote\":\"把鉴权示例也写进这份说明。\"}]}]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 1,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "expected": 1,
+        "predicted": 1,
+        "matchedStageCorrect": 1,
+        "matchedEvidenceComplete": 1,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "request-assignment",
+      "suite": "baseline",
+      "format": "kimi",
+      "category": "request",
+      "error": null,
+      "elapsedMs": 15744,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [
+        {
+          "title": "修复桌宠的拖动问题",
+          "stage": "requested",
+          "nextAction": "定位并修复桌宠的拖动问题，然后验证修复效果。",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "这次由你负责修好桌宠的拖动问题。"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "anchors": [
+            [
+              "桌宠"
+            ],
+            [
+              "拖动",
+              "拖拽"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"修复桌宠的拖动问题\",\"stage\":\"requested\",\"nextAction\":\"定位并修复桌宠拖动问题，完成后进行验证。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"这次由你负责修好桌宠的拖动问题。\"}]}]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"修复桌宠的拖动问题\",\"stage\":\"requested\",\"nextAction\":\"定位并修复桌宠的拖动问题，然后验证修复效果。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"这次由你负责修好桌宠的拖动问题。\"}]}]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 1,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "expected": 1,
+        "predicted": 1,
+        "matchedStageCorrect": 1,
+        "matchedEvidenceComplete": 1,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "multi-independent",
+      "suite": "baseline",
+      "format": "generic",
+      "category": "multi-task",
+      "error": null,
+      "elapsedMs": 19980,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [
+        {
+          "title": "整理季度预算",
+          "stage": "requested",
+          "nextAction": "整理季度预算并提交结果。",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "做两件独立的事：修复登录白屏；整理季度预算。"
+            }
+          ]
+        },
+        {
+          "title": "修复登录白屏",
+          "stage": "requested",
+          "nextAction": "修复登录白屏并完成验证。",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "做两件独立的事：修复登录白屏；整理季度预算。"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "anchors": [
+            [
+              "登录"
+            ],
+            [
+              "白屏"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1"
+          ]
+        },
+        {
+          "anchors": [
+            [
+              "季度"
+            ],
+            [
+              "预算"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"修复登录白屏\",\"stage\":\"requested\",\"nextAction\":\"修复登录白屏并完成验证。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"做两件独立的事：修复登录白屏；整理季度预算。\"}]},{\"title\":\"整理季度预算\",\"stage\":\"requested\",\"nextAction\":\"整理季度预算并提交结果。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"做两件独立的事：修复登录白屏；整理季度预算。\"}]}]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"修复登录白屏\",\"stage\":\"requested\",\"nextAction\":\"修复登录白屏并完成验证。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"做两件独立的事：修复登录白屏；整理季度预算。\"}]},{\"title\":\"整理季度预算\",\"stage\":\"requested\",\"nextAction\":\"整理季度预算并提交结果。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"做两件独立的事：修复登录白屏；整理季度预算。\"}]}]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 2,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 2,
+        "fp": 0,
+        "fn": 0,
+        "expected": 2,
+        "predicted": 2,
+        "matchedStageCorrect": 2,
+        "matchedEvidenceComplete": 2,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 1,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          },
+          {
+            "predicted": 0,
+            "expected": 1,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "multi-lines",
+      "suite": "baseline",
+      "format": "codex",
+      "category": "multi-task",
+      "error": null,
+      "elapsedMs": 19215,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [
+        {
+          "title": "更新用户安装说明",
+          "stage": "requested",
+          "nextAction": "更新用户安装说明。",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "我会更新用户安装说明。"
+            }
+          ]
+        },
+        {
+          "title": "提交性能测试报告",
+          "stage": "requested",
+          "nextAction": "提交性能测试报告。",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "我会提交性能测试报告。"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "anchors": [
+            [
+              "性能"
+            ],
+            [
+              "测试"
+            ],
+            [
+              "报告"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1"
+          ]
+        },
+        {
+          "anchors": [
+            [
+              "安装"
+            ],
+            [
+              "说明"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"提交性能测试报告\",\"stage\":\"requested\",\"nextAction\":\"提交性能测试报告。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"我会提交性能测试报告。\"}]},{\"title\":\"更新用户安装说明\",\"stage\":\"requested\",\"nextAction\":\"更新用户安装说明。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"我会更新用户安装说明。\"}]}]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"提交性能测试报告\",\"stage\":\"requested\",\"nextAction\":\"提交性能测试报告。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"我会提交性能测试报告。\"}]},{\"title\":\"更新用户安装说明\",\"stage\":\"requested\",\"nextAction\":\"更新用户安装说明。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"我会更新用户安装说明。\"}]}]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 2,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 2,
+        "fp": 0,
+        "fn": 0,
+        "expected": 2,
+        "predicted": 2,
+        "matchedStageCorrect": 2,
+        "matchedEvidenceComplete": 2,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 1,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          },
+          {
+            "predicted": 0,
+            "expected": 1,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "multi-different-turns",
+      "suite": "baseline",
+      "format": "claude-code",
+      "category": "multi-task",
+      "error": null,
+      "elapsedMs": 17110,
+      "parsedMessages": 2,
+      "inputMessages": 2,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [
+        {
+          "title": "修复上传超时",
+          "stage": "requested",
+          "nextAction": "定位上传超时原因，完成修复并验证上传流程。",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "请修复上传超时。"
+            }
+          ]
+        },
+        {
+          "title": "补充搜索功能文档",
+          "stage": "requested",
+          "nextAction": "补充并完善搜索功能文档。",
+          "evidence": [
+            {
+              "messageId": "m2",
+              "quote": "另一个独立任务：补充搜索功能文档。"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "anchors": [
+            [
+              "上传"
+            ],
+            [
+              "超时"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1"
+          ]
+        },
+        {
+          "anchors": [
+            [
+              "搜索"
+            ],
+            [
+              "文档"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m2"
+          ],
+          "evidenceIds": [
+            "m2"
+          ]
+        }
+      ],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"修复上传超时\",\"stage\":\"requested\",\"nextAction\":\"定位上传超时原因，完成修复并验证上传流程。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"请修复上传超时。\"}]},{\"title\":\"补充搜索功能文档\",\"stage\":\"requested\",\"nextAction\":\"补充并完善搜索功能文档。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e2\",\"quote\":\"另一个独立任务：补充搜索功能文档。\"}]}]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"修复上传超时\",\"stage\":\"requested\",\"nextAction\":\"定位上传超时原因，完成修复并验证上传流程。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"请修复上传超时。\"}]},{\"title\":\"补充搜索功能文档\",\"stage\":\"requested\",\"nextAction\":\"补充并完善搜索功能文档。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e2\",\"quote\":\"另一个独立任务：补充搜索功能文档。\"}]}]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 2,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 2,
+        "fp": 0,
+        "fn": 0,
+        "expected": 2,
+        "predicted": 2,
+        "matchedStageCorrect": 2,
+        "matchedEvidenceComplete": 2,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          },
+          {
+            "predicted": 1,
+            "expected": 1,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "multi-shared-evidence",
+      "suite": "baseline",
+      "format": "kimi",
+      "category": "multi-task",
+      "error": null,
+      "elapsedMs": 18173,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [
+        {
+          "title": "编写注册接口文档",
+          "stage": "requested",
+          "nextAction": "编写并交付注册接口文档。",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "分别写好注册接口文档和支付接口文档，这是两个独立交付。"
+            }
+          ]
+        },
+        {
+          "title": "编写支付接口文档",
+          "stage": "requested",
+          "nextAction": "编写并交付支付接口文档。",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "分别写好注册接口文档和支付接口文档，这是两个独立交付。"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "anchors": [
+            [
+              "注册"
+            ],
+            [
+              "接口"
+            ],
+            [
+              "文档"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1"
+          ]
+        },
+        {
+          "anchors": [
+            [
+              "支付"
+            ],
+            [
+              "接口"
+            ],
+            [
+              "文档"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"编写注册接口文档\",\"stage\":\"requested\",\"nextAction\":\"编写并交付注册接口文档。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"分别写好注册接口文档和支付接口文档，这是两个独立交付。\"}]},{\"title\":\"编写支付接口文档\",\"stage\":\"requested\",\"nextAction\":\"编写并交付支付接口文档。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"分别写好注册接口文档和支付接口文档，这是两个独立交付。\"}]}]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"编写注册接口文档\",\"stage\":\"requested\",\"nextAction\":\"编写并交付注册接口文档。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"分别写好注册接口文档和支付接口文档，这是两个独立交付。\"}]},{\"title\":\"编写支付接口文档\",\"stage\":\"requested\",\"nextAction\":\"编写并交付支付接口文档。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"分别写好注册接口文档和支付接口文档，这是两个独立交付。\"}]}]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 2,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 2,
+        "fp": 0,
+        "fn": 0,
+        "expected": 2,
+        "predicted": 2,
+        "matchedStageCorrect": 2,
+        "matchedEvidenceComplete": 2,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          },
+          {
+            "predicted": 1,
+            "expected": 1,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "same-goal-followup",
+      "suite": "baseline",
+      "format": "generic",
+      "category": "progress",
+      "error": null,
+      "elapsedMs": 16842,
+      "parsedMessages": 3,
+      "inputMessages": 3,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [
+        {
+          "title": "修复登录白屏并覆盖页面刷新场景",
+          "stage": "in_progress",
+          "nextAction": "继续定位并修复登录回调问题，验证登录及页面刷新场景均不再出现白屏。",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "修复登录白屏。"
+            },
+            {
+              "messageId": "m2",
+              "quote": "正在定位登录回调。"
+            },
+            {
+              "messageId": "m3",
+              "quote": "这个修复还要覆盖页面刷新。"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "anchors": [
+            [
+              "登录"
+            ],
+            [
+              "白屏"
+            ]
+          ],
+          "stage": "in_progress",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1",
+            "m3"
+          ]
+        }
+      ],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"修复登录白屏并覆盖页面刷新场景\",\"stage\":\"in_progress\",\"nextAction\":\"继续定位并修复登录回调问题，验证登录及页面刷新场景均不再出现白屏。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"修复登录白屏。\"},{\"messageId\":\"e2\",\"quote\":\"正在定位登录回调。\"},{\"messageId\":\"e3\",\"quote\":\"这个修复还要覆盖页面刷新。\"}]}]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"修复登录白屏并覆盖页面刷新场景\",\"stage\":\"in_progress\",\"nextAction\":\"继续定位并修复登录回调问题，验证登录及页面刷新场景均不再出现白屏。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"修复登录白屏。\"},{\"messageId\":\"e2\",\"quote\":\"正在定位登录回调。\"},{\"messageId\":\"e3\",\"quote\":\"这个修复还要覆盖页面刷新。\"}]}]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 1,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "expected": 1,
+        "predicted": 1,
+        "matchedStageCorrect": 1,
+        "matchedEvidenceComplete": 1,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "delivery-is-not-acceptance",
+      "suite": "baseline",
+      "format": "codex",
+      "category": "progress",
+      "error": null,
+      "elapsedMs": 22808,
+      "parsedMessages": 2,
+      "inputMessages": 2,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [
+        {
+          "title": "修复上传超时并提交 PR",
+          "stage": "delivered",
+          "nextAction": "等待用户验收 PR",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "修复上传超时并给我 PR。"
+            },
+            {
+              "messageId": "m2",
+              "quote": "已提交修复，PR：https://github.com/example/synthetic/pull/12，请验收。"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "anchors": [
+            [
+              "上传"
+            ],
+            [
+              "超时"
+            ]
+          ],
+          "stage": "delivered",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1",
+            "m2"
+          ]
+        }
+      ],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"修复上传超时并提交 PR\",\"stage\":\"delivered\",\"nextAction\":\"等待用户验收 PR\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"修复上传超时并给我 PR。\"},{\"messageId\":\"e2\",\"quote\":\"已提交修复，PR：https://github.com/example/synthetic/pull/12，请验收。\"}]}]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"修复上传超时并提交 PR\",\"stage\":\"delivered\",\"nextAction\":\"等待用户验收 PR\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"修复上传超时并给我 PR。\"},{\"messageId\":\"e2\",\"quote\":\"已提交修复，PR：https://github.com/example/synthetic/pull/12，请验收。\"}]}]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 1,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "expected": 1,
+        "predicted": 1,
+        "matchedStageCorrect": 1,
+        "matchedEvidenceComplete": 1,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "accepted",
+      "suite": "baseline",
+      "format": "claude-code",
+      "category": "progress",
+      "error": null,
+      "elapsedMs": 16634,
+      "parsedMessages": 3,
+      "inputMessages": 3,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [
+        {
+          "title": "修复登录白屏",
+          "stage": "accepted",
+          "nextAction": "无需后续操作，用户已验收通过并确认完成。",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "修复登录白屏。"
+            },
+            {
+              "messageId": "m3",
+              "quote": "登录白屏验收通过，确认完成。"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "anchors": [
+            [
+              "登录"
+            ],
+            [
+              "白屏"
+            ]
+          ],
+          "stage": "accepted",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1",
+            "m3"
+          ]
+        }
+      ],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"修复登录白屏\",\"stage\":\"accepted\",\"nextAction\":\"无需后续操作，用户已验收通过并确认完成。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"修复登录白屏。\"},{\"messageId\":\"e3\",\"quote\":\"登录白屏验收通过，确认完成。\"}]}]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"修复登录白屏\",\"stage\":\"accepted\",\"nextAction\":\"无需后续操作，用户已验收通过并确认完成。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"修复登录白屏。\"},{\"messageId\":\"e3\",\"quote\":\"登录白屏验收通过，确认完成。\"}]}]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 1,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "expected": 1,
+        "predicted": 1,
+        "matchedStageCorrect": 1,
+        "matchedEvidenceComplete": 1,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "rejected-delivery",
+      "suite": "baseline",
+      "format": "kimi",
+      "category": "progress",
+      "error": null,
+      "elapsedMs": 16491,
+      "parsedMessages": 3,
+      "inputMessages": 3,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [
+        {
+          "title": "修复搜索排序",
+          "stage": "in_progress",
+          "nextAction": "继续排查并修复搜索排序问题，完成后重新验证排序结果。",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "修复搜索排序。"
+            },
+            {
+              "messageId": "m3",
+              "quote": "搜索排序还是不对，继续修。"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "anchors": [
+            [
+              "搜索"
+            ],
+            [
+              "排序"
+            ]
+          ],
+          "stage": "in_progress",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1",
+            "m3"
+          ]
+        }
+      ],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"修复搜索排序\",\"stage\":\"in_progress\",\"nextAction\":\"继续排查并修复搜索排序问题，完成后重新验证排序结果。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"修复搜索排序。\"},{\"messageId\":\"e3\",\"quote\":\"搜索排序还是不对，继续修。\"}]}]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"修复搜索排序\",\"stage\":\"in_progress\",\"nextAction\":\"继续排查并修复搜索排序问题，完成后重新验证排序结果。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"修复搜索排序。\"},{\"messageId\":\"e3\",\"quote\":\"搜索排序还是不对，继续修。\"}]}]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 1,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "expected": 1,
+        "predicted": 1,
+        "matchedStageCorrect": 1,
+        "matchedEvidenceComplete": 1,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "cancelled",
+      "suite": "baseline",
+      "format": "generic",
+      "category": "progress",
+      "error": null,
+      "elapsedMs": 17805,
+      "parsedMessages": 2,
+      "inputMessages": 2,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [
+        {
+          "title": "增加短信登录",
+          "stage": "cancelled",
+          "nextAction": "无需继续，需求已明确取消。",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "增加短信登录。"
+            },
+            {
+              "messageId": "m2",
+              "quote": "短信登录不做了，取消这个需求。"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "anchors": [
+            [
+              "短信"
+            ],
+            [
+              "登录"
+            ]
+          ],
+          "stage": "cancelled",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1",
+            "m2"
+          ]
+        }
+      ],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"增加短信登录\",\"stage\":\"cancelled\",\"nextAction\":\"无需继续，需求已明确取消。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"增加短信登录。\"},{\"messageId\":\"e2\",\"quote\":\"短信登录不做了，取消这个需求。\"}]}]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"增加短信登录\",\"stage\":\"cancelled\",\"nextAction\":\"无需继续，需求已明确取消。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"增加短信登录。\"},{\"messageId\":\"e2\",\"quote\":\"短信登录不做了，取消这个需求。\"}]}]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 1,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "expected": 1,
+        "predicted": 1,
+        "matchedStageCorrect": 1,
+        "matchedEvidenceComplete": 1,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "acceptance-request-is-not-accepted",
+      "suite": "baseline",
+      "format": "codex",
+      "category": "progress",
+      "error": null,
+      "elapsedMs": 17761,
+      "parsedMessages": 2,
+      "inputMessages": 2,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [
+        {
+          "title": "整理发布说明",
+          "stage": "delivered",
+          "nextAction": "等待用户验收发布说明",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "整理发布说明，完成后给我验收。"
+            },
+            {
+              "messageId": "m2",
+              "quote": "整理好了，请查看。"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "anchors": [
+            [
+              "发布"
+            ],
+            [
+              "说明"
+            ]
+          ],
+          "stage": "delivered",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1",
+            "m2"
+          ]
+        }
+      ],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"整理发布说明\",\"stage\":\"delivered\",\"nextAction\":\"等待用户验收发布说明\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"整理发布说明，完成后给我验收。\"},{\"messageId\":\"e2\",\"quote\":\"整理好了，请查看。\"}]}]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"整理发布说明\",\"stage\":\"delivered\",\"nextAction\":\"等待用户验收发布说明\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"整理发布说明，完成后给我验收。\"},{\"messageId\":\"e2\",\"quote\":\"整理好了，请查看。\"}]}]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 1,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "expected": 1,
+        "predicted": 1,
+        "matchedStageCorrect": 1,
+        "matchedEvidenceComplete": 1,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "partial-scope",
+      "suite": "baseline",
+      "format": "claude-code",
+      "category": "progress",
+      "error": null,
+      "elapsedMs": 17962,
+      "parsedMessages": 2,
+      "inputMessages": 2,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [
+        {
+          "title": "完善搜索功能，同时支持分页和排序",
+          "stage": "in_progress",
+          "nextAction": "完成排序功能，并验证搜索功能可同时支持分页和排序后交付验收",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "完善搜索功能，必须同时支持分页和排序。"
+            },
+            {
+              "messageId": "m2",
+              "quote": "分页完成了，排序还在修。"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "anchors": [
+            [
+              "搜索"
+            ]
+          ],
+          "stage": "in_progress",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1",
+            "m2"
+          ]
+        }
+      ],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"完善搜索功能，同时支持分页和排序\",\"stage\":\"in_progress\",\"nextAction\":\"完成排序功能，并验证搜索功能可同时支持分页和排序后交付验收\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"完善搜索功能，必须同时支持分页和排序。\"},{\"messageId\":\"e2\",\"quote\":\"分页完成了，排序还在修。\"}]}]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"完善搜索功能，同时支持分页和排序\",\"stage\":\"in_progress\",\"nextAction\":\"完成排序功能，并验证搜索功能可同时支持分页和排序后交付验收\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"完善搜索功能，必须同时支持分页和排序。\"},{\"messageId\":\"e2\",\"quote\":\"分页完成了，排序还在修。\"}]}]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 1,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "expected": 1,
+        "predicted": 1,
+        "matchedStageCorrect": 1,
+        "matchedEvidenceComplete": 1,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "two-goals-one-accepted",
+      "suite": "baseline",
+      "format": "kimi",
+      "category": "progress",
+      "error": null,
+      "elapsedMs": 18325,
+      "parsedMessages": 4,
+      "inputMessages": 4,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [
+        {
+          "title": "修复登录白屏",
+          "stage": "accepted",
+          "nextAction": "无需跟进，用户已验收通过。",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "修复登录白屏。"
+            },
+            {
+              "messageId": "m4",
+              "quote": "只有登录白屏验收通过，预算还没开始。"
+            }
+          ]
+        },
+        {
+          "title": "整理预算说明",
+          "stage": "requested",
+          "nextAction": "开始整理预算说明。",
+          "evidence": [
+            {
+              "messageId": "m2",
+              "quote": "另外，整理预算说明。"
+            },
+            {
+              "messageId": "m4",
+              "quote": "只有登录白屏验收通过，预算还没开始。"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "anchors": [
+            [
+              "登录"
+            ],
+            [
+              "白屏"
+            ]
+          ],
+          "stage": "accepted",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1",
+            "m4"
+          ]
+        },
+        {
+          "anchors": [
+            [
+              "预算"
+            ],
+            [
+              "说明"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m2"
+          ],
+          "evidenceIds": [
+            "m2",
+            "m4"
+          ]
+        }
+      ],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"修复登录白屏\",\"stage\":\"accepted\",\"nextAction\":\"无需跟进，用户已验收通过。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"修复登录白屏。\"},{\"messageId\":\"e4\",\"quote\":\"只有登录白屏验收通过，预算还没开始。\"}]},{\"title\":\"整理预算说明\",\"stage\":\"requested\",\"nextAction\":\"开始整理预算说明。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e2\",\"quote\":\"另外，整理预算说明。\"},{\"messageId\":\"e4\",\"quote\":\"只有登录白屏验收通过，预算还没开始。\"}]}]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"修复登录白屏\",\"stage\":\"accepted\",\"nextAction\":\"无需跟进，用户已验收通过。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"修复登录白屏。\"},{\"messageId\":\"e4\",\"quote\":\"只有登录白屏验收通过，预算还没开始。\"}]},{\"title\":\"整理预算说明\",\"stage\":\"requested\",\"nextAction\":\"开始整理预算说明。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e2\",\"quote\":\"另外，整理预算说明。\"},{\"messageId\":\"e4\",\"quote\":\"只有登录白屏验收通过，预算还没开始。\"}]}]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 2,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 2,
+        "fp": 0,
+        "fn": 0,
+        "expected": 2,
+        "predicted": 2,
+        "matchedStageCorrect": 2,
+        "matchedEvidenceComplete": 2,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          },
+          {
+            "predicted": 1,
+            "expected": 1,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "negative-greeting",
+      "suite": "baseline",
+      "format": "generic",
+      "category": "negative",
+      "error": null,
+      "elapsedMs": 17196,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [],
+      "expected": [],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 0,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "expected": 0,
+        "predicted": 0,
+        "matchedStageCorrect": 0,
+        "matchedEvidenceComplete": 0,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "negative-knowledge",
+      "suite": "baseline",
+      "format": "codex",
+      "category": "negative",
+      "error": null,
+      "elapsedMs": 13820,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [],
+      "expected": [],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 0,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "expected": 0,
+        "predicted": 0,
+        "matchedStageCorrect": 0,
+        "matchedEvidenceComplete": 0,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "negative-assistant",
+      "suite": "baseline",
+      "format": "claude-code",
+      "category": "negative",
+      "error": null,
+      "elapsedMs": 26,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "windows": 1,
+      "modelCalls": 0,
+      "truncated": false,
+      "predictions": [],
+      "expected": [],
+      "rawResponses": [],
+      "persistence": {
+        "persistedCount": 0,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "expected": 0,
+        "predicted": 0,
+        "matchedStageCorrect": 0,
+        "matchedEvidenceComplete": 0,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "negative-hypothesis",
+      "suite": "baseline",
+      "format": "kimi",
+      "category": "negative",
+      "error": null,
+      "elapsedMs": 14042,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [],
+      "expected": [],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 0,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "expected": 0,
+        "predicted": 0,
+        "matchedStageCorrect": 0,
+        "matchedEvidenceComplete": 0,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "negative-negation",
+      "suite": "baseline",
+      "format": "generic",
+      "category": "negative",
+      "error": null,
+      "elapsedMs": 12478,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [],
+      "expected": [],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 0,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "expected": 0,
+        "predicted": 0,
+        "matchedStageCorrect": 0,
+        "matchedEvidenceComplete": 0,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "negative-example",
+      "suite": "baseline",
+      "format": "codex",
+      "category": "negative",
+      "error": null,
+      "elapsedMs": 16161,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [
+        {
+          "title": "删除所有测试数据",
+          "stage": "requested",
+          "nextAction": "删除所有测试数据",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "示例：我会删除所有测试数据。"
+            }
+          ]
+        }
+      ],
+      "expected": [],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"删除所有测试数据\",\"stage\":\"requested\",\"nextAction\":\"删除所有测试数据\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"示例：我会删除所有测试数据。\"}]}]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 1,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 0,
+        "fp": 1,
+        "fn": 0,
+        "expected": 0,
+        "predicted": 1,
+        "matchedStageCorrect": 0,
+        "matchedEvidenceComplete": 0,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": false,
+        "matches": [],
+        "missed": [],
+        "extra": [
+          0
+        ]
+      },
+      "repetition": 1
+    },
+    {
+      "id": "negative-quotation",
+      "suite": "baseline",
+      "format": "claude-code",
+      "category": "negative",
+      "error": null,
+      "elapsedMs": 13593,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [],
+      "expected": [],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 0,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "expected": 0,
+        "predicted": 0,
+        "matchedStageCorrect": 0,
+        "matchedEvidenceComplete": 0,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "negative-code",
+      "suite": "baseline",
+      "format": "kimi",
+      "category": "negative",
+      "error": null,
+      "elapsedMs": 16193,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [],
+      "expected": [],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 0,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "expected": 0,
+        "predicted": 0,
+        "matchedStageCorrect": 0,
+        "matchedEvidenceComplete": 0,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "negative-blockquote",
+      "suite": "baseline",
+      "format": "generic",
+      "category": "negative",
+      "error": null,
+      "elapsedMs": 16853,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [],
+      "expected": [],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 0,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "expected": 0,
+        "predicted": 0,
+        "matchedStageCorrect": 0,
+        "matchedEvidenceComplete": 0,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "negative-vague",
+      "suite": "baseline",
+      "format": "codex",
+      "category": "negative",
+      "error": null,
+      "elapsedMs": 14292,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [],
+      "expected": [],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 0,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "expected": 0,
+        "predicted": 0,
+        "matchedStageCorrect": 0,
+        "matchedEvidenceComplete": 0,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "negative-possibility",
+      "suite": "baseline",
+      "format": "claude-code",
+      "category": "negative",
+      "error": null,
+      "elapsedMs": 17808,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [],
+      "expected": [],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 0,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "expected": 0,
+        "predicted": 0,
+        "matchedStageCorrect": 0,
+        "matchedEvidenceComplete": 0,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "negative-history",
+      "suite": "baseline",
+      "format": "kimi",
+      "category": "negative",
+      "error": null,
+      "elapsedMs": 13642,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [],
+      "expected": [],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 0,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "expected": 0,
+        "predicted": 0,
+        "matchedStageCorrect": 0,
+        "matchedEvidenceComplete": 0,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "negative-tool",
+      "suite": "baseline",
+      "format": "generic",
+      "category": "negative",
+      "error": null,
+      "elapsedMs": 14682,
+      "parsedMessages": 2,
+      "inputMessages": 2,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [],
+      "expected": [],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 0,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "expected": 0,
+        "predicted": 0,
+        "matchedStageCorrect": 0,
+        "matchedEvidenceComplete": 0,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "negative-system",
+      "suite": "baseline",
+      "format": "codex",
+      "category": "negative",
+      "error": null,
+      "elapsedMs": 13490,
+      "parsedMessages": 1,
+      "inputMessages": 2,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [],
+      "expected": [],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 0,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "expected": 0,
+        "predicted": 0,
+        "matchedStageCorrect": 0,
+        "matchedEvidenceComplete": 0,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "negative-injection",
+      "suite": "baseline",
+      "format": "claude-code",
+      "category": "negative",
+      "error": null,
+      "elapsedMs": 12757,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [],
+      "expected": [],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 0,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "expected": 0,
+        "predicted": 0,
+        "matchedStageCorrect": 0,
+        "matchedEvidenceComplete": 0,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "negative-third-person",
+      "suite": "baseline",
+      "format": "kimi",
+      "category": "negative",
+      "error": null,
+      "elapsedMs": 14491,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [],
+      "expected": [],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\": []}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 0,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "expected": 0,
+        "predicted": 0,
+        "matchedStageCorrect": 0,
+        "matchedEvidenceComplete": 0,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "context-continue",
+      "suite": "baseline",
+      "format": "generic",
+      "category": "context",
+      "error": null,
+      "elapsedMs": 17599,
+      "parsedMessages": 3,
+      "inputMessages": 3,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [
+        {
+          "title": "修复导出文件乱码",
+          "stage": "in_progress",
+          "nextAction": "继续处理剩余的编码转换问题，完成导出文件乱码修复。",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "请修复导出文件乱码。"
+            },
+            {
+              "messageId": "m2",
+              "quote": "编码转换只修好一部分。"
+            },
+            {
+              "messageId": "m3",
+              "quote": "继续，把剩下的处理完。"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "anchors": [
+            [
+              "导出"
+            ],
+            [
+              "乱码",
+              "编码"
+            ]
+          ],
+          "stage": "in_progress",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1",
+            "m3"
+          ]
+        }
+      ],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"修复导出文件乱码\",\"stage\":\"in_progress\",\"nextAction\":\"继续处理尚未修复的编码转换问题，完成导出文件乱码修复。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"请修复导出文件乱码。\"},{\"messageId\":\"e2\",\"quote\":\"编码转换只修好一部分。\"},{\"messageId\":\"e3\",\"quote\":\"继续，把剩下的处理完。\"}]}]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"修复导出文件乱码\",\"stage\":\"in_progress\",\"nextAction\":\"继续处理剩余的编码转换问题，完成导出文件乱码修复。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"请修复导出文件乱码。\"},{\"messageId\":\"e2\",\"quote\":\"编码转换只修好一部分。\"},{\"messageId\":\"e3\",\"quote\":\"继续，把剩下的处理完。\"}]}]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 1,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "expected": 1,
+        "predicted": 1,
+        "matchedStageCorrect": 1,
+        "matchedEvidenceComplete": 1,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "context-adopt-suggestion",
+      "suite": "baseline",
+      "format": "codex",
+      "category": "context",
+      "error": null,
+      "elapsedMs": 16440,
+      "parsedMessages": 2,
+      "inputMessages": 2,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [
+        {
+          "title": "为导出功能增加空数据测试",
+          "stage": "requested",
+          "nextAction": "为导出功能实现空数据测试并验证测试结果",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "建议为导出功能增加空数据测试。"
+            },
+            {
+              "messageId": "m2",
+              "quote": "采纳你的建议，请做这个空数据测试。"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "anchors": [
+            [
+              "导出",
+              "空数据"
+            ],
+            [
+              "测试"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m2"
+          ],
+          "evidenceIds": [
+            "m1",
+            "m2"
+          ]
+        }
+      ],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"为导出功能增加空数据测试\",\"stage\":\"requested\",\"nextAction\":\"为导出功能实现空数据测试并验证测试结果\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"建议为导出功能增加空数据测试。\"},{\"messageId\":\"e2\",\"quote\":\"采纳你的建议，请做这个空数据测试。\"}]}]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"为导出功能增加空数据测试\",\"stage\":\"requested\",\"nextAction\":\"为导出功能实现空数据测试并验证测试结果\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"建议为导出功能增加空数据测试。\"},{\"messageId\":\"e2\",\"quote\":\"采纳你的建议，请做这个空数据测试。\"}]}]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 1,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "expected": 1,
+        "predicted": 1,
+        "matchedStageCorrect": 1,
+        "matchedEvidenceComplete": 1,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "context-unadopted-extra",
+      "suite": "baseline",
+      "format": "claude-code",
+      "category": "context",
+      "error": null,
+      "elapsedMs": 16599,
+      "parsedMessages": 3,
+      "inputMessages": 3,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [
+        {
+          "title": "修复登录白屏问题",
+          "stage": "requested",
+          "nextAction": "修复原有的登录白屏问题，不增加短信登录功能。",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "只修复登录白屏。"
+            },
+            {
+              "messageId": "m3",
+              "quote": "不要加短信登录，只处理原来的白屏问题。"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "anchors": [
+            [
+              "登录"
+            ],
+            [
+              "白屏"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1",
+            "m3"
+          ]
+        }
+      ],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"修复登录白屏问题\",\"stage\":\"requested\",\"nextAction\":\"修复原有的登录白屏问题，不增加短信登录功能。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"只修复登录白屏。\"},{\"messageId\":\"e3\",\"quote\":\"不要加短信登录，只处理原来的白屏问题。\"}]}]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"修复登录白屏问题\",\"stage\":\"requested\",\"nextAction\":\"修复原有的登录白屏问题，不增加短信登录功能。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"只修复登录白屏。\"},{\"messageId\":\"e3\",\"quote\":\"不要加短信登录，只处理原来的白屏问题。\"}]}]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 1,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "expected": 1,
+        "predicted": 1,
+        "matchedStageCorrect": 1,
+        "matchedEvidenceComplete": 1,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "context-duplicate-turn",
+      "suite": "baseline",
+      "format": "kimi",
+      "category": "context",
+      "error": null,
+      "elapsedMs": 17139,
+      "parsedMessages": 2,
+      "inputMessages": 2,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [
+        {
+          "title": "整理发布说明",
+          "stage": "requested",
+          "nextAction": "整理并完成发布说明。",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "我会整理发布说明。"
+            },
+            {
+              "messageId": "m2",
+              "quote": "我会整理发布说明。"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "anchors": [
+            [
+              "发布"
+            ],
+            [
+              "说明"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"整理发布说明\",\"stage\":\"requested\",\"nextAction\":\"整理并完成发布说明。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"我会整理发布说明。\"}]}]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"整理发布说明\",\"stage\":\"requested\",\"nextAction\":\"整理并完成发布说明。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"我会整理发布说明。\"},{\"messageId\":\"e2\",\"quote\":\"我会整理发布说明。\"}]}]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 1,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "expected": 1,
+        "predicted": 1,
+        "matchedStageCorrect": 1,
+        "matchedEvidenceComplete": 1,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "context-bilingual",
+      "suite": "baseline",
+      "format": "generic",
+      "category": "context",
+      "error": null,
+      "elapsedMs": 33708,
+      "parsedMessages": 2,
+      "inputMessages": 2,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [
+        {
+          "title": "修复导出编码及导出文件中文乱码问题",
+          "stage": "requested",
+          "nextAction": "修复导出编码，确保导出文件中的中文正常显示，并完成验证。",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "Please fix export encoding."
+            },
+            {
+              "messageId": "m2",
+              "quote": "导出文件的中文乱码也属于这次修复。"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "anchors": [
+            [
+              "导出",
+              "export"
+            ],
+            [
+              "编码",
+              "乱码",
+              "encoding"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1",
+            "m2"
+          ]
+        }
+      ],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"修复导出编码及导出文件中文乱码问题\",\"stage\":\"requested\",\"nextAction\":\"修复导出编码，确保导出文件中的中文正常显示，并完成验证。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"Please fix export encoding.\"},{\"messageId\":\"e2\",\"quote\":\"导出文件的中文乱码也属于这次修复。\"}]}]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"修复导出编码及导出文件中文乱码问题\",\"stage\":\"requested\",\"nextAction\":\"修复导出编码，确保导出文件中的中文正常显示，并完成验证。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"Please fix export encoding.\"},{\"messageId\":\"e2\",\"quote\":\"导出文件的中文乱码也属于这次修复。\"}]}]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 1,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "expected": 1,
+        "predicted": 1,
+        "matchedStageCorrect": 1,
+        "matchedEvidenceComplete": 1,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "context-request-after-chatter",
+      "suite": "baseline",
+      "format": "codex",
+      "category": "context",
+      "error": null,
+      "elapsedMs": 17156,
+      "parsedMessages": 3,
+      "inputMessages": 3,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [
+        {
+          "title": "整理本周测试报告",
+          "stage": "requested",
+          "nextAction": "整理并交付本周测试报告。",
+          "evidence": [
+            {
+              "messageId": "m3",
+              "quote": "请整理本周测试报告。"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "anchors": [
+            [
+              "本周",
+              "周"
+            ],
+            [
+              "测试"
+            ],
+            [
+              "报告"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m3"
+          ],
+          "evidenceIds": [
+            "m3"
+          ]
+        }
+      ],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"整理本周测试报告\",\"stage\":\"requested\",\"nextAction\":\"整理本周测试报告。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e3\",\"quote\":\"请整理本周测试报告。\"}]}]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"整理本周测试报告\",\"stage\":\"requested\",\"nextAction\":\"整理并交付本周测试报告。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e3\",\"quote\":\"请整理本周测试报告。\"}]}]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 1,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "expected": 1,
+        "predicted": 1,
+        "matchedStageCorrect": 1,
+        "matchedEvidenceComplete": 1,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "context-old-request-window",
+      "suite": "baseline",
+      "format": "claude-code",
+      "category": "context",
+      "error": null,
+      "elapsedMs": 32170,
+      "parsedMessages": 71,
+      "inputMessages": 71,
+      "windows": 2,
+      "modelCalls": 4,
+      "truncated": false,
+      "predictions": [
+        {
+          "title": "修复登录白屏",
+          "stage": "requested",
+          "nextAction": "修复登录时出现的白屏问题。",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "请修复登录白屏。"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "anchors": [
+            [
+              "登录"
+            ],
+            [
+              "白屏"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"修复登录白屏\",\"stage\":\"requested\",\"nextAction\":\"修复登录时出现的白屏问题。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"请修复登录白屏。\"}]}]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"修复登录白屏\",\"stage\":\"requested\",\"nextAction\":\"修复登录时出现的白屏问题。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"请修复登录白屏。\"}]}]}"
+        },
+        {
+          "window": 2,
+          "output": "{\"tasks\":[]}"
+        },
+        {
+          "window": 2,
+          "output": "{\"tasks\":[]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 1,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "expected": 1,
+        "predicted": 1,
+        "matchedStageCorrect": 1,
+        "matchedEvidenceComplete": 1,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "context-no-inactivity-completion",
+      "suite": "baseline",
+      "format": "kimi",
+      "category": "context",
+      "error": null,
+      "elapsedMs": 16209,
+      "parsedMessages": 3,
+      "inputMessages": 3,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [
+        {
+          "title": "整理预算说明",
+          "stage": "requested",
+          "nextAction": "整理预算说明并交付给用户",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "请整理预算说明。"
+            },
+            {
+              "messageId": "m3",
+              "quote": "过了两天，只确认一下你还记得这件事。"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "anchors": [
+            [
+              "预算"
+            ],
+            [
+              "说明"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1",
+            "m3"
+          ]
+        }
+      ],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"整理预算说明\",\"stage\":\"requested\",\"nextAction\":\"整理预算说明并交付给用户\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"请整理预算说明。\"},{\"messageId\":\"e3\",\"quote\":\"过了两天，只确认一下你还记得这件事。\"}]}]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"整理预算说明\",\"stage\":\"requested\",\"nextAction\":\"整理预算说明并交付给用户\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"请整理预算说明。\"},{\"messageId\":\"e3\",\"quote\":\"过了两天，只确认一下你还记得这件事。\"}]}]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 1,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "expected": 1,
+        "predicted": 1,
+        "matchedStageCorrect": 1,
+        "matchedEvidenceComplete": 1,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    }
+  ]
+}

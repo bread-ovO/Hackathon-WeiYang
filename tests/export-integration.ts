@@ -1,3 +1,4 @@
+import { commitHistoricalFixture } from './fixtures/legacy-rule-task'
 import { createRevisionReview } from '../packages/storage/src/revision-review'
 import { prepareEventProcessing } from '@memo/application'
 import { openStore, type StoredTask, type TaskExpectation } from '@memo/storage'
@@ -51,7 +52,9 @@ try {
       cursor = next
       const job = rules.processing.claim(now)!
       const context = rules.processing.load(job, now)!
-      return rules.processing.commit(
+      return commitHistoricalFixture(
+        rules,
+        rulePath,
         job,
         context,
         prepareEventProcessing({
@@ -537,5 +540,12 @@ try {
     'Export integration passed: complete history, invalid/counter evidence, source privacy, revoked grants, references, corruption task/byte/row limits, concurrent WAL snapshot and assigned legacy history',
   )
 } finally {
-  try { rmSync(folder, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 }) } catch {}
+  try {
+    rmSync(folder, {
+      recursive: true,
+      force: true,
+      maxRetries: 10,
+      retryDelay: 200,
+    })
+  } catch {}
 }

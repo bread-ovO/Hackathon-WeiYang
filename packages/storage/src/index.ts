@@ -1,5 +1,6 @@
 import { createTaskChat, migrateTaskChat } from './task-chat'
 import { createTaskAnalysis, migrateTaskAnalysis } from './task-analysis'
+import { migrateAnalysisWindows } from './task-analysis-context'
 import { createDelivery, migrateDelivery } from './delivery'
 import { createPetContext } from './pet-context'
 import {
@@ -16,15 +17,9 @@ export { eventMetadataFields } from './event-metadata'
 import { migrateReferenceAudit } from './reference-audit'
 import { createTimeline } from './timeline'
 import { createFeishu, migrateFeishu } from './feishu'
-export type {
-  FeishuConnection,
-  FeishuAuthorized,
-} from './feishu'
+export type { FeishuConnection, FeishuAuthorized } from './feishu'
 import { createGithub, migrateGithub, migrateGithubAccount } from './github'
-export type {
-  GithubConnection,
-  GithubAuthorized,
-} from './github'
+export type { GithubConnection, GithubAuthorized } from './github'
 import { createRevisionReview, migrateRevisionReview } from './revision-review'
 import { createRetractions, migrateRetractions } from './retractions'
 import {
@@ -93,7 +88,7 @@ export function openStore(path: string) {
     db.pragma('synchronous = FULL')
     db.pragma('busy_timeout = 3000')
     const version = db.pragma('user_version', { simple: true }) as number
-    if (version > 24) throw new Error('DATABASE_TOO_NEW')
+    if (version > 25) throw new Error('DATABASE_TOO_NEW')
     if (version < 1)
       db.transaction(() => {
         db.exec(`
@@ -141,6 +136,7 @@ export function openStore(path: string) {
     const ingestion = createIngestionBudget(db)
     if (version < 23) migrateTaskAnalysis(db)
     if (version < 24) migrateTaskChat(db)
+    if (version < 25) migrateAnalysisWindows(db)
     const contexts = createEventContexts(db)
     const receive = createEventReceiver(
       db,
@@ -158,7 +154,7 @@ export function openStore(path: string) {
     return {
       taskAnalysis: createTaskAnalysis(db),
       taskChat: createTaskChat(db),
-      delivery:createDelivery(db),
+      delivery: createDelivery(db),
       petContext: createPetContext(db),
       timeline: createTimeline(db),
       planChanges: createPlanChanges(db),

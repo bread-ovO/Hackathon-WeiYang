@@ -1,6 +1,6 @@
 import { utilityProcess, type UtilityProcess } from 'electron'
 import { randomUUID } from 'node:crypto'
-import { taskAnalysisSchema, taskChatOutputSchema } from '@memo/contracts'
+import { taskExtractionSchema, taskChatOutputSchema } from '@memo/contracts'
 import type { TaskModelRequest } from '@memo/model'
 import type { CoreReply, HostRequest } from '@memo/contracts'
 export class CoreClient {
@@ -69,7 +69,10 @@ export class CoreClient {
           this.modelCalls.set(id, controller)
           void this.modelHandler({
             messages: message.messages,
-            schema: 'purpose' in message && message.purpose === 'task-chat' ? taskChatOutputSchema : taskAnalysisSchema,
+            schema:
+              'purpose' in message && message.purpose === 'task-chat'
+                ? taskChatOutputSchema
+                : taskExtractionSchema,
             signal: controller.signal,
           })
             .then((result) => {
