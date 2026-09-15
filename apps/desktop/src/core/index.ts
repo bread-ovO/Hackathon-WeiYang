@@ -42,7 +42,7 @@ parentPort.on('message', async ({ data }) => {
     if (request.method.startsWith('pet.')) throw new Error('INVALID_REQUEST')
     reply = {
       ok: true,
-      data: request.method === 'chat.status' || request.method === 'chat.send' || request.method === 'chat.confirm' || request.method === 'chat.cancel' || request.method === 'chat.reject'
+      data: request.method === 'chat.draft' || request.method === 'chat.status' || request.method === 'chat.send' || request.method === 'chat.confirm' || request.method === 'chat.cancel' || request.method === 'chat.reject'
         ? chat.handle(request)
         : request.method === 'analysis.start' || request.method === 'analysis.status' || request.method === 'analysis.accept'
         ? analysis.handle(request)

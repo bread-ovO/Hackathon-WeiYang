@@ -1,3 +1,4 @@
+import { buildTaskDraft } from './task-drafts'
 import { runTaskChat, type TaskModelRequest } from '@memo/model'
 import type { ChatRequest, ChatSnapshot } from '@memo/contracts'
 import type { openStore } from '@memo/storage'
@@ -14,6 +15,17 @@ export function createTaskChatService(
   })
   return {
     handle(request: ChatRequest): ChatSnapshot {
+      if (request.method === 'chat.draft') {
+        const draft = buildTaskDraft(store, request.projectId, request.kind)
+        const run = store.taskChat.start(
+          request.projectId,
+          request.kind === 'daily'
+            ? '生成近 24 小时回顾草稿'
+            : '生成项目反馈草稿',
+        )
+        store.taskChat.finishDraft(run.id, request.projectId, draft)
+        return snapshot(request.projectId)
+      }
       if (request.method === 'chat.status') return snapshot(request.projectId)
       if (request.method === 'chat.confirm') {
         store.taskChat.confirm(request.runId, request.projectId)

@@ -74,15 +74,17 @@ export function ModelProviderSettings({
       setBusy(false)
     }
   }
-  async function save() {
-    if (!config) return
+  async function save(next = config) {
+    if (!next) return
     setBusy(true)
     try {
-      const r = await window.memo.modelProvider.configure(config)
+      const r = await window.memo.modelProvider.configure(next)
       if (r.ok) {
         setState(r.data)
         setConfig(r.data.config)
-        setMessage('配置已保存。下次分析使用此服务。')
+        setMessage(
+          next.enabled ? '配置已保存。' : '分析已关闭；手动管理事项仍可使用。',
+        )
       } else
         setMessage(
           '保存失败，请检查 HTTPS 地址、模型名称、密钥或本机 CLI 是否已安装。',
@@ -178,11 +180,16 @@ export function ModelProviderSettings({
           />
         </label>
         <div className="model-provider-permission">
-          <span className="connection-label">允许分析所选会话<HelpTip label="模型授权说明">主动分析或发送聊天时，才向此服务提供必要上下文。任务变更需另行确认。来源读取授权与模型调用授权分别管理。</HelpTip></span>
+          <span className="connection-label">
+            允许 AI 分析
+            <HelpTip label="模型授权说明">
+              启用后，后台自动整理已授权来源，并在聊天时发送当前项目上下文。关闭立即停止新的模型请求并取消进行中的调用；来源读取授权单独管理。
+            </HelpTip>
+          </span>
           <Switch
             aria-label="允许使用此服务分析所选会话"
             checked={config.enabled}
-            onCheckedChange={(enabled) => patch({ enabled })}
+            onCheckedChange={(enabled) => void save({ ...config, enabled })}
             disabled={busy}
           />
         </div>
@@ -194,6 +201,48 @@ export function ModelProviderSettings({
         >
           保存模型配置
         </AppButton>
+        <details
+          className="model-send-preview"
+          onToggle={(event) => {
+            if (event.currentTarget.open)
+              void window.memo.modelProvider.status().then((r) => {
+                if (r.ok) setState(r.data)
+              })
+          }}
+        >
+          <summary>最近调用的上下文</summary>
+          {state.lastRequest ? (
+            <>
+              <p>
+                {names[state.lastRequest.provider]} · {state.lastRequest.model}
+              </p>
+              <p>
+                {state.lastRequest.destination} ·{' '}
+                {new Date(state.lastRequest.sentAt).toLocaleString()}
+              </p>
+              <small>
+                {state.lastRequest.purpose === 'task-chat'
+                  ? '任务聊天'
+                  : '自动事项分析'}{' '}
+                · 仅保留本次启动的最近一次请求；调用失败不代表服务已收到
+                {state.lastRequest.truncated
+                  ? ' · 内容超过上限，预览已截断'
+                  : ''}
+              </small>
+              {state.lastRequest.messages.map((item, i) => (
+                <details key={i}>
+                  <summary>
+                    {item.role === 'system' ? '系统说明' : '来源与事项片段'} ·{' '}
+                    {item.content.length} 字符
+                  </summary>
+                  <pre>{item.content}</pre>
+                </details>
+              ))}
+            </>
+          ) : (
+            <p>本次启动尚未发送模型请求。</p>
+          )}
+        </details>
         {message && <p role="status">{message}</p>}
       </div>
     </details>

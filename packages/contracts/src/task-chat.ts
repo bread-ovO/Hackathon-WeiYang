@@ -71,6 +71,16 @@ export const taskChatRequestSchema = {
     {
       type: 'object',
       additionalProperties: false,
+      required: ['method', 'projectId', 'kind'],
+      properties: {
+        method: { const: 'chat.draft' },
+        projectId: id,
+        kind: { enum: ['daily', 'feedback'] },
+      },
+    },
+    {
+      type: 'object',
+      additionalProperties: false,
       required: ['method', 'projectId'],
       properties: { method: { const: 'chat.status' }, projectId: id },
     },
@@ -140,7 +150,21 @@ export interface ChatRun {
   error: string | null
   model: string
   createdAt: string
+  draft?: ChatDraft
 }
 export interface ChatSnapshot {
   runs: ChatRun[]
+}
+
+export interface ChatDraft {
+  kind: 'daily' | 'feedback'
+  body: string
+  generatedAt: string
+  truncated: boolean
+  references: {
+    label: string
+    taskId: string
+    version: number
+    quote: string
+  }[]
 }

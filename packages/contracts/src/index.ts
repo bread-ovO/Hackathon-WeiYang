@@ -541,6 +541,7 @@ export interface DesktopBridge {
     configure(patch: IngestionLimitsPatch): Promise<CoreReply<IngestionStatus>>
   }
   chat: {
+    draft(projectId: string, kind: 'daily' | 'feedback'): Promise<CoreReply<ChatSnapshot>>
     status(projectId: string): Promise<CoreReply<ChatSnapshot>>
     send(projectId: string, message: string): Promise<CoreReply<ChatSnapshot>>
     confirm(projectId: string, runId: string): Promise<CoreReply<ChatSnapshot>>

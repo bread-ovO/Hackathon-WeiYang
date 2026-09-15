@@ -65,7 +65,7 @@ export async function prepareLifecycle(modelDirectory = hiyori, entry = 'Hiyori.
           }),
         path,
       )
-    await pick(modelDirectory)
+    await pick(await realpath(modelDirectory))
     const chosen = await main.evaluate(() => window.memo.pet.openImportDialog())
     if (!chosen.ok || !('sessionId' in chosen.data))
       throw Error('CHOOSE_FAILED')
@@ -83,7 +83,7 @@ export async function prepareLifecycle(modelDirectory = hiyori, entry = 'Hiyori.
         )
       ).ok,
     ).toBe(true)
-    await pick(join(sdk, 'runtime'))
+    await pick(await realpath(join(sdk, 'runtime')))
     expect(
       (await main.evaluate(() => window.memo.pet.installRuntime())).ok,
     ).toBe(true)

@@ -1,0 +1,210 @@
+{
+  "createdAt": "2026-09-15T10:58:04.550Z",
+  "environment": {
+    "os": "darwin",
+    "release": "25.5.0",
+    "cpu": "Apple M4",
+    "memoryBytes": 17179869184,
+    "versions": {
+      "node": "24.20.0",
+      "acorn": "8.18.0",
+      "ada": "4.0.0",
+      "amaro": "1.1.11",
+      "ares": "1.34.8",
+      "brotli": "1.2.0",
+      "cldr": "48.0",
+      "icu": "78.2",
+      "llhttp": "9.4.3",
+      "merve": "1.2.2",
+      "modules": "149",
+      "napi": "10",
+      "nbytes": "0.1.4",
+      "ncrypto": "0.0.1",
+      "nghttp2": "1.70.0",
+      "nghttp3": "",
+      "ngtcp2": "",
+      "openssl": "0.0.0",
+      "simdjson": "4.6.6",
+      "simdutf": "7.7.0",
+      "sqlite": "3.53.4",
+      "tz": "2025c",
+      "undici": "7.29.0",
+      "unicode": "17.0",
+      "uv": "1.52.1",
+      "uvwasi": "0.0.23",
+      "v8": "15.2.124.19-electron.0",
+      "zlib": "1.3.2.1-motley",
+      "zstd": "1.6.0",
+      "electron": "44.3.0",
+      "chrome": "152.0.7977.78"
+    }
+  },
+  "scope": "30 warm samples; isolated empty workspace/Hiyori; restore includes Playwright IPC plus two frames, not OS tray click; health is typed bridge round-trip; petShow is hide/show to reported ready, not first-ever import",
+  "background": "Other app/model evaluation work may be running; not an idle-machine laboratory baseline",
+  "samples": [
+    {
+      "restoreMs": 537.2524589999998,
+      "healthMs": 10.037915999999768,
+      "petShowMs": 841.9190410000001
+    },
+    {
+      "restoreMs": 49.04462499999954,
+      "healthMs": 1.880833999999595,
+      "petShowMs": 845.2080420000002
+    },
+    {
+      "restoreMs": 550.7828749999999,
+      "healthMs": 5.357500000000073,
+      "petShowMs": 871.6549999999997
+    },
+    {
+      "restoreMs": 520.890375,
+      "healthMs": 2.4833749999997963,
+      "petShowMs": 867.7097909999993
+    },
+    {
+      "restoreMs": 533.3822500000006,
+      "healthMs": 4.610458000001017,
+      "petShowMs": 850.194125
+    },
+    {
+      "restoreMs": 534.1601250000003,
+      "healthMs": 4.8741250000002765,
+      "petShowMs": 842.5950830000002
+    },
+    {
+      "restoreMs": 536.1197499999998,
+      "healthMs": 4.6617910000004485,
+      "petShowMs": 848.2245000000003
+    },
+    {
+      "restoreMs": 63.517792000000554,
+      "healthMs": 1.6735000000007858,
+      "petShowMs": 848.4980830000004
+    },
+    {
+      "restoreMs": 518.2851659999997,
+      "healthMs": 3.5147089999991294,
+      "petShowMs": 857.2724579999995
+    },
+    {
+      "restoreMs": 517.2773749999978,
+      "healthMs": 1.9532500000022992,
+      "petShowMs": 861.1039999999994
+    },
+    {
+      "restoreMs": 535.2409590000025,
+      "healthMs": 6.454541999999492,
+      "petShowMs": 846.0351250000022
+    },
+    {
+      "restoreMs": 517.4891670000034,
+      "healthMs": 4.118875000000116,
+      "petShowMs": 837.4386249999989
+    },
+    {
+      "restoreMs": 532.840874999998,
+      "healthMs": 1.5964590000003227,
+      "petShowMs": 867.640875000001
+    },
+    {
+      "restoreMs": 532.7920419999973,
+      "healthMs": 3.2254590000011376,
+      "petShowMs": 845.9254169999986
+    },
+    {
+      "restoreMs": 46.66699999999764,
+      "healthMs": 1.919000000001688,
+      "petShowMs": 865.5135829999999
+    },
+    {
+      "restoreMs": 533.8994170000005,
+      "healthMs": 5.17766599999959,
+      "petShowMs": 885.9686250000013
+    },
+    {
+      "restoreMs": 535.0745419999985,
+      "healthMs": 5.289042000000336,
+      "petShowMs": 857.246916
+    },
+    {
+      "restoreMs": 527.8705420000006,
+      "healthMs": 4.947541000001365,
+      "petShowMs": 865.0591249999998
+    },
+    {
+      "restoreMs": 520.5604590000003,
+      "healthMs": 2.938041000001249,
+      "petShowMs": 874.353833000001
+    },
+    {
+      "restoreMs": 64.62041699999827,
+      "healthMs": 2.169207999999344,
+      "petShowMs": 858.5384169999961
+    },
+    {
+      "restoreMs": 532.9981659999976,
+      "healthMs": 2.9026669999948354,
+      "petShowMs": 845.2961250000008
+    },
+    {
+      "restoreMs": 534.1332919999986,
+      "healthMs": 3.4898749999993015,
+      "petShowMs": 863.397917000002
+    },
+    {
+      "restoreMs": 45.7132500000007,
+      "healthMs": 1.9640000000072177,
+      "petShowMs": 864.7904579999959
+    },
+    {
+      "restoreMs": 533.8421249999956,
+      "healthMs": 4.920249999995576,
+      "petShowMs": 863.5552919999973
+    },
+    {
+      "restoreMs": 63.351833000000624,
+      "healthMs": 1.7272909999956028,
+      "petShowMs": 852.4155420000025
+    },
+    {
+      "restoreMs": 533.3044169999994,
+      "healthMs": 3.164707999996608,
+      "petShowMs": 868.1158750000031
+    },
+    {
+      "restoreMs": 515.2342910000007,
+      "healthMs": 3.2365830000053393,
+      "petShowMs": 853.883167
+    },
+    {
+      "restoreMs": 532.6047079999989,
+      "healthMs": 5.65770799999882,
+      "petShowMs": 888.5555830000012
+    },
+    {
+      "restoreMs": 47.7932909999945,
+      "healthMs": 2.6051250000018626,
+      "petShowMs": 852.056792000003
+    },
+    {
+      "restoreMs": 534.3444999999992,
+      "healthMs": 2.497791000001598,
+      "petShowMs": 855.3939590000009
+    }
+  ],
+  "summary": {
+    "restoreMs": {
+      "p50": 532.6047079999989,
+      "p95": 537.2524589999998
+    },
+    "healthMs": {
+      "p50": 3.2254590000011376,
+      "p95": 6.454541999999492
+    },
+    "petShowMs": {
+      "p50": 857.246916,
+      "p95": 885.9686250000013
+    }
+  }
+}

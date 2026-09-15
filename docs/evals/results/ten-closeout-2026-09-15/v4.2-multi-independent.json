@@ -1,0 +1,243 @@
+{
+  "generatedAt": "2026-09-15T11:05:56.103Z",
+  "provider": "codex-cli",
+  "path": "JSONL → source observation → live model windows → persisted candidates",
+  "synthetic": true,
+  "requestedModel": null,
+  "resolvedModel": null,
+  "cliVersion": "codex-cli 0.154.0-alpha.6.2",
+  "corpusVersion": "jsonl-extraction-v1",
+  "holdoutVersion": "jsonl-extraction-holdout-v1",
+  "corpusSha256": "6d95494307130e496475ef7f2c52b1a5a5b0cdafe7699f9b9e1f45c01a2a0fcb",
+  "holdoutSha256": "28f6c6f1bcafc31857e1bad35dc5bd85e3fe2ad3ff188e635cd0b374c8c8aa5c",
+  "formatVersion": "synthetic-jsonl-v1",
+  "scorerVersion": "goal-evidence-matching-v1",
+  "analysisVersion": "task-analysis-v4.2",
+  "gitCommit": "52b3bec856ab6539d53b6d588d30b714355b978d",
+  "sourceHashes": {
+    "packages/model/src/task-analyzer.ts": "a9f01aa3dc3f3558eb39153634e2554ff99c45c8b5612d883206a6e5c8d72584",
+    "packages/contracts/src/task-analysis.ts": "88726a434c3f1676ae58bdf34ad41873d1a1ceb5b74f4a02a8713c072193fe06",
+    "packages/application/src/event-processing.ts": "f1dd92a4c6311e010f4a81efaa62af620647d3089b6e706b26027a6d0aa15182",
+    "packages/plugin-host/src/session-mappers.ts": "7a773b0d7d19bfea718c32d49f197324b9acb162aab83b23a97837488ea66977",
+    "packages/storage/src/task-analysis.ts": "1df8c6af5d0255483de44ac45ecb391e31dab025a05421b863e124fb6969ba0f",
+    "packages/storage/src/task-analysis-context.ts": "1612012dc9164ada5b5e1f272bb440fd10895552abc4b2abe94a642951c2d7aa"
+  },
+  "suite": "baseline",
+  "plannedCases": 1,
+  "corpusCases": 60,
+  "repetitions": 1,
+  "subset": true,
+  "target": 0.99,
+  "completedCases": 1,
+  "modelCalls": 2,
+  "runs": [
+    {
+      "repetition": 1,
+      "combined": {
+        "cases": 1,
+        "errors": 0,
+        "expectedTasks": 2,
+        "predictedTasks": 2,
+        "tp": 2,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1,
+        "recall": 1,
+        "f1": 1,
+        "exactCases": 1,
+        "exactCaseRate": 1,
+        "exactCaseWilson95": [
+          0.20654931437723745,
+          1
+        ],
+        "negativeCases": 0,
+        "cleanNegatives": 0,
+        "negativeSpecificity": null,
+        "stageAccuracyOnMatched": 1,
+        "evidenceCoverageOnMatched": 1,
+        "invalidEvidence": 0,
+        "duplicatePredictions": 0
+      },
+      "targetMet": true,
+      "suites": {
+        "baseline": {
+          "cases": 1,
+          "errors": 0,
+          "expectedTasks": 2,
+          "predictedTasks": 2,
+          "tp": 2,
+          "fp": 0,
+          "fn": 0,
+          "precision": 1,
+          "recall": 1,
+          "f1": 1,
+          "exactCases": 1,
+          "exactCaseRate": 1,
+          "exactCaseWilson95": [
+            0.20654931437723745,
+            1
+          ],
+          "negativeCases": 0,
+          "cleanNegatives": 0,
+          "negativeSpecificity": null,
+          "stageAccuracyOnMatched": 1,
+          "evidenceCoverageOnMatched": 1,
+          "invalidEvidence": 0,
+          "duplicatePredictions": 0
+        }
+      },
+      "categories": {
+        "multi-task": {
+          "cases": 1,
+          "errors": 0,
+          "expectedTasks": 2,
+          "predictedTasks": 2,
+          "tp": 2,
+          "fp": 0,
+          "fn": 0,
+          "precision": 1,
+          "recall": 1,
+          "f1": 1,
+          "exactCases": 1,
+          "exactCaseRate": 1,
+          "exactCaseWilson95": [
+            0.20654931437723745,
+            1
+          ],
+          "negativeCases": 0,
+          "cleanNegatives": 0,
+          "negativeSpecificity": null,
+          "stageAccuracyOnMatched": 1,
+          "evidenceCoverageOnMatched": 1,
+          "invalidEvidence": 0,
+          "duplicatePredictions": 0
+        }
+      }
+    }
+  ],
+  "rows": [
+    {
+      "id": "multi-independent",
+      "suite": "baseline",
+      "format": "generic",
+      "category": "multi-task",
+      "error": null,
+      "elapsedMs": 19395,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [
+        {
+          "changeKind": "commitment",
+          "title": "修复登录白屏",
+          "stage": "requested",
+          "nextAction": "修复登录白屏。",
+          "deadline": null,
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "做两件独立的事：修复登录白屏；整理季度预算。"
+            }
+          ]
+        },
+        {
+          "changeKind": "commitment",
+          "title": "整理季度预算",
+          "stage": "requested",
+          "nextAction": "整理季度预算。",
+          "deadline": null,
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "做两件独立的事：修复登录白屏；整理季度预算。"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "anchors": [
+            [
+              "登录"
+            ],
+            [
+              "白屏"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1"
+          ]
+        },
+        {
+          "anchors": [
+            [
+              "季度"
+            ],
+            [
+              "预算"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"changeKind\":\"commitment\",\"title\":\"修复登录白屏\",\"stage\":\"requested\",\"nextAction\":\"修复登录白屏。\",\"existingTaskId\":null,\"deadline\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"做两件独立的事：修复登录白屏；整理季度预算。\"}]},{\"changeKind\":\"commitment\",\"title\":\"整理季度预算\",\"stage\":\"requested\",\"nextAction\":\"整理季度预算。\",\"existingTaskId\":null,\"deadline\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"做两件独立的事：修复登录白屏；整理季度预算。\"}]}]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"changeKind\":\"commitment\",\"title\":\"修复登录白屏\",\"stage\":\"requested\",\"nextAction\":\"修复登录白屏。\",\"existingTaskId\":null,\"deadline\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"做两件独立的事：修复登录白屏；整理季度预算。\"}]},{\"changeKind\":\"commitment\",\"title\":\"整理季度预算\",\"stage\":\"requested\",\"nextAction\":\"整理季度预算。\",\"existingTaskId\":null,\"deadline\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"做两件独立的事：修复登录白屏；整理季度预算。\"}]}]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 2,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 2,
+        "fp": 0,
+        "fn": 0,
+        "expected": 2,
+        "predicted": 2,
+        "matchedStageCorrect": 2,
+        "matchedEvidenceComplete": 2,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          },
+          {
+            "predicted": 1,
+            "expected": 1,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    }
+  ]
+}

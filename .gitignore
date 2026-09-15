@@ -20,4 +20,4 @@ docs/planning/base-auth.png
 .research/
 
 # PET01: official Cubism SDK zip (proprietary Live2D assets), fetched by scripts/fetch-pet-sdk.mjs
-.pet-sdk/
+.pet-sdk

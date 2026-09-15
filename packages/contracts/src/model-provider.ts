@@ -42,4 +42,13 @@ export const modelProviderRequestSchema = {
 export interface ModelProviderSnapshot {
   config: ModelConfig
   availableClis: string[]
+  lastRequest?: {
+    provider: ModelConfig['provider']
+    model: string
+    destination: string
+    purpose: 'task-chat' | 'task-analysis'
+    sentAt: string
+    messages: { role: 'system' | 'user'; content: string }[]
+    truncated: boolean
+  }
 }

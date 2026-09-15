@@ -147,10 +147,8 @@ describe('codexSessionMapper', () => {
     for (const payloadType of [
       'reasoning',
       'function_call',
-      'function_call_output',
       'web_search_call',
       'custom_tool_call',
-      'custom_tool_call_output',
       'token_count',
       'task_started',
       'task_complete',
@@ -250,4 +248,35 @@ it('imports Kimi wire user input with occurrence time and stable trusted byte of
       { byteOffset: 200 },
     )!.role,
   ).toBe('assistant')
+})
+
+it('preserves Codex tool output without promoting it to user intent', () => {
+  for (const type of ['function_call_output', 'custom_tool_call_output']) {
+    const row = codexSessionMapper(
+      codexLine({ payload: { type, output: 'tool output' } }),
+    )
+    expect(row?.role).toBe('tool')
+    expect(row?.content).toBe('tool output')
+    expect(() =>
+      codexSessionMapper(
+        codexLine({ payload: { type, output: { unexpected: true } } }),
+      ),
+    ).toThrow('UNSUPPORTED_SESSION_FORMAT')
+  }
+})
+
+it('keeps textual parts of multimodal Codex tool results', () => {
+  const record = codexSessionMapper(
+    codexLine({
+      payload: {
+        type: 'function_call_output',
+        output: [
+          { type: 'input_text', text: 'tool result' },
+          { type: 'input_image', image_url: 'data:image/png;base64,AA==' },
+        ],
+      },
+    }),
+  )
+  expect(record?.role).toBe('tool')
+  expect(record?.content).toBe('tool result')
 })

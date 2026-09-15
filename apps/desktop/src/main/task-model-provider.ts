@@ -26,6 +26,28 @@ export function createTaskModelProvider(
 ) {
   let config = { ...defaults }
   let queue: Promise<unknown> = Promise.resolve()
+  let lastRequest: ModelProviderSnapshot['lastRequest']
+  const preview = (chosen: ModelConfig, input: TaskModelRequest) => {
+    let remaining = 65536
+    let truncated = false
+    const messages = input.messages.map((message) => {
+      const content = message.content.slice(0, remaining)
+      truncated ||= content.length < message.content.length
+      remaining -= content.length
+      return { role: message.role, content }
+    })
+    lastRequest = {
+      provider: chosen.provider,
+      model: chosen.model || 'CLI 默认模型',
+      destination: chosen.provider.endsWith('-cli')
+        ? '本机 CLI 的已授权模型服务'
+        : modelEndpoint(chosen).origin,
+      purpose: input.purpose || 'task-analysis',
+      sentAt: new Date().toISOString(),
+      messages,
+      truncated,
+    }
+  }
   const active = new Set<AbortController>()
   const loaded = readFile(path, 'utf8')
     .then((raw) => {
@@ -41,7 +63,11 @@ export function createTaskModelProvider(
     const availableClis = []
     for (const p of ['codex-cli', 'claude-cli'])
       if (await findModelCli(p)) availableClis.push(p)
-    return { config: { ...config }, availableClis }
+    return {
+      config: { ...config },
+      availableClis,
+      ...(lastRequest ? { lastRequest: structuredClone(lastRequest) } : {}),
+    }
   }
   return {
     status,
@@ -94,8 +120,14 @@ export function createTaskModelProvider(
             domain: endpoint.hostname,
             purpose: 'model',
           })
+          if (controller.signal.aborted) throw new Error('MODEL_CANCELLED')
+          preview(chosen, request)
           content = await callModelApi(chosen, request, secret, endpoint)
-        } else content = await callModelCli(chosen, request)
+        } else {
+          if (controller.signal.aborted) throw new Error('MODEL_CANCELLED')
+          preview(chosen, request)
+          content = await callModelCli(chosen, request)
+        }
         if (controller.signal.aborted) throw new Error('MODEL_CANCELLED')
         const identity = createHash('sha256')
           .update(JSON.stringify(chosen))

@@ -1,3 +1,4 @@
+import { mapCodexExecCapture } from './codex-exec-capture'
 /**
  * Pure record normalizers for the built-in coding-agent session sources
  * (Claude Code / Codex local JSONL session files). Each mapper decides whether
@@ -10,7 +11,7 @@ export interface NormalizedSessionRecord {
   id: string
   revision: string
   created_at: string
-  role: 'user' | 'assistant'
+  role: 'user' | 'assistant' | 'tool'
   content: string
 }
 export type SessionMapper = (
@@ -35,7 +36,7 @@ function isoTimestamp(value: unknown): value is string {
 function finish(
   id: string,
   timestamp: string,
-  role: 'user' | 'assistant',
+  role: 'user' | 'assistant' | 'tool',
   text: string,
 ): NormalizedSessionRecord | null {
   if (!id || id.length > 256 || text.length > TEXT_LIMIT) invalid()
@@ -111,10 +112,8 @@ const codexMetadata = new Set([
 const codexNonMessages = new Set([
   'reasoning',
   'function_call',
-  'function_call_output',
   'web_search_call',
   'custom_tool_call',
-  'custom_tool_call_output',
   'local_shell_call',
   'image_generation_call',
   'ghost_snapshot',
@@ -167,16 +166,21 @@ const codexTextBlocks = {
  * reasoning/function_call/web_search_call/token_count/task_* payload items as
  * well as developer messages. Ordinals or trusted byte offsets identify rows. */
 export const codexSessionMapper: SessionMapper = (record, context) => {
+  if (record.type === 'codex_exec_capture')
+    return mapCodexExecCapture(record, context?.byteOffset)
   if (typeof record.type !== 'string') invalid()
   if (codexMetadata.has(record.type)) return null
   if (record.type !== 'response_item') invalid()
   if (!isoTimestamp(record.timestamp) || !ownObject(record.payload)) invalid()
   if (typeof record.payload.type !== 'string') invalid()
   if (codexNonMessages.has(record.payload.type)) return null
-  if (record.payload.type !== 'message') invalid()
-  const role = record.payload.role
+  const tool = ['function_call_output', 'custom_tool_call_output'].includes(
+    record.payload.type,
+  )
+  if (!tool && record.payload.type !== 'message') invalid()
+  const role = tool ? 'tool' : record.payload.role
   if (role === 'developer' || role === 'system') return null
-  if (role !== 'user' && role !== 'assistant') invalid()
+  if (role !== 'user' && role !== 'assistant' && role !== 'tool') invalid()
   // Keep v1 ordinal IDs so upgrading does not duplicate previously imported events.
   // Older rollout files have no ordinal. The reader supplies a trusted byte offset,
   // stable across batches/restarts for an append-only file (never text-supplied).
@@ -199,10 +203,15 @@ export const codexSessionMapper: SessionMapper = (record, context) => {
       invalid()
     id = `offset:${context.byteOffset}`
   }
-  const text = blockTexts(
-    record.payload.content,
-    new Set([codexTextBlocks[role]]),
-  )
+  const text =
+    role === 'tool'
+      ? typeof record.payload.output === 'string'
+        ? record.payload.output
+        : blockTexts(
+            record.payload.output,
+            new Set(['input_text', 'output_text', 'text']),
+          )
+      : blockTexts(record.payload.content, new Set([codexTextBlocks[role]]))
   return finish(id, record.timestamp as string, role, text)
 }
 
@@ -288,7 +297,7 @@ export const kimiSessionMapper: SessionMapper = (record, context) => {
  * existing sources rescan instead of resuming with stale rules. */
 export const SESSION_NORMALIZER_IDS = {
   'claude-code': 'claude-code-session@3',
-  codex: 'codex-session@3',
+  codex: 'codex-session@4',
   kimi: 'kimi-wire-session@2',
 } as const
 export type SessionSourceKind = keyof typeof SESSION_NORMALIZER_IDS

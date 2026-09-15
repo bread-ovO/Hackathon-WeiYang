@@ -155,6 +155,15 @@ export function createTaskChat(db: Database.Database) {
       r.trace.push(safe.actions.length ? '校验器：变更待确认' : '已完成查询')
       write(r)
     },
+    finishDraft(id: string, projectId: string, draft: import('@memo/contracts').ChatDraft) {
+      const r = read(id, projectId)
+      if (r.state !== 'running') throw Error('CHAT_CANCELLED')
+      r.state = 'ready'
+      r.reply = '已按事项记录生成草稿，可编辑后复制。'
+      r.draft = draft
+      r.trace.push('本机记录摘录；未调用模型，未向外发送')
+      write(r)
+    },
     fail(id: string, projectId: string, error: string) {
       const r = read(id, projectId)
       if (r.state === 'running') {

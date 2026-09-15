@@ -1,0 +1,7554 @@
+{
+  "suite": "time-prefix-v1",
+  "protocol": "task-analysis-v4",
+  "provider": "codex-cli",
+  "createdAt": "2026-09-15T10:48:25.594Z",
+  "sampleCount": 156,
+  "completed": 156,
+  "passed": 154,
+  "cost": "CLI subscription; provider does not expose per-request billable cost in this transport",
+  "results": [
+    {
+      "id": "chain-01-prefix-1",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 18100,
+      "visibleMessageIds": [
+        "c0_m0"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "requested",
+        "changeKind": "commitment",
+        "due": null,
+        "latestId": "c0_m0"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "commitment",
+            "title": "修复登录白屏并反馈结果",
+            "stage": "requested",
+            "nextAction": "修复登录白屏，完成后向用户反馈。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c0_m0",
+                "quote": "请修复登录白屏，只做这件事，完成后反馈给我。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-01-prefix-2",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 18445,
+      "visibleMessageIds": [
+        "c0_m0",
+        "c0_m1"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "in_progress",
+        "changeKind": "attempt",
+        "due": null,
+        "latestId": "c0_m1"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "attempt",
+            "title": "修复登录白屏并反馈结果",
+            "stage": "in_progress",
+            "nextAction": "继续修复登录白屏，完成后向用户反馈。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c0_m0",
+                "quote": "请修复登录白屏，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c0_m1",
+                "quote": "我正在尝试修复登录白屏，目前还没有交付。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-01-prefix-3",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 21464,
+      "visibleMessageIds": [
+        "c0_m0",
+        "c0_m1",
+        "c0_m2"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "in_progress",
+        "changeKind": "failure",
+        "due": null,
+        "latestId": "c0_m2"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "failure",
+            "title": "修复登录白屏并反馈结果",
+            "stage": "in_progress",
+            "nextAction": "补齐缺失的输入数据后继续修复，完成后反馈给用户。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c0_m0",
+                "quote": "请修复登录白屏，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c0_m1",
+                "quote": "我正在尝试修复登录白屏，目前还没有交付。"
+              },
+              {
+                "messageId": "c0_m2",
+                "quote": "修复登录白屏这次尝试失败，原因是输入数据缺失，目前仍未交付。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-01-prefix-4",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 19252,
+      "visibleMessageIds": [
+        "c0_m0",
+        "c0_m1",
+        "c0_m2",
+        "c0_m3"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "delivered",
+        "changeKind": "feedback",
+        "due": null,
+        "latestId": "c0_m3"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "feedback",
+            "title": "修复登录白屏",
+            "stage": "delivered",
+            "nextAction": "等待用户验收登录白屏修复结果。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c0_m0",
+                "quote": "请修复登录白屏，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c0_m1",
+                "quote": "我正在尝试修复登录白屏，目前还没有交付。"
+              },
+              {
+                "messageId": "c0_m2",
+                "quote": "修复登录白屏这次尝试失败，原因是输入数据缺失，目前仍未交付。"
+              },
+              {
+                "messageId": "c0_m3",
+                "quote": "缺失数据已补齐，修复登录白屏已经交付，请你验收。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-01-prefix-5",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 20517,
+      "visibleMessageIds": [
+        "c0_m0",
+        "c0_m1",
+        "c0_m2",
+        "c0_m3",
+        "c0_m4"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "in_progress",
+        "changeKind": "reschedule",
+        "due": "2026-09-20T10:00:00Z",
+        "latestId": "c0_m4"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "reschedule",
+            "title": "修复登录白屏并在完成后反馈",
+            "stage": "in_progress",
+            "nextAction": "继续修订登录白屏问题，完成后反馈并提交验收；截止时间改为2026年9月20日18:00（UTC+8）。",
+            "deadline": {
+              "dueAt": "2026-09-20T10:00:00Z",
+              "messageId": "c0_m4",
+              "quote": "截止改到2026年9月20日18:00（UTC+8）。"
+            },
+            "evidence": [
+              {
+                "messageId": "c0_m0",
+                "quote": "请修复登录白屏，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c0_m3",
+                "quote": "缺失数据已补齐，修复登录白屏已经交付，请你验收。"
+              },
+              {
+                "messageId": "c0_m4",
+                "quote": "修复登录白屏验收还没通过，请继续修订。截止改到2026年9月20日18:00（UTC+8）。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-01-prefix-6",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 25462,
+      "visibleMessageIds": [
+        "c0_m0",
+        "c0_m1",
+        "c0_m2",
+        "c0_m3",
+        "c0_m4",
+        "c0_m5"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "cancelled",
+        "changeKind": "cancellation",
+        "due": "2026-09-20T10:00:00Z",
+        "latestId": "c0_m5"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "cancellation",
+            "title": "修复登录白屏",
+            "stage": "cancelled",
+            "nextAction": "用户已取消该任务，无需继续修订或反馈。",
+            "deadline": {
+              "dueAt": "2026-09-20T10:00:00Z",
+              "messageId": "c0_m4",
+              "quote": "截止改到2026年9月20日18:00（UTC+8）。"
+            },
+            "evidence": [
+              {
+                "messageId": "c0_m0",
+                "quote": "请修复登录白屏，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c0_m3",
+                "quote": "缺失数据已补齐，修复登录白屏已经交付，请你验收。"
+              },
+              {
+                "messageId": "c0_m4",
+                "quote": "修复登录白屏验收还没通过，请继续修订。截止改到2026年9月20日18:00（UTC+8）。"
+              },
+              {
+                "messageId": "c0_m5",
+                "quote": "取消修复登录白屏，不再继续。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-02-prefix-1",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 15723,
+      "visibleMessageIds": [
+        "c1_m0"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "requested",
+        "changeKind": "commitment",
+        "due": null,
+        "latestId": "c1_m0"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "commitment",
+            "title": "补充导出边界测试",
+            "stage": "requested",
+            "nextAction": "补充导出边界测试，完成后向用户反馈",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c1_m0",
+                "quote": "请补充导出边界测试，只做这件事，完成后反馈给我。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-02-prefix-2",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 16015,
+      "visibleMessageIds": [
+        "c1_m0",
+        "c1_m1"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "in_progress",
+        "changeKind": "attempt",
+        "due": null,
+        "latestId": "c1_m1"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "attempt",
+            "title": "补充导出边界测试",
+            "stage": "in_progress",
+            "nextAction": "继续补充导出边界测试，完成后向用户反馈。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c1_m0",
+                "quote": "请补充导出边界测试，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c1_m1",
+                "quote": "我正在尝试补充导出边界测试，目前还没有交付。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-02-prefix-3",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 17955,
+      "visibleMessageIds": [
+        "c1_m0",
+        "c1_m1",
+        "c1_m2"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "in_progress",
+        "changeKind": "failure",
+        "due": null,
+        "latestId": "c1_m2"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "failure",
+            "title": "补充导出边界测试",
+            "stage": "in_progress",
+            "nextAction": "等待补齐输入数据后继续补充测试，完成后向用户反馈",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c1_m0",
+                "quote": "请补充导出边界测试，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c1_m1",
+                "quote": "我正在尝试补充导出边界测试，目前还没有交付。"
+              },
+              {
+                "messageId": "c1_m2",
+                "quote": "补充导出边界测试这次尝试失败，原因是输入数据缺失，目前仍未交付。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-02-prefix-4",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 15822,
+      "visibleMessageIds": [
+        "c1_m0",
+        "c1_m1",
+        "c1_m2",
+        "c1_m3"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "delivered",
+        "changeKind": "feedback",
+        "due": null,
+        "latestId": "c1_m3"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "feedback",
+            "title": "补充导出边界测试",
+            "stage": "delivered",
+            "nextAction": "等待用户验收导出边界测试。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c1_m0",
+                "quote": "请补充导出边界测试，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c1_m3",
+                "quote": "缺失数据已补齐，补充导出边界测试已经交付，请你验收。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-02-prefix-5",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 21104,
+      "visibleMessageIds": [
+        "c1_m0",
+        "c1_m1",
+        "c1_m2",
+        "c1_m3",
+        "c1_m4"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "in_progress",
+        "changeKind": "reschedule",
+        "due": "2026-09-20T10:00:00Z",
+        "latestId": "c1_m4"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "reschedule",
+            "title": "补充导出边界测试",
+            "stage": "in_progress",
+            "nextAction": "继续修订未通过验收的导出边界测试，并于新截止时间前完成后反馈。",
+            "deadline": {
+              "dueAt": "2026-09-20T10:00:00Z",
+              "messageId": "c1_m4",
+              "quote": "截止改到2026年9月20日18:00（UTC+8）。"
+            },
+            "evidence": [
+              {
+                "messageId": "c1_m0",
+                "quote": "请补充导出边界测试，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c1_m3",
+                "quote": "缺失数据已补齐，补充导出边界测试已经交付，请你验收。"
+              },
+              {
+                "messageId": "c1_m4",
+                "quote": "补充导出边界测试验收还没通过，请继续修订。截止改到2026年9月20日18:00（UTC+8）。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-03-prefix-1",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 17711,
+      "visibleMessageIds": [
+        "c2_m0"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "requested",
+        "changeKind": "commitment",
+        "due": null,
+        "latestId": "c2_m0"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "commitment",
+            "title": "整理开放平台接入说明",
+            "stage": "requested",
+            "nextAction": "整理开放平台接入说明，完成后向用户反馈。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c2_m0",
+                "quote": "请整理开放平台接入说明，只做这件事，完成后反馈给我。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-02-prefix-6",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 23332,
+      "visibleMessageIds": [
+        "c1_m0",
+        "c1_m1",
+        "c1_m2",
+        "c1_m3",
+        "c1_m4",
+        "c1_m5"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "accepted",
+        "changeKind": "feedback",
+        "due": "2026-09-20T10:00:00Z",
+        "latestId": "c1_m5"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "feedback",
+            "title": "补充导出边界测试",
+            "stage": "accepted",
+            "nextAction": "无需后续行动，用户已确认修订版验收通过。",
+            "deadline": {
+              "dueAt": "2026-09-20T10:00:00Z",
+              "messageId": "c1_m4",
+              "quote": "截止改到2026年9月20日18:00（UTC+8）。"
+            },
+            "evidence": [
+              {
+                "messageId": "c1_m0",
+                "quote": "请补充导出边界测试，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c1_m4",
+                "quote": "补充导出边界测试验收还没通过，请继续修订。截止改到2026年9月20日18:00（UTC+8）。"
+              },
+              {
+                "messageId": "c1_m5",
+                "quote": "补充导出边界测试的修订版我已检查，验收通过，这件事完成了。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-03-prefix-2",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 17055,
+      "visibleMessageIds": [
+        "c2_m0",
+        "c2_m1"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "in_progress",
+        "changeKind": "attempt",
+        "due": null,
+        "latestId": "c2_m1"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "attempt",
+            "title": "整理开放平台接入说明",
+            "stage": "in_progress",
+            "nextAction": "继续整理开放平台接入说明，完成后反馈用户。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c2_m0",
+                "quote": "请整理开放平台接入说明，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c2_m1",
+                "quote": "我正在尝试整理开放平台接入说明，目前还没有交付。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-03-prefix-3",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 17341,
+      "visibleMessageIds": [
+        "c2_m0",
+        "c2_m1",
+        "c2_m2"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "in_progress",
+        "changeKind": "failure",
+        "due": null,
+        "latestId": "c2_m2"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "failure",
+            "title": "整理开放平台接入说明",
+            "stage": "in_progress",
+            "nextAction": "补充缺失的输入数据后继续整理，完成后反馈给用户",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c2_m0",
+                "quote": "请整理开放平台接入说明，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c2_m1",
+                "quote": "我正在尝试整理开放平台接入说明，目前还没有交付。"
+              },
+              {
+                "messageId": "c2_m2",
+                "quote": "整理开放平台接入说明这次尝试失败，原因是输入数据缺失，目前仍未交付。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-03-prefix-4",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 16164,
+      "visibleMessageIds": [
+        "c2_m0",
+        "c2_m1",
+        "c2_m2",
+        "c2_m3"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "delivered",
+        "changeKind": "feedback",
+        "due": null,
+        "latestId": "c2_m3"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "feedback",
+            "title": "整理开放平台接入说明",
+            "stage": "delivered",
+            "nextAction": "等待用户验收已交付的开放平台接入说明。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c2_m0",
+                "quote": "请整理开放平台接入说明，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c2_m3",
+                "quote": "缺失数据已补齐，整理开放平台接入说明已经交付，请你验收。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-03-prefix-5",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 23105,
+      "visibleMessageIds": [
+        "c2_m0",
+        "c2_m1",
+        "c2_m2",
+        "c2_m3",
+        "c2_m4"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "in_progress",
+        "changeKind": "reschedule",
+        "due": "2026-09-20T10:00:00Z",
+        "latestId": "c2_m4"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "reschedule",
+            "title": "整理并修订开放平台接入说明",
+            "stage": "in_progress",
+            "nextAction": "继续修订开放平台接入说明并再次提交验收；验收尚未通过，截止时间已改期。",
+            "deadline": {
+              "dueAt": "2026-09-20T10:00:00Z",
+              "messageId": "c2_m4",
+              "quote": "截止改到2026年9月20日18:00（UTC+8）。"
+            },
+            "evidence": [
+              {
+                "messageId": "c2_m0",
+                "quote": "请整理开放平台接入说明，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c2_m3",
+                "quote": "缺失数据已补齐，整理开放平台接入说明已经交付，请你验收。"
+              },
+              {
+                "messageId": "c2_m4",
+                "quote": "整理开放平台接入说明验收还没通过，请继续修订。截止改到2026年9月20日18:00（UTC+8）。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-04-prefix-1",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 15634,
+      "visibleMessageIds": [
+        "c3_m0"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "requested",
+        "changeKind": "commitment",
+        "due": null,
+        "latestId": "c3_m0"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "commitment",
+            "title": "提交报销凭证",
+            "stage": "requested",
+            "nextAction": "提交报销凭证，完成后向用户反馈。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c3_m0",
+                "quote": "请提交报销凭证，只做这件事，完成后反馈给我。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-03-prefix-6",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 19442,
+      "visibleMessageIds": [
+        "c2_m0",
+        "c2_m1",
+        "c2_m2",
+        "c2_m3",
+        "c2_m4",
+        "c2_m5"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "cancelled",
+        "changeKind": "cancellation",
+        "due": "2026-09-20T10:00:00Z",
+        "latestId": "c2_m5"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "cancellation",
+            "title": "整理开放平台接入说明",
+            "stage": "cancelled",
+            "nextAction": "用户已取消该任务，不再继续。",
+            "deadline": {
+              "dueAt": "2026-09-20T10:00:00Z",
+              "messageId": "c2_m4",
+              "quote": "截止改到2026年9月20日18:00（UTC+8）。"
+            },
+            "evidence": [
+              {
+                "messageId": "c2_m0",
+                "quote": "请整理开放平台接入说明，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c2_m4",
+                "quote": "整理开放平台接入说明验收还没通过，请继续修订。截止改到2026年9月20日18:00（UTC+8）。"
+              },
+              {
+                "messageId": "c2_m5",
+                "quote": "取消整理开放平台接入说明，不再继续。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-04-prefix-3",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 18512,
+      "visibleMessageIds": [
+        "c3_m0",
+        "c3_m1",
+        "c3_m2"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "in_progress",
+        "changeKind": "failure",
+        "due": null,
+        "latestId": "c3_m2"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "failure",
+            "title": "提交报销凭证并在完成后反馈",
+            "stage": "in_progress",
+            "nextAction": "补充缺失的输入数据后重新提交报销凭证，完成后向用户反馈。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c3_m0",
+                "quote": "请提交报销凭证，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c3_m1",
+                "quote": "我正在尝试提交报销凭证，目前还没有交付。"
+              },
+              {
+                "messageId": "c3_m2",
+                "quote": "提交报销凭证这次尝试失败，原因是输入数据缺失，目前仍未交付。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-04-prefix-2",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 22587,
+      "visibleMessageIds": [
+        "c3_m0",
+        "c3_m1"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "in_progress",
+        "changeKind": "attempt",
+        "due": null,
+        "latestId": "c3_m1"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "attempt",
+            "title": "提交报销凭证并反馈",
+            "stage": "in_progress",
+            "nextAction": "继续提交报销凭证，完成后向用户反馈。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c3_m0",
+                "quote": "请提交报销凭证，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c3_m1",
+                "quote": "我正在尝试提交报销凭证，目前还没有交付。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-04-prefix-4",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 17698,
+      "visibleMessageIds": [
+        "c3_m0",
+        "c3_m1",
+        "c3_m2",
+        "c3_m3"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "delivered",
+        "changeKind": "feedback",
+        "due": null,
+        "latestId": "c3_m3"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "feedback",
+            "title": "提交报销凭证并反馈",
+            "stage": "delivered",
+            "nextAction": "等待用户验收已提交的报销凭证。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c3_m0",
+                "quote": "请提交报销凭证，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c3_m1",
+                "quote": "我正在尝试提交报销凭证，目前还没有交付。"
+              },
+              {
+                "messageId": "c3_m2",
+                "quote": "提交报销凭证这次尝试失败，原因是输入数据缺失，目前仍未交付。"
+              },
+              {
+                "messageId": "c3_m3",
+                "quote": "缺失数据已补齐，提交报销凭证已经交付，请你验收。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-05-prefix-1",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 17314,
+      "visibleMessageIds": [
+        "c4_m0"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "requested",
+        "changeKind": "commitment",
+        "due": null,
+        "latestId": "c4_m0"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "commitment",
+            "title": "核对季度资源预算并反馈结果",
+            "stage": "requested",
+            "nextAction": "核对季度资源预算，完成后向用户反馈。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c4_m0",
+                "quote": "请核对季度资源预算，只做这件事，完成后反馈给我。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-04-prefix-5",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 21025,
+      "visibleMessageIds": [
+        "c3_m0",
+        "c3_m1",
+        "c3_m2",
+        "c3_m3",
+        "c3_m4"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "in_progress",
+        "changeKind": "reschedule",
+        "due": "2026-09-20T10:00:00Z",
+        "latestId": "c3_m4"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "reschedule",
+            "title": "提交并修订报销凭证，完成后反馈",
+            "stage": "in_progress",
+            "nextAction": "继续修订报销凭证，并在新截止时间前重新提交以供验收。",
+            "deadline": {
+              "dueAt": "2026-09-20T10:00:00Z",
+              "messageId": "c3_m4",
+              "quote": "截止改到2026年9月20日18:00（UTC+8）。"
+            },
+            "evidence": [
+              {
+                "messageId": "c3_m0",
+                "quote": "请提交报销凭证，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c3_m3",
+                "quote": "缺失数据已补齐，提交报销凭证已经交付，请你验收。"
+              },
+              {
+                "messageId": "c3_m4",
+                "quote": "提交报销凭证验收还没通过，请继续修订。截止改到2026年9月20日18:00（UTC+8）。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-04-prefix-6",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 23415,
+      "visibleMessageIds": [
+        "c3_m0",
+        "c3_m1",
+        "c3_m2",
+        "c3_m3",
+        "c3_m4",
+        "c3_m5"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "accepted",
+        "changeKind": "feedback",
+        "due": "2026-09-20T10:00:00Z",
+        "latestId": "c3_m5"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "feedback",
+            "title": "提交报销凭证",
+            "stage": "accepted",
+            "nextAction": "无需后续行动，用户已验收通过。",
+            "deadline": {
+              "dueAt": "2026-09-20T10:00:00Z",
+              "messageId": "c3_m4",
+              "quote": "截止改到2026年9月20日18:00（UTC+8）。"
+            },
+            "evidence": [
+              {
+                "messageId": "c3_m0",
+                "quote": "请提交报销凭证，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c3_m3",
+                "quote": "缺失数据已补齐，提交报销凭证已经交付，请你验收。"
+              },
+              {
+                "messageId": "c3_m4",
+                "quote": "提交报销凭证验收还没通过，请继续修订。截止改到2026年9月20日18:00（UTC+8）。"
+              },
+              {
+                "messageId": "c3_m5",
+                "quote": "提交报销凭证的修订版我已检查，验收通过，这件事完成了。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-05-prefix-2",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 16057,
+      "visibleMessageIds": [
+        "c4_m0",
+        "c4_m1"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "in_progress",
+        "changeKind": "attempt",
+        "due": null,
+        "latestId": "c4_m1"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "attempt",
+            "title": "核对季度资源预算",
+            "stage": "in_progress",
+            "nextAction": "继续核对季度资源预算，完成后向用户反馈。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c4_m0",
+                "quote": "请核对季度资源预算，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c4_m1",
+                "quote": "我正在尝试核对季度资源预算，目前还没有交付。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-05-prefix-3",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 17244,
+      "visibleMessageIds": [
+        "c4_m0",
+        "c4_m1",
+        "c4_m2"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "in_progress",
+        "changeKind": "failure",
+        "due": null,
+        "latestId": "c4_m2"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "failure",
+            "title": "核对季度资源预算并反馈",
+            "stage": "in_progress",
+            "nextAction": "补齐缺失的输入数据后继续核对并反馈结果。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c4_m0",
+                "quote": "请核对季度资源预算，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c4_m2",
+                "quote": "核对季度资源预算这次尝试失败，原因是输入数据缺失，目前仍未交付。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-05-prefix-4",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 17299,
+      "visibleMessageIds": [
+        "c4_m0",
+        "c4_m1",
+        "c4_m2",
+        "c4_m3"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "delivered",
+        "changeKind": "feedback",
+        "due": null,
+        "latestId": "c4_m3"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "feedback",
+            "title": "核对季度资源预算",
+            "stage": "delivered",
+            "nextAction": "等待用户验收核对结果。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c4_m0",
+                "quote": "请核对季度资源预算，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c4_m3",
+                "quote": "缺失数据已补齐，核对季度资源预算已经交付，请你验收。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-05-prefix-5",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 22212,
+      "visibleMessageIds": [
+        "c4_m0",
+        "c4_m1",
+        "c4_m2",
+        "c4_m3",
+        "c4_m4"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "in_progress",
+        "changeKind": "reschedule",
+        "due": "2026-09-20T10:00:00Z",
+        "latestId": "c4_m4"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "reschedule",
+            "title": "核对并修订季度资源预算",
+            "stage": "in_progress",
+            "nextAction": "验收未通过，继续修订并在新截止时间前重新提交验收。",
+            "deadline": {
+              "dueAt": "2026-09-20T10:00:00Z",
+              "messageId": "c4_m4",
+              "quote": "截止改到2026年9月20日18:00（UTC+8）。"
+            },
+            "evidence": [
+              {
+                "messageId": "c4_m0",
+                "quote": "请核对季度资源预算，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c4_m3",
+                "quote": "缺失数据已补齐，核对季度资源预算已经交付，请你验收。"
+              },
+              {
+                "messageId": "c4_m4",
+                "quote": "核对季度资源预算验收还没通过，请继续修订。截止改到2026年9月20日18:00（UTC+8）。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-06-prefix-1",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 18811,
+      "visibleMessageIds": [
+        "c5_m0"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "requested",
+        "changeKind": "commitment",
+        "due": null,
+        "latestId": "c5_m0"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "commitment",
+            "title": "完成路演讲稿",
+            "stage": "requested",
+            "nextAction": "完成路演讲稿后向用户反馈。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c5_m0",
+                "quote": "请完成路演讲稿，只做这件事，完成后反馈给我。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-05-prefix-6",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 25705,
+      "visibleMessageIds": [
+        "c4_m0",
+        "c4_m1",
+        "c4_m2",
+        "c4_m3",
+        "c4_m4",
+        "c4_m5"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "cancelled",
+        "changeKind": "cancellation",
+        "due": "2026-09-20T10:00:00Z",
+        "latestId": "c4_m5"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "cancellation",
+            "title": "核对季度资源预算",
+            "stage": "cancelled",
+            "nextAction": "用户已取消该任务，不再继续。",
+            "deadline": {
+              "dueAt": "2026-09-20T10:00:00Z",
+              "messageId": "c4_m4",
+              "quote": "核对季度资源预算验收还没通过，请继续修订。截止改到2026年9月20日18:00（UTC+8）。"
+            },
+            "evidence": [
+              {
+                "messageId": "c4_m0",
+                "quote": "请核对季度资源预算，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c4_m4",
+                "quote": "核对季度资源预算验收还没通过，请继续修订。截止改到2026年9月20日18:00（UTC+8）。"
+              },
+              {
+                "messageId": "c4_m5",
+                "quote": "取消核对季度资源预算，不再继续。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-06-prefix-2",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 18448,
+      "visibleMessageIds": [
+        "c5_m0",
+        "c5_m1"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "in_progress",
+        "changeKind": "attempt",
+        "due": null,
+        "latestId": "c5_m1"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "attempt",
+            "title": "完成路演讲稿",
+            "stage": "in_progress",
+            "nextAction": "继续完成路演讲稿，完成后向用户反馈。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c5_m0",
+                "quote": "请完成路演讲稿，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c5_m1",
+                "quote": "我正在尝试完成路演讲稿，目前还没有交付。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-06-prefix-3",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 17868,
+      "visibleMessageIds": [
+        "c5_m0",
+        "c5_m1",
+        "c5_m2"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "in_progress",
+        "changeKind": "failure",
+        "due": null,
+        "latestId": "c5_m2"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "failure",
+            "title": "完成路演讲稿",
+            "stage": "in_progress",
+            "nextAction": "补充缺失的输入数据后继续完成讲稿，并在完成后反馈用户。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c5_m0",
+                "quote": "请完成路演讲稿，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c5_m2",
+                "quote": "完成路演讲稿这次尝试失败，原因是输入数据缺失，目前仍未交付。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-06-prefix-4",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 17039,
+      "visibleMessageIds": [
+        "c5_m0",
+        "c5_m1",
+        "c5_m2",
+        "c5_m3"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "delivered",
+        "changeKind": "feedback",
+        "due": null,
+        "latestId": "c5_m3"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "feedback",
+            "title": "完成路演讲稿",
+            "stage": "delivered",
+            "nextAction": "等待用户验收路演讲稿",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c5_m0",
+                "quote": "请完成路演讲稿，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c5_m3",
+                "quote": "缺失数据已补齐，完成路演讲稿已经交付，请你验收。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-07-prefix-1",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 15576,
+      "visibleMessageIds": [
+        "c6_m0"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "requested",
+        "changeKind": "commitment",
+        "due": null,
+        "latestId": "c6_m0"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "commitment",
+            "title": "制作发布安装包",
+            "stage": "requested",
+            "nextAction": "制作发布安装包，完成后向用户反馈。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c6_m0",
+                "quote": "请制作发布安装包，只做这件事，完成后反馈给我。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-06-prefix-6",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 20313,
+      "visibleMessageIds": [
+        "c5_m0",
+        "c5_m1",
+        "c5_m2",
+        "c5_m3",
+        "c5_m4",
+        "c5_m5"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "accepted",
+        "changeKind": "feedback",
+        "due": "2026-09-20T10:00:00Z",
+        "latestId": "c5_m5"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "feedback",
+            "title": "完成路演讲稿",
+            "stage": "accepted",
+            "nextAction": "无需后续行动，用户已验收通过。",
+            "deadline": {
+              "dueAt": "2026-09-20T10:00:00Z",
+              "messageId": "c5_m4",
+              "quote": "截止改到2026年9月20日18:00（UTC+8）。"
+            },
+            "evidence": [
+              {
+                "messageId": "c5_m0",
+                "quote": "请完成路演讲稿，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c5_m4",
+                "quote": "完成路演讲稿验收还没通过，请继续修订。截止改到2026年9月20日18:00（UTC+8）。"
+              },
+              {
+                "messageId": "c5_m5",
+                "quote": "完成路演讲稿的修订版我已检查，验收通过，这件事完成了。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-06-prefix-5",
+      "passed": false,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": false,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 22082,
+      "visibleMessageIds": [
+        "c5_m0",
+        "c5_m1",
+        "c5_m2",
+        "c5_m3",
+        "c5_m4"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "in_progress",
+        "changeKind": "reschedule",
+        "due": "2026-09-20T10:00:00Z",
+        "latestId": "c5_m4"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "feedback",
+            "title": "完成并修订路演讲稿",
+            "stage": "in_progress",
+            "nextAction": "根据未通过的验收反馈继续修订，并在新截止时间前再次交付验收。",
+            "deadline": {
+              "dueAt": "2026-09-20T10:00:00Z",
+              "messageId": "c5_m4",
+              "quote": "截止改到2026年9月20日18:00（UTC+8）。"
+            },
+            "evidence": [
+              {
+                "messageId": "c5_m0",
+                "quote": "请完成路演讲稿，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c5_m3",
+                "quote": "缺失数据已补齐，完成路演讲稿已经交付，请你验收。"
+              },
+              {
+                "messageId": "c5_m4",
+                "quote": "完成路演讲稿验收还没通过，请继续修订。截止改到2026年9月20日18:00（UTC+8）。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-07-prefix-2",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 15965,
+      "visibleMessageIds": [
+        "c6_m0",
+        "c6_m1"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "in_progress",
+        "changeKind": "attempt",
+        "due": null,
+        "latestId": "c6_m1"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "attempt",
+            "title": "制作发布安装包",
+            "stage": "in_progress",
+            "nextAction": "继续制作发布安装包，完成后向用户反馈。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c6_m0",
+                "quote": "请制作发布安装包，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c6_m1",
+                "quote": "我正在尝试制作发布安装包，目前还没有交付。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-07-prefix-4",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 16959,
+      "visibleMessageIds": [
+        "c6_m0",
+        "c6_m1",
+        "c6_m2",
+        "c6_m3"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "delivered",
+        "changeKind": "feedback",
+        "due": null,
+        "latestId": "c6_m3"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "feedback",
+            "title": "制作发布安装包",
+            "stage": "delivered",
+            "nextAction": "等待用户验收已交付的发布安装包。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c6_m0",
+                "quote": "请制作发布安装包，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c6_m3",
+                "quote": "缺失数据已补齐，制作发布安装包已经交付，请你验收。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-07-prefix-3",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 18928,
+      "visibleMessageIds": [
+        "c6_m0",
+        "c6_m1",
+        "c6_m2"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "in_progress",
+        "changeKind": "failure",
+        "due": null,
+        "latestId": "c6_m2"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "failure",
+            "title": "制作发布安装包并在完成后反馈",
+            "stage": "in_progress",
+            "nextAction": "补充缺失的输入数据后继续制作并交付安装包，再向用户反馈。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c6_m0",
+                "quote": "请制作发布安装包，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c6_m2",
+                "quote": "制作发布安装包这次尝试失败，原因是输入数据缺失，目前仍未交付。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-08-prefix-1",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 15117,
+      "visibleMessageIds": [
+        "c7_m0"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "requested",
+        "changeKind": "commitment",
+        "due": null,
+        "latestId": "c7_m0"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "commitment",
+            "title": "更新客户回访记录",
+            "stage": "requested",
+            "nextAction": "更新客户回访记录，完成后向用户反馈。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c7_m0",
+                "quote": "请更新客户回访记录，只做这件事，完成后反馈给我。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-07-prefix-5",
+      "passed": false,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": false,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 19556,
+      "visibleMessageIds": [
+        "c6_m0",
+        "c6_m1",
+        "c6_m2",
+        "c6_m3",
+        "c6_m4"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "in_progress",
+        "changeKind": "reschedule",
+        "due": "2026-09-20T10:00:00Z",
+        "latestId": "c6_m4"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "feedback",
+            "title": "制作并修订发布安装包",
+            "stage": "in_progress",
+            "nextAction": "继续修订发布安装包并再次提交验收；当前验收尚未通过。",
+            "deadline": {
+              "dueAt": "2026-09-20T10:00:00Z",
+              "messageId": "c6_m4",
+              "quote": "截止改到2026年9月20日18:00（UTC+8）。"
+            },
+            "evidence": [
+              {
+                "messageId": "c6_m0",
+                "quote": "请制作发布安装包，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c6_m3",
+                "quote": "缺失数据已补齐，制作发布安装包已经交付，请你验收。"
+              },
+              {
+                "messageId": "c6_m4",
+                "quote": "制作发布安装包验收还没通过，请继续修订。截止改到2026年9月20日18:00（UTC+8）。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-07-prefix-6",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 22302,
+      "visibleMessageIds": [
+        "c6_m0",
+        "c6_m1",
+        "c6_m2",
+        "c6_m3",
+        "c6_m4",
+        "c6_m5"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "cancelled",
+        "changeKind": "cancellation",
+        "due": "2026-09-20T10:00:00Z",
+        "latestId": "c6_m5"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "cancellation",
+            "title": "制作发布安装包",
+            "stage": "cancelled",
+            "nextAction": "用户已取消该任务，不再继续。",
+            "deadline": {
+              "dueAt": "2026-09-20T10:00:00Z",
+              "messageId": "c6_m4",
+              "quote": "制作发布安装包验收还没通过，请继续修订。截止改到2026年9月20日18:00（UTC+8）。"
+            },
+            "evidence": [
+              {
+                "messageId": "c6_m0",
+                "quote": "请制作发布安装包，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c6_m1",
+                "quote": "我正在尝试制作发布安装包，目前还没有交付。"
+              },
+              {
+                "messageId": "c6_m2",
+                "quote": "制作发布安装包这次尝试失败，原因是输入数据缺失，目前仍未交付。"
+              },
+              {
+                "messageId": "c6_m3",
+                "quote": "缺失数据已补齐，制作发布安装包已经交付，请你验收。"
+              },
+              {
+                "messageId": "c6_m4",
+                "quote": "制作发布安装包验收还没通过，请继续修订。截止改到2026年9月20日18:00（UTC+8）。"
+              },
+              {
+                "messageId": "c6_m5",
+                "quote": "取消制作发布安装包，不再继续。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-08-prefix-2",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 19559,
+      "visibleMessageIds": [
+        "c7_m0",
+        "c7_m1"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "in_progress",
+        "changeKind": "attempt",
+        "due": null,
+        "latestId": "c7_m1"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "attempt",
+            "title": "更新客户回访记录并反馈",
+            "stage": "in_progress",
+            "nextAction": "完成客户回访记录更新后向用户反馈。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c7_m0",
+                "quote": "请更新客户回访记录，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c7_m1",
+                "quote": "我正在尝试更新客户回访记录，目前还没有交付。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-08-prefix-3",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 19513,
+      "visibleMessageIds": [
+        "c7_m0",
+        "c7_m1",
+        "c7_m2"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "in_progress",
+        "changeKind": "failure",
+        "due": null,
+        "latestId": "c7_m2"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "failure",
+            "title": "更新客户回访记录",
+            "stage": "in_progress",
+            "nextAction": "补齐缺失的输入数据后重试更新，完成后反馈。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c7_m0",
+                "quote": "请更新客户回访记录，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c7_m1",
+                "quote": "我正在尝试更新客户回访记录，目前还没有交付。"
+              },
+              {
+                "messageId": "c7_m2",
+                "quote": "更新客户回访记录这次尝试失败，原因是输入数据缺失，目前仍未交付。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-08-prefix-4",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 17907,
+      "visibleMessageIds": [
+        "c7_m0",
+        "c7_m1",
+        "c7_m2",
+        "c7_m3"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "delivered",
+        "changeKind": "feedback",
+        "due": null,
+        "latestId": "c7_m3"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "feedback",
+            "title": "更新客户回访记录",
+            "stage": "delivered",
+            "nextAction": "等待用户验收已交付的客户回访记录。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c7_m0",
+                "quote": "请更新客户回访记录，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c7_m1",
+                "quote": "我正在尝试更新客户回访记录，目前还没有交付。"
+              },
+              {
+                "messageId": "c7_m2",
+                "quote": "更新客户回访记录这次尝试失败，原因是输入数据缺失，目前仍未交付。"
+              },
+              {
+                "messageId": "c7_m3",
+                "quote": "缺失数据已补齐，更新客户回访记录已经交付，请你验收。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-09-prefix-1",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 16929,
+      "visibleMessageIds": [
+        "c8_m0"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "requested",
+        "changeKind": "commitment",
+        "due": null,
+        "latestId": "c8_m0"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "commitment",
+            "title": "修复搜索排序",
+            "stage": "requested",
+            "nextAction": "修复搜索排序，完成后向用户反馈",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c8_m0",
+                "quote": "请修复搜索排序，只做这件事，完成后反馈给我。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-08-prefix-6",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 22549,
+      "visibleMessageIds": [
+        "c7_m0",
+        "c7_m1",
+        "c7_m2",
+        "c7_m3",
+        "c7_m4",
+        "c7_m5"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "accepted",
+        "changeKind": "feedback",
+        "due": "2026-09-20T10:00:00Z",
+        "latestId": "c7_m5"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "feedback",
+            "title": "更新客户回访记录",
+            "stage": "accepted",
+            "nextAction": "无需后续行动，用户已验收通过。",
+            "deadline": {
+              "dueAt": "2026-09-20T10:00:00Z",
+              "messageId": "c7_m4",
+              "quote": "截止改到2026年9月20日18:00（UTC+8）。"
+            },
+            "evidence": [
+              {
+                "messageId": "c7_m0",
+                "quote": "请更新客户回访记录，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c7_m1",
+                "quote": "我正在尝试更新客户回访记录，目前还没有交付。"
+              },
+              {
+                "messageId": "c7_m2",
+                "quote": "更新客户回访记录这次尝试失败，原因是输入数据缺失，目前仍未交付。"
+              },
+              {
+                "messageId": "c7_m3",
+                "quote": "缺失数据已补齐，更新客户回访记录已经交付，请你验收。"
+              },
+              {
+                "messageId": "c7_m4",
+                "quote": "更新客户回访记录验收还没通过，请继续修订。截止改到2026年9月20日18:00（UTC+8）。"
+              },
+              {
+                "messageId": "c7_m5",
+                "quote": "更新客户回访记录的修订版我已检查，验收通过，这件事完成了。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-08-prefix-5",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 22919,
+      "visibleMessageIds": [
+        "c7_m0",
+        "c7_m1",
+        "c7_m2",
+        "c7_m3",
+        "c7_m4"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "in_progress",
+        "changeKind": "reschedule",
+        "due": "2026-09-20T10:00:00Z",
+        "latestId": "c7_m4"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "reschedule",
+            "title": "更新客户回访记录",
+            "stage": "in_progress",
+            "nextAction": "继续修订客户回访记录，并在新截止时间前再次提交验收。",
+            "deadline": {
+              "dueAt": "2026-09-20T10:00:00Z",
+              "messageId": "c7_m4",
+              "quote": "截止改到2026年9月20日18:00（UTC+8）。"
+            },
+            "evidence": [
+              {
+                "messageId": "c7_m0",
+                "quote": "请更新客户回访记录，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c7_m3",
+                "quote": "缺失数据已补齐，更新客户回访记录已经交付，请你验收。"
+              },
+              {
+                "messageId": "c7_m4",
+                "quote": "更新客户回访记录验收还没通过，请继续修订。截止改到2026年9月20日18:00（UTC+8）。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-09-prefix-2",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 15372,
+      "visibleMessageIds": [
+        "c8_m0",
+        "c8_m1"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "in_progress",
+        "changeKind": "attempt",
+        "due": null,
+        "latestId": "c8_m1"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "attempt",
+            "title": "修复搜索排序",
+            "stage": "in_progress",
+            "nextAction": "继续修复搜索排序，完成后向用户反馈。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c8_m0",
+                "quote": "请修复搜索排序，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c8_m1",
+                "quote": "我正在尝试修复搜索排序，目前还没有交付。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-09-prefix-3",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 18718,
+      "visibleMessageIds": [
+        "c8_m0",
+        "c8_m1",
+        "c8_m2"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "in_progress",
+        "changeKind": "failure",
+        "due": null,
+        "latestId": "c8_m2"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "failure",
+            "title": "修复搜索排序",
+            "stage": "in_progress",
+            "nextAction": "补齐缺失的输入数据后继续修复，并在完成后向用户反馈。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c8_m0",
+                "quote": "请修复搜索排序，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c8_m1",
+                "quote": "我正在尝试修复搜索排序，目前还没有交付。"
+              },
+              {
+                "messageId": "c8_m2",
+                "quote": "修复搜索排序这次尝试失败，原因是输入数据缺失，目前仍未交付。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-09-prefix-4",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 18365,
+      "visibleMessageIds": [
+        "c8_m0",
+        "c8_m1",
+        "c8_m2",
+        "c8_m3"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "delivered",
+        "changeKind": "feedback",
+        "due": null,
+        "latestId": "c8_m3"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "feedback",
+            "title": "修复搜索排序",
+            "stage": "delivered",
+            "nextAction": "等待用户验收搜索排序修复结果。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c8_m0",
+                "quote": "请修复搜索排序，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c8_m1",
+                "quote": "我正在尝试修复搜索排序，目前还没有交付。"
+              },
+              {
+                "messageId": "c8_m2",
+                "quote": "修复搜索排序这次尝试失败，原因是输入数据缺失，目前仍未交付。"
+              },
+              {
+                "messageId": "c8_m3",
+                "quote": "缺失数据已补齐，修复搜索排序已经交付，请你验收。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-09-prefix-5",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 19585,
+      "visibleMessageIds": [
+        "c8_m0",
+        "c8_m1",
+        "c8_m2",
+        "c8_m3",
+        "c8_m4"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "in_progress",
+        "changeKind": "reschedule",
+        "due": "2026-09-20T10:00:00Z",
+        "latestId": "c8_m4"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "reschedule",
+            "title": "修复搜索排序",
+            "stage": "in_progress",
+            "nextAction": "继续修订未通过验收的搜索排序，并于新截止时间前反馈。",
+            "deadline": {
+              "dueAt": "2026-09-20T10:00:00Z",
+              "messageId": "c8_m4",
+              "quote": "截止改到2026年9月20日18:00（UTC+8）。"
+            },
+            "evidence": [
+              {
+                "messageId": "c8_m0",
+                "quote": "请修复搜索排序，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c8_m3",
+                "quote": "缺失数据已补齐，修复搜索排序已经交付，请你验收。"
+              },
+              {
+                "messageId": "c8_m4",
+                "quote": "修复搜索排序验收还没通过，请继续修订。截止改到2026年9月20日18:00（UTC+8）。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-10-prefix-1",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 16494,
+      "visibleMessageIds": [
+        "c9_m0"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "requested",
+        "changeKind": "commitment",
+        "due": null,
+        "latestId": "c9_m0"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "commitment",
+            "title": "补充数据库迁移脚本",
+            "stage": "requested",
+            "nextAction": "补充数据库迁移脚本，完成后向用户反馈",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c9_m0",
+                "quote": "请补充数据库迁移脚本，只做这件事，完成后反馈给我。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-09-prefix-6",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 21071,
+      "visibleMessageIds": [
+        "c8_m0",
+        "c8_m1",
+        "c8_m2",
+        "c8_m3",
+        "c8_m4",
+        "c8_m5"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "cancelled",
+        "changeKind": "cancellation",
+        "due": "2026-09-20T10:00:00Z",
+        "latestId": "c8_m5"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "cancellation",
+            "title": "修复搜索排序",
+            "stage": "cancelled",
+            "nextAction": "用户已取消任务，不再继续。",
+            "deadline": {
+              "dueAt": "2026-09-20T10:00:00Z",
+              "messageId": "c8_m4",
+              "quote": "截止改到2026年9月20日18:00（UTC+8）。"
+            },
+            "evidence": [
+              {
+                "messageId": "c8_m0",
+                "quote": "请修复搜索排序，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c8_m3",
+                "quote": "缺失数据已补齐，修复搜索排序已经交付，请你验收。"
+              },
+              {
+                "messageId": "c8_m4",
+                "quote": "修复搜索排序验收还没通过，请继续修订。截止改到2026年9月20日18:00（UTC+8）。"
+              },
+              {
+                "messageId": "c8_m5",
+                "quote": "取消修复搜索排序，不再继续。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-10-prefix-2",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 16214,
+      "visibleMessageIds": [
+        "c9_m0",
+        "c9_m1"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "in_progress",
+        "changeKind": "attempt",
+        "due": null,
+        "latestId": "c9_m1"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "attempt",
+            "title": "补充数据库迁移脚本",
+            "stage": "in_progress",
+            "nextAction": "继续补充数据库迁移脚本，完成后向用户反馈。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c9_m0",
+                "quote": "请补充数据库迁移脚本，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c9_m1",
+                "quote": "我正在尝试补充数据库迁移脚本，目前还没有交付。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-10-prefix-3",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 20284,
+      "visibleMessageIds": [
+        "c9_m0",
+        "c9_m1",
+        "c9_m2"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "in_progress",
+        "changeKind": "failure",
+        "due": null,
+        "latestId": "c9_m2"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "failure",
+            "title": "补充数据库迁移脚本",
+            "stage": "in_progress",
+            "nextAction": "补齐缺失的输入数据后继续补充数据库迁移脚本，并在完成后反馈",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c9_m0",
+                "quote": "请补充数据库迁移脚本，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c9_m1",
+                "quote": "我正在尝试补充数据库迁移脚本，目前还没有交付。"
+              },
+              {
+                "messageId": "c9_m2",
+                "quote": "补充数据库迁移脚本这次尝试失败，原因是输入数据缺失，目前仍未交付。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-10-prefix-4",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 19294,
+      "visibleMessageIds": [
+        "c9_m0",
+        "c9_m1",
+        "c9_m2",
+        "c9_m3"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "delivered",
+        "changeKind": "feedback",
+        "due": null,
+        "latestId": "c9_m3"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "feedback",
+            "title": "补充数据库迁移脚本",
+            "stage": "delivered",
+            "nextAction": "等待用户验收已交付的数据库迁移脚本。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c9_m0",
+                "quote": "请补充数据库迁移脚本，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c9_m3",
+                "quote": "缺失数据已补齐，补充数据库迁移脚本已经交付，请你验收。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-10-prefix-5",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 22590,
+      "visibleMessageIds": [
+        "c9_m0",
+        "c9_m1",
+        "c9_m2",
+        "c9_m3",
+        "c9_m4"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "in_progress",
+        "changeKind": "reschedule",
+        "due": "2026-09-20T10:00:00Z",
+        "latestId": "c9_m4"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "reschedule",
+            "title": "补充并修订数据库迁移脚本",
+            "stage": "in_progress",
+            "nextAction": "继续修订未通过验收的数据库迁移脚本，并在新截止时间前重新提交验收。",
+            "deadline": {
+              "dueAt": "2026-09-20T10:00:00Z",
+              "messageId": "c9_m4",
+              "quote": "截止改到2026年9月20日18:00（UTC+8）。"
+            },
+            "evidence": [
+              {
+                "messageId": "c9_m0",
+                "quote": "请补充数据库迁移脚本，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c9_m1",
+                "quote": "我正在尝试补充数据库迁移脚本，目前还没有交付。"
+              },
+              {
+                "messageId": "c9_m2",
+                "quote": "补充数据库迁移脚本这次尝试失败，原因是输入数据缺失，目前仍未交付。"
+              },
+              {
+                "messageId": "c9_m3",
+                "quote": "缺失数据已补齐，补充数据库迁移脚本已经交付，请你验收。"
+              },
+              {
+                "messageId": "c9_m4",
+                "quote": "补充数据库迁移脚本验收还没通过，请继续修订。截止改到2026年9月20日18:00（UTC+8）。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-11-prefix-1",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 17291,
+      "visibleMessageIds": [
+        "c10_m0"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "requested",
+        "changeKind": "commitment",
+        "due": null,
+        "latestId": "c10_m0"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "commitment",
+            "title": "准备接口验收报告",
+            "stage": "requested",
+            "nextAction": "准备接口验收报告，完成后向用户反馈。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c10_m0",
+                "quote": "请准备接口验收报告，只做这件事，完成后反馈给我。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-10-prefix-6",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 23107,
+      "visibleMessageIds": [
+        "c9_m0",
+        "c9_m1",
+        "c9_m2",
+        "c9_m3",
+        "c9_m4",
+        "c9_m5"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "accepted",
+        "changeKind": "feedback",
+        "due": "2026-09-20T10:00:00Z",
+        "latestId": "c9_m5"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "feedback",
+            "title": "补充并修订数据库迁移脚本",
+            "stage": "accepted",
+            "nextAction": "无需后续行动，用户已确认修订版验收通过。",
+            "deadline": {
+              "dueAt": "2026-09-20T10:00:00Z",
+              "messageId": "c9_m4",
+              "quote": "截止改到2026年9月20日18:00（UTC+8）。"
+            },
+            "evidence": [
+              {
+                "messageId": "c9_m0",
+                "quote": "请补充数据库迁移脚本，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c9_m1",
+                "quote": "我正在尝试补充数据库迁移脚本，目前还没有交付。"
+              },
+              {
+                "messageId": "c9_m2",
+                "quote": "补充数据库迁移脚本这次尝试失败，原因是输入数据缺失，目前仍未交付。"
+              },
+              {
+                "messageId": "c9_m3",
+                "quote": "缺失数据已补齐，补充数据库迁移脚本已经交付，请你验收。"
+              },
+              {
+                "messageId": "c9_m4",
+                "quote": "补充数据库迁移脚本验收还没通过，请继续修订。截止改到2026年9月20日18:00（UTC+8）。"
+              },
+              {
+                "messageId": "c9_m5",
+                "quote": "补充数据库迁移脚本的修订版我已检查，验收通过，这件事完成了。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-11-prefix-2",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 17645,
+      "visibleMessageIds": [
+        "c10_m0",
+        "c10_m1"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "in_progress",
+        "changeKind": "attempt",
+        "due": null,
+        "latestId": "c10_m1"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "attempt",
+            "title": "准备接口验收报告",
+            "stage": "in_progress",
+            "nextAction": "继续准备接口验收报告，完成后反馈给用户。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c10_m0",
+                "quote": "请准备接口验收报告，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c10_m1",
+                "quote": "我正在尝试准备接口验收报告，目前还没有交付。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-11-prefix-3",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 16327,
+      "visibleMessageIds": [
+        "c10_m0",
+        "c10_m1",
+        "c10_m2"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "in_progress",
+        "changeKind": "failure",
+        "due": null,
+        "latestId": "c10_m2"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "failure",
+            "title": "准备接口验收报告",
+            "stage": "in_progress",
+            "nextAction": "补充缺失的输入数据后继续准备接口验收报告，完成后反馈。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c10_m0",
+                "quote": "请准备接口验收报告，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c10_m2",
+                "quote": "准备接口验收报告这次尝试失败，原因是输入数据缺失，目前仍未交付。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-11-prefix-4",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 20022,
+      "visibleMessageIds": [
+        "c10_m0",
+        "c10_m1",
+        "c10_m2",
+        "c10_m3"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "delivered",
+        "changeKind": "feedback",
+        "due": null,
+        "latestId": "c10_m3"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "feedback",
+            "title": "准备接口验收报告",
+            "stage": "delivered",
+            "nextAction": "等待用户验收接口验收报告。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c10_m0",
+                "quote": "请准备接口验收报告，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c10_m1",
+                "quote": "我正在尝试准备接口验收报告，目前还没有交付。"
+              },
+              {
+                "messageId": "c10_m2",
+                "quote": "准备接口验收报告这次尝试失败，原因是输入数据缺失，目前仍未交付。"
+              },
+              {
+                "messageId": "c10_m3",
+                "quote": "缺失数据已补齐，准备接口验收报告已经交付，请你验收。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-11-prefix-5",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 22216,
+      "visibleMessageIds": [
+        "c10_m0",
+        "c10_m1",
+        "c10_m2",
+        "c10_m3",
+        "c10_m4"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "in_progress",
+        "changeKind": "reschedule",
+        "due": "2026-09-20T10:00:00Z",
+        "latestId": "c10_m4"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "reschedule",
+            "title": "准备并修订接口验收报告",
+            "stage": "in_progress",
+            "nextAction": "继续修订未通过验收的接口验收报告，并在新截止时间前再次提交验收。",
+            "deadline": {
+              "dueAt": "2026-09-20T10:00:00Z",
+              "messageId": "c10_m4",
+              "quote": "截止改到2026年9月20日18:00（UTC+8）。"
+            },
+            "evidence": [
+              {
+                "messageId": "c10_m0",
+                "quote": "请准备接口验收报告，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c10_m3",
+                "quote": "缺失数据已补齐，准备接口验收报告已经交付，请你验收。"
+              },
+              {
+                "messageId": "c10_m4",
+                "quote": "准备接口验收报告验收还没通过，请继续修订。截止改到2026年9月20日18:00（UTC+8）。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-11-prefix-6",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 24405,
+      "visibleMessageIds": [
+        "c10_m0",
+        "c10_m1",
+        "c10_m2",
+        "c10_m3",
+        "c10_m4",
+        "c10_m5"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "cancelled",
+        "changeKind": "cancellation",
+        "due": "2026-09-20T10:00:00Z",
+        "latestId": "c10_m5"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "cancellation",
+            "title": "准备接口验收报告",
+            "stage": "cancelled",
+            "nextAction": "用户已取消任务，不再继续修订。",
+            "deadline": {
+              "dueAt": "2026-09-20T10:00:00Z",
+              "messageId": "c10_m4",
+              "quote": "准备接口验收报告验收还没通过，请继续修订。截止改到2026年9月20日18:00（UTC+8）。"
+            },
+            "evidence": [
+              {
+                "messageId": "c10_m0",
+                "quote": "请准备接口验收报告，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c10_m1",
+                "quote": "我正在尝试准备接口验收报告，目前还没有交付。"
+              },
+              {
+                "messageId": "c10_m2",
+                "quote": "准备接口验收报告这次尝试失败，原因是输入数据缺失，目前仍未交付。"
+              },
+              {
+                "messageId": "c10_m3",
+                "quote": "缺失数据已补齐，准备接口验收报告已经交付，请你验收。"
+              },
+              {
+                "messageId": "c10_m4",
+                "quote": "准备接口验收报告验收还没通过，请继续修订。截止改到2026年9月20日18:00（UTC+8）。"
+              },
+              {
+                "messageId": "c10_m5",
+                "quote": "取消准备接口验收报告，不再继续。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-12-prefix-1",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 21313,
+      "visibleMessageIds": [
+        "c11_m0"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "requested",
+        "changeKind": "commitment",
+        "due": null,
+        "latestId": "c11_m0"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "commitment",
+            "title": "整理会议行动项",
+            "stage": "requested",
+            "nextAction": "整理会议行动项，完成后向用户反馈。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c11_m0",
+                "quote": "请整理会议行动项，只做这件事，完成后反馈给我。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-12-prefix-2",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 16779,
+      "visibleMessageIds": [
+        "c11_m0",
+        "c11_m1"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "in_progress",
+        "changeKind": "attempt",
+        "due": null,
+        "latestId": "c11_m1"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "attempt",
+            "title": "整理会议行动项",
+            "stage": "in_progress",
+            "nextAction": "继续整理会议行动项，完成后反馈给用户。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c11_m0",
+                "quote": "请整理会议行动项，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c11_m1",
+                "quote": "我正在尝试整理会议行动项，目前还没有交付。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-12-prefix-3",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 16994,
+      "visibleMessageIds": [
+        "c11_m0",
+        "c11_m1",
+        "c11_m2"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "in_progress",
+        "changeKind": "failure",
+        "due": null,
+        "latestId": "c11_m2"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "failure",
+            "title": "整理会议行动项",
+            "stage": "in_progress",
+            "nextAction": "补充缺失的输入数据后继续整理并反馈",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c11_m0",
+                "quote": "请整理会议行动项，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c11_m1",
+                "quote": "我正在尝试整理会议行动项，目前还没有交付。"
+              },
+              {
+                "messageId": "c11_m2",
+                "quote": "整理会议行动项这次尝试失败，原因是输入数据缺失，目前仍未交付。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-12-prefix-4",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 17863,
+      "visibleMessageIds": [
+        "c11_m0",
+        "c11_m1",
+        "c11_m2",
+        "c11_m3"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "delivered",
+        "changeKind": "feedback",
+        "due": null,
+        "latestId": "c11_m3"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "feedback",
+            "title": "整理会议行动项",
+            "stage": "delivered",
+            "nextAction": "等待用户验收已交付的会议行动项。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c11_m0",
+                "quote": "请整理会议行动项，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c11_m3",
+                "quote": "缺失数据已补齐，整理会议行动项已经交付，请你验收。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-13-prefix-1",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 15735,
+      "visibleMessageIds": [
+        "c12_m0"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "requested",
+        "changeKind": "commitment",
+        "due": null,
+        "latestId": "c12_m0"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "commitment",
+            "title": "完成新首页交互稿",
+            "stage": "requested",
+            "nextAction": "完成新首页交互稿后向用户反馈",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c12_m0",
+                "quote": "请完成新首页交互稿，只做这件事，完成后反馈给我。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-12-prefix-5",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 24748,
+      "visibleMessageIds": [
+        "c11_m0",
+        "c11_m1",
+        "c11_m2",
+        "c11_m3",
+        "c11_m4"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "in_progress",
+        "changeKind": "reschedule",
+        "due": "2026-09-20T10:00:00Z",
+        "latestId": "c11_m4"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "reschedule",
+            "title": "整理并修订会议行动项",
+            "stage": "in_progress",
+            "nextAction": "根据未通过的验收反馈继续修订，并于新截止时间前再次提交验收。",
+            "deadline": {
+              "dueAt": "2026-09-20T10:00:00Z",
+              "messageId": "c11_m4",
+              "quote": "截止改到2026年9月20日18:00（UTC+8）。"
+            },
+            "evidence": [
+              {
+                "messageId": "c11_m0",
+                "quote": "请整理会议行动项，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c11_m3",
+                "quote": "缺失数据已补齐，整理会议行动项已经交付，请你验收。"
+              },
+              {
+                "messageId": "c11_m4",
+                "quote": "整理会议行动项验收还没通过，请继续修订。截止改到2026年9月20日18:00（UTC+8）。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-12-prefix-6",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 22289,
+      "visibleMessageIds": [
+        "c11_m0",
+        "c11_m1",
+        "c11_m2",
+        "c11_m3",
+        "c11_m4",
+        "c11_m5"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "accepted",
+        "changeKind": "feedback",
+        "due": "2026-09-20T10:00:00Z",
+        "latestId": "c11_m5"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "feedback",
+            "title": "整理会议行动项",
+            "stage": "accepted",
+            "nextAction": "无需后续行动，用户已确认修订版验收通过。",
+            "deadline": {
+              "dueAt": "2026-09-20T10:00:00Z",
+              "messageId": "c11_m4",
+              "quote": "截止改到2026年9月20日18:00（UTC+8）。"
+            },
+            "evidence": [
+              {
+                "messageId": "c11_m0",
+                "quote": "请整理会议行动项，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c11_m1",
+                "quote": "我正在尝试整理会议行动项，目前还没有交付。"
+              },
+              {
+                "messageId": "c11_m2",
+                "quote": "整理会议行动项这次尝试失败，原因是输入数据缺失，目前仍未交付。"
+              },
+              {
+                "messageId": "c11_m3",
+                "quote": "缺失数据已补齐，整理会议行动项已经交付，请你验收。"
+              },
+              {
+                "messageId": "c11_m4",
+                "quote": "整理会议行动项验收还没通过，请继续修订。截止改到2026年9月20日18:00（UTC+8）。"
+              },
+              {
+                "messageId": "c11_m5",
+                "quote": "整理会议行动项的修订版我已检查，验收通过，这件事完成了。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-13-prefix-2",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 16665,
+      "visibleMessageIds": [
+        "c12_m0",
+        "c12_m1"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "in_progress",
+        "changeKind": "attempt",
+        "due": null,
+        "latestId": "c12_m1"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "attempt",
+            "title": "完成新首页交互稿",
+            "stage": "in_progress",
+            "nextAction": "继续完成新首页交互稿，完成后向用户反馈。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c12_m0",
+                "quote": "请完成新首页交互稿，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c12_m1",
+                "quote": "我正在尝试完成新首页交互稿，目前还没有交付。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-13-prefix-3",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 20177,
+      "visibleMessageIds": [
+        "c12_m0",
+        "c12_m1",
+        "c12_m2"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "in_progress",
+        "changeKind": "failure",
+        "due": null,
+        "latestId": "c12_m2"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "failure",
+            "title": "完成新首页交互稿",
+            "stage": "in_progress",
+            "nextAction": "补充缺失的输入数据后继续完成并反馈",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c12_m0",
+                "quote": "请完成新首页交互稿，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c12_m2",
+                "quote": "完成新首页交互稿这次尝试失败，原因是输入数据缺失，目前仍未交付。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-13-prefix-4",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 20118,
+      "visibleMessageIds": [
+        "c12_m0",
+        "c12_m1",
+        "c12_m2",
+        "c12_m3"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "delivered",
+        "changeKind": "feedback",
+        "due": null,
+        "latestId": "c12_m3"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "feedback",
+            "title": "完成新首页交互稿",
+            "stage": "delivered",
+            "nextAction": "等待用户验收新首页交互稿。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c12_m0",
+                "quote": "请完成新首页交互稿，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c12_m1",
+                "quote": "我正在尝试完成新首页交互稿，目前还没有交付。"
+              },
+              {
+                "messageId": "c12_m2",
+                "quote": "完成新首页交互稿这次尝试失败，原因是输入数据缺失，目前仍未交付。"
+              },
+              {
+                "messageId": "c12_m3",
+                "quote": "缺失数据已补齐，完成新首页交互稿已经交付，请你验收。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-13-prefix-5",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 21725,
+      "visibleMessageIds": [
+        "c12_m0",
+        "c12_m1",
+        "c12_m2",
+        "c12_m3",
+        "c12_m4"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "in_progress",
+        "changeKind": "reschedule",
+        "due": "2026-09-20T10:00:00Z",
+        "latestId": "c12_m4"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "reschedule",
+            "title": "完成并修订新首页交互稿",
+            "stage": "in_progress",
+            "nextAction": "根据验收反馈继续修订，并在新截止时间前再次提交验收。",
+            "deadline": {
+              "dueAt": "2026-09-20T10:00:00Z",
+              "messageId": "c12_m4",
+              "quote": "截止改到2026年9月20日18:00（UTC+8）。"
+            },
+            "evidence": [
+              {
+                "messageId": "c12_m0",
+                "quote": "请完成新首页交互稿，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c12_m4",
+                "quote": "完成新首页交互稿验收还没通过，请继续修订。截止改到2026年9月20日18:00（UTC+8）。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-14-prefix-1",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 16240,
+      "visibleMessageIds": [
+        "c13_m0"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "requested",
+        "changeKind": "commitment",
+        "due": null,
+        "latestId": "c13_m0"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "commitment",
+            "title": "排查同步失败并反馈结果",
+            "stage": "requested",
+            "nextAction": "排查同步失败原因，完成后向用户反馈。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c13_m0",
+                "quote": "请排查同步失败，只做这件事，完成后反馈给我。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-13-prefix-6",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 27451,
+      "visibleMessageIds": [
+        "c12_m0",
+        "c12_m1",
+        "c12_m2",
+        "c12_m3",
+        "c12_m4",
+        "c12_m5"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "cancelled",
+        "changeKind": "cancellation",
+        "due": "2026-09-20T10:00:00Z",
+        "latestId": "c12_m5"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "cancellation",
+            "title": "完成新首页交互稿",
+            "stage": "cancelled",
+            "nextAction": "用户已明确取消，不再继续。",
+            "deadline": {
+              "dueAt": "2026-09-20T10:00:00Z",
+              "messageId": "c12_m4",
+              "quote": "完成新首页交互稿验收还没通过，请继续修订。截止改到2026年9月20日18:00（UTC+8）。"
+            },
+            "evidence": [
+              {
+                "messageId": "c12_m0",
+                "quote": "请完成新首页交互稿，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c12_m1",
+                "quote": "我正在尝试完成新首页交互稿，目前还没有交付。"
+              },
+              {
+                "messageId": "c12_m2",
+                "quote": "完成新首页交互稿这次尝试失败，原因是输入数据缺失，目前仍未交付。"
+              },
+              {
+                "messageId": "c12_m3",
+                "quote": "缺失数据已补齐，完成新首页交互稿已经交付，请你验收。"
+              },
+              {
+                "messageId": "c12_m4",
+                "quote": "完成新首页交互稿验收还没通过，请继续修订。截止改到2026年9月20日18:00（UTC+8）。"
+              },
+              {
+                "messageId": "c12_m5",
+                "quote": "取消完成新首页交互稿，不再继续。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-14-prefix-2",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 18286,
+      "visibleMessageIds": [
+        "c13_m0",
+        "c13_m1"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "in_progress",
+        "changeKind": "attempt",
+        "due": null,
+        "latestId": "c13_m1"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "attempt",
+            "title": "排查同步失败并反馈结果",
+            "stage": "in_progress",
+            "nextAction": "继续排查同步失败，完成后向用户反馈。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c13_m0",
+                "quote": "请排查同步失败，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c13_m1",
+                "quote": "我正在尝试排查同步失败，目前还没有交付。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-14-prefix-3",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 17708,
+      "visibleMessageIds": [
+        "c13_m0",
+        "c13_m1",
+        "c13_m2"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "in_progress",
+        "changeKind": "failure",
+        "due": null,
+        "latestId": "c13_m2"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "failure",
+            "title": "排查同步失败并反馈结果",
+            "stage": "in_progress",
+            "nextAction": "补充缺失的输入数据后继续排查，完成后向用户反馈。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c13_m0",
+                "quote": "请排查同步失败，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c13_m2",
+                "quote": "排查同步失败这次尝试失败，原因是输入数据缺失，目前仍未交付。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-14-prefix-4",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 18751,
+      "visibleMessageIds": [
+        "c13_m0",
+        "c13_m1",
+        "c13_m2",
+        "c13_m3"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "delivered",
+        "changeKind": "feedback",
+        "due": null,
+        "latestId": "c13_m3"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "feedback",
+            "title": "排查同步失败并反馈结果",
+            "stage": "delivered",
+            "nextAction": "等待用户验收排查结果。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c13_m0",
+                "quote": "请排查同步失败，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c13_m3",
+                "quote": "缺失数据已补齐，排查同步失败已经交付，请你验收。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-14-prefix-6",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 19607,
+      "visibleMessageIds": [
+        "c13_m0",
+        "c13_m1",
+        "c13_m2",
+        "c13_m3",
+        "c13_m4",
+        "c13_m5"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "accepted",
+        "changeKind": "feedback",
+        "due": "2026-09-20T10:00:00Z",
+        "latestId": "c13_m5"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "feedback",
+            "title": "排查同步失败并反馈结果",
+            "stage": "accepted",
+            "nextAction": "无需后续行动，用户已验收通过。",
+            "deadline": {
+              "dueAt": "2026-09-20T10:00:00Z",
+              "messageId": "c13_m4",
+              "quote": "截止改到2026年9月20日18:00（UTC+8）。"
+            },
+            "evidence": [
+              {
+                "messageId": "c13_m0",
+                "quote": "请排查同步失败，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c13_m4",
+                "quote": "排查同步失败验收还没通过，请继续修订。截止改到2026年9月20日18:00（UTC+8）。"
+              },
+              {
+                "messageId": "c13_m5",
+                "quote": "排查同步失败的修订版我已检查，验收通过，这件事完成了。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-14-prefix-5",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 23572,
+      "visibleMessageIds": [
+        "c13_m0",
+        "c13_m1",
+        "c13_m2",
+        "c13_m3",
+        "c13_m4"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "in_progress",
+        "changeKind": "reschedule",
+        "due": "2026-09-20T10:00:00Z",
+        "latestId": "c13_m4"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "reschedule",
+            "title": "排查同步失败并在完成后反馈",
+            "stage": "in_progress",
+            "nextAction": "继续修订未通过验收的交付，并于新截止时间前再次提交验收。",
+            "deadline": {
+              "dueAt": "2026-09-20T10:00:00Z",
+              "messageId": "c13_m4",
+              "quote": "截止改到2026年9月20日18:00（UTC+8）。"
+            },
+            "evidence": [
+              {
+                "messageId": "c13_m0",
+                "quote": "请排查同步失败，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c13_m1",
+                "quote": "我正在尝试排查同步失败，目前还没有交付。"
+              },
+              {
+                "messageId": "c13_m2",
+                "quote": "排查同步失败这次尝试失败，原因是输入数据缺失，目前仍未交付。"
+              },
+              {
+                "messageId": "c13_m3",
+                "quote": "缺失数据已补齐，排查同步失败已经交付，请你验收。"
+              },
+              {
+                "messageId": "c13_m4",
+                "quote": "排查同步失败验收还没通过，请继续修订。截止改到2026年9月20日18:00（UTC+8）。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-15-prefix-1",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 17771,
+      "visibleMessageIds": [
+        "c14_m0"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "requested",
+        "changeKind": "commitment",
+        "due": null,
+        "latestId": "c14_m0"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "commitment",
+            "title": "核对订单金额并反馈结果",
+            "stage": "requested",
+            "nextAction": "核对订单金额，完成后反馈结果。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c14_m0",
+                "quote": "请核对订单金额，只做这件事，完成后反馈给我。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-15-prefix-2",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 15647,
+      "visibleMessageIds": [
+        "c14_m0",
+        "c14_m1"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "in_progress",
+        "changeKind": "attempt",
+        "due": null,
+        "latestId": "c14_m1"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "attempt",
+            "title": "核对订单金额并反馈结果",
+            "stage": "in_progress",
+            "nextAction": "继续核对订单金额，完成后向用户反馈。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c14_m0",
+                "quote": "请核对订单金额，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c14_m1",
+                "quote": "我正在尝试核对订单金额，目前还没有交付。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-15-prefix-3",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 17891,
+      "visibleMessageIds": [
+        "c14_m0",
+        "c14_m1",
+        "c14_m2"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "in_progress",
+        "changeKind": "failure",
+        "due": null,
+        "latestId": "c14_m2"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "failure",
+            "title": "核对订单金额并反馈结果",
+            "stage": "in_progress",
+            "nextAction": "补充缺失的输入数据后继续核对订单金额并反馈结果。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c14_m0",
+                "quote": "请核对订单金额，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c14_m2",
+                "quote": "核对订单金额这次尝试失败，原因是输入数据缺失，目前仍未交付。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-15-prefix-4",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 17377,
+      "visibleMessageIds": [
+        "c14_m0",
+        "c14_m1",
+        "c14_m2",
+        "c14_m3"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "delivered",
+        "changeKind": "feedback",
+        "due": null,
+        "latestId": "c14_m3"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "feedback",
+            "title": "核对订单金额并反馈结果",
+            "stage": "delivered",
+            "nextAction": "等待用户验收核对结果。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c14_m0",
+                "quote": "请核对订单金额，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c14_m3",
+                "quote": "缺失数据已补齐，核对订单金额已经交付，请你验收。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-15-prefix-5",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 20572,
+      "visibleMessageIds": [
+        "c14_m0",
+        "c14_m1",
+        "c14_m2",
+        "c14_m3",
+        "c14_m4"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "in_progress",
+        "changeKind": "reschedule",
+        "due": "2026-09-20T10:00:00Z",
+        "latestId": "c14_m4"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "reschedule",
+            "title": "核对并修订订单金额，完成后反馈",
+            "stage": "in_progress",
+            "nextAction": "继续修订订单金额并重新提交验收；截止改为2026年9月20日18:00（UTC+8）。",
+            "deadline": {
+              "dueAt": "2026-09-20T10:00:00Z",
+              "messageId": "c14_m4",
+              "quote": "截止改到2026年9月20日18:00（UTC+8）。"
+            },
+            "evidence": [
+              {
+                "messageId": "c14_m0",
+                "quote": "请核对订单金额，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c14_m3",
+                "quote": "缺失数据已补齐，核对订单金额已经交付，请你验收。"
+              },
+              {
+                "messageId": "c14_m4",
+                "quote": "核对订单金额验收还没通过，请继续修订。截止改到2026年9月20日18:00（UTC+8）。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-16-prefix-1",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 15223,
+      "visibleMessageIds": [
+        "c15_m0"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "requested",
+        "changeKind": "commitment",
+        "due": null,
+        "latestId": "c15_m0"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "commitment",
+            "title": "补齐插件授权说明",
+            "stage": "requested",
+            "nextAction": "补齐插件授权说明，完成后向用户反馈",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c15_m0",
+                "quote": "请补齐插件授权说明，只做这件事，完成后反馈给我。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-15-prefix-6",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 22748,
+      "visibleMessageIds": [
+        "c14_m0",
+        "c14_m1",
+        "c14_m2",
+        "c14_m3",
+        "c14_m4",
+        "c14_m5"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "cancelled",
+        "changeKind": "cancellation",
+        "due": "2026-09-20T10:00:00Z",
+        "latestId": "c14_m5"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "cancellation",
+            "title": "核对订单金额并反馈结果",
+            "stage": "cancelled",
+            "nextAction": "用户已取消该任务，不再继续修订。",
+            "deadline": {
+              "dueAt": "2026-09-20T10:00:00Z",
+              "messageId": "c14_m4",
+              "quote": "截止改到2026年9月20日18:00（UTC+8）。"
+            },
+            "evidence": [
+              {
+                "messageId": "c14_m0",
+                "quote": "请核对订单金额，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c14_m1",
+                "quote": "我正在尝试核对订单金额，目前还没有交付。"
+              },
+              {
+                "messageId": "c14_m2",
+                "quote": "核对订单金额这次尝试失败，原因是输入数据缺失，目前仍未交付。"
+              },
+              {
+                "messageId": "c14_m3",
+                "quote": "缺失数据已补齐，核对订单金额已经交付，请你验收。"
+              },
+              {
+                "messageId": "c14_m4",
+                "quote": "核对订单金额验收还没通过，请继续修订。截止改到2026年9月20日18:00（UTC+8）。"
+              },
+              {
+                "messageId": "c14_m5",
+                "quote": "取消核对订单金额，不再继续。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-16-prefix-2",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 16125,
+      "visibleMessageIds": [
+        "c15_m0",
+        "c15_m1"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "in_progress",
+        "changeKind": "attempt",
+        "due": null,
+        "latestId": "c15_m1"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "attempt",
+            "title": "补齐插件授权说明",
+            "stage": "in_progress",
+            "nextAction": "继续补齐插件授权说明，完成后向用户反馈。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c15_m0",
+                "quote": "请补齐插件授权说明，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c15_m1",
+                "quote": "我正在尝试补齐插件授权说明，目前还没有交付。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-16-prefix-3",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 16712,
+      "visibleMessageIds": [
+        "c15_m0",
+        "c15_m1",
+        "c15_m2"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "in_progress",
+        "changeKind": "failure",
+        "due": null,
+        "latestId": "c15_m2"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "failure",
+            "title": "补齐插件授权说明",
+            "stage": "in_progress",
+            "nextAction": "补充缺失的输入数据后继续补齐授权说明，完成后向用户反馈。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c15_m0",
+                "quote": "请补齐插件授权说明，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c15_m2",
+                "quote": "补齐插件授权说明这次尝试失败，原因是输入数据缺失，目前仍未交付。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-16-prefix-4",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 18037,
+      "visibleMessageIds": [
+        "c15_m0",
+        "c15_m1",
+        "c15_m2",
+        "c15_m3"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "delivered",
+        "changeKind": "feedback",
+        "due": null,
+        "latestId": "c15_m3"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "feedback",
+            "title": "补齐插件授权说明",
+            "stage": "delivered",
+            "nextAction": "等待用户验收插件授权说明。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c15_m0",
+                "quote": "请补齐插件授权说明，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c15_m3",
+                "quote": "缺失数据已补齐，补齐插件授权说明已经交付，请你验收。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-16-prefix-5",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 21700,
+      "visibleMessageIds": [
+        "c15_m0",
+        "c15_m1",
+        "c15_m2",
+        "c15_m3",
+        "c15_m4"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "in_progress",
+        "changeKind": "reschedule",
+        "due": "2026-09-20T10:00:00Z",
+        "latestId": "c15_m4"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "reschedule",
+            "title": "补齐并修订插件授权说明",
+            "stage": "in_progress",
+            "nextAction": "继续修订插件授权说明，并在新截止时间前重新提交验收。",
+            "deadline": {
+              "dueAt": "2026-09-20T10:00:00Z",
+              "messageId": "c15_m4",
+              "quote": "截止改到2026年9月20日18:00（UTC+8）。"
+            },
+            "evidence": [
+              {
+                "messageId": "c15_m0",
+                "quote": "请补齐插件授权说明，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c15_m3",
+                "quote": "缺失数据已补齐，补齐插件授权说明已经交付，请你验收。"
+              },
+              {
+                "messageId": "c15_m4",
+                "quote": "补齐插件授权说明验收还没通过，请继续修订。截止改到2026年9月20日18:00（UTC+8）。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-16-prefix-6",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 20179,
+      "visibleMessageIds": [
+        "c15_m0",
+        "c15_m1",
+        "c15_m2",
+        "c15_m3",
+        "c15_m4",
+        "c15_m5"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "accepted",
+        "changeKind": "feedback",
+        "due": "2026-09-20T10:00:00Z",
+        "latestId": "c15_m5"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "feedback",
+            "title": "补齐插件授权说明",
+            "stage": "accepted",
+            "nextAction": "无需后续行动，用户已确认修订版验收通过。",
+            "deadline": {
+              "dueAt": "2026-09-20T10:00:00Z",
+              "messageId": "c15_m4",
+              "quote": "截止改到2026年9月20日18:00（UTC+8）。"
+            },
+            "evidence": [
+              {
+                "messageId": "c15_m0",
+                "quote": "请补齐插件授权说明，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c15_m3",
+                "quote": "缺失数据已补齐，补齐插件授权说明已经交付，请你验收。"
+              },
+              {
+                "messageId": "c15_m4",
+                "quote": "补齐插件授权说明验收还没通过，请继续修订。截止改到2026年9月20日18:00（UTC+8）。"
+              },
+              {
+                "messageId": "c15_m5",
+                "quote": "补齐插件授权说明的修订版我已检查，验收通过，这件事完成了。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-17-prefix-1",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 16482,
+      "visibleMessageIds": [
+        "c16_m0"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "requested",
+        "changeKind": "commitment",
+        "due": null,
+        "latestId": "c16_m0"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "commitment",
+            "title": "整理部署回滚手册",
+            "stage": "requested",
+            "nextAction": "整理部署回滚手册，完成后向用户反馈",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c16_m0",
+                "quote": "请整理部署回滚手册，只做这件事，完成后反馈给我。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-17-prefix-2",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 16585,
+      "visibleMessageIds": [
+        "c16_m0",
+        "c16_m1"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "in_progress",
+        "changeKind": "attempt",
+        "due": null,
+        "latestId": "c16_m1"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "attempt",
+            "title": "整理部署回滚手册",
+            "stage": "in_progress",
+            "nextAction": "继续整理部署回滚手册，完成后反馈用户。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c16_m0",
+                "quote": "请整理部署回滚手册，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c16_m1",
+                "quote": "我正在尝试整理部署回滚手册，目前还没有交付。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-17-prefix-3",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 17003,
+      "visibleMessageIds": [
+        "c16_m0",
+        "c16_m1",
+        "c16_m2"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "in_progress",
+        "changeKind": "failure",
+        "due": null,
+        "latestId": "c16_m2"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "failure",
+            "title": "整理部署回滚手册",
+            "stage": "in_progress",
+            "nextAction": "补充缺失的输入数据后继续整理，完成后向用户反馈。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c16_m0",
+                "quote": "请整理部署回滚手册，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c16_m2",
+                "quote": "整理部署回滚手册这次尝试失败，原因是输入数据缺失，目前仍未交付。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-17-prefix-4",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 18627,
+      "visibleMessageIds": [
+        "c16_m0",
+        "c16_m1",
+        "c16_m2",
+        "c16_m3"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "delivered",
+        "changeKind": "feedback",
+        "due": null,
+        "latestId": "c16_m3"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "feedback",
+            "title": "整理部署回滚手册",
+            "stage": "delivered",
+            "nextAction": "等待用户验收已交付的部署回滚手册。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c16_m0",
+                "quote": "请整理部署回滚手册，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c16_m1",
+                "quote": "我正在尝试整理部署回滚手册，目前还没有交付。"
+              },
+              {
+                "messageId": "c16_m2",
+                "quote": "整理部署回滚手册这次尝试失败，原因是输入数据缺失，目前仍未交付。"
+              },
+              {
+                "messageId": "c16_m3",
+                "quote": "缺失数据已补齐，整理部署回滚手册已经交付，请你验收。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-17-prefix-5",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 21059,
+      "visibleMessageIds": [
+        "c16_m0",
+        "c16_m1",
+        "c16_m2",
+        "c16_m3",
+        "c16_m4"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "in_progress",
+        "changeKind": "reschedule",
+        "due": "2026-09-20T10:00:00Z",
+        "latestId": "c16_m4"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "reschedule",
+            "title": "整理并修订部署回滚手册",
+            "stage": "in_progress",
+            "nextAction": "根据未通过的验收反馈继续修订，并在新截止时间前再次提交验收。",
+            "deadline": {
+              "dueAt": "2026-09-20T10:00:00Z",
+              "messageId": "c16_m4",
+              "quote": "截止改到2026年9月20日18:00（UTC+8）。"
+            },
+            "evidence": [
+              {
+                "messageId": "c16_m0",
+                "quote": "请整理部署回滚手册，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c16_m3",
+                "quote": "缺失数据已补齐，整理部署回滚手册已经交付，请你验收。"
+              },
+              {
+                "messageId": "c16_m4",
+                "quote": "整理部署回滚手册验收还没通过，请继续修订。截止改到2026年9月20日18:00（UTC+8）。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-18-prefix-1",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 15179,
+      "visibleMessageIds": [
+        "c17_m0"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "requested",
+        "changeKind": "commitment",
+        "due": null,
+        "latestId": "c17_m0"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "commitment",
+            "title": "制作培训材料",
+            "stage": "requested",
+            "nextAction": "制作培训材料，完成后向用户反馈。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c17_m0",
+                "quote": "请制作培训材料，只做这件事，完成后反馈给我。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-17-prefix-6",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 27748,
+      "visibleMessageIds": [
+        "c16_m0",
+        "c16_m1",
+        "c16_m2",
+        "c16_m3",
+        "c16_m4",
+        "c16_m5"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "cancelled",
+        "changeKind": "cancellation",
+        "due": "2026-09-20T10:00:00Z",
+        "latestId": "c16_m5"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "cancellation",
+            "title": "整理部署回滚手册",
+            "stage": "cancelled",
+            "nextAction": "已按用户要求取消，不再继续修订。",
+            "deadline": {
+              "dueAt": "2026-09-20T10:00:00Z",
+              "messageId": "c16_m4",
+              "quote": "截止改到2026年9月20日18:00（UTC+8）。"
+            },
+            "evidence": [
+              {
+                "messageId": "c16_m0",
+                "quote": "请整理部署回滚手册，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c16_m1",
+                "quote": "我正在尝试整理部署回滚手册，目前还没有交付。"
+              },
+              {
+                "messageId": "c16_m2",
+                "quote": "整理部署回滚手册这次尝试失败，原因是输入数据缺失，目前仍未交付。"
+              },
+              {
+                "messageId": "c16_m3",
+                "quote": "缺失数据已补齐，整理部署回滚手册已经交付，请你验收。"
+              },
+              {
+                "messageId": "c16_m4",
+                "quote": "整理部署回滚手册验收还没通过，请继续修订。截止改到2026年9月20日18:00（UTC+8）。"
+              },
+              {
+                "messageId": "c16_m5",
+                "quote": "取消整理部署回滚手册，不再继续。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-18-prefix-2",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 15658,
+      "visibleMessageIds": [
+        "c17_m0",
+        "c17_m1"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "in_progress",
+        "changeKind": "attempt",
+        "due": null,
+        "latestId": "c17_m1"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "attempt",
+            "title": "制作培训材料",
+            "stage": "in_progress",
+            "nextAction": "继续制作培训材料，完成后向用户反馈",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c17_m0",
+                "quote": "请制作培训材料，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c17_m1",
+                "quote": "我正在尝试制作培训材料，目前还没有交付。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-18-prefix-3",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 18431,
+      "visibleMessageIds": [
+        "c17_m0",
+        "c17_m1",
+        "c17_m2"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "in_progress",
+        "changeKind": "failure",
+        "due": null,
+        "latestId": "c17_m2"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "failure",
+            "title": "制作培训材料",
+            "stage": "in_progress",
+            "nextAction": "补充缺失的输入数据后继续制作并反馈。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c17_m0",
+                "quote": "请制作培训材料，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c17_m2",
+                "quote": "制作培训材料这次尝试失败，原因是输入数据缺失，目前仍未交付。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-18-prefix-4",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 20282,
+      "visibleMessageIds": [
+        "c17_m0",
+        "c17_m1",
+        "c17_m2",
+        "c17_m3"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "delivered",
+        "changeKind": "feedback",
+        "due": null,
+        "latestId": "c17_m3"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "feedback",
+            "title": "制作培训材料",
+            "stage": "delivered",
+            "nextAction": "等待用户验收已交付的培训材料。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c17_m0",
+                "quote": "请制作培训材料，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c17_m1",
+                "quote": "我正在尝试制作培训材料，目前还没有交付。"
+              },
+              {
+                "messageId": "c17_m2",
+                "quote": "制作培训材料这次尝试失败，原因是输入数据缺失，目前仍未交付。"
+              },
+              {
+                "messageId": "c17_m3",
+                "quote": "缺失数据已补齐，制作培训材料已经交付，请你验收。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-18-prefix-5",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 25942,
+      "visibleMessageIds": [
+        "c17_m0",
+        "c17_m1",
+        "c17_m2",
+        "c17_m3",
+        "c17_m4"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "in_progress",
+        "changeKind": "reschedule",
+        "due": "2026-09-20T10:00:00Z",
+        "latestId": "c17_m4"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "reschedule",
+            "title": "制作并修订培训材料",
+            "stage": "in_progress",
+            "nextAction": "继续修订培训材料并再次提交验收；当前验收未通过，截止时间已改为2026年9月20日18:00（UTC+8）。",
+            "deadline": {
+              "dueAt": "2026-09-20T10:00:00Z",
+              "messageId": "c17_m4",
+              "quote": "制作培训材料验收还没通过，请继续修订。截止改到2026年9月20日18:00（UTC+8）。"
+            },
+            "evidence": [
+              {
+                "messageId": "c17_m0",
+                "quote": "请制作培训材料，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c17_m3",
+                "quote": "缺失数据已补齐，制作培训材料已经交付，请你验收。"
+              },
+              {
+                "messageId": "c17_m4",
+                "quote": "制作培训材料验收还没通过，请继续修订。截止改到2026年9月20日18:00（UTC+8）。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-18-prefix-6",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 23508,
+      "visibleMessageIds": [
+        "c17_m0",
+        "c17_m1",
+        "c17_m2",
+        "c17_m3",
+        "c17_m4",
+        "c17_m5"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "accepted",
+        "changeKind": "feedback",
+        "due": "2026-09-20T10:00:00Z",
+        "latestId": "c17_m5"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "feedback",
+            "title": "制作并修订培训材料",
+            "stage": "accepted",
+            "nextAction": "无需后续行动，用户已验收通过。",
+            "deadline": {
+              "dueAt": "2026-09-20T10:00:00Z",
+              "messageId": "c17_m4",
+              "quote": "截止改到2026年9月20日18:00（UTC+8）。"
+            },
+            "evidence": [
+              {
+                "messageId": "c17_m0",
+                "quote": "请制作培训材料，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c17_m1",
+                "quote": "我正在尝试制作培训材料，目前还没有交付。"
+              },
+              {
+                "messageId": "c17_m2",
+                "quote": "制作培训材料这次尝试失败，原因是输入数据缺失，目前仍未交付。"
+              },
+              {
+                "messageId": "c17_m3",
+                "quote": "缺失数据已补齐，制作培训材料已经交付，请你验收。"
+              },
+              {
+                "messageId": "c17_m4",
+                "quote": "制作培训材料验收还没通过，请继续修订。截止改到2026年9月20日18:00（UTC+8）。"
+              },
+              {
+                "messageId": "c17_m5",
+                "quote": "制作培训材料的修订版我已检查，验收通过，这件事完成了。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-19-prefix-1",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 15436,
+      "visibleMessageIds": [
+        "c18_m0"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "requested",
+        "changeKind": "commitment",
+        "due": null,
+        "latestId": "c18_m0"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "commitment",
+            "title": "更新无障碍检查记录",
+            "stage": "requested",
+            "nextAction": "更新记录，完成后向用户反馈",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c18_m0",
+                "quote": "请更新无障碍检查记录，只做这件事，完成后反馈给我。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-19-prefix-2",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 17051,
+      "visibleMessageIds": [
+        "c18_m0",
+        "c18_m1"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "in_progress",
+        "changeKind": "attempt",
+        "due": null,
+        "latestId": "c18_m1"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "attempt",
+            "title": "更新无障碍检查记录",
+            "stage": "in_progress",
+            "nextAction": "继续更新无障碍检查记录，完成后向用户反馈。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c18_m0",
+                "quote": "请更新无障碍检查记录，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c18_m1",
+                "quote": "我正在尝试更新无障碍检查记录，目前还没有交付。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-19-prefix-3",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 17267,
+      "visibleMessageIds": [
+        "c18_m0",
+        "c18_m1",
+        "c18_m2"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "in_progress",
+        "changeKind": "failure",
+        "due": null,
+        "latestId": "c18_m2"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "failure",
+            "title": "更新无障碍检查记录",
+            "stage": "in_progress",
+            "nextAction": "补充缺失的输入数据后继续更新，并在完成后向用户反馈。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c18_m0",
+                "quote": "请更新无障碍检查记录，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c18_m1",
+                "quote": "我正在尝试更新无障碍检查记录，目前还没有交付。"
+              },
+              {
+                "messageId": "c18_m2",
+                "quote": "更新无障碍检查记录这次尝试失败，原因是输入数据缺失，目前仍未交付。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-19-prefix-4",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 20666,
+      "visibleMessageIds": [
+        "c18_m0",
+        "c18_m1",
+        "c18_m2",
+        "c18_m3"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "delivered",
+        "changeKind": "feedback",
+        "due": null,
+        "latestId": "c18_m3"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "feedback",
+            "title": "更新无障碍检查记录",
+            "stage": "delivered",
+            "nextAction": "等待用户验收已交付的无障碍检查记录。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c18_m0",
+                "quote": "请更新无障碍检查记录，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c18_m1",
+                "quote": "我正在尝试更新无障碍检查记录，目前还没有交付。"
+              },
+              {
+                "messageId": "c18_m2",
+                "quote": "更新无障碍检查记录这次尝试失败，原因是输入数据缺失，目前仍未交付。"
+              },
+              {
+                "messageId": "c18_m3",
+                "quote": "缺失数据已补齐，更新无障碍检查记录已经交付，请你验收。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-19-prefix-5",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 21505,
+      "visibleMessageIds": [
+        "c18_m0",
+        "c18_m1",
+        "c18_m2",
+        "c18_m3",
+        "c18_m4"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "in_progress",
+        "changeKind": "reschedule",
+        "due": "2026-09-20T10:00:00Z",
+        "latestId": "c18_m4"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "reschedule",
+            "title": "更新并修订无障碍检查记录",
+            "stage": "in_progress",
+            "nextAction": "继续修订未通过验收的无障碍检查记录，并在新截止时间前再次提交验收。",
+            "deadline": {
+              "dueAt": "2026-09-20T10:00:00Z",
+              "messageId": "c18_m4",
+              "quote": "截止改到2026年9月20日18:00（UTC+8）。"
+            },
+            "evidence": [
+              {
+                "messageId": "c18_m0",
+                "quote": "请更新无障碍检查记录，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c18_m3",
+                "quote": "缺失数据已补齐，更新无障碍检查记录已经交付，请你验收。"
+              },
+              {
+                "messageId": "c18_m4",
+                "quote": "更新无障碍检查记录验收还没通过，请继续修订。截止改到2026年9月20日18:00（UTC+8）。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-19-prefix-6",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 22738,
+      "visibleMessageIds": [
+        "c18_m0",
+        "c18_m1",
+        "c18_m2",
+        "c18_m3",
+        "c18_m4",
+        "c18_m5"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "cancelled",
+        "changeKind": "cancellation",
+        "due": "2026-09-20T10:00:00Z",
+        "latestId": "c18_m5"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "cancellation",
+            "title": "更新无障碍检查记录",
+            "stage": "cancelled",
+            "nextAction": "已取消，不再继续修订。",
+            "deadline": {
+              "dueAt": "2026-09-20T10:00:00Z",
+              "messageId": "c18_m4",
+              "quote": "截止改到2026年9月20日18:00（UTC+8）。"
+            },
+            "evidence": [
+              {
+                "messageId": "c18_m0",
+                "quote": "请更新无障碍检查记录，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c18_m3",
+                "quote": "缺失数据已补齐，更新无障碍检查记录已经交付，请你验收。"
+              },
+              {
+                "messageId": "c18_m4",
+                "quote": "更新无障碍检查记录验收还没通过，请继续修订。截止改到2026年9月20日18:00（UTC+8）。"
+              },
+              {
+                "messageId": "c18_m5",
+                "quote": "取消更新无障碍检查记录，不再继续。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-20-prefix-1",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 17045,
+      "visibleMessageIds": [
+        "c19_m0"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "requested",
+        "changeKind": "commitment",
+        "due": null,
+        "latestId": "c19_m0"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "commitment",
+            "title": "提交安全整改报告",
+            "stage": "requested",
+            "nextAction": "提交安全整改报告，完成后向用户反馈。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c19_m0",
+                "quote": "请提交安全整改报告，只做这件事，完成后反馈给我。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-20-prefix-2",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 16601,
+      "visibleMessageIds": [
+        "c19_m0",
+        "c19_m1"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "in_progress",
+        "changeKind": "attempt",
+        "due": null,
+        "latestId": "c19_m1"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "attempt",
+            "title": "提交安全整改报告",
+            "stage": "in_progress",
+            "nextAction": "继续提交安全整改报告，完成后向用户反馈。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c19_m0",
+                "quote": "请提交安全整改报告，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c19_m1",
+                "quote": "我正在尝试提交安全整改报告，目前还没有交付。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-20-prefix-3",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 16051,
+      "visibleMessageIds": [
+        "c19_m0",
+        "c19_m1",
+        "c19_m2"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "in_progress",
+        "changeKind": "failure",
+        "due": null,
+        "latestId": "c19_m2"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "failure",
+            "title": "提交安全整改报告并反馈",
+            "stage": "in_progress",
+            "nextAction": "补齐缺失的输入数据后，重新提交安全整改报告并向用户反馈。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c19_m0",
+                "quote": "请提交安全整改报告，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c19_m2",
+                "quote": "提交安全整改报告这次尝试失败，原因是输入数据缺失，目前仍未交付。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-20-prefix-4",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 19468,
+      "visibleMessageIds": [
+        "c19_m0",
+        "c19_m1",
+        "c19_m2",
+        "c19_m3"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "delivered",
+        "changeKind": "feedback",
+        "due": null,
+        "latestId": "c19_m3"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "feedback",
+            "title": "提交安全整改报告",
+            "stage": "delivered",
+            "nextAction": "等待用户验收安全整改报告。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c19_m0",
+                "quote": "请提交安全整改报告，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c19_m3",
+                "quote": "缺失数据已补齐，提交安全整改报告已经交付，请你验收。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-21-prefix-1",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 14560,
+      "visibleMessageIds": [
+        "c20_m0"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "requested",
+        "changeKind": "commitment",
+        "due": null,
+        "latestId": "c20_m0"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "commitment",
+            "title": "修复附件上传",
+            "stage": "requested",
+            "nextAction": "修复附件上传功能，完成后向用户反馈。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c20_m0",
+                "quote": "请修复附件上传，只做这件事，完成后反馈给我。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-20-prefix-5",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 21162,
+      "visibleMessageIds": [
+        "c19_m0",
+        "c19_m1",
+        "c19_m2",
+        "c19_m3",
+        "c19_m4"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "in_progress",
+        "changeKind": "reschedule",
+        "due": "2026-09-20T10:00:00Z",
+        "latestId": "c19_m4"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "reschedule",
+            "title": "提交并修订安全整改报告",
+            "stage": "in_progress",
+            "nextAction": "继续修订安全整改报告，并在新截止时间前重新提交验收；当前验收尚未通过。",
+            "deadline": {
+              "dueAt": "2026-09-20T10:00:00Z",
+              "messageId": "c19_m4",
+              "quote": "截止改到2026年9月20日18:00（UTC+8）。"
+            },
+            "evidence": [
+              {
+                "messageId": "c19_m0",
+                "quote": "请提交安全整改报告，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c19_m3",
+                "quote": "缺失数据已补齐，提交安全整改报告已经交付，请你验收。"
+              },
+              {
+                "messageId": "c19_m4",
+                "quote": "提交安全整改报告验收还没通过，请继续修订。截止改到2026年9月20日18:00（UTC+8）。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-20-prefix-6",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 21170,
+      "visibleMessageIds": [
+        "c19_m0",
+        "c19_m1",
+        "c19_m2",
+        "c19_m3",
+        "c19_m4",
+        "c19_m5"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "accepted",
+        "changeKind": "feedback",
+        "due": "2026-09-20T10:00:00Z",
+        "latestId": "c19_m5"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "feedback",
+            "title": "提交安全整改报告",
+            "stage": "accepted",
+            "nextAction": "无需跟进，用户已确认修订版验收通过。",
+            "deadline": {
+              "dueAt": "2026-09-20T10:00:00Z",
+              "messageId": "c19_m4",
+              "quote": "截止改到2026年9月20日18:00（UTC+8）。"
+            },
+            "evidence": [
+              {
+                "messageId": "c19_m0",
+                "quote": "请提交安全整改报告，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c19_m4",
+                "quote": "提交安全整改报告验收还没通过，请继续修订。截止改到2026年9月20日18:00（UTC+8）。"
+              },
+              {
+                "messageId": "c19_m5",
+                "quote": "提交安全整改报告的修订版我已检查，验收通过，这件事完成了。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-21-prefix-2",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 15196,
+      "visibleMessageIds": [
+        "c20_m0",
+        "c20_m1"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "in_progress",
+        "changeKind": "attempt",
+        "due": null,
+        "latestId": "c20_m1"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "attempt",
+            "title": "修复附件上传",
+            "stage": "in_progress",
+            "nextAction": "继续修复附件上传，完成后向用户反馈。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c20_m0",
+                "quote": "请修复附件上传，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c20_m1",
+                "quote": "我正在尝试修复附件上传，目前还没有交付。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-21-prefix-3",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 16282,
+      "visibleMessageIds": [
+        "c20_m0",
+        "c20_m1",
+        "c20_m2"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "in_progress",
+        "changeKind": "failure",
+        "due": null,
+        "latestId": "c20_m2"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "failure",
+            "title": "修复附件上传",
+            "stage": "in_progress",
+            "nextAction": "补充缺失的输入数据后继续修复，完成后向用户反馈。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c20_m0",
+                "quote": "请修复附件上传，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c20_m2",
+                "quote": "修复附件上传这次尝试失败，原因是输入数据缺失，目前仍未交付。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-21-prefix-4",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 17189,
+      "visibleMessageIds": [
+        "c20_m0",
+        "c20_m1",
+        "c20_m2",
+        "c20_m3"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "delivered",
+        "changeKind": "feedback",
+        "due": null,
+        "latestId": "c20_m3"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "feedback",
+            "title": "修复附件上传",
+            "stage": "delivered",
+            "nextAction": "等待用户验收附件上传修复结果。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c20_m0",
+                "quote": "请修复附件上传，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c20_m3",
+                "quote": "缺失数据已补齐，修复附件上传已经交付，请你验收。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-22-prefix-1",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 16219,
+      "visibleMessageIds": [
+        "c21_m0"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "requested",
+        "changeKind": "commitment",
+        "due": null,
+        "latestId": "c21_m0"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "commitment",
+            "title": "准备采购对比表",
+            "stage": "requested",
+            "nextAction": "准备采购对比表，完成后向用户反馈。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c21_m0",
+                "quote": "请准备采购对比表，只做这件事，完成后反馈给我。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-21-prefix-5",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 24350,
+      "visibleMessageIds": [
+        "c20_m0",
+        "c20_m1",
+        "c20_m2",
+        "c20_m3",
+        "c20_m4"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "in_progress",
+        "changeKind": "reschedule",
+        "due": "2026-09-20T10:00:00Z",
+        "latestId": "c20_m4"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "reschedule",
+            "title": "修复附件上传",
+            "stage": "in_progress",
+            "nextAction": "继续修订附件上传问题，并在新截止时间前再次提交验收。",
+            "deadline": {
+              "dueAt": "2026-09-20T10:00:00Z",
+              "messageId": "c20_m4",
+              "quote": "截止改到2026年9月20日18:00（UTC+8）。"
+            },
+            "evidence": [
+              {
+                "messageId": "c20_m0",
+                "quote": "请修复附件上传，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c20_m1",
+                "quote": "我正在尝试修复附件上传，目前还没有交付。"
+              },
+              {
+                "messageId": "c20_m2",
+                "quote": "修复附件上传这次尝试失败，原因是输入数据缺失，目前仍未交付。"
+              },
+              {
+                "messageId": "c20_m3",
+                "quote": "缺失数据已补齐，修复附件上传已经交付，请你验收。"
+              },
+              {
+                "messageId": "c20_m4",
+                "quote": "修复附件上传验收还没通过，请继续修订。截止改到2026年9月20日18:00（UTC+8）。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-21-prefix-6",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 23505,
+      "visibleMessageIds": [
+        "c20_m0",
+        "c20_m1",
+        "c20_m2",
+        "c20_m3",
+        "c20_m4",
+        "c20_m5"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "cancelled",
+        "changeKind": "cancellation",
+        "due": "2026-09-20T10:00:00Z",
+        "latestId": "c20_m5"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "cancellation",
+            "title": "修复附件上传",
+            "stage": "cancelled",
+            "nextAction": "无需继续；用户已取消该任务。",
+            "deadline": {
+              "dueAt": "2026-09-20T10:00:00Z",
+              "messageId": "c20_m4",
+              "quote": "截止改到2026年9月20日18:00（UTC+8）。"
+            },
+            "evidence": [
+              {
+                "messageId": "c20_m0",
+                "quote": "请修复附件上传，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c20_m1",
+                "quote": "我正在尝试修复附件上传，目前还没有交付。"
+              },
+              {
+                "messageId": "c20_m2",
+                "quote": "修复附件上传这次尝试失败，原因是输入数据缺失，目前仍未交付。"
+              },
+              {
+                "messageId": "c20_m3",
+                "quote": "缺失数据已补齐，修复附件上传已经交付，请你验收。"
+              },
+              {
+                "messageId": "c20_m4",
+                "quote": "修复附件上传验收还没通过，请继续修订。截止改到2026年9月20日18:00（UTC+8）。"
+              },
+              {
+                "messageId": "c20_m5",
+                "quote": "取消修复附件上传，不再继续。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-22-prefix-2",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 17256,
+      "visibleMessageIds": [
+        "c21_m0",
+        "c21_m1"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "in_progress",
+        "changeKind": "attempt",
+        "due": null,
+        "latestId": "c21_m1"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "attempt",
+            "title": "准备采购对比表并反馈",
+            "stage": "in_progress",
+            "nextAction": "继续准备采购对比表，完成后反馈给用户验收。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c21_m0",
+                "quote": "请准备采购对比表，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c21_m1",
+                "quote": "我正在尝试准备采购对比表，目前还没有交付。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-22-prefix-3",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 17390,
+      "visibleMessageIds": [
+        "c21_m0",
+        "c21_m1",
+        "c21_m2"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "in_progress",
+        "changeKind": "failure",
+        "due": null,
+        "latestId": "c21_m2"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "failure",
+            "title": "准备采购对比表",
+            "stage": "in_progress",
+            "nextAction": "补充缺失的输入数据后继续准备采购对比表，完成后向用户反馈",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c21_m0",
+                "quote": "请准备采购对比表，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c21_m2",
+                "quote": "准备采购对比表这次尝试失败，原因是输入数据缺失，目前仍未交付。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-22-prefix-4",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 20484,
+      "visibleMessageIds": [
+        "c21_m0",
+        "c21_m1",
+        "c21_m2",
+        "c21_m3"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "delivered",
+        "changeKind": "feedback",
+        "due": null,
+        "latestId": "c21_m3"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "feedback",
+            "title": "准备采购对比表",
+            "stage": "delivered",
+            "nextAction": "等待用户验收采购对比表。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c21_m0",
+                "quote": "请准备采购对比表，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c21_m1",
+                "quote": "我正在尝试准备采购对比表，目前还没有交付。"
+              },
+              {
+                "messageId": "c21_m2",
+                "quote": "准备采购对比表这次尝试失败，原因是输入数据缺失，目前仍未交付。"
+              },
+              {
+                "messageId": "c21_m3",
+                "quote": "缺失数据已补齐，准备采购对比表已经交付，请你验收。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-22-prefix-5",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 20544,
+      "visibleMessageIds": [
+        "c21_m0",
+        "c21_m1",
+        "c21_m2",
+        "c21_m3",
+        "c21_m4"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "in_progress",
+        "changeKind": "reschedule",
+        "due": "2026-09-20T10:00:00Z",
+        "latestId": "c21_m4"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "reschedule",
+            "title": "准备并修订采购对比表",
+            "stage": "in_progress",
+            "nextAction": "继续修订采购对比表并重新提交验收；截止时间已改为2026年9月20日18:00（UTC+8）。",
+            "deadline": {
+              "dueAt": "2026-09-20T10:00:00Z",
+              "messageId": "c21_m4",
+              "quote": "截止改到2026年9月20日18:00（UTC+8）。"
+            },
+            "evidence": [
+              {
+                "messageId": "c21_m0",
+                "quote": "请准备采购对比表，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c21_m3",
+                "quote": "缺失数据已补齐，准备采购对比表已经交付，请你验收。"
+              },
+              {
+                "messageId": "c21_m4",
+                "quote": "准备采购对比表验收还没通过，请继续修订。截止改到2026年9月20日18:00（UTC+8）。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-23-prefix-1",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 14968,
+      "visibleMessageIds": [
+        "c22_m0"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "requested",
+        "changeKind": "commitment",
+        "due": null,
+        "latestId": "c22_m0"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "commitment",
+            "title": "完成项目交接清单",
+            "stage": "requested",
+            "nextAction": "完成项目交接清单并向用户反馈。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c22_m0",
+                "quote": "请完成项目交接清单，只做这件事，完成后反馈给我。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-22-prefix-6",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 21575,
+      "visibleMessageIds": [
+        "c21_m0",
+        "c21_m1",
+        "c21_m2",
+        "c21_m3",
+        "c21_m4",
+        "c21_m5"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "accepted",
+        "changeKind": "feedback",
+        "due": "2026-09-20T10:00:00Z",
+        "latestId": "c21_m5"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "feedback",
+            "title": "准备采购对比表",
+            "stage": "accepted",
+            "nextAction": "无需后续行动，用户已验收通过。",
+            "deadline": {
+              "dueAt": "2026-09-20T10:00:00Z",
+              "messageId": "c21_m4",
+              "quote": "截止改到2026年9月20日18:00（UTC+8）。"
+            },
+            "evidence": [
+              {
+                "messageId": "c21_m0",
+                "quote": "请准备采购对比表，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c21_m3",
+                "quote": "缺失数据已补齐，准备采购对比表已经交付，请你验收。"
+              },
+              {
+                "messageId": "c21_m4",
+                "quote": "准备采购对比表验收还没通过，请继续修订。截止改到2026年9月20日18:00（UTC+8）。"
+              },
+              {
+                "messageId": "c21_m5",
+                "quote": "准备采购对比表的修订版我已检查，验收通过，这件事完成了。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-23-prefix-2",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 15628,
+      "visibleMessageIds": [
+        "c22_m0",
+        "c22_m1"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "in_progress",
+        "changeKind": "attempt",
+        "due": null,
+        "latestId": "c22_m1"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "attempt",
+            "title": "完成项目交接清单",
+            "stage": "in_progress",
+            "nextAction": "继续完成项目交接清单，完成后向用户反馈。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c22_m0",
+                "quote": "请完成项目交接清单，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c22_m1",
+                "quote": "我正在尝试完成项目交接清单，目前还没有交付。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-23-prefix-3",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 17177,
+      "visibleMessageIds": [
+        "c22_m0",
+        "c22_m1",
+        "c22_m2"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "in_progress",
+        "changeKind": "failure",
+        "due": null,
+        "latestId": "c22_m2"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "failure",
+            "title": "完成项目交接清单",
+            "stage": "in_progress",
+            "nextAction": "补充缺失的输入数据后继续完成项目交接清单，完成后向用户反馈",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c22_m0",
+                "quote": "请完成项目交接清单，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c22_m2",
+                "quote": "完成项目交接清单这次尝试失败，原因是输入数据缺失，目前仍未交付。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-23-prefix-4",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 17763,
+      "visibleMessageIds": [
+        "c22_m0",
+        "c22_m1",
+        "c22_m2",
+        "c22_m3"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "delivered",
+        "changeKind": "feedback",
+        "due": null,
+        "latestId": "c22_m3"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "feedback",
+            "title": "完成项目交接清单",
+            "stage": "delivered",
+            "nextAction": "等待用户验收已交付的项目交接清单。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c22_m0",
+                "quote": "请完成项目交接清单，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c22_m3",
+                "quote": "缺失数据已补齐，完成项目交接清单已经交付，请你验收。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-23-prefix-5",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 20035,
+      "visibleMessageIds": [
+        "c22_m0",
+        "c22_m1",
+        "c22_m2",
+        "c22_m3",
+        "c22_m4"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "in_progress",
+        "changeKind": "reschedule",
+        "due": "2026-09-20T10:00:00Z",
+        "latestId": "c22_m4"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "reschedule",
+            "title": "完成并修订项目交接清单",
+            "stage": "in_progress",
+            "nextAction": "根据未通过的验收反馈继续修订，并在新截止时间前再次提交验收。",
+            "deadline": {
+              "dueAt": "2026-09-20T10:00:00Z",
+              "messageId": "c22_m4",
+              "quote": "截止改到2026年9月20日18:00（UTC+8）。"
+            },
+            "evidence": [
+              {
+                "messageId": "c22_m0",
+                "quote": "请完成项目交接清单，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c22_m3",
+                "quote": "缺失数据已补齐，完成项目交接清单已经交付，请你验收。"
+              },
+              {
+                "messageId": "c22_m4",
+                "quote": "完成项目交接清单验收还没通过，请继续修订。截止改到2026年9月20日18:00（UTC+8）。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-24-prefix-1",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 14879,
+      "visibleMessageIds": [
+        "c23_m0"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "requested",
+        "changeKind": "commitment",
+        "due": null,
+        "latestId": "c23_m0"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "commitment",
+            "title": "优化启动性能",
+            "stage": "requested",
+            "nextAction": "优化启动性能，完成后向用户反馈。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c23_m0",
+                "quote": "请优化启动性能，只做这件事，完成后反馈给我。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-23-prefix-6",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 22935,
+      "visibleMessageIds": [
+        "c22_m0",
+        "c22_m1",
+        "c22_m2",
+        "c22_m3",
+        "c22_m4",
+        "c22_m5"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "cancelled",
+        "changeKind": "cancellation",
+        "due": "2026-09-20T10:00:00Z",
+        "latestId": "c22_m5"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "cancellation",
+            "title": "完成项目交接清单",
+            "stage": "cancelled",
+            "nextAction": "用户已取消该任务，不再继续。",
+            "deadline": {
+              "dueAt": "2026-09-20T10:00:00Z",
+              "messageId": "c22_m4",
+              "quote": "完成项目交接清单验收还没通过，请继续修订。截止改到2026年9月20日18:00（UTC+8）。"
+            },
+            "evidence": [
+              {
+                "messageId": "c22_m0",
+                "quote": "请完成项目交接清单，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c22_m4",
+                "quote": "完成项目交接清单验收还没通过，请继续修订。截止改到2026年9月20日18:00（UTC+8）。"
+              },
+              {
+                "messageId": "c22_m5",
+                "quote": "取消完成项目交接清单，不再继续。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-24-prefix-2",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 16659,
+      "visibleMessageIds": [
+        "c23_m0",
+        "c23_m1"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "in_progress",
+        "changeKind": "attempt",
+        "due": null,
+        "latestId": "c23_m1"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "attempt",
+            "title": "优化启动性能",
+            "stage": "in_progress",
+            "nextAction": "继续优化启动性能，完成后向用户反馈。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c23_m0",
+                "quote": "请优化启动性能，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c23_m1",
+                "quote": "我正在尝试优化启动性能，目前还没有交付。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-24-prefix-3",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 18890,
+      "visibleMessageIds": [
+        "c23_m0",
+        "c23_m1",
+        "c23_m2"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "in_progress",
+        "changeKind": "failure",
+        "due": null,
+        "latestId": "c23_m2"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "failure",
+            "title": "优化启动性能",
+            "stage": "in_progress",
+            "nextAction": "补齐缺失的输入数据后继续优化，完成后向用户反馈。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c23_m0",
+                "quote": "请优化启动性能，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c23_m2",
+                "quote": "优化启动性能这次尝试失败，原因是输入数据缺失，目前仍未交付。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-24-prefix-4",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 20913,
+      "visibleMessageIds": [
+        "c23_m0",
+        "c23_m1",
+        "c23_m2",
+        "c23_m3"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "delivered",
+        "changeKind": "feedback",
+        "due": null,
+        "latestId": "c23_m3"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "feedback",
+            "title": "优化启动性能",
+            "stage": "delivered",
+            "nextAction": "等待用户验收启动性能优化交付。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "c23_m0",
+                "quote": "请优化启动性能，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c23_m3",
+                "quote": "缺失数据已补齐，优化启动性能已经交付，请你验收。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-24-prefix-5",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 23762,
+      "visibleMessageIds": [
+        "c23_m0",
+        "c23_m1",
+        "c23_m2",
+        "c23_m3",
+        "c23_m4"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "in_progress",
+        "changeKind": "reschedule",
+        "due": "2026-09-20T10:00:00Z",
+        "latestId": "c23_m4"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "reschedule",
+            "title": "优化启动性能",
+            "stage": "in_progress",
+            "nextAction": "根据验收未通过的反馈继续修订，并在新截止时间前再次交付验收。",
+            "deadline": {
+              "dueAt": "2026-09-20T10:00:00Z",
+              "messageId": "c23_m4",
+              "quote": "截止改到2026年9月20日18:00（UTC+8）。"
+            },
+            "evidence": [
+              {
+                "messageId": "c23_m0",
+                "quote": "请优化启动性能，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c23_m1",
+                "quote": "我正在尝试优化启动性能，目前还没有交付。"
+              },
+              {
+                "messageId": "c23_m2",
+                "quote": "优化启动性能这次尝试失败，原因是输入数据缺失，目前仍未交付。"
+              },
+              {
+                "messageId": "c23_m3",
+                "quote": "缺失数据已补齐，优化启动性能已经交付，请你验收。"
+              },
+              {
+                "messageId": "c23_m4",
+                "quote": "优化启动性能验收还没通过，请继续修订。截止改到2026年9月20日18:00（UTC+8）。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain-24-prefix-6",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 19692,
+      "visibleMessageIds": [
+        "c23_m0",
+        "c23_m1",
+        "c23_m2",
+        "c23_m3",
+        "c23_m4",
+        "c23_m5"
+      ],
+      "expected": {
+        "count": 1,
+        "stage": "accepted",
+        "changeKind": "feedback",
+        "due": "2026-09-20T10:00:00Z",
+        "latestId": "c23_m5"
+      },
+      "output": {
+        "tasks": [
+          {
+            "changeKind": "feedback",
+            "title": "优化启动性能",
+            "stage": "accepted",
+            "nextAction": "无需后续行动，用户已确认修订版验收通过。",
+            "deadline": {
+              "dueAt": "2026-09-20T10:00:00Z",
+              "messageId": "c23_m4",
+              "quote": "截止改到2026年9月20日18:00（UTC+8）。"
+            },
+            "evidence": [
+              {
+                "messageId": "c23_m0",
+                "quote": "请优化启动性能，只做这件事，完成后反馈给我。"
+              },
+              {
+                "messageId": "c23_m4",
+                "quote": "优化启动性能验收还没通过，请继续修订。截止改到2026年9月20日18:00（UTC+8）。"
+              },
+              {
+                "messageId": "c23_m5",
+                "quote": "优化启动性能的修订版我已检查，验收通过，这件事完成了。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "negative-1-prefix-1",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 13904,
+      "visibleMessageIds": [
+        "n0_m0"
+      ],
+      "expected": {
+        "count": 0
+      },
+      "output": {
+        "tasks": []
+      }
+    },
+    {
+      "id": "negative-2-prefix-1",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 12402,
+      "visibleMessageIds": [
+        "n1_m0"
+      ],
+      "expected": {
+        "count": 0
+      },
+      "output": {
+        "tasks": []
+      }
+    },
+    {
+      "id": "negative-1-prefix-2",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 13437,
+      "visibleMessageIds": [
+        "n0_m0",
+        "n0_m1"
+      ],
+      "expected": {
+        "count": 0
+      },
+      "output": {
+        "tasks": []
+      }
+    },
+    {
+      "id": "negative-2-prefix-2",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 12887,
+      "visibleMessageIds": [
+        "n1_m0",
+        "n1_m1"
+      ],
+      "expected": {
+        "count": 0
+      },
+      "output": {
+        "tasks": []
+      }
+    },
+    {
+      "id": "negative-3-prefix-1",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 11983,
+      "visibleMessageIds": [
+        "n2_m0"
+      ],
+      "expected": {
+        "count": 0
+      },
+      "output": {
+        "tasks": []
+      }
+    },
+    {
+      "id": "negative-3-prefix-2",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 12954,
+      "visibleMessageIds": [
+        "n2_m0",
+        "n2_m1"
+      ],
+      "expected": {
+        "count": 0
+      },
+      "output": {
+        "tasks": []
+      }
+    },
+    {
+      "id": "negative-4-prefix-1",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 13023,
+      "visibleMessageIds": [
+        "n3_m0"
+      ],
+      "expected": {
+        "count": 0
+      },
+      "output": {
+        "tasks": []
+      }
+    },
+    {
+      "id": "negative-4-prefix-2",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 13060,
+      "visibleMessageIds": [
+        "n3_m0",
+        "n3_m1"
+      ],
+      "expected": {
+        "count": 0
+      },
+      "output": {
+        "tasks": []
+      }
+    },
+    {
+      "id": "negative-5-prefix-1",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 13957,
+      "visibleMessageIds": [
+        "n4_m0"
+      ],
+      "expected": {
+        "count": 0
+      },
+      "output": {
+        "tasks": []
+      }
+    },
+    {
+      "id": "negative-5-prefix-2",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 14316,
+      "visibleMessageIds": [
+        "n4_m0",
+        "n4_m1"
+      ],
+      "expected": {
+        "count": 0
+      },
+      "output": {
+        "tasks": []
+      }
+    },
+    {
+      "id": "negative-6-prefix-1",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 12345,
+      "visibleMessageIds": [
+        "n5_m0"
+      ],
+      "expected": {
+        "count": 0
+      },
+      "output": {
+        "tasks": []
+      }
+    },
+    {
+      "id": "negative-6-prefix-2",
+      "passed": true,
+      "checks": {
+        "count": true,
+        "stage": true,
+        "change": true,
+        "latestEvidence": true,
+        "deadline": true
+      },
+      "calls": 2,
+      "elapsedMs": 12908,
+      "visibleMessageIds": [
+        "n5_m0",
+        "n5_m1"
+      ],
+      "expected": {
+        "count": 0
+      },
+      "output": {
+        "tasks": []
+      }
+    }
+  ]
+}

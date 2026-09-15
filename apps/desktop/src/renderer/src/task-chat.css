@@ -360,3 +360,55 @@
 .task-chat-starter.app-control > span {
   width: 100%;
 }
+
+.task-draft-menu {
+  position: relative;
+}
+.task-draft-menu > summary {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  border-radius: 8px;
+  list-style: none;
+}
+.task-draft-menu > summary::-webkit-details-marker {
+  display: none;
+}
+.task-draft-menu > div {
+  position: absolute;
+  bottom: 40px;
+  right: 0;
+  z-index: 4;
+  min-width: 168px;
+  display: grid;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface, white);
+  box-shadow: 0 4px 16px #0001;
+}
+.task-draft-card {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+.task-draft-card textarea {
+  width: 100%;
+  min-height: 240px;
+  max-height: 480px;
+  resize: vertical;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 16px;
+  background: var(--surface, white);
+  color: var(--text);
+  font: inherit;
+  line-height: 1.6;
+}
+.task-draft-card > div {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}

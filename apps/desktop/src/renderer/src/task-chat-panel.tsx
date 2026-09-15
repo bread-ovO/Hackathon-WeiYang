@@ -9,6 +9,8 @@ import {
   ListChecksIcon,
   PlusIcon,
   ArchiveIcon,
+  NotePencilIcon,
+  CopyIcon,
   ArrowUpRightIcon,
 } from '@phosphor-icons/react'
 import type { ChatSnapshot, ChatRun } from '@memo/contracts'
@@ -43,6 +45,7 @@ export function TaskChatPanel() {
     [busy, setBusy] = useState(false),
     [error, setError] = useState(''),
     [settingsOpen, setSettingsOpen] = useState(false)
+  const draftMenu = useRef<HTMLDetailsElement>(null)
   const bottom = useRef<HTMLDivElement>(null)
   const input = useRef<HTMLTextAreaElement>(null)
   useEffect(() => {
@@ -89,6 +92,19 @@ export function TaskChatPanel() {
       } else setError('无法开始对话，请稍后重试。')
     } catch {
       setError('聊天服务暂不可用。')
+    } finally {
+      setBusy(false)
+    }
+  }
+  async function generateDraft(kind: 'daily' | 'feedback') {
+    if (!projectId || busy) return
+    if (draftMenu.current) draftMenu.current.open = false
+    setBusy(true)
+    setError('')
+    try {
+      const r = await window.memo.chat.draft(projectId, kind)
+      if (r.ok) setSnapshot(r.data)
+      else setError('无法生成草稿，请检查项目后重试。')
     } finally {
       setBusy(false)
     }
@@ -205,6 +221,7 @@ export function TaskChatPanel() {
                 <strong>不咕</strong>
               </div>
               {run.reply && <p>{run.reply}</p>}
+              {run.draft && <DraftCard key={run.id} draft={run.draft} />}
               {run.state === 'running' && (
                 <p role="status">{run.trace.at(-1) || '正在思考…'}</p>
               )}
@@ -319,7 +336,41 @@ export function TaskChatPanel() {
             <ChatCircleIcon size={16} aria-hidden="true" /> 询问不咕
           </span>
           <div className="task-chat-composer-actions">
-            <HelpTip label="聊天操作说明">变更先预览，确认后生效。Enter 发送，Shift + Enter 换行。</HelpTip>
+            <details
+              className="task-draft-menu"
+              ref={draftMenu}
+              onBlur={(e) => {
+                if (!e.currentTarget.contains(e.relatedTarget))
+                  e.currentTarget.open = false
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Escape') {
+                  e.currentTarget.open = false
+                  e.stopPropagation()
+                }
+              }}
+            >
+              <summary aria-label="生成草稿" title="生成草稿">
+                <NotePencilIcon size={18} />
+              </summary>
+              <div>
+                <AppButton
+                  disabled={!projectId || busy}
+                  onClick={() => void generateDraft('daily')}
+                >
+                  近 24 小时回顾
+                </AppButton>
+                <AppButton
+                  disabled={!projectId || busy}
+                  onClick={() => void generateDraft('feedback')}
+                >
+                  项目反馈草稿
+                </AppButton>
+              </div>
+            </details>
+            <HelpTip label="聊天操作说明">
+              变更先预览，确认后生效。Enter 发送，Shift + Enter 换行。
+            </HelpTip>
             <IconButton label="模型设置" onClick={() => setSettingsOpen(true)}>
               <SlidersHorizontalIcon size={18} />
             </IconButton>
@@ -364,6 +415,42 @@ export function TaskChatPanel() {
         </DialogDescription>
         <ModelProviderSettings defaultOpen />
       </AppDialog>
+    </section>
+  )
+}
+
+function DraftCard({ draft }: { draft: import('@memo/contracts').ChatDraft }) {
+  const [body, setBody] = useState(draft.body)
+  const [message, setMessage] = useState('')
+  return (
+    <section className="task-draft-card" aria-label="事项记录草稿">
+      <textarea
+        aria-label="编辑草稿"
+        value={body}
+        maxLength={50000}
+        onChange={(e) => {
+          setBody(e.target.value)
+          setMessage('')
+        }}
+      />
+      <div>
+        <AppButton
+          onClick={() => {
+            void navigator.clipboard.writeText(body).then(
+              () => setMessage('已复制，请自行发送。'),
+              () => setMessage('复制失败，可直接选择草稿文字复制。'),
+            )
+          }}
+        >
+          <CopyIcon size={16} />
+          复制草稿
+        </AppButton>
+        <HelpTip label="草稿依据说明">
+          草稿仅摘录当前项目的事项记录和原文。手动状态与 AI
+          建议均不等于外部核验。编辑不会修改任务；请自行核对和发送。
+        </HelpTip>
+      </div>
+      {message && <small role="status">{message}</small>}
     </section>
   )
 }

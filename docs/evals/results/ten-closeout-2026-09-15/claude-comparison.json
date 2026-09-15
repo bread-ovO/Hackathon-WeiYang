@@ -1,0 +1,54 @@
+{
+  "suite": "time-prefix-v1",
+  "protocol": "task-analysis-v4",
+  "provider": "claude-cli",
+  "createdAt": "2026-09-15T10:38:18.895Z",
+  "sampleCount": 6,
+  "completed": 6,
+  "passed": 0,
+  "cost": "CLI subscription; provider does not expose per-request billable cost in this transport",
+  "results": [
+    {
+      "id": "chain-01-prefix-1",
+      "passed": false,
+      "calls": 1,
+      "elapsedMs": 60003,
+      "error": "MODEL_TIMEOUT"
+    },
+    {
+      "id": "chain-01-prefix-2",
+      "passed": false,
+      "calls": 1,
+      "elapsedMs": 60002,
+      "error": "MODEL_TIMEOUT"
+    },
+    {
+      "id": "chain-01-prefix-3",
+      "passed": false,
+      "calls": 1,
+      "elapsedMs": 60003,
+      "error": "MODEL_TIMEOUT"
+    },
+    {
+      "id": "chain-01-prefix-4",
+      "passed": false,
+      "calls": 1,
+      "elapsedMs": 60002,
+      "error": "MODEL_TIMEOUT"
+    },
+    {
+      "id": "chain-01-prefix-5",
+      "passed": false,
+      "calls": 1,
+      "elapsedMs": 60003,
+      "error": "MODEL_TIMEOUT"
+    },
+    {
+      "id": "chain-01-prefix-6",
+      "passed": false,
+      "calls": 1,
+      "elapsedMs": 59994,
+      "error": "MODEL_TIMEOUT"
+    }
+  ]
+}
