@@ -27,10 +27,13 @@ test('workspace tasks split selected criteria into a new task', async ({}, testI
     await expect(
       page.getByRole('heading', { name: '跟进', exact: true }),
     ).toBeVisible()
-    await page.getByRole('button', { name: '我的工作区', exact: true }).click()
-    await page.getByRole('button', {name:'新建事项',exact:true}).click()
+    await page
+      .getByRole('button', { name: '新建第一件事', exact: true })
+      .click()
     await page.getByLabel('新项目名称').fill('拆分项目')
-    await page.getByRole('button', { name: '创建项目', exact: true }).click()
+    await page
+      .getByRole('button', { name: '创建项目', exact: true })
+      .click()
     await expect(page.getByRole('status')).toContainText('项目已创建')
     await page.getByLabel('真实事项标题').fill('混杂事项')
     await page
@@ -43,15 +46,26 @@ test('workspace tasks split selected criteria into a new task', async ({}, testI
     await expect(
       page.getByRole('region', { name: '事项详情' }),
     ).toBeVisible()
-    await page.getByText('编辑事项与完成条件',{exact:true}).click()
-    await page.getByRole('button', { name: '添加条件', exact: true }).click()
-    await page.getByRole('button', { name: '添加条件', exact: true }).click()
+    await page
+      .getByRole('button', { name: '编辑事项', exact: true })
+      .click()
+    await page
+      .getByRole('button', { name: '添加条件', exact: true })
+      .click()
+    await page
+      .getByRole('button', { name: '添加条件', exact: true })
+      .click()
     const criterionInputs = page.getByLabel(/^条件 \d+$/)
     await criterionInputs.nth(0).fill('反馈链接')
     await criterionInputs.nth(1).fill('补充测试')
-    await page.getByRole('button', { name: '保存条件', exact: true }).click()
-    await expect(page.getByRole('status')).toContainText('条件新版本已保存')
-    await page.getByText('拆分事项').click()
+    await page
+      .getByRole('button', { name: '保存条件', exact: true })
+      .click()
+    await expect(page.getByRole('status')).toContainText('完成条件已保存')
+    await page
+      .getByRole('button', { name: '更多操作', exact: true })
+      .click()
+    await page.getByRole('menuitem', { name: '拆分事项', exact: true }).click()
     await page
       .getByRole('checkbox', {
         name: '补充测试',
@@ -67,11 +81,17 @@ test('workspace tasks split selected criteria into a new task', async ({}, testI
         .evaluateAll((els) =>
           els.map((e) => (e as HTMLInputElement).value).sort(),
         )
+    await page
+      .getByRole('button', { name: '编辑事项', exact: true })
+      .click()
     await expect.poll(criterionValues).toEqual(['反馈链接'])
     // 拆出的新事项出现在列表中，且包含被移出的条件。详情为模态，先关闭再点下一行。
     await expect(page.locator('.task-row')).toHaveCount(2)
     await page.keyboard.press('Escape')
     await page.getByRole('button', { name: /拆出的补充测试/ }).click()
+    await page
+      .getByRole('button', { name: '编辑事项', exact: true })
+      .click()
     await expect.poll(criterionValues).toEqual(['补充测试'])
     await page.screenshot({
       animations: 'disabled',

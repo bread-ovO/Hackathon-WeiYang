@@ -5,6 +5,7 @@ import { resolve } from 'node:path'
 const require = createRequire(resolve('apps/desktop/package.json'))
 const selected = process.argv.slice(2)
 const names = [
+  'model-task-closeout-integration',
   'model-only-extraction-integration',
   'task-analysis-integration',
   'task-chat-integration',

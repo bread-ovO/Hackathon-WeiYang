@@ -7,6 +7,7 @@ import {
 } from '@memo/contracts'
 import { createTaskModel } from './task-model'
 import { createAnalysisContext } from './task-analysis-context'
+import { canonicalTaskId, taskAncestors } from './task-lineage'
 
 export function migrateTaskAnalysis(db: Database.Database) {
   db.transaction(() => {
@@ -30,7 +31,9 @@ export function createTaskAnalysis(db: Database.Database) {
     pending(protocol: string) {
       // Bound background provider spend across restarts; unchanged content is cached below.
       const recent = db
-        .prepare('SELECT count(*) AS n FROM model_analyses WHERE created_at>=?')
+        .prepare(
+          'SELECT count(*) AS n FROM model_analyses WHERE created_at>=?',
+        )
         .get(new Date(Date.now() - 3600_000).toISOString()) as { n: number }
       if (recent.n >= 12) return []
       const ids = db
@@ -76,16 +79,21 @@ export function createTaskAnalysis(db: Database.Database) {
             }
             const input = context(id, afterEventId, protocol)
             return [
-              { sourceId: id, fingerprint: input.fingerprint, afterEventId },
+              {
+                sourceId: id,
+                fingerprint: input.fingerprint,
+                afterEventId,
+              },
             ]
           } catch (error) {
             // Empty or revoked sources have no work; malformed/oversized input
             // must reach the service so the user sees an actionable error.
             if (
               error instanceof Error &&
-              ['ANALYSIS_NO_CONTEXT', 'ANALYSIS_SOURCE_UNAVAILABLE'].includes(
-                error.message,
-              )
+              [
+                'ANALYSIS_NO_CONTEXT',
+                'ANALYSIS_SOURCE_UNAVAILABLE',
+              ].includes(error.message)
             )
               return []
             return [{ sourceId: id, fingerprint: '', afterEventId }]
@@ -113,44 +121,61 @@ export function createTaskAnalysis(db: Database.Database) {
         .prepare('SELECT result,messages FROM model_analyses WHERE id=?')
         .get(runId) as { result: string; messages: string } | undefined
       if (!row) throw new Error('INVALID_TASK_ANALYSIS')
-      return parseTaskAnalysis(JSON.parse(row.result), JSON.parse(row.messages))
+      return parseTaskAnalysis(
+        JSON.parse(row.result),
+        JSON.parse(row.messages),
+      )
     },
-    forTask(projectId: string, taskId: string) {
-      const row = db
+    forTask(projectId: string, taskId: string, includeRelated = true) {
+      const limit = includeRelated ? 32 : 1
+      const rows = db
         .prepare(
-          `SELECT a.model,a.created_at,a.result,a.messages,c.candidate_index,a.source_id,
-          COALESCE(g.display_name, '飞书 · ' || f.chat_id, a.source_id) AS source_name
-          FROM model_analyses a JOIN model_analysis_acceptances c ON c.run_id=a.id
-          LEFT JOIN source_grants g ON g.source_id=a.source_id LEFT JOIN feishu_connections f ON f.source_id=a.source_id WHERE a.project_id=? AND c.task_id=? ORDER BY a.created_at DESC,a.rowid DESC LIMIT 1`,
+          `${taskAncestors}, ranked AS (
+        SELECT a.model,a.created_at,a.result,a.messages,c.candidate_index,a.source_id,c.task_id,
+          COALESCE(g.display_name, '飞书 · ' || f.chat_id, a.source_id) AS source_name,
+          ROW_NUMBER() OVER(PARTITION BY c.task_id,a.source_id ORDER BY a.created_at DESC,a.rowid DESC) AS position
+        FROM model_analyses a JOIN model_analysis_acceptances c ON c.run_id=a.id
+        LEFT JOIN source_grants g ON g.source_id=a.source_id
+        LEFT JOIN feishu_connections f ON f.source_id=a.source_id
+        WHERE a.project_id=@projectId AND c.task_id IN (SELECT id FROM lineage)
+      ) SELECT * FROM ranked WHERE position=1 ORDER BY created_at DESC,task_id,source_id LIMIT @rowLimit`,
         )
-        .get(projectId, taskId) as
-        | {
-            source_id: string
-            source_name: string
-            model: string
-            created_at: string
-            result: string
-            messages: string
-            candidate_index: number
-          }
-        | undefined
-      if (!row) return null
-      try {
-        const candidate = parseTaskAnalysis(
-          JSON.parse(row.result),
-          JSON.parse(row.messages),
-        ).tasks[row.candidate_index]
-        return candidate
-          ? {
-              model: row.model,
-              createdAt: row.created_at,
-              sourceId: row.source_id,
-              sourceName: row.source_name,
-              candidate,
-            }
-          : null
-      } catch {
-        return null
+        .all({ projectId, taskId, rowLimit: limit + 1 }) as {
+        model: string
+        created_at: string
+        result: string
+        messages: string
+        candidate_index: number
+        source_id: string
+        source_name: string
+        task_id: string
+      }[]
+      const suggestions = rows.slice(0, limit).flatMap((row) => {
+        try {
+          const candidate = parseTaskAnalysis(
+            JSON.parse(row.result),
+            JSON.parse(row.messages),
+          ).tasks[row.candidate_index]
+          return candidate
+            ? [
+                {
+                  model: row.model,
+                  createdAt: row.created_at,
+                  sourceId: row.source_id,
+                  sourceName: row.source_name,
+                  candidate,
+                },
+              ]
+            : []
+        } catch {
+          return []
+        }
+      })
+      if (!suggestions.length) return null
+      return {
+        ...suggestions[0]!,
+        related: suggestions.slice(1),
+        truncated: rows.length > limit,
       }
     },
     latest(protocol: string) {
@@ -209,7 +234,8 @@ export function createTaskAnalysis(db: Database.Database) {
             .filter((m) => m.role === 'user')
             .flatMap(
               (m) =>
-                existing?.evidence.filter((e) => e.messageId === m.id) ?? [],
+                existing?.evidence.filter((e) => e.messageId === m.id) ??
+                [],
             )[0]
           if (
             !existing ||
@@ -330,7 +356,12 @@ export function createTaskAnalysis(db: Database.Database) {
         if (prior) {
           db.prepare(
             'INSERT INTO model_analysis_acceptances VALUES(?,?,?,?)',
-          ).run(runId, index, prior.task_id, anchor)
+          ).run(
+            runId,
+            index,
+            canonicalTaskId(db, row.project_id, prior.task_id),
+            anchor,
+          )
           return
         }
         const taskId = randomUUID()
@@ -340,6 +371,9 @@ export function createTaskAnalysis(db: Database.Database) {
             projectId: row.project_id,
             title: candidate.title,
             admission: automatic ? 'candidate' : 'accepted',
+            dueAt: candidate.deadline
+              ? new Date(candidate.deadline.dueAt).toISOString()
+              : null,
           },
           {
             actorId: automatic ? 'ai-organizer' : 'local-user',
