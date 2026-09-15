@@ -144,9 +144,9 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           BUGU_VERIFY_TAG: ${{ inputs.verify_windows_release }}
-        run: ./tests/release/install-windows-release.ps1
+        run: ./tests/packaging/install-windows-release.ps1
       - name: Verify packaged UI, database, default pet and relaunch
-        run: node tests/release/windows-installed-smoke.mjs
+        run: node tests/packaging/windows-installed-smoke.mjs
       - name: Upload startup diagnostics
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
