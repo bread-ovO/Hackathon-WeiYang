@@ -1,0 +1,3994 @@
+{
+  "generatedAt": "2026-09-15T07:46:53.597Z",
+  "provider": "rules",
+  "path": "JSONL → rules → persisted candidates",
+  "synthetic": true,
+  "requestedModel": null,
+  "resolvedModel": null,
+  "cliVersion": null,
+  "modelIdentityNote": "CLI default; the production adapter does not expose the resolved model identifier.",
+  "corpusVersion": "jsonl-extraction-v1",
+  "corpusSha256": "6d95494307130e496475ef7f2c52b1a5a5b0cdafe7699f9b9e1f45c01a2a0fcb",
+  "formatVersion": "synthetic-jsonl-v1",
+  "scorerVersion": "goal-evidence-matching-v1",
+  "rulesVersion": "explicit-commitment-v2",
+  "analysisVersion": "task-analysis-v2",
+  "gitCommit": "ed2e932b606594b0d9e7992bd830b71cae55711d",
+  "sourceHashes": {
+    "packages/model/src/task-analyzer.ts": "4ea0c4a5557eae3911493ba02eae2e76e23b3b6ff04ca936c10c2268db85e3ed",
+    "packages/contracts/src/task-analysis.ts": "4044255902dda79b541b57f6080a92697666d7025411960cdbb38f319f29328d",
+    "packages/domain/src/commitment.ts": "3d10cbc4864af19da468a3440aad1cb56196c13ef89cb78462958a8fade30318",
+    "packages/plugin-host/src/session-mappers.ts": "b8a22bda4dcfe764a791f284b93ef951ab2bef2b599f3c38e61a4b82093a5259",
+    "packages/storage/src/task-analysis.ts": "d6aaa492f1f0461a34433f3fb7c68ea63ddce4b815207da37a6414848d43090d"
+  },
+  "plannedCases": 60,
+  "corpusCases": 60,
+  "repetitions": 1,
+  "subset": false,
+  "completedCases": 60,
+  "modelCalls": 0,
+  "runs": [
+    {
+      "repetition": 1,
+      "combined": {
+        "cases": 60,
+        "errors": 0,
+        "expectedTasks": 49,
+        "predictedTasks": 16,
+        "tp": 15,
+        "fp": 1,
+        "fn": 34,
+        "precision": 0.9375,
+        "recall": 0.30612244897959184,
+        "f1": 0.46153846153846156,
+        "exactCases": 29,
+        "exactCaseRate": 0.48333333333333334,
+        "exactCaseWilson95": [
+          0.36175049539732784,
+          0.6069218996740751
+        ],
+        "negativeCases": 16,
+        "cleanNegatives": 16,
+        "negativeSpecificity": 1,
+        "stageAccuracyOnMatched": 1,
+        "evidenceCoverageOnMatched": 1,
+        "invalidEvidence": 0,
+        "duplicatePredictions": 1
+      },
+      "modelOnly": null,
+      "categories": {
+        "commitment": {
+          "cases": 16,
+          "errors": 0,
+          "expectedTasks": 16,
+          "predictedTasks": 12,
+          "tp": 12,
+          "fp": 0,
+          "fn": 4,
+          "precision": 1,
+          "recall": 0.75,
+          "f1": 0.8571428571428571,
+          "exactCases": 12,
+          "exactCaseRate": 0.75,
+          "exactCaseWilson95": [
+            0.5050168346449122,
+            0.8981793250878696
+          ],
+          "negativeCases": 0,
+          "cleanNegatives": 0,
+          "negativeSpecificity": null,
+          "stageAccuracyOnMatched": 1,
+          "evidenceCoverageOnMatched": 1,
+          "invalidEvidence": 0,
+          "duplicatePredictions": 0
+        },
+        "request": {
+          "cases": 8,
+          "errors": 0,
+          "expectedTasks": 8,
+          "predictedTasks": 0,
+          "tp": 0,
+          "fp": 0,
+          "fn": 8,
+          "precision": null,
+          "recall": 0,
+          "f1": 0,
+          "exactCases": 0,
+          "exactCaseRate": 0,
+          "exactCaseWilson95": [
+            0,
+            0.32440756488388023
+          ],
+          "negativeCases": 0,
+          "cleanNegatives": 0,
+          "negativeSpecificity": null,
+          "stageAccuracyOnMatched": null,
+          "evidenceCoverageOnMatched": null,
+          "invalidEvidence": 0,
+          "duplicatePredictions": 0
+        },
+        "multi-task": {
+          "cases": 4,
+          "errors": 0,
+          "expectedTasks": 8,
+          "predictedTasks": 2,
+          "tp": 2,
+          "fp": 0,
+          "fn": 6,
+          "precision": 1,
+          "recall": 0.25,
+          "f1": 0.4,
+          "exactCases": 1,
+          "exactCaseRate": 0.25,
+          "exactCaseWilson95": [
+            0.04558726080970055,
+            0.6993581574175981
+          ],
+          "negativeCases": 0,
+          "cleanNegatives": 0,
+          "negativeSpecificity": null,
+          "stageAccuracyOnMatched": 1,
+          "evidenceCoverageOnMatched": 1,
+          "invalidEvidence": 0,
+          "duplicatePredictions": 0
+        },
+        "progress": {
+          "cases": 8,
+          "errors": 0,
+          "expectedTasks": 9,
+          "predictedTasks": 0,
+          "tp": 0,
+          "fp": 0,
+          "fn": 9,
+          "precision": null,
+          "recall": 0,
+          "f1": 0,
+          "exactCases": 0,
+          "exactCaseRate": 0,
+          "exactCaseWilson95": [
+            0,
+            0.32440756488388023
+          ],
+          "negativeCases": 0,
+          "cleanNegatives": 0,
+          "negativeSpecificity": null,
+          "stageAccuracyOnMatched": null,
+          "evidenceCoverageOnMatched": null,
+          "invalidEvidence": 0,
+          "duplicatePredictions": 0
+        },
+        "negative": {
+          "cases": 16,
+          "errors": 0,
+          "expectedTasks": 0,
+          "predictedTasks": 0,
+          "tp": 0,
+          "fp": 0,
+          "fn": 0,
+          "precision": null,
+          "recall": null,
+          "f1": null,
+          "exactCases": 16,
+          "exactCaseRate": 1,
+          "exactCaseWilson95": [
+            0.8063923194655637,
+            1
+          ],
+          "negativeCases": 16,
+          "cleanNegatives": 16,
+          "negativeSpecificity": 1,
+          "stageAccuracyOnMatched": null,
+          "evidenceCoverageOnMatched": null,
+          "invalidEvidence": 0,
+          "duplicatePredictions": 0
+        },
+        "context": {
+          "cases": 8,
+          "errors": 0,
+          "expectedTasks": 8,
+          "predictedTasks": 2,
+          "tp": 1,
+          "fp": 1,
+          "fn": 7,
+          "precision": 0.5,
+          "recall": 0.125,
+          "f1": 0.2,
+          "exactCases": 0,
+          "exactCaseRate": 0,
+          "exactCaseWilson95": [
+            0,
+            0.32440756488388023
+          ],
+          "negativeCases": 0,
+          "cleanNegatives": 0,
+          "negativeSpecificity": null,
+          "stageAccuracyOnMatched": 1,
+          "evidenceCoverageOnMatched": 1,
+          "invalidEvidence": 0,
+          "duplicatePredictions": 1
+        }
+      },
+      "formats": {
+        "generic": {
+          "cases": 15,
+          "errors": 0,
+          "expectedTasks": 12,
+          "predictedTasks": 3,
+          "tp": 3,
+          "fp": 0,
+          "fn": 9,
+          "precision": 1,
+          "recall": 0.25,
+          "f1": 0.4,
+          "exactCases": 7,
+          "exactCaseRate": 0.4666666666666667,
+          "exactCaseWilson95": [
+            0.24809535365737387,
+            0.698830199745016
+          ],
+          "negativeCases": 4,
+          "cleanNegatives": 4,
+          "negativeSpecificity": 1,
+          "stageAccuracyOnMatched": 1,
+          "evidenceCoverageOnMatched": 1,
+          "invalidEvidence": 0,
+          "duplicatePredictions": 0
+        },
+        "codex": {
+          "cases": 15,
+          "errors": 0,
+          "expectedTasks": 12,
+          "predictedTasks": 5,
+          "tp": 5,
+          "fp": 0,
+          "fn": 7,
+          "precision": 1,
+          "recall": 0.4166666666666667,
+          "f1": 0.5882352941176471,
+          "exactCases": 8,
+          "exactCaseRate": 0.5333333333333333,
+          "exactCaseWilson95": [
+            0.30116980025498397,
+            0.7519046463426261
+          ],
+          "negativeCases": 4,
+          "cleanNegatives": 4,
+          "negativeSpecificity": 1,
+          "stageAccuracyOnMatched": 1,
+          "evidenceCoverageOnMatched": 1,
+          "invalidEvidence": 0,
+          "duplicatePredictions": 0
+        },
+        "claude-code": {
+          "cases": 15,
+          "errors": 0,
+          "expectedTasks": 12,
+          "predictedTasks": 3,
+          "tp": 3,
+          "fp": 0,
+          "fn": 9,
+          "precision": 1,
+          "recall": 0.25,
+          "f1": 0.4,
+          "exactCases": 7,
+          "exactCaseRate": 0.4666666666666667,
+          "exactCaseWilson95": [
+            0.24809535365737387,
+            0.698830199745016
+          ],
+          "negativeCases": 4,
+          "cleanNegatives": 4,
+          "negativeSpecificity": 1,
+          "stageAccuracyOnMatched": 1,
+          "evidenceCoverageOnMatched": 1,
+          "invalidEvidence": 0,
+          "duplicatePredictions": 0
+        },
+        "kimi": {
+          "cases": 15,
+          "errors": 0,
+          "expectedTasks": 13,
+          "predictedTasks": 5,
+          "tp": 4,
+          "fp": 1,
+          "fn": 9,
+          "precision": 0.8,
+          "recall": 0.3076923076923077,
+          "f1": 0.4444444444444444,
+          "exactCases": 7,
+          "exactCaseRate": 0.4666666666666667,
+          "exactCaseWilson95": [
+            0.24809535365737387,
+            0.698830199745016
+          ],
+          "negativeCases": 4,
+          "cleanNegatives": 4,
+          "negativeSpecificity": 1,
+          "stageAccuracyOnMatched": 1,
+          "evidenceCoverageOnMatched": 1,
+          "invalidEvidence": 0,
+          "duplicatePredictions": 1
+        }
+      }
+    }
+  ],
+  "rows": [
+    {
+      "id": "commit-submit",
+      "format": "generic",
+      "category": "commitment",
+      "error": null,
+      "modelError": null,
+      "elapsedMs": 31,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "contextMessages": null,
+      "truncated": false,
+      "invokedModel": false,
+      "predictions": [
+        {
+          "title": "提交季度验收报告",
+          "stage": "requested",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "我会提交季度验收报告。"
+            }
+          ]
+        }
+      ],
+      "modelPredictions": null,
+      "expected": [
+        {
+          "anchors": [
+            [
+              "季度"
+            ],
+            [
+              "验收"
+            ],
+            [
+              "报告"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawModel": null,
+      "persistence": {
+        "persistedCount": 1,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true
+      },
+      "score": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "expected": 1,
+        "predicted": 1,
+        "matchedStageCorrect": 1,
+        "matchedEvidenceComplete": 1,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "modelScore": null,
+      "repetition": 1
+    },
+    {
+      "id": "commit-fix",
+      "format": "codex",
+      "category": "commitment",
+      "error": null,
+      "modelError": null,
+      "elapsedMs": 22,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "contextMessages": null,
+      "truncated": false,
+      "invokedModel": false,
+      "predictions": [
+        {
+          "title": "修复登录后的白屏故障",
+          "stage": "requested",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "我来修复登录后的白屏故障。"
+            }
+          ]
+        }
+      ],
+      "modelPredictions": null,
+      "expected": [
+        {
+          "anchors": [
+            [
+              "登录",
+              "登陆"
+            ],
+            [
+              "白屏",
+              "空白"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawModel": null,
+      "persistence": {
+        "persistedCount": 1,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true
+      },
+      "score": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "expected": 1,
+        "predicted": 1,
+        "matchedStageCorrect": 1,
+        "matchedEvidenceComplete": 1,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "modelScore": null,
+      "repetition": 1
+    },
+    {
+      "id": "commit-owner",
+      "format": "claude-code",
+      "category": "commitment",
+      "error": null,
+      "modelError": null,
+      "elapsedMs": 19,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "contextMessages": null,
+      "truncated": false,
+      "invokedModel": false,
+      "predictions": [
+        {
+          "title": "整理周会纪要",
+          "stage": "requested",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "由我负责整理周会纪要。"
+            }
+          ]
+        }
+      ],
+      "modelPredictions": null,
+      "expected": [
+        {
+          "anchors": [
+            [
+              "周会"
+            ],
+            [
+              "纪要"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawModel": null,
+      "persistence": {
+        "persistedCount": 1,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true
+      },
+      "score": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "expected": 1,
+        "predicted": 1,
+        "matchedStageCorrect": 1,
+        "matchedEvidenceComplete": 1,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "modelScore": null,
+      "repetition": 1
+    },
+    {
+      "id": "commit-date",
+      "format": "kimi",
+      "category": "commitment",
+      "error": null,
+      "modelError": null,
+      "elapsedMs": 17,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "contextMessages": null,
+      "truncated": false,
+      "invokedModel": false,
+      "predictions": [],
+      "modelPredictions": null,
+      "expected": [
+        {
+          "anchors": [
+            [
+              "预算"
+            ],
+            [
+              "说明"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawModel": null,
+      "persistence": {
+        "persistedCount": 0,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true
+      },
+      "score": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 1,
+        "expected": 1,
+        "predicted": 0,
+        "matchedStageCorrect": 0,
+        "matchedEvidenceComplete": 0,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": false,
+        "matches": [],
+        "missed": [
+          0
+        ],
+        "extra": []
+      },
+      "modelScore": null,
+      "repetition": 1
+    },
+    {
+      "id": "commit-inline-date",
+      "format": "generic",
+      "category": "commitment",
+      "error": null,
+      "modelError": null,
+      "elapsedMs": 20,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "contextMessages": null,
+      "truncated": false,
+      "invokedModel": false,
+      "predictions": [
+        {
+          "title": "提交接口文档",
+          "stage": "requested",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "我会明天提交接口文档。"
+            }
+          ]
+        }
+      ],
+      "modelPredictions": null,
+      "expected": [
+        {
+          "anchors": [
+            [
+              "接口"
+            ],
+            [
+              "文档"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawModel": null,
+      "persistence": {
+        "persistedCount": 1,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true
+      },
+      "score": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "expected": 1,
+        "predicted": 1,
+        "matchedStageCorrect": 1,
+        "matchedEvidenceComplete": 1,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "modelScore": null,
+      "repetition": 1
+    },
+    {
+      "id": "commit-english",
+      "format": "codex",
+      "category": "commitment",
+      "error": null,
+      "modelError": null,
+      "elapsedMs": 21,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "contextMessages": null,
+      "truncated": false,
+      "invokedModel": false,
+      "predictions": [
+        {
+          "title": "prepare the deployment checklist",
+          "stage": "requested",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "I will prepare the deployment checklist."
+            }
+          ]
+        }
+      ],
+      "modelPredictions": null,
+      "expected": [
+        {
+          "anchors": [
+            [
+              "部署",
+              "deployment"
+            ],
+            [
+              "清单",
+              "checklist"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawModel": null,
+      "persistence": {
+        "persistedCount": 1,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true
+      },
+      "score": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "expected": 1,
+        "predicted": 1,
+        "matchedStageCorrect": 1,
+        "matchedEvidenceComplete": 1,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "modelScore": null,
+      "repetition": 1
+    },
+    {
+      "id": "commit-feedback",
+      "format": "claude-code",
+      "category": "commitment",
+      "error": null,
+      "modelError": null,
+      "elapsedMs": 20,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "contextMessages": null,
+      "truncated": false,
+      "invokedModel": false,
+      "predictions": [
+        {
+          "title": "反馈支付联调结果",
+          "stage": "requested",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "我负责反馈支付联调结果。"
+            }
+          ]
+        }
+      ],
+      "modelPredictions": null,
+      "expected": [
+        {
+          "anchors": [
+            [
+              "支付"
+            ],
+            [
+              "联调"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawModel": null,
+      "persistence": {
+        "persistedCount": 1,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true
+      },
+      "score": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "expected": 1,
+        "predicted": 1,
+        "matchedStageCorrect": 1,
+        "matchedEvidenceComplete": 1,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "modelScore": null,
+      "repetition": 1
+    },
+    {
+      "id": "commit-test",
+      "format": "kimi",
+      "category": "commitment",
+      "error": null,
+      "modelError": null,
+      "elapsedMs": 17,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "contextMessages": null,
+      "truncated": false,
+      "invokedModel": false,
+      "predictions": [
+        {
+          "title": "补充搜索分页的回归测试",
+          "stage": "requested",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "我将补充搜索分页的回归测试。"
+            }
+          ]
+        }
+      ],
+      "modelPredictions": null,
+      "expected": [
+        {
+          "anchors": [
+            [
+              "搜索"
+            ],
+            [
+              "分页"
+            ],
+            [
+              "测试"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawModel": null,
+      "persistence": {
+        "persistedCount": 1,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true
+      },
+      "score": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "expected": 1,
+        "predicted": 1,
+        "matchedStageCorrect": 1,
+        "matchedEvidenceComplete": 1,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "modelScore": null,
+      "repetition": 1
+    },
+    {
+      "id": "commit-contact",
+      "format": "generic",
+      "category": "commitment",
+      "error": null,
+      "modelError": null,
+      "elapsedMs": 23,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "contextMessages": null,
+      "truncated": false,
+      "invokedModel": false,
+      "predictions": [
+        {
+          "title": "联系设计同学确认首页配色",
+          "stage": "requested",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "我会联系设计同学确认首页配色。"
+            }
+          ]
+        }
+      ],
+      "modelPredictions": null,
+      "expected": [
+        {
+          "anchors": [
+            [
+              "首页"
+            ],
+            [
+              "配色",
+              "颜色"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawModel": null,
+      "persistence": {
+        "persistedCount": 1,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true
+      },
+      "score": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "expected": 1,
+        "predicted": 1,
+        "matchedStageCorrect": 1,
+        "matchedEvidenceComplete": 1,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "modelScore": null,
+      "repetition": 1
+    },
+    {
+      "id": "commit-update",
+      "format": "codex",
+      "category": "commitment",
+      "error": null,
+      "modelError": null,
+      "elapsedMs": 18,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "contextMessages": null,
+      "truncated": false,
+      "invokedModel": false,
+      "predictions": [
+        {
+          "title": "更新安装说明",
+          "stage": "requested",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "我会更新安装说明。"
+            }
+          ]
+        }
+      ],
+      "modelPredictions": null,
+      "expected": [
+        {
+          "anchors": [
+            [
+              "安装"
+            ],
+            [
+              "说明",
+              "文档"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawModel": null,
+      "persistence": {
+        "persistedCount": 1,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true
+      },
+      "score": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "expected": 1,
+        "predicted": 1,
+        "matchedStageCorrect": 1,
+        "matchedEvidenceComplete": 1,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "modelScore": null,
+      "repetition": 1
+    },
+    {
+      "id": "commit-check",
+      "format": "claude-code",
+      "category": "commitment",
+      "error": null,
+      "modelError": null,
+      "elapsedMs": 21,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "contextMessages": null,
+      "truncated": false,
+      "invokedModel": false,
+      "predictions": [
+        {
+          "title": "检查导出文件的编码",
+          "stage": "requested",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "我来检查导出文件的编码。"
+            }
+          ]
+        }
+      ],
+      "modelPredictions": null,
+      "expected": [
+        {
+          "anchors": [
+            [
+              "导出"
+            ],
+            [
+              "编码"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawModel": null,
+      "persistence": {
+        "persistedCount": 1,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true
+      },
+      "score": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "expected": 1,
+        "predicted": 1,
+        "matchedStageCorrect": 1,
+        "matchedEvidenceComplete": 1,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "modelScore": null,
+      "repetition": 1
+    },
+    {
+      "id": "commit-provide",
+      "format": "kimi",
+      "category": "commitment",
+      "error": null,
+      "modelError": null,
+      "elapsedMs": 20,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "contextMessages": null,
+      "truncated": false,
+      "invokedModel": false,
+      "predictions": [
+        {
+          "title": "提供合成测试数据",
+          "stage": "requested",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "我会提供合成测试数据。"
+            }
+          ]
+        }
+      ],
+      "modelPredictions": null,
+      "expected": [
+        {
+          "anchors": [
+            [
+              "测试"
+            ],
+            [
+              "数据"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawModel": null,
+      "persistence": {
+        "persistedCount": 1,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true
+      },
+      "score": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "expected": 1,
+        "predicted": 1,
+        "matchedStageCorrect": 1,
+        "matchedEvidenceComplete": 1,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "modelScore": null,
+      "repetition": 1
+    },
+    {
+      "id": "commit-casual",
+      "format": "generic",
+      "category": "commitment",
+      "error": null,
+      "modelError": null,
+      "elapsedMs": 20,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "contextMessages": null,
+      "truncated": false,
+      "invokedModel": false,
+      "predictions": [],
+      "modelPredictions": null,
+      "expected": [
+        {
+          "anchors": [
+            [
+              "发布"
+            ],
+            [
+              "说明"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawModel": null,
+      "persistence": {
+        "persistedCount": 0,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true
+      },
+      "score": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 1,
+        "expected": 1,
+        "predicted": 0,
+        "matchedStageCorrect": 0,
+        "matchedEvidenceComplete": 0,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": false,
+        "matches": [],
+        "missed": [
+          0
+        ],
+        "extra": []
+      },
+      "modelScore": null,
+      "repetition": 1
+    },
+    {
+      "id": "commit-unlisted-verb",
+      "format": "codex",
+      "category": "commitment",
+      "error": null,
+      "modelError": null,
+      "elapsedMs": 19,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "contextMessages": null,
+      "truncated": false,
+      "invokedModel": false,
+      "predictions": [],
+      "modelPredictions": null,
+      "expected": [
+        {
+          "anchors": [
+            [
+              "发布"
+            ],
+            [
+              "材料"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawModel": null,
+      "persistence": {
+        "persistedCount": 0,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true
+      },
+      "score": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 1,
+        "expected": 1,
+        "predicted": 0,
+        "matchedStageCorrect": 0,
+        "matchedEvidenceComplete": 0,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": false,
+        "matches": [],
+        "missed": [
+          0
+        ],
+        "extra": []
+      },
+      "modelScore": null,
+      "repetition": 1
+    },
+    {
+      "id": "commit-bullet",
+      "format": "claude-code",
+      "category": "commitment",
+      "error": null,
+      "modelError": null,
+      "elapsedMs": 22,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "contextMessages": null,
+      "truncated": false,
+      "invokedModel": false,
+      "predictions": [],
+      "modelPredictions": null,
+      "expected": [
+        {
+          "anchors": [
+            [
+              "搜索"
+            ],
+            [
+              "排序"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawModel": null,
+      "persistence": {
+        "persistedCount": 0,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true
+      },
+      "score": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 1,
+        "expected": 1,
+        "predicted": 0,
+        "matchedStageCorrect": 0,
+        "matchedEvidenceComplete": 0,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": false,
+        "matches": [],
+        "missed": [
+          0
+        ],
+        "extra": []
+      },
+      "modelScore": null,
+      "repetition": 1
+    },
+    {
+      "id": "commit-two-lines",
+      "format": "kimi",
+      "category": "commitment",
+      "error": null,
+      "modelError": null,
+      "elapsedMs": 20,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "contextMessages": null,
+      "truncated": false,
+      "invokedModel": false,
+      "predictions": [
+        {
+          "title": "整理支付接口文档",
+          "stage": "requested",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "我会整理支付接口文档。"
+            }
+          ]
+        }
+      ],
+      "modelPredictions": null,
+      "expected": [
+        {
+          "anchors": [
+            [
+              "支付"
+            ],
+            [
+              "接口"
+            ],
+            [
+              "文档"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawModel": null,
+      "persistence": {
+        "persistedCount": 1,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true
+      },
+      "score": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "expected": 1,
+        "predicted": 1,
+        "matchedStageCorrect": 1,
+        "matchedEvidenceComplete": 1,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "modelScore": null,
+      "repetition": 1
+    },
+    {
+      "id": "request-fix",
+      "format": "generic",
+      "category": "request",
+      "error": null,
+      "modelError": null,
+      "elapsedMs": 17,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "contextMessages": null,
+      "truncated": false,
+      "invokedModel": false,
+      "predictions": [],
+      "modelPredictions": null,
+      "expected": [
+        {
+          "anchors": [
+            [
+              "登录"
+            ],
+            [
+              "白屏"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawModel": null,
+      "persistence": {
+        "persistedCount": 0,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true
+      },
+      "score": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 1,
+        "expected": 1,
+        "predicted": 0,
+        "matchedStageCorrect": 0,
+        "matchedEvidenceComplete": 0,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": false,
+        "matches": [],
+        "missed": [
+          0
+        ],
+        "extra": []
+      },
+      "modelScore": null,
+      "repetition": 1
+    },
+    {
+      "id": "request-politeness",
+      "format": "codex",
+      "category": "request",
+      "error": null,
+      "modelError": null,
+      "elapsedMs": 19,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "contextMessages": null,
+      "truncated": false,
+      "invokedModel": false,
+      "predictions": [],
+      "modelPredictions": null,
+      "expected": [
+        {
+          "anchors": [
+            [
+              "发布"
+            ],
+            [
+              "说明"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawModel": null,
+      "persistence": {
+        "persistedCount": 0,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true
+      },
+      "score": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 1,
+        "expected": 1,
+        "predicted": 0,
+        "matchedStageCorrect": 0,
+        "matchedEvidenceComplete": 0,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": false,
+        "matches": [],
+        "missed": [
+          0
+        ],
+        "extra": []
+      },
+      "modelScore": null,
+      "repetition": 1
+    },
+    {
+      "id": "request-imperative",
+      "format": "claude-code",
+      "category": "request",
+      "error": null,
+      "modelError": null,
+      "elapsedMs": 19,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "contextMessages": null,
+      "truncated": false,
+      "invokedModel": false,
+      "predictions": [],
+      "modelPredictions": null,
+      "expected": [
+        {
+          "anchors": [
+            [
+              "设置"
+            ],
+            [
+              "重复说明",
+              "说明",
+              "文案"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawModel": null,
+      "persistence": {
+        "persistedCount": 0,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true
+      },
+      "score": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 1,
+        "expected": 1,
+        "predicted": 0,
+        "matchedStageCorrect": 0,
+        "matchedEvidenceComplete": 0,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": false,
+        "matches": [],
+        "missed": [
+          0
+        ],
+        "extra": []
+      },
+      "modelScore": null,
+      "repetition": 1
+    },
+    {
+      "id": "request-question",
+      "format": "kimi",
+      "category": "request",
+      "error": null,
+      "modelError": null,
+      "elapsedMs": 18,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "contextMessages": null,
+      "truncated": false,
+      "invokedModel": false,
+      "predictions": [],
+      "modelPredictions": null,
+      "expected": [
+        {
+          "anchors": [
+            [
+              "导出"
+            ],
+            [
+              "空数据",
+              "空"
+            ],
+            [
+              "测试"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawModel": null,
+      "persistence": {
+        "persistedCount": 0,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true
+      },
+      "score": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 1,
+        "expected": 1,
+        "predicted": 0,
+        "matchedStageCorrect": 0,
+        "matchedEvidenceComplete": 0,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": false,
+        "matches": [],
+        "missed": [
+          0
+        ],
+        "extra": []
+      },
+      "modelScore": null,
+      "repetition": 1
+    },
+    {
+      "id": "request-english",
+      "format": "generic",
+      "category": "request",
+      "error": null,
+      "modelError": null,
+      "elapsedMs": 16,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "contextMessages": null,
+      "truncated": false,
+      "invokedModel": false,
+      "predictions": [],
+      "modelPredictions": null,
+      "expected": [
+        {
+          "anchors": [
+            [
+              "登录",
+              "login"
+            ],
+            [
+              "重定向",
+              "redirect"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawModel": null,
+      "persistence": {
+        "persistedCount": 0,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true
+      },
+      "score": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 1,
+        "expected": 1,
+        "predicted": 0,
+        "matchedStageCorrect": 0,
+        "matchedEvidenceComplete": 0,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": false,
+        "matches": [],
+        "missed": [
+          0
+        ],
+        "extra": []
+      },
+      "modelScore": null,
+      "repetition": 1
+    },
+    {
+      "id": "request-short",
+      "format": "codex",
+      "category": "request",
+      "error": null,
+      "modelError": null,
+      "elapsedMs": 16,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "contextMessages": null,
+      "truncated": false,
+      "invokedModel": false,
+      "predictions": [],
+      "modelPredictions": null,
+      "expected": [
+        {
+          "anchors": [
+            [
+              "readme"
+            ],
+            [
+              "启动"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawModel": null,
+      "persistence": {
+        "persistedCount": 0,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true
+      },
+      "score": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 1,
+        "expected": 1,
+        "predicted": 0,
+        "matchedStageCorrect": 0,
+        "matchedEvidenceComplete": 0,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": false,
+        "matches": [],
+        "missed": [
+          0
+        ],
+        "extra": []
+      },
+      "modelScore": null,
+      "repetition": 1
+    },
+    {
+      "id": "request-two-turns",
+      "format": "claude-code",
+      "category": "request",
+      "error": null,
+      "modelError": null,
+      "elapsedMs": 17,
+      "parsedMessages": 2,
+      "inputMessages": 2,
+      "contextMessages": null,
+      "truncated": false,
+      "invokedModel": false,
+      "predictions": [],
+      "modelPredictions": null,
+      "expected": [
+        {
+          "anchors": [
+            [
+              "api",
+              "接口"
+            ],
+            [
+              "接入",
+              "说明"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1",
+            "m2"
+          ]
+        }
+      ],
+      "rawModel": null,
+      "persistence": {
+        "persistedCount": 0,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true
+      },
+      "score": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 1,
+        "expected": 1,
+        "predicted": 0,
+        "matchedStageCorrect": 0,
+        "matchedEvidenceComplete": 0,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": false,
+        "matches": [],
+        "missed": [
+          0
+        ],
+        "extra": []
+      },
+      "modelScore": null,
+      "repetition": 1
+    },
+    {
+      "id": "request-assignment",
+      "format": "kimi",
+      "category": "request",
+      "error": null,
+      "modelError": null,
+      "elapsedMs": 17,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "contextMessages": null,
+      "truncated": false,
+      "invokedModel": false,
+      "predictions": [],
+      "modelPredictions": null,
+      "expected": [
+        {
+          "anchors": [
+            [
+              "桌宠"
+            ],
+            [
+              "拖动",
+              "拖拽"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawModel": null,
+      "persistence": {
+        "persistedCount": 0,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true
+      },
+      "score": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 1,
+        "expected": 1,
+        "predicted": 0,
+        "matchedStageCorrect": 0,
+        "matchedEvidenceComplete": 0,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": false,
+        "matches": [],
+        "missed": [
+          0
+        ],
+        "extra": []
+      },
+      "modelScore": null,
+      "repetition": 1
+    },
+    {
+      "id": "multi-independent",
+      "format": "generic",
+      "category": "multi-task",
+      "error": null,
+      "modelError": null,
+      "elapsedMs": 16,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "contextMessages": null,
+      "truncated": false,
+      "invokedModel": false,
+      "predictions": [],
+      "modelPredictions": null,
+      "expected": [
+        {
+          "anchors": [
+            [
+              "登录"
+            ],
+            [
+              "白屏"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1"
+          ]
+        },
+        {
+          "anchors": [
+            [
+              "季度"
+            ],
+            [
+              "预算"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawModel": null,
+      "persistence": {
+        "persistedCount": 0,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true
+      },
+      "score": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 2,
+        "expected": 2,
+        "predicted": 0,
+        "matchedStageCorrect": 0,
+        "matchedEvidenceComplete": 0,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": false,
+        "matches": [],
+        "missed": [
+          0,
+          1
+        ],
+        "extra": []
+      },
+      "modelScore": null,
+      "repetition": 1
+    },
+    {
+      "id": "multi-lines",
+      "format": "codex",
+      "category": "multi-task",
+      "error": null,
+      "modelError": null,
+      "elapsedMs": 17,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "contextMessages": null,
+      "truncated": false,
+      "invokedModel": false,
+      "predictions": [
+        {
+          "title": "提交性能测试报告",
+          "stage": "requested",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "我会提交性能测试报告。"
+            }
+          ]
+        },
+        {
+          "title": "更新用户安装说明",
+          "stage": "requested",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "我会更新用户安装说明。"
+            }
+          ]
+        }
+      ],
+      "modelPredictions": null,
+      "expected": [
+        {
+          "anchors": [
+            [
+              "性能"
+            ],
+            [
+              "测试"
+            ],
+            [
+              "报告"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1"
+          ]
+        },
+        {
+          "anchors": [
+            [
+              "安装"
+            ],
+            [
+              "说明"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawModel": null,
+      "persistence": {
+        "persistedCount": 2,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true
+      },
+      "score": {
+        "tp": 2,
+        "fp": 0,
+        "fn": 0,
+        "expected": 2,
+        "predicted": 2,
+        "matchedStageCorrect": 2,
+        "matchedEvidenceComplete": 2,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          },
+          {
+            "predicted": 1,
+            "expected": 1,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "modelScore": null,
+      "repetition": 1
+    },
+    {
+      "id": "multi-different-turns",
+      "format": "claude-code",
+      "category": "multi-task",
+      "error": null,
+      "modelError": null,
+      "elapsedMs": 17,
+      "parsedMessages": 2,
+      "inputMessages": 2,
+      "contextMessages": null,
+      "truncated": false,
+      "invokedModel": false,
+      "predictions": [],
+      "modelPredictions": null,
+      "expected": [
+        {
+          "anchors": [
+            [
+              "上传"
+            ],
+            [
+              "超时"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1"
+          ]
+        },
+        {
+          "anchors": [
+            [
+              "搜索"
+            ],
+            [
+              "文档"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m2"
+          ],
+          "evidenceIds": [
+            "m2"
+          ]
+        }
+      ],
+      "rawModel": null,
+      "persistence": {
+        "persistedCount": 0,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true
+      },
+      "score": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 2,
+        "expected": 2,
+        "predicted": 0,
+        "matchedStageCorrect": 0,
+        "matchedEvidenceComplete": 0,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": false,
+        "matches": [],
+        "missed": [
+          0,
+          1
+        ],
+        "extra": []
+      },
+      "modelScore": null,
+      "repetition": 1
+    },
+    {
+      "id": "multi-shared-evidence",
+      "format": "kimi",
+      "category": "multi-task",
+      "error": null,
+      "modelError": null,
+      "elapsedMs": 13,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "contextMessages": null,
+      "truncated": false,
+      "invokedModel": false,
+      "predictions": [],
+      "modelPredictions": null,
+      "expected": [
+        {
+          "anchors": [
+            [
+              "注册"
+            ],
+            [
+              "接口"
+            ],
+            [
+              "文档"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1"
+          ]
+        },
+        {
+          "anchors": [
+            [
+              "支付"
+            ],
+            [
+              "接口"
+            ],
+            [
+              "文档"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawModel": null,
+      "persistence": {
+        "persistedCount": 0,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true
+      },
+      "score": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 2,
+        "expected": 2,
+        "predicted": 0,
+        "matchedStageCorrect": 0,
+        "matchedEvidenceComplete": 0,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": false,
+        "matches": [],
+        "missed": [
+          0,
+          1
+        ],
+        "extra": []
+      },
+      "modelScore": null,
+      "repetition": 1
+    },
+    {
+      "id": "same-goal-followup",
+      "format": "generic",
+      "category": "progress",
+      "error": null,
+      "modelError": null,
+      "elapsedMs": 21,
+      "parsedMessages": 3,
+      "inputMessages": 3,
+      "contextMessages": null,
+      "truncated": false,
+      "invokedModel": false,
+      "predictions": [],
+      "modelPredictions": null,
+      "expected": [
+        {
+          "anchors": [
+            [
+              "登录"
+            ],
+            [
+              "白屏"
+            ]
+          ],
+          "stage": "in_progress",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1",
+            "m3"
+          ]
+        }
+      ],
+      "rawModel": null,
+      "persistence": {
+        "persistedCount": 0,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true
+      },
+      "score": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 1,
+        "expected": 1,
+        "predicted": 0,
+        "matchedStageCorrect": 0,
+        "matchedEvidenceComplete": 0,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": false,
+        "matches": [],
+        "missed": [
+          0
+        ],
+        "extra": []
+      },
+      "modelScore": null,
+      "repetition": 1
+    },
+    {
+      "id": "delivery-is-not-acceptance",
+      "format": "codex",
+      "category": "progress",
+      "error": null,
+      "modelError": null,
+      "elapsedMs": 23,
+      "parsedMessages": 2,
+      "inputMessages": 2,
+      "contextMessages": null,
+      "truncated": false,
+      "invokedModel": false,
+      "predictions": [],
+      "modelPredictions": null,
+      "expected": [
+        {
+          "anchors": [
+            [
+              "上传"
+            ],
+            [
+              "超时"
+            ]
+          ],
+          "stage": "delivered",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1",
+            "m2"
+          ]
+        }
+      ],
+      "rawModel": null,
+      "persistence": {
+        "persistedCount": 0,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true
+      },
+      "score": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 1,
+        "expected": 1,
+        "predicted": 0,
+        "matchedStageCorrect": 0,
+        "matchedEvidenceComplete": 0,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": false,
+        "matches": [],
+        "missed": [
+          0
+        ],
+        "extra": []
+      },
+      "modelScore": null,
+      "repetition": 1
+    },
+    {
+      "id": "accepted",
+      "format": "claude-code",
+      "category": "progress",
+      "error": null,
+      "modelError": null,
+      "elapsedMs": 20,
+      "parsedMessages": 3,
+      "inputMessages": 3,
+      "contextMessages": null,
+      "truncated": false,
+      "invokedModel": false,
+      "predictions": [],
+      "modelPredictions": null,
+      "expected": [
+        {
+          "anchors": [
+            [
+              "登录"
+            ],
+            [
+              "白屏"
+            ]
+          ],
+          "stage": "accepted",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1",
+            "m3"
+          ]
+        }
+      ],
+      "rawModel": null,
+      "persistence": {
+        "persistedCount": 0,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true
+      },
+      "score": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 1,
+        "expected": 1,
+        "predicted": 0,
+        "matchedStageCorrect": 0,
+        "matchedEvidenceComplete": 0,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": false,
+        "matches": [],
+        "missed": [
+          0
+        ],
+        "extra": []
+      },
+      "modelScore": null,
+      "repetition": 1
+    },
+    {
+      "id": "rejected-delivery",
+      "format": "kimi",
+      "category": "progress",
+      "error": null,
+      "modelError": null,
+      "elapsedMs": 18,
+      "parsedMessages": 3,
+      "inputMessages": 3,
+      "contextMessages": null,
+      "truncated": false,
+      "invokedModel": false,
+      "predictions": [],
+      "modelPredictions": null,
+      "expected": [
+        {
+          "anchors": [
+            [
+              "搜索"
+            ],
+            [
+              "排序"
+            ]
+          ],
+          "stage": "in_progress",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1",
+            "m3"
+          ]
+        }
+      ],
+      "rawModel": null,
+      "persistence": {
+        "persistedCount": 0,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true
+      },
+      "score": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 1,
+        "expected": 1,
+        "predicted": 0,
+        "matchedStageCorrect": 0,
+        "matchedEvidenceComplete": 0,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": false,
+        "matches": [],
+        "missed": [
+          0
+        ],
+        "extra": []
+      },
+      "modelScore": null,
+      "repetition": 1
+    },
+    {
+      "id": "cancelled",
+      "format": "generic",
+      "category": "progress",
+      "error": null,
+      "modelError": null,
+      "elapsedMs": 17,
+      "parsedMessages": 2,
+      "inputMessages": 2,
+      "contextMessages": null,
+      "truncated": false,
+      "invokedModel": false,
+      "predictions": [],
+      "modelPredictions": null,
+      "expected": [
+        {
+          "anchors": [
+            [
+              "短信"
+            ],
+            [
+              "登录"
+            ]
+          ],
+          "stage": "cancelled",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1",
+            "m2"
+          ]
+        }
+      ],
+      "rawModel": null,
+      "persistence": {
+        "persistedCount": 0,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true
+      },
+      "score": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 1,
+        "expected": 1,
+        "predicted": 0,
+        "matchedStageCorrect": 0,
+        "matchedEvidenceComplete": 0,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": false,
+        "matches": [],
+        "missed": [
+          0
+        ],
+        "extra": []
+      },
+      "modelScore": null,
+      "repetition": 1
+    },
+    {
+      "id": "acceptance-request-is-not-accepted",
+      "format": "codex",
+      "category": "progress",
+      "error": null,
+      "modelError": null,
+      "elapsedMs": 17,
+      "parsedMessages": 2,
+      "inputMessages": 2,
+      "contextMessages": null,
+      "truncated": false,
+      "invokedModel": false,
+      "predictions": [],
+      "modelPredictions": null,
+      "expected": [
+        {
+          "anchors": [
+            [
+              "发布"
+            ],
+            [
+              "说明"
+            ]
+          ],
+          "stage": "delivered",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1",
+            "m2"
+          ]
+        }
+      ],
+      "rawModel": null,
+      "persistence": {
+        "persistedCount": 0,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true
+      },
+      "score": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 1,
+        "expected": 1,
+        "predicted": 0,
+        "matchedStageCorrect": 0,
+        "matchedEvidenceComplete": 0,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": false,
+        "matches": [],
+        "missed": [
+          0
+        ],
+        "extra": []
+      },
+      "modelScore": null,
+      "repetition": 1
+    },
+    {
+      "id": "partial-scope",
+      "format": "claude-code",
+      "category": "progress",
+      "error": null,
+      "modelError": null,
+      "elapsedMs": 20,
+      "parsedMessages": 2,
+      "inputMessages": 2,
+      "contextMessages": null,
+      "truncated": false,
+      "invokedModel": false,
+      "predictions": [],
+      "modelPredictions": null,
+      "expected": [
+        {
+          "anchors": [
+            [
+              "搜索"
+            ]
+          ],
+          "stage": "in_progress",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1",
+            "m2"
+          ]
+        }
+      ],
+      "rawModel": null,
+      "persistence": {
+        "persistedCount": 0,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true
+      },
+      "score": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 1,
+        "expected": 1,
+        "predicted": 0,
+        "matchedStageCorrect": 0,
+        "matchedEvidenceComplete": 0,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": false,
+        "matches": [],
+        "missed": [
+          0
+        ],
+        "extra": []
+      },
+      "modelScore": null,
+      "repetition": 1
+    },
+    {
+      "id": "two-goals-one-accepted",
+      "format": "kimi",
+      "category": "progress",
+      "error": null,
+      "modelError": null,
+      "elapsedMs": 20,
+      "parsedMessages": 4,
+      "inputMessages": 4,
+      "contextMessages": null,
+      "truncated": false,
+      "invokedModel": false,
+      "predictions": [],
+      "modelPredictions": null,
+      "expected": [
+        {
+          "anchors": [
+            [
+              "登录"
+            ],
+            [
+              "白屏"
+            ]
+          ],
+          "stage": "accepted",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1",
+            "m4"
+          ]
+        },
+        {
+          "anchors": [
+            [
+              "预算"
+            ],
+            [
+              "说明"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m2"
+          ],
+          "evidenceIds": [
+            "m2",
+            "m4"
+          ]
+        }
+      ],
+      "rawModel": null,
+      "persistence": {
+        "persistedCount": 0,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true
+      },
+      "score": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 2,
+        "expected": 2,
+        "predicted": 0,
+        "matchedStageCorrect": 0,
+        "matchedEvidenceComplete": 0,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": false,
+        "matches": [],
+        "missed": [
+          0,
+          1
+        ],
+        "extra": []
+      },
+      "modelScore": null,
+      "repetition": 1
+    },
+    {
+      "id": "negative-greeting",
+      "format": "generic",
+      "category": "negative",
+      "error": null,
+      "modelError": null,
+      "elapsedMs": 17,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "contextMessages": null,
+      "truncated": false,
+      "invokedModel": false,
+      "predictions": [],
+      "modelPredictions": null,
+      "expected": [],
+      "rawModel": null,
+      "persistence": {
+        "persistedCount": 0,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true
+      },
+      "score": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "expected": 0,
+        "predicted": 0,
+        "matchedStageCorrect": 0,
+        "matchedEvidenceComplete": 0,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [],
+        "missed": [],
+        "extra": []
+      },
+      "modelScore": null,
+      "repetition": 1
+    },
+    {
+      "id": "negative-knowledge",
+      "format": "codex",
+      "category": "negative",
+      "error": null,
+      "modelError": null,
+      "elapsedMs": 15,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "contextMessages": null,
+      "truncated": false,
+      "invokedModel": false,
+      "predictions": [],
+      "modelPredictions": null,
+      "expected": [],
+      "rawModel": null,
+      "persistence": {
+        "persistedCount": 0,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true
+      },
+      "score": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "expected": 0,
+        "predicted": 0,
+        "matchedStageCorrect": 0,
+        "matchedEvidenceComplete": 0,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [],
+        "missed": [],
+        "extra": []
+      },
+      "modelScore": null,
+      "repetition": 1
+    },
+    {
+      "id": "negative-assistant",
+      "format": "claude-code",
+      "category": "negative",
+      "error": null,
+      "modelError": null,
+      "elapsedMs": 16,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "contextMessages": null,
+      "truncated": false,
+      "invokedModel": false,
+      "predictions": [],
+      "modelPredictions": null,
+      "expected": [],
+      "rawModel": null,
+      "persistence": {
+        "persistedCount": 0,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true
+      },
+      "score": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "expected": 0,
+        "predicted": 0,
+        "matchedStageCorrect": 0,
+        "matchedEvidenceComplete": 0,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [],
+        "missed": [],
+        "extra": []
+      },
+      "modelScore": null,
+      "repetition": 1
+    },
+    {
+      "id": "negative-hypothesis",
+      "format": "kimi",
+      "category": "negative",
+      "error": null,
+      "modelError": null,
+      "elapsedMs": 16,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "contextMessages": null,
+      "truncated": false,
+      "invokedModel": false,
+      "predictions": [],
+      "modelPredictions": null,
+      "expected": [],
+      "rawModel": null,
+      "persistence": {
+        "persistedCount": 0,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true
+      },
+      "score": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "expected": 0,
+        "predicted": 0,
+        "matchedStageCorrect": 0,
+        "matchedEvidenceComplete": 0,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [],
+        "missed": [],
+        "extra": []
+      },
+      "modelScore": null,
+      "repetition": 1
+    },
+    {
+      "id": "negative-negation",
+      "format": "generic",
+      "category": "negative",
+      "error": null,
+      "modelError": null,
+      "elapsedMs": 16,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "contextMessages": null,
+      "truncated": false,
+      "invokedModel": false,
+      "predictions": [],
+      "modelPredictions": null,
+      "expected": [],
+      "rawModel": null,
+      "persistence": {
+        "persistedCount": 0,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true
+      },
+      "score": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "expected": 0,
+        "predicted": 0,
+        "matchedStageCorrect": 0,
+        "matchedEvidenceComplete": 0,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [],
+        "missed": [],
+        "extra": []
+      },
+      "modelScore": null,
+      "repetition": 1
+    },
+    {
+      "id": "negative-example",
+      "format": "codex",
+      "category": "negative",
+      "error": null,
+      "modelError": null,
+      "elapsedMs": 15,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "contextMessages": null,
+      "truncated": false,
+      "invokedModel": false,
+      "predictions": [],
+      "modelPredictions": null,
+      "expected": [],
+      "rawModel": null,
+      "persistence": {
+        "persistedCount": 0,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true
+      },
+      "score": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "expected": 0,
+        "predicted": 0,
+        "matchedStageCorrect": 0,
+        "matchedEvidenceComplete": 0,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [],
+        "missed": [],
+        "extra": []
+      },
+      "modelScore": null,
+      "repetition": 1
+    },
+    {
+      "id": "negative-quotation",
+      "format": "claude-code",
+      "category": "negative",
+      "error": null,
+      "modelError": null,
+      "elapsedMs": 13,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "contextMessages": null,
+      "truncated": false,
+      "invokedModel": false,
+      "predictions": [],
+      "modelPredictions": null,
+      "expected": [],
+      "rawModel": null,
+      "persistence": {
+        "persistedCount": 0,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true
+      },
+      "score": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "expected": 0,
+        "predicted": 0,
+        "matchedStageCorrect": 0,
+        "matchedEvidenceComplete": 0,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [],
+        "missed": [],
+        "extra": []
+      },
+      "modelScore": null,
+      "repetition": 1
+    },
+    {
+      "id": "negative-code",
+      "format": "kimi",
+      "category": "negative",
+      "error": null,
+      "modelError": null,
+      "elapsedMs": 13,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "contextMessages": null,
+      "truncated": false,
+      "invokedModel": false,
+      "predictions": [],
+      "modelPredictions": null,
+      "expected": [],
+      "rawModel": null,
+      "persistence": {
+        "persistedCount": 0,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true
+      },
+      "score": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "expected": 0,
+        "predicted": 0,
+        "matchedStageCorrect": 0,
+        "matchedEvidenceComplete": 0,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [],
+        "missed": [],
+        "extra": []
+      },
+      "modelScore": null,
+      "repetition": 1
+    },
+    {
+      "id": "negative-blockquote",
+      "format": "generic",
+      "category": "negative",
+      "error": null,
+      "modelError": null,
+      "elapsedMs": 15,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "contextMessages": null,
+      "truncated": false,
+      "invokedModel": false,
+      "predictions": [],
+      "modelPredictions": null,
+      "expected": [],
+      "rawModel": null,
+      "persistence": {
+        "persistedCount": 0,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true
+      },
+      "score": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "expected": 0,
+        "predicted": 0,
+        "matchedStageCorrect": 0,
+        "matchedEvidenceComplete": 0,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [],
+        "missed": [],
+        "extra": []
+      },
+      "modelScore": null,
+      "repetition": 1
+    },
+    {
+      "id": "negative-vague",
+      "format": "codex",
+      "category": "negative",
+      "error": null,
+      "modelError": null,
+      "elapsedMs": 18,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "contextMessages": null,
+      "truncated": false,
+      "invokedModel": false,
+      "predictions": [],
+      "modelPredictions": null,
+      "expected": [],
+      "rawModel": null,
+      "persistence": {
+        "persistedCount": 0,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true
+      },
+      "score": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "expected": 0,
+        "predicted": 0,
+        "matchedStageCorrect": 0,
+        "matchedEvidenceComplete": 0,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [],
+        "missed": [],
+        "extra": []
+      },
+      "modelScore": null,
+      "repetition": 1
+    },
+    {
+      "id": "negative-possibility",
+      "format": "claude-code",
+      "category": "negative",
+      "error": null,
+      "modelError": null,
+      "elapsedMs": 15,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "contextMessages": null,
+      "truncated": false,
+      "invokedModel": false,
+      "predictions": [],
+      "modelPredictions": null,
+      "expected": [],
+      "rawModel": null,
+      "persistence": {
+        "persistedCount": 0,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true
+      },
+      "score": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "expected": 0,
+        "predicted": 0,
+        "matchedStageCorrect": 0,
+        "matchedEvidenceComplete": 0,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [],
+        "missed": [],
+        "extra": []
+      },
+      "modelScore": null,
+      "repetition": 1
+    },
+    {
+      "id": "negative-history",
+      "format": "kimi",
+      "category": "negative",
+      "error": null,
+      "modelError": null,
+      "elapsedMs": 14,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "contextMessages": null,
+      "truncated": false,
+      "invokedModel": false,
+      "predictions": [],
+      "modelPredictions": null,
+      "expected": [],
+      "rawModel": null,
+      "persistence": {
+        "persistedCount": 0,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true
+      },
+      "score": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "expected": 0,
+        "predicted": 0,
+        "matchedStageCorrect": 0,
+        "matchedEvidenceComplete": 0,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [],
+        "missed": [],
+        "extra": []
+      },
+      "modelScore": null,
+      "repetition": 1
+    },
+    {
+      "id": "negative-tool",
+      "format": "generic",
+      "category": "negative",
+      "error": null,
+      "modelError": null,
+      "elapsedMs": 18,
+      "parsedMessages": 2,
+      "inputMessages": 2,
+      "contextMessages": null,
+      "truncated": false,
+      "invokedModel": false,
+      "predictions": [],
+      "modelPredictions": null,
+      "expected": [],
+      "rawModel": null,
+      "persistence": {
+        "persistedCount": 0,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true
+      },
+      "score": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "expected": 0,
+        "predicted": 0,
+        "matchedStageCorrect": 0,
+        "matchedEvidenceComplete": 0,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [],
+        "missed": [],
+        "extra": []
+      },
+      "modelScore": null,
+      "repetition": 1
+    },
+    {
+      "id": "negative-system",
+      "format": "codex",
+      "category": "negative",
+      "error": null,
+      "modelError": null,
+      "elapsedMs": 15,
+      "parsedMessages": 1,
+      "inputMessages": 2,
+      "contextMessages": null,
+      "truncated": false,
+      "invokedModel": false,
+      "predictions": [],
+      "modelPredictions": null,
+      "expected": [],
+      "rawModel": null,
+      "persistence": {
+        "persistedCount": 0,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true
+      },
+      "score": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "expected": 0,
+        "predicted": 0,
+        "matchedStageCorrect": 0,
+        "matchedEvidenceComplete": 0,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [],
+        "missed": [],
+        "extra": []
+      },
+      "modelScore": null,
+      "repetition": 1
+    },
+    {
+      "id": "negative-injection",
+      "format": "claude-code",
+      "category": "negative",
+      "error": null,
+      "modelError": null,
+      "elapsedMs": 15,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "contextMessages": null,
+      "truncated": false,
+      "invokedModel": false,
+      "predictions": [],
+      "modelPredictions": null,
+      "expected": [],
+      "rawModel": null,
+      "persistence": {
+        "persistedCount": 0,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true
+      },
+      "score": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "expected": 0,
+        "predicted": 0,
+        "matchedStageCorrect": 0,
+        "matchedEvidenceComplete": 0,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [],
+        "missed": [],
+        "extra": []
+      },
+      "modelScore": null,
+      "repetition": 1
+    },
+    {
+      "id": "negative-third-person",
+      "format": "kimi",
+      "category": "negative",
+      "error": null,
+      "modelError": null,
+      "elapsedMs": 17,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "contextMessages": null,
+      "truncated": false,
+      "invokedModel": false,
+      "predictions": [],
+      "modelPredictions": null,
+      "expected": [],
+      "rawModel": null,
+      "persistence": {
+        "persistedCount": 0,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true
+      },
+      "score": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "expected": 0,
+        "predicted": 0,
+        "matchedStageCorrect": 0,
+        "matchedEvidenceComplete": 0,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [],
+        "missed": [],
+        "extra": []
+      },
+      "modelScore": null,
+      "repetition": 1
+    },
+    {
+      "id": "context-continue",
+      "format": "generic",
+      "category": "context",
+      "error": null,
+      "modelError": null,
+      "elapsedMs": 19,
+      "parsedMessages": 3,
+      "inputMessages": 3,
+      "contextMessages": null,
+      "truncated": false,
+      "invokedModel": false,
+      "predictions": [],
+      "modelPredictions": null,
+      "expected": [
+        {
+          "anchors": [
+            [
+              "导出"
+            ],
+            [
+              "乱码",
+              "编码"
+            ]
+          ],
+          "stage": "in_progress",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1",
+            "m3"
+          ]
+        }
+      ],
+      "rawModel": null,
+      "persistence": {
+        "persistedCount": 0,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true
+      },
+      "score": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 1,
+        "expected": 1,
+        "predicted": 0,
+        "matchedStageCorrect": 0,
+        "matchedEvidenceComplete": 0,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": false,
+        "matches": [],
+        "missed": [
+          0
+        ],
+        "extra": []
+      },
+      "modelScore": null,
+      "repetition": 1
+    },
+    {
+      "id": "context-adopt-suggestion",
+      "format": "codex",
+      "category": "context",
+      "error": null,
+      "modelError": null,
+      "elapsedMs": 17,
+      "parsedMessages": 2,
+      "inputMessages": 2,
+      "contextMessages": null,
+      "truncated": false,
+      "invokedModel": false,
+      "predictions": [],
+      "modelPredictions": null,
+      "expected": [
+        {
+          "anchors": [
+            [
+              "导出",
+              "空数据"
+            ],
+            [
+              "测试"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m2"
+          ],
+          "evidenceIds": [
+            "m1",
+            "m2"
+          ]
+        }
+      ],
+      "rawModel": null,
+      "persistence": {
+        "persistedCount": 0,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true
+      },
+      "score": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 1,
+        "expected": 1,
+        "predicted": 0,
+        "matchedStageCorrect": 0,
+        "matchedEvidenceComplete": 0,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": false,
+        "matches": [],
+        "missed": [
+          0
+        ],
+        "extra": []
+      },
+      "modelScore": null,
+      "repetition": 1
+    },
+    {
+      "id": "context-unadopted-extra",
+      "format": "claude-code",
+      "category": "context",
+      "error": null,
+      "modelError": null,
+      "elapsedMs": 17,
+      "parsedMessages": 3,
+      "inputMessages": 3,
+      "contextMessages": null,
+      "truncated": false,
+      "invokedModel": false,
+      "predictions": [],
+      "modelPredictions": null,
+      "expected": [
+        {
+          "anchors": [
+            [
+              "登录"
+            ],
+            [
+              "白屏"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1",
+            "m3"
+          ]
+        }
+      ],
+      "rawModel": null,
+      "persistence": {
+        "persistedCount": 0,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true
+      },
+      "score": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 1,
+        "expected": 1,
+        "predicted": 0,
+        "matchedStageCorrect": 0,
+        "matchedEvidenceComplete": 0,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": false,
+        "matches": [],
+        "missed": [
+          0
+        ],
+        "extra": []
+      },
+      "modelScore": null,
+      "repetition": 1
+    },
+    {
+      "id": "context-duplicate-turn",
+      "format": "kimi",
+      "category": "context",
+      "error": null,
+      "modelError": null,
+      "elapsedMs": 18,
+      "parsedMessages": 2,
+      "inputMessages": 2,
+      "contextMessages": null,
+      "truncated": false,
+      "invokedModel": false,
+      "predictions": [
+        {
+          "title": "整理发布说明",
+          "stage": "requested",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "我会整理发布说明。"
+            }
+          ]
+        },
+        {
+          "title": "整理发布说明",
+          "stage": "requested",
+          "evidence": [
+            {
+              "messageId": "m2",
+              "quote": "我会整理发布说明。"
+            }
+          ]
+        }
+      ],
+      "modelPredictions": null,
+      "expected": [
+        {
+          "anchors": [
+            [
+              "发布"
+            ],
+            [
+              "说明"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawModel": null,
+      "persistence": {
+        "persistedCount": 2,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true
+      },
+      "score": {
+        "tp": 1,
+        "fp": 1,
+        "fn": 0,
+        "expected": 1,
+        "predicted": 2,
+        "matchedStageCorrect": 1,
+        "matchedEvidenceComplete": 1,
+        "invalidEvidence": 0,
+        "duplicates": 1,
+        "exact": false,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": [
+          1
+        ]
+      },
+      "modelScore": null,
+      "repetition": 1
+    },
+    {
+      "id": "context-bilingual",
+      "format": "generic",
+      "category": "context",
+      "error": null,
+      "modelError": null,
+      "elapsedMs": 20,
+      "parsedMessages": 2,
+      "inputMessages": 2,
+      "contextMessages": null,
+      "truncated": false,
+      "invokedModel": false,
+      "predictions": [],
+      "modelPredictions": null,
+      "expected": [
+        {
+          "anchors": [
+            [
+              "导出",
+              "export"
+            ],
+            [
+              "编码",
+              "乱码",
+              "encoding"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1",
+            "m2"
+          ]
+        }
+      ],
+      "rawModel": null,
+      "persistence": {
+        "persistedCount": 0,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true
+      },
+      "score": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 1,
+        "expected": 1,
+        "predicted": 0,
+        "matchedStageCorrect": 0,
+        "matchedEvidenceComplete": 0,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": false,
+        "matches": [],
+        "missed": [
+          0
+        ],
+        "extra": []
+      },
+      "modelScore": null,
+      "repetition": 1
+    },
+    {
+      "id": "context-request-after-chatter",
+      "format": "codex",
+      "category": "context",
+      "error": null,
+      "modelError": null,
+      "elapsedMs": 19,
+      "parsedMessages": 3,
+      "inputMessages": 3,
+      "contextMessages": null,
+      "truncated": false,
+      "invokedModel": false,
+      "predictions": [],
+      "modelPredictions": null,
+      "expected": [
+        {
+          "anchors": [
+            [
+              "本周",
+              "周"
+            ],
+            [
+              "测试"
+            ],
+            [
+              "报告"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m3"
+          ],
+          "evidenceIds": [
+            "m3"
+          ]
+        }
+      ],
+      "rawModel": null,
+      "persistence": {
+        "persistedCount": 0,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true
+      },
+      "score": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 1,
+        "expected": 1,
+        "predicted": 0,
+        "matchedStageCorrect": 0,
+        "matchedEvidenceComplete": 0,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": false,
+        "matches": [],
+        "missed": [
+          0
+        ],
+        "extra": []
+      },
+      "modelScore": null,
+      "repetition": 1
+    },
+    {
+      "id": "context-old-request-window",
+      "format": "claude-code",
+      "category": "context",
+      "error": null,
+      "modelError": null,
+      "elapsedMs": 84,
+      "parsedMessages": 71,
+      "inputMessages": 71,
+      "contextMessages": null,
+      "truncated": false,
+      "invokedModel": false,
+      "predictions": [],
+      "modelPredictions": null,
+      "expected": [
+        {
+          "anchors": [
+            [
+              "登录"
+            ],
+            [
+              "白屏"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawModel": null,
+      "persistence": {
+        "persistedCount": 0,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true
+      },
+      "score": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 1,
+        "expected": 1,
+        "predicted": 0,
+        "matchedStageCorrect": 0,
+        "matchedEvidenceComplete": 0,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": false,
+        "matches": [],
+        "missed": [
+          0
+        ],
+        "extra": []
+      },
+      "modelScore": null,
+      "repetition": 1
+    },
+    {
+      "id": "context-no-inactivity-completion",
+      "format": "kimi",
+      "category": "context",
+      "error": null,
+      "modelError": null,
+      "elapsedMs": 19,
+      "parsedMessages": 3,
+      "inputMessages": 3,
+      "contextMessages": null,
+      "truncated": false,
+      "invokedModel": false,
+      "predictions": [],
+      "modelPredictions": null,
+      "expected": [
+        {
+          "anchors": [
+            [
+              "预算"
+            ],
+            [
+              "说明"
+            ]
+          ],
+          "stage": "requested",
+          "requestIds": [
+            "m1"
+          ],
+          "evidenceIds": [
+            "m1",
+            "m3"
+          ]
+        }
+      ],
+      "rawModel": null,
+      "persistence": {
+        "persistedCount": 0,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true
+      },
+      "score": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 1,
+        "expected": 1,
+        "predicted": 0,
+        "matchedStageCorrect": 0,
+        "matchedEvidenceComplete": 0,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": false,
+        "matches": [],
+        "missed": [
+          0
+        ],
+        "extra": []
+      },
+      "modelScore": null,
+      "repetition": 1
+    }
+  ]
+}

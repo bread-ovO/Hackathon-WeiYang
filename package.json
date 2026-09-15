@@ -14,6 +14,7 @@
     "test": "vitest run",
     "test:storage": "node scripts/test-storage.mjs",
     "test:desktop": "playwright test",
+    "eval:extract": "node scripts/eval-extraction.mjs",
     "rebuild:native": "pnpm --filter @memo/desktop rebuild:native",
     "check": "pnpm check:boundaries && pnpm typecheck && pnpm test && pnpm build && pnpm test:storage && pnpm test:desktop",
     "package:dir": "pnpm --filter @memo/desktop package:dir",
