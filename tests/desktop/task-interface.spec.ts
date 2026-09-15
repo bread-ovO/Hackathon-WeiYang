@@ -7,7 +7,11 @@ import { join, resolve } from 'node:path'
 import { createRequire } from 'node:module'
 const require = createRequire(resolve('apps/desktop/package.json'))
 async function launch(root: string) {
-  const env = Object.fromEntries(Object.entries(process.env).filter((entry): entry is [string, string] => entry[1] !== undefined))
+  const env = Object.fromEntries(
+    Object.entries(process.env).filter(
+      (entry): entry is [string, string] => entry[1] !== undefined,
+    ),
+  )
   env.MEMO_TEST_USER_DATA = root
   delete env.ELECTRON_RUN_AS_NODE
   delete env.ELECTRON_RENDERER_URL
@@ -88,12 +92,89 @@ test('empty default, adding feedback, compact detail and keyboard navigation', a
     await expect(detail).not.toBeVisible()
     await expect(row).toBeFocused()
     await expect(row).not.toHaveClass(/task-arrived/)
-    await page.getByRole('button', { name: '刷新', exact: true }).click()
-    await expect(row).not.toHaveClass(/task-arrived/)
+    await expect(
+      page.getByRole('button', { name: '刷新', exact: true }),
+    ).toHaveCount(0)
+    await expect(
+      page.getByRole('button', { name: '刷新整理结果', exact: true }),
+    ).toHaveCount(0)
     await page.reload()
     await expect(row).toHaveCount(1)
     await expect(row).not.toHaveClass(/task-arrived/)
     await page.screenshot({ path: info.outputPath('list.png') })
+    // Archiving the open task closes its detail and must not block later updates.
+    await row.click()
+    await detail.getByRole('button', { name: '更多操作' }).click()
+    await page.getByRole('menuitem', { name: '归档事项', exact: true }).click()
+    await expect(detail).not.toBeVisible()
+    await expect(row).toHaveCount(0)
+    await page.evaluate(async () => {
+      const snapshot = await window.memo.workspace.list({})
+      if (!snapshot.ok) throw Error('LIST_FAILED')
+      const result = await window.memo.workspace.createTask(
+        snapshot.data.projects[0]!.id,
+        '归档后继续跟进',
+      )
+      if (!result.ok) throw Error('TASK_FAILED')
+      window.dispatchEvent(new Event('focus'))
+    })
+    await expect(
+      page.getByRole('button', { name: '归档后继续跟进 · 待办', exact: true }),
+    ).toBeVisible()
+  } finally {
+    await app.close()
+    await rm(root, { recursive: true, force: true })
+  }
+})
+
+test('automatic updates keep the current search and already loaded pages', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'bugu-interface-pagination-'))
+  const app = await launch(root)
+  try {
+    const page = await app.firstWindow()
+    await expect(
+      page.getByRole('button', { name: '新建第一件事' }),
+    ).toBeVisible()
+    const projectId = await page.evaluate(async () => {
+      const project = await window.memo.workspace.createProject('分页验收')
+      if (!project.ok) throw Error('PROJECT_FAILED')
+      const id = project.data.projects[0]!.id
+      for (let i = 1; i <= 55; i++) {
+        const result = await window.memo.workspace.createTask(
+          id,
+          `分页任务 ${i}`,
+        )
+        if (!result.ok) throw Error('TASK_FAILED')
+      }
+      return id
+    })
+    await page.reload()
+    await page.getByRole('textbox', { name: '搜索本地事项' }).fill('分页任务')
+    const rows = page.locator('.real-task-row')
+    await expect(rows).toHaveCount(50)
+    await page.getByRole('button', { name: '加载更多', exact: true }).click()
+    await expect(rows).toHaveCount(55)
+    await expect(page.locator('.task-arrived')).toHaveCount(0)
+    await page.evaluate(async (id) => {
+      const added = await window.memo.workspace.createTask(
+        id,
+        '分页任务 新到账',
+      )
+      const excluded = await window.memo.workspace.createTask(id, '其他事项')
+      if (!added.ok || !excluded.ok) throw Error('TASK_FAILED')
+      window.dispatchEvent(new Event('focus'))
+    }, projectId)
+    await expect(rows).toHaveCount(56)
+    await expect(
+      page.getByRole('textbox', { name: '搜索本地事项' }),
+    ).toHaveValue('分页任务')
+    await expect(
+      page.getByRole('button', { name: '分页任务 新到账 · 待办', exact: true }),
+    ).toHaveClass(/task-arrived/)
+    await expect(page.locator('.task-arrived')).toHaveCount(1)
+    await expect(
+      page.getByRole('button', { name: '其他事项 · 待办', exact: true }),
+    ).toHaveCount(0)
   } finally {
     await app.close()
     await rm(root, { recursive: true, force: true })

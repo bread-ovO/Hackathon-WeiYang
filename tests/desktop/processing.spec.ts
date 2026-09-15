@@ -82,7 +82,9 @@ test('local background processing preserves pause, citations, project scope and 
     })
     await page.getByRole('button', { name: '连接', exact: true }).click()
     await page.locator('#preset-processing > summary').click()
-    await page.getByRole('button', { name: '导入本地记录', exact: true }).click()
+    await page
+      .getByRole('button', { name: '导入本地记录', exact: true })
+      .click()
     const processing = page.getByRole('region', { name: '本地候选整理' })
     await processing
       .getByRole('button', { name: '暂停整理', exact: true })
@@ -134,7 +136,26 @@ test('local background processing preserves pause, citations, project scope and 
       .getByRole('navigation', { name: '主导航' })
       .getByRole('button', { name: /^跟进/ })
       .click()
-    await page.getByRole('button', { name: '我的工作区', exact: true }).click()
+    await expect(
+      page.getByRole('button', { name: '刷新', exact: true }),
+    ).toHaveCount(0)
+    await expect(
+      page.getByRole('button', { name: '刷新整理结果', exact: true }),
+    ).toHaveCount(0)
+    // New source records appear without a manual reload or a notification bar.
+    await appendFile(file, row('follow-up', 'user', '我会准备虚构发布清单。'))
+    expect(
+      (await page.evaluate((id) => window.memo.sources.sync(id), sourceId)).ok,
+    ).toBe(true)
+    const added = page.getByRole('button', {
+      name: '准备虚构发布清单 · 待确认收录',
+      exact: true,
+    })
+    await expect(added).toBeVisible({ timeout: 10000 })
+    await expect(added).toHaveClass(/task-arrived/)
+    await expect(page.getByText('有新的整理结果', { exact: true })).toHaveCount(
+      0,
+    )
     await page
       .getByRole('button')
       .filter({
@@ -145,40 +166,67 @@ test('local background processing preserves pause, citations, project scope and 
     await evidence.locator('summary').click()
     await expect(evidence.locator('blockquote')).toHaveText(commitment)
     await page.screenshot({ path: 'test-results/processing-citation.png' })
-    await page.getByText('编辑事项与完成条件',{exact:true}).click()
+    await page.getByRole('button', { name: '编辑事项', exact: true }).click()
     await page.getByLabel('编辑事项标题').fill('人工保留的标题')
     await page.getByRole('button', { name: '保存标题', exact: true }).click()
     await expect
-      .poll(async () => (await list(page, projectIds.alpha)).tasks[0]!.title)
+      .poll(
+        async () =>
+          (await list(page, projectIds.alpha)).tasks.find(
+            (task) => task.id === candidate.id,
+          )!.title,
+      )
       .toBe('人工保留的标题')
-    const manual = (await list(page, projectIds.alpha)).tasks[0]!
+    const manual = (await list(page, projectIds.alpha)).tasks.find(
+      (task) => task.id === candidate.id,
+    )!
+    await expect(
+      page.getByRole('heading', { name: '人工保留的标题', exact: true }),
+    ).toBeVisible()
+    await expect(
+      page.getByRole('button', { name: '保存标题', exact: true }),
+    ).toBeEnabled()
+    await page.getByLabel('编辑事项标题').fill('尚未保存的标题草稿')
     expect(
       (await page.evaluate((id) => window.memo.sources.sync(id), sourceId)).ok,
     ).toBe(true)
-    expect((await list(page, projectIds.alpha)).totalCount).toBe(1)
+    expect((await list(page, projectIds.alpha)).totalCount).toBe(2)
     await appendFile(
       file,
-      row('promise', 'user', '我会提交修订后的报告。', '2'),
+      row('promise', 'user', '我会提交修订后的报告。', '2') +
+        row('while-editing', 'user', '我会提交虚构发布材料。'),
     )
     expect(
       (await page.evaluate((id) => window.memo.sources.sync(id), sourceId)).ok,
     ).toBe(true)
-    await expect.poll(async () => (await status(page)).processedCount).toBe(4)
+    await expect.poll(async () => (await status(page)).processedCount).toBe(6)
     const revised = await list(page, projectIds.alpha)
-    expect(revised.totalCount).toBe(1)
-    expect(revised.tasks[0]).toMatchObject({
+    expect(revised.totalCount).toBe(3)
+    expect(
+      revised.tasks.find((task) => task.id === candidate.id),
+    ).toMatchObject({
       id: candidate.id,
       title: manual.title,
       version: manual.version,
       manualVersion: manual.manualVersion,
     })
-    // User-requested refresh does not let the background consumer overwrite the form.
-    // 详情为模态：先关闭详情，再操作列表上方的刷新条。
-    await page.getByRole('button', { name: '关闭详情' }).click()
+    // Wait through a real UI poll: background activity must not overwrite an open draft.
+    await page.waitForTimeout(5500)
+    await expect(page.getByLabel('编辑事项标题')).toHaveValue(
+      '尚未保存的标题草稿',
+    )
+    await expect(page.getByLabel('编辑事项标题')).toBeFocused()
     await expect(
-      page.getByRole('button', { name: '刷新整理结果' }),
-    ).toBeVisible({ timeout: 10000 })
-    await page.getByRole('button', { name: '刷新整理结果' }).click()
+      page.getByRole('button', { name: '保存标题', exact: true }),
+    ).toBeEnabled()
+    // Closing the editor applies queued results without any refresh button.
+    await page.getByRole('button', { name: '关闭详情' }).click()
+    const afterEditing = page.getByRole('button', {
+      name: '提交虚构发布材料 · 待确认收录',
+      exact: true,
+    })
+    await expect(afterEditing).toBeVisible({ timeout: 10000 })
+    await expect(afterEditing).toHaveClass(/task-arrived/)
     await page
       .getByRole('button')
       .filter({
@@ -203,10 +251,14 @@ test('local background processing preserves pause, citations, project scope and 
     await app.close().catch(() => {})
     app = await launch()
     page = await ready()
-    await expect.poll(async () => (await status(page)).processedCount).toBe(4)
+    await expect.poll(async () => (await status(page)).processedCount).toBe(6)
     expect((await status(page)).enabled).toBe(true)
-    expect((await list(page, projectIds.alpha)).tasks).toHaveLength(1)
-    expect((await list(page, projectIds.alpha)).tasks[0]).toMatchObject({
+    expect((await list(page, projectIds.alpha)).tasks).toHaveLength(3)
+    expect(
+      (await list(page, projectIds.alpha)).tasks.find(
+        (task) => task.id === candidate.id,
+      ),
+    ).toMatchObject({
       id: candidate.id,
       title: manual.title,
       version: manual.version,
