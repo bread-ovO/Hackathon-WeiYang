@@ -133,14 +133,20 @@ export function handleWorkspace(
     case 'workspace.detail': {
       const task = store.tasks.get(request.projectId, request.id)
       if (!task) throw new Error('TASK_NOT_IN_PROJECT')
+      const creation = store.tasks.creation(request.projectId, request.id)
+      const modelSuggestion = store.taskAnalysis.forTask(request.projectId, request.id)
+      const provenance = store.processing.getTaskEvidence(request.projectId, request.id)
+      const firstSource = provenance.filter(item => item.outcome === 'created')
+        .sort((a, b) => a.createdAt.localeCompare(b.createdAt))[0]
       return {
         task,
-        modelSuggestion: store.taskAnalysis.forTask(request.projectId, request.id),
+        origin: modelSuggestion
+          ? { kind: 'ai', createdAt: creation?.createdAt ?? modelSuggestion.createdAt, sourceName: modelSuggestion.sourceName }
+          : firstSource ? { kind: 'rule', createdAt: firstSource.createdAt }
+            : creation,
+        modelSuggestion,
         merge: store.tasks.mergeInfo(request.projectId, request.id),
-        provenance: store.processing.getTaskEvidence(
-          request.projectId,
-          request.id,
-        ),
+        provenance,
         criteria: store.tasks.getCriteria(
           request.projectId,
           request.id,

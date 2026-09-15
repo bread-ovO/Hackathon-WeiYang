@@ -1,4 +1,5 @@
 import { AutomaticAnalysisStatus } from './automatic-analysis-status'
+import { createTaskArrivalTracker } from './task-arrivals'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type {
   CoreReply,
@@ -13,6 +14,12 @@ import {
   ArrowClockwise,
   X,
   MagnifyingGlass,
+  Circle,
+  CheckCircle,
+  Clock,
+  Question,
+  XCircle,
+  CircleHalf,
 } from '@phosphor-icons/react'
 import { TooltipProvider } from '@cloudflare/kumo/components/tooltip'
 import './workspace-simple.css'
@@ -138,6 +145,13 @@ export function RealWorkspace({
   const seq = useRef(0),
     mutating = useRef(false)
   const [newResults, setNewResults] = useState(false)
+  const arrivalTracker = useRef(createTaskArrivalTracker())
+  const [arrivals, setArrivals] = useState<string[]>([])
+  useEffect(() => {
+    if (!arrivals.length) return
+    const timer = window.setTimeout(() => setArrivals([]), 2200)
+    return () => window.clearTimeout(timer)
+  }, [arrivals])
   const processed = useRef<number | null>(null)
   useEffect(() => {
     let active = true,
@@ -193,6 +207,8 @@ export function RealWorkspace({
         })
         if (generation !== seq.current) return
         if (r.ok) {
+          const added = arrivalTracker.current(r.data.tasks, filters, append)
+          if (added.length) setArrivals(added)
           setData((old) => ({
             ...r.data,
             tasks: append
@@ -217,9 +233,12 @@ export function RealWorkspace({
   )
   const latestLoad = useRef(load)
   latestLoad.current = load
-  const refreshAutomatic = useCallback(() => { void latestLoad.current() }, [])
+  const refreshAutomatic = useCallback(() => {
+    void latestLoad.current()
+  }, [])
   useEffect(() => {
     setSelected(null)
+    setArrivals([])
     void load()
     return () => {
       seq.current++
@@ -306,7 +325,7 @@ export function RealWorkspace({
             ...baseline,
             patch,
           }),
-        '已保存到本地，人工操作已记录。',
+        '已保存',
       )
   }
   async function replace(
@@ -321,7 +340,7 @@ export function RealWorkspace({
             ...baseline,
             criteria,
           }),
-        '条件新版本已保存，旧证据仍保留在原版本。',
+        '完成条件已保存',
       )
   }
   async function split(children: { title: string; criterionIds: string[] }[]) {
@@ -341,15 +360,17 @@ export function RealWorkspace({
   }
   return (
     <TooltipProvider delay={300}>
-      <div className="page-heading compact-heading">
+      <div className="page-heading compact-heading task-page-heading">
         <div>
           <h1>
             跟进<span className="heading-dot">.</span>
           </h1>
-
         </div>
         <div className="workspace-actions">
-          <AutomaticAnalysisStatus onModelSettings={onModelSettings} onUpdated={refreshAutomatic} />
+          <AutomaticAnalysisStatus
+            onModelSettings={onModelSettings}
+            onUpdated={refreshAutomatic}
+          />
           <TaskExport
             projects={data.projects}
             selected={current}
@@ -402,9 +423,7 @@ export function RealWorkspace({
       >
         <div className="create-dialog-content">
           <DialogTitle>新建事项</DialogTitle>
-          <DialogDescription>
-            记下需要跟进的事，放进一个项目。
-          </DialogDescription>
+          <DialogDescription>记下需要跟进的事。</DialogDescription>
           {message && <p role="status">{message}</p>}
 
           <form
@@ -506,19 +525,22 @@ export function RealWorkspace({
       </AppDialog>
       <div className="workspace-toolbar">
         <div className="workspace-tabs">
-
           <AppButton
             aria-label="未归档"
             aria-pressed={!archive}
             disabled={saving}
-            onClick={() => { setArchive(false) }}
+            onClick={() => {
+              setArchive(false)
+            }}
           >
             跟进清单
           </AppButton>
           <AppButton
             aria-pressed={archive}
             disabled={saving}
-            onClick={() => { setArchive(true) }}
+            onClick={() => {
+              setArchive(true)
+            }}
           >
             已归档
           </AppButton>
@@ -528,7 +550,7 @@ export function RealWorkspace({
           <AppInput
             disabled={saving}
             aria-label="搜索本地事项"
-            placeholder="搜索事项与条件"
+            placeholder="搜索事项"
             maxLength={256}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
@@ -536,265 +558,312 @@ export function RealWorkspace({
         </div>
       </div>
       <div className="workspace-list-content">
-      {filterCount > 0 && !filtersOpen && (
-        <div className="active-filter-summary">
-          <span>
-            {[
-              data.projects.find((p) => p.id === project)?.name,
-              status ? taskLabels[status as keyof typeof taskLabels] : null,
-              admission
-                ? {
-                    accepted: '已收录',
-                    candidate: '待确认',
-                    ignored: '已忽略',
-                  }[admission]
-                : null,
-              source ? sourceOptions.find((s) => s.id === source)?.name : null,
-              activity === 'recent'
-                ? '最近 7 天更新'
-                : activity === 'quiet'
-                  ? '30 天无更新'
+        {filterCount > 0 && !filtersOpen && (
+          <div className="active-filter-summary">
+            <span>
+              {[
+                data.projects.find((p) => p.id === project)?.name,
+                status ? taskLabels[status as keyof typeof taskLabels] : null,
+                admission
+                  ? {
+                      accepted: '已收录',
+                      candidate: '待确认',
+                      ignored: '已忽略',
+                    }[admission]
                   : null,
-            ]
-              .filter(Boolean)
-              .join(' · ')}
-          </span>
-          <IconButton label="清除筛选" disabled={saving} onClick={clearFilters}>
-            <X aria-hidden />
-          </IconButton>
-        </div>
-      )}
-      {filtersOpen && (
-        <section
-          id="workspace-filter-panel"
-          className="workspace-filter-panel"
-          aria-label="事项筛选"
-          onKeyDown={(e) => {
-            if (e.key === 'Escape') {
-              setFiltersOpen(false)
-              filterButton.current?.focus()
-            }
-          }}
-        >
-          <select
-            aria-label="项目筛选"
-            value={project}
-            disabled={saving}
-            onChange={(e) => {
-              setProject(e.target.value)
-              setSource('')
+                source
+                  ? sourceOptions.find((s) => s.id === source)?.name
+                  : null,
+                activity === 'recent'
+                  ? '最近 7 天更新'
+                  : activity === 'quiet'
+                    ? '30 天无更新'
+                    : null,
+              ]
+                .filter(Boolean)
+                .join(' · ')}
+            </span>
+            <IconButton
+              label="清除筛选"
+              disabled={saving}
+              onClick={clearFilters}
+            >
+              <X aria-hidden />
+            </IconButton>
+          </div>
+        )}
+        {filtersOpen && (
+          <section
+            id="workspace-filter-panel"
+            className="workspace-filter-panel"
+            aria-label="事项筛选"
+            onKeyDown={(e) => {
+              if (e.key === 'Escape') {
+                setFiltersOpen(false)
+                filterButton.current?.focus()
+              }
             }}
           >
-            <option value="">全部项目</option>
-            {data.projects.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
-            ))}
-          </select>{' '}
-          <select
-            disabled={saving}
-            aria-label="业务状态筛选"
-            value={status}
-            onChange={(e) => setStatus(e.target.value)}
-          >
-            <option value="">全部状态</option>
-            {Object.entries(taskLabels).map(([v, l]) => (
-              <option key={v} value={v}>
-                {l}
-              </option>
-            ))}
-          </select>
-          <select
-            disabled={saving}
-            aria-label="收录筛选"
-            value={admission}
-            onChange={(e) => setAdmission(e.target.value)}
-          >
-            <option value="">全部收录</option>
-            <option value="accepted">已收录</option>
-            <option value="candidate">待确认</option>
-            <option value="ignored">已忽略</option>
-          </select>
-          <select
-            aria-label="来源筛选"
-            value={source}
-            disabled={saving}
-            onChange={(e) => setSource(e.target.value)}
-          >
-            <option value="">全部来源</option>
-            {sourceOptions
-              .filter((s) => !project || s.projectId === project)
-              .map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.name}
+            <select
+              aria-label="项目筛选"
+              value={project}
+              disabled={saving}
+              onChange={(e) => {
+                setProject(e.target.value)
+                setSource('')
+              }}
+            >
+              <option value="">全部项目</option>
+              {data.projects.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
                 </option>
               ))}
-          </select>
-          <select
-            aria-label="活跃度筛选"
-            value={activity}
-            disabled={saving}
-            onChange={(e) => setActivity(e.target.value)}
-          >
-            <option value="">全部活跃度</option>
-            <option value="recent">最近7天有更新</option>
-            <option value="quiet">30天无更新</option>
-          </select>
-          <AppButton disabled={saving || !filterCount} onClick={clearFilters}>
-            重置
-          </AppButton>
-          <IconButton
-            label="收起筛选"
-            onClick={() => {
-              setFiltersOpen(false)
-              filterButton.current?.focus()
-            }}
-          >
-            <X aria-hidden />
-          </IconButton>
-        </section>
-      )}
-      {message && !createOpen && (
-        <p role="status" className="real-message">
-          {message}
-        </p>
-      )}
-      {newResults && (
-        <div className="source-import-actions" role="status">
-          <span>有新的整理结果，刷新列表后查看。请先保存正在编辑的内容。</span>
-          <AppButton
-            disabled={saving || busy}
-            onClick={() => {
-              setNewResults(false)
-              void load()
-            }}
-          >
-            刷新整理结果
-          </AppButton>
-        </div>
-      )}
-      <div className="work-body">
-        <section className="task-list" aria-label="事项列表">
-          <div className="list-caption">
-            <span>
-              已显示 {data.tasks.length} / {data.totalCount}
-            </span>
-            {busy && <span>读取中…</span>}
+            </select>{' '}
+            <select
+              disabled={saving}
+              aria-label="业务状态筛选"
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+            >
+              <option value="">全部状态</option>
+              {Object.entries(taskLabels).map(([v, l]) => (
+                <option key={v} value={v}>
+                  {l}
+                </option>
+              ))}
+            </select>
+            <select
+              disabled={saving}
+              aria-label="收录筛选"
+              value={admission}
+              onChange={(e) => setAdmission(e.target.value)}
+            >
+              <option value="">全部收录</option>
+              <option value="accepted">已收录</option>
+              <option value="candidate">待确认</option>
+              <option value="ignored">已忽略</option>
+            </select>
+            <select
+              aria-label="来源筛选"
+              value={source}
+              disabled={saving}
+              onChange={(e) => setSource(e.target.value)}
+            >
+              <option value="">全部来源</option>
+              {sourceOptions
+                .filter((s) => !project || s.projectId === project)
+                .map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name}
+                  </option>
+                ))}
+            </select>
+            <select
+              aria-label="活跃度筛选"
+              value={activity}
+              disabled={saving}
+              onChange={(e) => setActivity(e.target.value)}
+            >
+              <option value="">全部活跃度</option>
+              <option value="recent">最近7天有更新</option>
+              <option value="quiet">30天无更新</option>
+            </select>
+            <AppButton disabled={saving || !filterCount} onClick={clearFilters}>
+              重置
+            </AppButton>
+            <IconButton
+              label="收起筛选"
+              onClick={() => {
+                setFiltersOpen(false)
+                filterButton.current?.focus()
+              }}
+            >
+              <X aria-hidden />
+            </IconButton>
+          </section>
+        )}
+        {message && !createOpen && (
+          <p role="status" className="real-message">
+            {message}
+          </p>
+        )}
+        {newResults && (
+          <div className="task-new-results" role="status">
+            <span>有新的整理结果</span>
+            <AppButton
+              disabled={saving || busy}
+              onClick={() => {
+                setNewResults(false)
+                void load()
+              }}
+            >
+              刷新整理结果
+            </AppButton>
           </div>
-          {data.tasks.length ? (
-            data.tasks.map((t) => (
-              <AppButton
-                key={t.id}
-                className={`task-row ${selected === t.id ? 'chosen' : ''}`}
-                onClick={() => setSelected(t.id)}
-              >
-                <span className="task-copy">
-                  <span className="task-title">{t.title}</span>
-                  <span className="task-meta">
-                    {data.projects.find((p) => p.id === t.projectId)?.name ??
-                      '旧事项 · 未分配项目'}{' '}
-                    ·{' '}
-                    {t.aiSource && <span className="task-ai-source" title={t.aiSource.name}>AI · {t.aiSource.name}</span>}
-                    {t.admission === 'candidate' ? (
-                      <Badge variant="warning">待确认收录</Badge>
-                    ) : t.admission === 'ignored' ? (
-                      '已忽略'
-                    ) : (
-                      '已收录'
-                    )}
-                  </span>
-                </span>
-                <span className="task-trailing">
-                  <Badge
-                    variant={realStatusVariants[t.status] ?? 'secondary'}
-                    className="task-status"
-                  >
-                    {taskLabels[t.status]}
-                  </Badge>
-                  <small>
-                    {t.dueAt ? new Date(t.dueAt).toLocaleString() : '未设截止'}
-                  </small>
-                </span>
-              </AppButton>
-            ))
-          ) : (
-            <div className="empty-state">
-              <h2>
-                {project ||
-                query ||
-                status ||
-                admission ||
-                archive ||
-                source ||
-                activity
-                  ? '没有匹配的事项'
-                  : '你的跟进清单，从这里开始'}
-              </h2>
-              <p>
-                {project ||
-                query ||
-                status ||
-                admission ||
-                archive ||
-                source ||
-                activity
-                  ? '可以调整筛选条件再试。'
-                  : '记下第一件事，或连接来源，让承诺自动进入这里。'}
-              </p>
-              {project ||
-              query ||
-              status ||
-              admission ||
-              archive ||
-              source ||
-              activity ? (
-                <AppButton
-                  className="secondary"
-                  onClick={() => {
-                    setProject('')
-                    setQuery('')
-                    setStatus('')
-                    setAdmission('')
-                    setArchive(false)
-                    setSource('')
-                    setActivity('')
-                  }}
-                >
-                  清除筛选
-                </AppButton>
-              ) : (
-                <div className="empty-actions">
+        )}
+        <div className="work-body">
+          <section className="task-list" aria-label="事项列表">
+            <div className="list-caption">
+              <span>
+                {data.nextCursor
+                  ? `${data.tasks.length} / ${data.totalCount} 件事项`
+                  : `${data.totalCount} 件事项`}
+              </span>
+              {busy && <span>读取中…</span>}
+            </div>
+            {data.tasks.length ? (
+              data.tasks.map((t) => {
+                const Marker =
+                  t.admission === 'candidate'
+                    ? Question
+                    : {
+                        todo: Circle,
+                        in_progress: CircleHalf,
+                        waiting: Clock,
+                        completed: CheckCircle,
+                        cancelled: XCircle,
+                      }[t.status]
+                return (
                   <AppButton
-                    variant="primary"
+                    key={t.id}
+                    className={`task-row real-task-row ${selected === t.id ? 'chosen' : ''} ${arrivals.includes(t.id) ? 'task-arrived' : ''}`}
+                    aria-label={`${t.title} · ${t.admission === 'candidate' ? '待确认收录' : taskLabels[t.status]}`}
+                    onClick={() => setSelected(t.id)}
+                  >
+                    <Marker
+                      className={`task-status-icon status-${t.admission === 'candidate' ? 'candidate' : t.status}`}
+                      size={20}
+                      aria-hidden
+                    />
+                    <span className="task-copy">
+                      <span className="task-title">{t.title}</span>
+                      <span className="task-meta">
+                        <span>
+                          {data.projects.find((p) => p.id === t.projectId)
+                            ?.name ?? '未分配项目'}
+                        </span>
+                        {t.aiSource && (
+                          <span
+                            className="task-ai-source"
+                            title={t.aiSource.name}
+                          >
+                            {t.aiSource.name}
+                          </span>
+                        )}
+                        {t.admission === 'ignored' && <span>已忽略</span>}
+                        {arrivals.includes(t.id) && (
+                          <span className="task-arrival-label">
+                            {t.admission === 'candidate' ? '新发现' : '刚加入'}
+                          </span>
+                        )}
+                      </span>
+                    </span>
+                    <span className="task-trailing">
+                      <Badge
+                        variant={
+                          t.admission === 'candidate'
+                            ? 'warning'
+                            : (realStatusVariants[t.status] ?? 'secondary')
+                        }
+                        className="task-status"
+                      >
+                        {t.admission === 'candidate'
+                          ? '待确认'
+                          : taskLabels[t.status]}
+                      </Badge>
+                      {t.dueAt && (
+                        <time
+                          title={new Date(t.dueAt).toLocaleString()}
+                          dateTime={t.dueAt}
+                        >
+                          {new Date(t.dueAt).toLocaleDateString('zh-CN', {
+                            month: 'numeric',
+                            day: 'numeric',
+                          })}
+                        </time>
+                      )}
+                    </span>
+                  </AppButton>
+                )
+              })
+            ) : (
+              <div className="empty-state">
+                <h2>
+                  {project ||
+                  query ||
+                  status ||
+                  admission ||
+                  archive ||
+                  source ||
+                  activity
+                    ? '没有匹配的事项'
+                    : '你的跟进清单，从这里开始'}
+                </h2>
+                <p>
+                  {project ||
+                  query ||
+                  status ||
+                  admission ||
+                  archive ||
+                  source ||
+                  activity
+                    ? '可以调整筛选条件再试。'
+                    : '记下第一件事，或连接来源，让承诺自动进入这里。'}
+                </p>
+                {project ||
+                query ||
+                status ||
+                admission ||
+                archive ||
+                source ||
+                activity ? (
+                  <AppButton
+                    className="secondary"
                     onClick={() => {
-                      setCreateProject(data.projects[0]?.id || '')
-                      setMessage('')
-                      setCreateOpen(true)
+                      setProject('')
+                      setQuery('')
+                      setStatus('')
+                      setAdmission('')
+                      setArchive(false)
+                      setSource('')
+                      setActivity('')
                     }}
                   >
-                    新建第一件事
+                    清除筛选
                   </AppButton>
-                  {onConnect && (
-                    <AppButton className="secondary" onClick={onConnect}>
-                      去连接来源
+                ) : (
+                  <div className="empty-actions">
+                    <AppButton
+                      variant="primary"
+                      onClick={() => {
+                        setCreateProject(data.projects[0]?.id || '')
+                        setMessage('')
+                        setCreateOpen(true)
+                      }}
+                    >
+                      新建第一件事
                     </AppButton>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
-          {data.nextCursor && (
-            <AppButton
-              className="secondary load-more"
-              disabled={saving || busy}
-              onClick={() => void load(true, data.nextCursor!)}
-            >
-              加载更多
-            </AppButton>
-          )}
-        </section>
-      </div>
+                    {onConnect && (
+                      <AppButton className="secondary" onClick={onConnect}>
+                        去连接来源
+                      </AppButton>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+            {data.nextCursor && (
+              <AppButton
+                className="secondary load-more"
+                disabled={saving || busy}
+                onClick={() => void load(true, data.nextCursor!)}
+              >
+                加载更多
+              </AppButton>
+            )}
+          </section>
+        </div>
       </div>
       <AppDialog
         open={!!current}
@@ -822,6 +891,10 @@ export function RealWorkspace({
             }}
             key={current.id}
             task={current}
+            projectName={
+              data.projects.find((project) => project.id === current.projectId)
+                ?.name
+            }
             toolbar={
               current.projectId ? (
                 <TaskExport

@@ -111,7 +111,7 @@ function App() {
   const [health, setHealth] = useState<Health | null>(null),
     [error, setError] = useState(false)
   const [page, setPage] = useState('跟进'),
-    [demo, setDemo] = useState(DEMO_ENABLED && window.memo.startupMode !== 'real'),
+    [demo, setDemo] = useState(DEMO_ENABLED && window.memo.startupMode === 'demo'),
     [tasks, setTasks] = useState<Task[]>(DEMO_ENABLED ? demoTasks : [])
   useEffect(() => window.memo.onOpenPetSettings?.(() => {
     setPage('设置')

@@ -47,17 +47,17 @@ test('task timeline paginates all manual changes while preserving unsaved drafts
     await expect
       .poll(() => page.evaluate(async () => (await window.memo.health()).ok))
       .toBe(true)
-    await page.getByRole('button', { name: '我的工作区', exact: true }).click()
     await page
       .getByRole('button')
       .filter({
         has: page.locator('.task-title', { hasText: '分页验收事项 45' }),
       })
       .click()
-    await page.getByText('编辑事项与完成条件',{exact:true}).click()
+    await page.getByRole('button', { name: '编辑事项', exact: true }).click()
     const draft = page.getByLabel('编辑事项标题')
     await draft.fill('未保存的时间线验收草稿')
-    await page.getByText('关联、改期与历史', { exact: true }).click()
+    await page.getByRole('button', { name: '更多操作', exact: true }).click()
+    await page.getByRole('menuitem', { name: '关联与历史', exact: true }).click()
     const timeline = page.getByRole('region', {
       name: '事项时间线',
       exact: true,

@@ -254,6 +254,7 @@ export interface CandidateProvenance {
   createdAt: string
 }
 export interface WorkspaceDetail {
+  origin?: { kind: 'manual' | 'chat' | 'ai' | 'rule'; createdAt: string; sourceName?: string } | null
   modelSuggestion?: { sourceId: string; sourceName: string; model: string; createdAt: string; candidate: import('./task-analysis').TaskAnalysis['tasks'][number] } | null
   merge?: {
     mergedInto: string | null
