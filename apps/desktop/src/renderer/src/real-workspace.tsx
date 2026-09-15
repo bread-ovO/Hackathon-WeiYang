@@ -11,7 +11,6 @@ import type {
 import {
   Plus,
   SlidersHorizontal,
-  ArrowClockwise,
   X,
   MagnifyingGlass,
   Circle,
@@ -64,6 +63,7 @@ export function RealWorkspace({
   const [busy, setBusy] = useState(false),
     [saving, setSaving] = useState(false),
     [message, setMessage] = useState('')
+  const [readError, setReadError] = useState('')
   const [project, setProject] = useState(''),
     [title, setTitle] = useState(''),
     [name, setName] = useState('')
@@ -144,7 +144,16 @@ export function RealWorkspace({
   const [selected, setSelected] = useState<string | null>(null)
   const seq = useRef(0),
     mutating = useRef(false)
-  const [newResults, setNewResults] = useState(false)
+  const foregroundRead = useRef<number | null>(null)
+  const automaticRefresh = useRef({
+    pending: false,
+    inFlight: false,
+    blocked: false,
+  })
+  automaticRefresh.current.blocked =
+    busy || saving || selected !== null || createOpen
+  const visibleTaskCount = useRef(data.tasks.length)
+  visibleTaskCount.current = data.tasks.length
   const arrivalTracker = useRef(createTaskArrivalTracker())
   const [arrivals, setArrivals] = useState<string[]>([])
   useEffect(() => {
@@ -152,35 +161,6 @@ export function RealWorkspace({
     const timer = window.setTimeout(() => setArrivals([]), 2200)
     return () => window.clearTimeout(timer)
   }, [arrivals])
-  const processed = useRef<number | null>(null)
-  useEffect(() => {
-    let active = true,
-      checking = false
-    const check = async () => {
-      if (checking || document.hidden) return
-      checking = true
-      try {
-        const reply = await window.memo.processing.status()
-        if (!active || !reply.ok) return
-        if (
-          processed.current !== null &&
-          reply.data.processedCount !== processed.current
-        )
-          setNewResults(true)
-        processed.current = reply.data.processedCount
-      } catch {
-        /* list remains usable while the local core reconnects */
-      } finally {
-        checking = false
-      }
-    }
-    void check()
-    const timer = window.setInterval(() => void check(), 5000)
-    return () => {
-      active = false
-      window.clearInterval(timer)
-    }
-  }, [])
   const current = data.tasks.find((t) => t.id === selected)
   const filters = JSON.stringify({
     ...(project ? { projectId: project } : {}),
@@ -197,16 +177,55 @@ export function RealWorkspace({
         : {}),
   })
   const load = useCallback(
-    async (append = false, cursor?: string) => {
+    async (append = false, cursor?: string, background = false) => {
       const generation = ++seq.current
-      setBusy(true)
+      if (!background) {
+        foregroundRead.current = generation
+        setBusy(true)
+      }
       try {
-        const r = await window.memo.workspace.list({
-          ...(JSON.parse(filters) as WorkspaceQuery),
+        const query = JSON.parse(filters) as WorkspaceQuery
+        let r = await window.memo.workspace.list({
+          ...query,
           ...(cursor ? { cursor } : {}),
         })
-        if (generation !== seq.current) return
+        // Keep the already-loaded pages when background results arrive.
+        const pages = background ? Math.ceil(visibleTaskCount.current / 50) : 1
+        for (let page = 1; page < pages && r.ok && r.data.nextCursor; page++) {
+          if (
+            generation !== seq.current ||
+            automaticRefresh.current.blocked ||
+            document.hidden
+          )
+            return false
+          const next = await window.memo.workspace.list({
+            ...query,
+            cursor: r.data.nextCursor,
+          })
+          if (!next.ok) {
+            r = next
+            break
+          }
+          const previous = r.data.tasks
+          r = {
+            ok: true,
+            data: {
+              ...next.data,
+              tasks: [
+                ...previous,
+                ...next.data.tasks.filter(
+                  (task) => !previous.some((old) => old.id === task.id),
+                ),
+              ],
+            },
+          }
+        }
+        if (generation !== seq.current) return false
+        // A dialog may have opened while the read was in flight. Apply later.
+        if (background && (automaticRefresh.current.blocked || document.hidden))
+          return false
         if (r.ok) {
+          setReadError('')
           const added = arrivalTracker.current(r.data.tasks, filters, append)
           if (added.length) setArrivals(added)
           setData((old) => ({
@@ -220,22 +239,57 @@ export function RealWorkspace({
                 ]
               : r.data.tasks,
           }))
+          if (!append)
+            setSelected((id) =>
+              r.data.tasks.some((task) => task.id === id) ? id : null,
+            )
           onCount(r.data.activeCount)
-        } else setMessage('读取失败，请刷新后重试。')
+          return true
+        }
+        automaticRefresh.current.pending = true
+        setReadError('事项暂时无法读取，正在重试…')
       } catch {
-        if (generation === seq.current)
-          setMessage('本地核心暂不可用，请稍后刷新。')
+        if (generation === seq.current) {
+          automaticRefresh.current.pending = true
+          setReadError('本地服务暂不可用，正在重试…')
+        }
       } finally {
-        if (generation === seq.current) setBusy(false)
+        if (foregroundRead.current === generation) foregroundRead.current = null
+        if (!background && generation === seq.current) setBusy(false)
       }
+      return false
     },
     [filters, onCount],
   )
   const latestLoad = useRef(load)
   latestLoad.current = load
-  const refreshAutomatic = useCallback(() => {
-    void latestLoad.current()
+  const flushAutomaticRefresh = useCallback(async () => {
+    const state = automaticRefresh.current
+    if (
+      !state.pending ||
+      state.inFlight ||
+      state.blocked ||
+      foregroundRead.current !== null ||
+      mutating.current ||
+      document.hidden
+    )
+      return
+    state.pending = false
+    state.inFlight = true
+    try {
+      if (!(await latestLoad.current(false, undefined, true)))
+        state.pending = true
+    } finally {
+      state.inFlight = false
+    }
   }, [])
+  const refreshAutomatic = useCallback(() => {
+    automaticRefresh.current.pending = true
+    void flushAutomaticRefresh()
+  }, [flushAutomaticRefresh])
+  useEffect(() => {
+    void flushAutomaticRefresh()
+  }, [busy, saving, selected, createOpen, flushAutomaticRefresh])
   useEffect(() => {
     setSelected(null)
     setArrivals([])
@@ -244,6 +298,36 @@ export function RealWorkspace({
       seq.current++
     }
   }, [load])
+  useEffect(() => {
+    let active = true,
+      checking = false
+    let processed: number | null = null
+    const check = async () => {
+      if (checking || document.hidden) return
+      checking = true
+      try {
+        const reply = await window.memo.processing.status()
+        if (!active || !reply.ok) return
+        if (reply.data.processedCount !== processed) refreshAutomatic()
+        processed = reply.data.processedCount
+      } catch {
+        /* Keep the current list while the local core reconnects. */
+      } finally {
+        checking = false
+        if (active) void flushAutomaticRefresh()
+      }
+    }
+    void check()
+    const timer = window.setInterval(() => void check(), 5000)
+    document.addEventListener('visibilitychange', refreshAutomatic)
+    window.addEventListener('focus', refreshAutomatic)
+    return () => {
+      active = false
+      window.clearInterval(timer)
+      document.removeEventListener('visibilitychange', refreshAutomatic)
+      window.removeEventListener('focus', refreshAutomatic)
+    }
+  }, [refreshAutomatic, flushAutomaticRefresh])
   const openedPetNonce = useRef<number | null>(null)
   useEffect(() => {
     if (!openTask || busy || openedPetNonce.current === openTask.nonce) return
@@ -254,7 +338,7 @@ export function RealWorkspace({
       .then((reply) => {
         if (!active) return
         if (!reply.ok) {
-          setMessage('此事项当前不可打开，请刷新工作区。')
+          setMessage('此事项当前不可打开，请稍后重试。')
           return
         }
         openedPetNonce.current = openTask.nonce
@@ -290,14 +374,17 @@ export function RealWorkspace({
         setMessage(success)
         after?.(r)
         await latestLoad.current()
-      } else
+      } else {
+        if (r.error === 'VERSION_CONFLICT')
+          automaticRefresh.current.pending = true
         setMessage(
           r.error === 'VERSION_CONFLICT'
-            ? '事项已被更新，请刷新后重试。你的修改尚未保存。'
+            ? '事项已被更新，请关闭详情再打开后核对。你的修改尚未保存。'
             : '操作未成功，请检查输入后重试。',
         )
+      }
     } catch {
-      setMessage('本地核心暂不可用，请稍后刷新。')
+      setMessage('操作未完成，请稍后重试。')
     } finally {
       mutating.current = false
       setSaving(false)
@@ -376,13 +463,6 @@ export function RealWorkspace({
             selected={current}
             disabled={saving || busy}
           />
-          <IconButton
-            label="刷新"
-            disabled={saving || busy}
-            onClick={() => void load()}
-          >
-            <ArrowClockwise aria-hidden />
-          </IconButton>
           <IconButton
             ref={filterButton}
             label="筛选事项"
@@ -683,24 +763,10 @@ export function RealWorkspace({
             </IconButton>
           </section>
         )}
-        {message && !createOpen && (
+        {(readError || message) && !createOpen && (
           <p role="status" className="real-message">
-            {message}
+            {readError || message}
           </p>
-        )}
-        {newResults && (
-          <div className="task-new-results" role="status">
-            <span>有新的整理结果</span>
-            <AppButton
-              disabled={saving || busy}
-              onClick={() => {
-                setNewResults(false)
-                void load()
-              }}
-            >
-              刷新整理结果
-            </AppButton>
-          </div>
         )}
         <div className="work-body">
           <section className="task-list" aria-label="事项列表">

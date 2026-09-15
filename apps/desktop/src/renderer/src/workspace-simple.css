@@ -386,8 +386,6 @@
 .real-task-row .task-trailing time { color: var(--muted); font-size: 12px; }
 .real-task-row .task-arrival-label { color: var(--text-color-kumo-brand); }
 .real-task-row.task-arrived { animation: task-arrival-in 240ms ease-out, task-arrival-highlight 2000ms ease-out; }
-.task-new-results { display: flex; align-items: center; justify-content: space-between; padding: 4px 24px; font-size: 12px; background: var(--color-kumo-tint); }
-.task-new-results .app-control { font-size: 12px; }
 .workspace-list-content .list-caption { padding: 12px 24px 8px; }
 .workspace-list-content .list-caption > span:first-child { display: block; }
 @keyframes task-arrival-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
