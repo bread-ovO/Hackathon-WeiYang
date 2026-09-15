@@ -1,0 +1,11 @@
+{
+  "os": "Microsoft Windows Server 2022 Datacenter",
+  "exited": false,
+  "title": "BUGU 桌宠",
+  "installerSha256": "8851399ad396b14e9959e7d2c4fc42c488170e804940d3c5d811789b1178c438",
+  "osVersion": "10.0.20348",
+  "osArchitecture": "64-bit",
+  "pid": 1172,
+  "executable": "D:\\a\\_temp\\BUGU 安装验证\\BUGU 不咕.exe",
+  "installerExit": 0
+}

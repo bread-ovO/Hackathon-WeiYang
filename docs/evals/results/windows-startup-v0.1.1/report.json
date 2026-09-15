@@ -1,0 +1,153 @@
+{
+  "executablePath": "D:\\a\\_temp\\BUGU 安装验证\\BUGU 不咕.exe",
+  "checks": {
+    "ordinaryLaunch": true,
+    "mainWindow": true,
+    "emptyWorkspaceAndSqlite": true,
+    "defaultPetWindow": true,
+    "relaunchPersistsProject": true
+  },
+  "errors": [],
+  "console": [
+    "(node:4740) [DEP0180] DeprecationWarning: fs.Stats constructor is deprecated.\n(Use `BUGU 不咕 --trace-deprecation ...` to show where the warning was created)\n",
+    "Debugger ending on ws://127.0.0.1:62921/69b5658b-f599-4b1c-ba65-5a5e8a9277a6\r\nFor help, see: https://nodejs.org/learn/getting-started/debugging\r\n"
+  ],
+  "plainLaunch": {
+    "os": "Microsoft Windows Server 2022 Datacenter",
+    "exited": false,
+    "title": "BUGU 桌宠",
+    "installerSha256": "8851399ad396b14e9959e7d2c4fc42c488170e804940d3c5d811789b1178c438",
+    "osVersion": "10.0.20348",
+    "osArchitecture": "64-bit",
+    "pid": 1172,
+    "executable": "D:\\a\\_temp\\BUGU 安装验证\\BUGU 不咕.exe",
+    "installerExit": 0
+  },
+  "runtime": {
+    "packaged": true,
+    "version": "0.1.1",
+    "platform": "win32",
+    "arch": "x64",
+    "versions": {
+      "node": "24.20.0",
+      "acorn": "8.18.0",
+      "ada": "4.0.0",
+      "amaro": "1.1.11",
+      "ares": "1.34.8",
+      "brotli": "1.2.0",
+      "cldr": "48.0",
+      "icu": "78.2",
+      "llhttp": "9.4.3",
+      "merve": "1.2.2",
+      "modules": "149",
+      "napi": "10",
+      "nbytes": "0.1.4",
+      "ncrypto": "0.0.1",
+      "nghttp2": "1.70.0",
+      "nghttp3": "",
+      "ngtcp2": "",
+      "openssl": "0.0.0",
+      "simdjson": "4.6.6",
+      "simdutf": "7.7.0",
+      "sqlite": "3.53.4",
+      "tz": "2025c",
+      "undici": "7.29.0",
+      "unicode": "17.0",
+      "uv": "1.52.1",
+      "uvwasi": "0.0.23",
+      "v8": "15.2.124.19-electron.0",
+      "zlib": "1.3.2.1-motley",
+      "zstd": "1.6.0",
+      "electron": "44.3.0",
+      "chrome": "152.0.7977.78"
+    },
+    "userData": "C:\\Users\\runneradmin\\AppData\\Roaming\\@memo/desktop"
+  },
+  "health": {
+    "ok": true,
+    "data": {
+      "status": "ready",
+      "schemaVersion": 25,
+      "sqliteVersion": "3.53.4",
+      "eventCount": 0,
+      "jobCount": 0
+    }
+  },
+  "initialWorkspace": {
+    "ok": true,
+    "data": {
+      "projects": [],
+      "tasks": [],
+      "nextCursor": null,
+      "totalCount": 0,
+      "activeCount": 0
+    }
+  },
+  "model": {
+    "ok": true,
+    "data": {
+      "config": {
+        "provider": "responses",
+        "enabled": false,
+        "baseUrl": "https://api.openai.com/v1",
+        "model": "",
+        "credentialId": ""
+      },
+      "availableClis": []
+    }
+  },
+  "projectId": "a3dd453d-22ba-4920-8564-995ee831f454",
+  "pet": {
+    "ok": true,
+    "data": {
+      "currentModelId": "348a899269ebb5364b12a62ff15e96a81fe61a350341484c5436f39c4879b54a",
+      "display": false,
+      "models": [
+        {
+          "id": "348a899269ebb5364b12a62ff15e96a81fe61a350341484c5436f39c4879b54a",
+          "entry": "Hiyori.model3.json",
+          "importedAt": "2026-09-15T14:45:43.922Z",
+          "totalBytes": 4923918
+        }
+      ],
+      "preferences": {
+        "scale": 1,
+        "alwaysOnTop": false,
+        "clickThrough": true,
+        "performanceMode": "balanced"
+      },
+      "catalog": {
+        "motions": [],
+        "expressions": []
+      },
+      "presentation": null,
+      "voice": {
+        "id": null,
+        "version": 0,
+        "status": "disabled"
+      },
+      "speech": {
+        "preferences": {
+          "enabled": false,
+          "frequency": "normal",
+          "quietStart": 1320,
+          "quietEnd": 540,
+          "pausedUntil": null
+        },
+        "nextAt": null,
+        "todayCount": 0,
+        "status": "disabled"
+      },
+      "runtimeReady": true,
+      "renderStatus": "hidden"
+    }
+  },
+  "windows": [
+    {
+      "title": "BUGU 不咕",
+      "url": "memo://app/index.html",
+      "visible": true
+    }
+  ],
+  "passed": true
+}
