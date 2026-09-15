@@ -13,10 +13,14 @@ export function DeliveryPanel({
   task,
   disabled,
   onUpdated,
+  showSetup = true,
+  onEnabledChange,
 }: {
   task: WorkspaceTask
   disabled: boolean
   onUpdated: (task: WorkspaceTask) => void
+  showSetup?: boolean
+  onEnabledChange?: (enabled: boolean) => void
 }) {
   const [data, setData] = useState<DeliverySummary | null>(null),
     [url, setUrl] = useState(''),
@@ -24,6 +28,7 @@ export function DeliveryPanel({
     [error, setError] = useState('')
   const generation = useRef(0),
     working = useRef(false)
+  useEffect(() => { onEnabledChange?.(data?.enabled ?? false) }, [data?.enabled, onEnabledChange])
   const load = useCallback(async () => {
     if (!task.projectId || working.current) return
     const n = ++generation.current
@@ -91,8 +96,9 @@ export function DeliveryPanel({
     task.status === 'cancelled' ||
     task.status === 'completed'
   if (!task.projectId) return null
+  if (!showSetup && !data?.enabled && !error) return null
   return (
-    <section className="delivery-panel" aria-label="交付进展">
+    <section className="delivery-panel" aria-label="交付进展" data-setup={!!data && !data.enabled}>
       {error && (
         <p role="alert">
           {error}
@@ -107,6 +113,7 @@ export function DeliveryPanel({
         <Disclosure
           title="跟进 PR 提交与反馈"
           description="把聊天、执行记录和 PR 接到这件事上"
+          open={showSetup}
         >
           <p>
             确认本次约定包含“提交

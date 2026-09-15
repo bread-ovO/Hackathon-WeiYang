@@ -406,6 +406,17 @@ export function createTaskModel(db: Database.Database) {
       const task = read(taskId)
       return task?.projectId === projectId ? task : undefined
     },
+    creation(projectId: string, taskId: string) {
+      if (read(taskId)?.projectId !== projectId) throw new Error('TASK_NOT_IN_PROJECT')
+      const row = db.prepare(
+        "SELECT created_at AS createdAt, reason FROM decisions WHERE task_id=? AND scope='create' ORDER BY id LIMIT 1",
+      ).get(taskId) as { createdAt: string; reason: string } | undefined
+      if (!row) return null // Legacy snapshots do not establish a creation time.
+      const runId = row.reason.startsWith('用户确认AI聊天建议 ')
+        ? row.reason.slice('用户确认AI聊天建议 '.length) : null
+      const chat = runId && db.prepare('SELECT 1 FROM agent_chat_runs WHERE id=? AND project_id=?').get(runId, projectId)
+      return { createdAt: row.createdAt, kind: chat ? 'chat' as const : 'manual' as const }
+    },
     splitChildren(projectId: string, taskId: string): TaskSplitLink[] {
       text(projectId)
       text(taskId)

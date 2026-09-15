@@ -44,6 +44,9 @@ try {
   store.taskChat.confirm(create, 'a')
   assert.equal(store.tasks.list('a').length, 1)
   const task = store.tasks.list('a')[0]!
+  const creation = store.tasks.creation('a', task.id)
+  assert.equal(creation?.kind, 'chat')
+  assert.ok(creation?.createdAt)
   assert.throws(() => store.taskChat.read(create, 'b'), /NOT_FOUND/)
   const stale = proposal([action('update', task.id, '改标题')])
   store.tasks.update(
@@ -75,6 +78,7 @@ try {
   store.taskChat.confirm(restore, 'a')
   assert.equal(store.tasks.listPage({ projectId: 'a' }).items.length, 1)
   assert.equal(store.taskChat.get('a', task.id).title, '人工修改优先')
+  assert.deepEqual(store.tasks.creation('a', task.id), creation)
   const unknown = store.taskChat.start('a', '虚构')
   assert.throws(
     () =>

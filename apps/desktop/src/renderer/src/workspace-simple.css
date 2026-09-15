@@ -369,3 +369,32 @@
 
 .automatic-analysis-status { display: flex; align-items: center; gap: 4px; color: var(--muted); font-size: 12px; }
 .task-ai-source { display: inline-block; max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: bottom; }
+
+.task-page-heading { padding: 20px 24px 16px; }
+.task-page-heading + .workspace-toolbar { padding-inline: 24px; }
+.real-task-row.app-control { min-height: 76px; padding: 16px 24px; }
+.real-task-row.app-control > .relative.flex { width: 100%; display: flex; align-items: flex-start; gap: 12px; }
+.real-task-row .task-title { line-height: 24px; }
+.real-task-row .task-status-icon { flex-shrink: 0; color: var(--muted); align-self: flex-start; margin-top: 4px; }
+.real-task-row .status-in_progress { color: var(--text-color-kumo-info); }
+.real-task-row .status-completed { color: var(--text-color-kumo-success); }
+.real-task-row .status-candidate { color: var(--text-color-kumo-warning); }
+.real-task-row .task-meta { gap: 8px; line-height: 20px; }
+.real-task-row .task-meta > span:first-child { padding: 0; background: transparent; }
+.real-task-row .task-meta > span + span::before { content: '·'; margin-right: 8px; color: var(--muted); }
+.real-task-row .task-trailing { display: flex; gap: 4px; padding-left: 8px; }
+.real-task-row .task-trailing time { color: var(--muted); font-size: 12px; }
+.real-task-row .task-arrival-label { color: var(--text-color-kumo-brand); }
+.real-task-row.task-arrived { animation: task-arrival-in 240ms ease-out, task-arrival-highlight 2000ms ease-out; }
+.task-new-results { display: flex; align-items: center; justify-content: space-between; padding: 4px 24px; font-size: 12px; background: var(--color-kumo-tint); }
+.task-new-results .app-control { font-size: 12px; }
+.workspace-list-content .list-caption { padding: 12px 24px 8px; }
+.workspace-list-content .list-caption > span:first-child { display: block; }
+@keyframes task-arrival-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes task-arrival-highlight { from { background-color: color-mix(in srgb, var(--text-color-kumo-brand) 12%, var(--color-kumo-base)); } to { background-color: var(--color-kumo-base); } }
+@media (prefers-reduced-motion: reduce) { .real-task-row.task-arrived { animation: none; background: var(--color-kumo-tint); } }
+@media (max-width: 900px) {
+  .task-page-heading, .real-task-row.app-control { padding-inline: 16px; }
+  .task-page-heading + .workspace-toolbar { padding-inline: 16px; }
+  .workspace-list-content .list-caption { padding-inline: 16px; }
+}

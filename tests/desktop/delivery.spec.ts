@@ -46,10 +46,10 @@ test('delivery setup, ambiguous feedback and manual completion through the real 
     await expect(
       page.getByRole('heading', { name: '跟进', exact: true }),
     ).toBeVisible()
-    await page.getByRole('button', { name: '我的工作区', exact: true }).click()
-    await page.getByRole('button', { name: /提交登录修复.*已收录/ }).click()
+    await page.getByRole('button', { name: /提交登录修复/ }).click()
+    await page.getByRole('button', { name: '更多操作', exact: true }).click()
+    await page.getByRole('menuitem', { name: 'PR 提交与反馈', exact: true }).click()
     let panel = page.getByRole('region', { name: '交付进展' })
-    await panel.getByText('跟进 PR 提交与反馈', { exact: true }).click()
     await panel
       .getByLabel('交付目标链接')
       .fill('https://github.com/example/demo/issues/1')
@@ -81,6 +81,7 @@ test('delivery setup, ambiguous feedback and manual completion through the real 
     await app.close()
     app = await launch()
     page = await app.firstWindow()
+    await expect(page.getByRole('heading', { name: '跟进', exact: true })).toBeVisible()
     await expect
       .poll(async () => {
         const r = await page.evaluate(() =>

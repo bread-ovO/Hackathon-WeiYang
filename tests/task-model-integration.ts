@@ -70,6 +70,8 @@ try {
     [],
   )
   const assigned = tasks.assignLegacy('legacy', 'alpha', 4, by)
+  assert.equal(tasks.creation('alpha', 'legacy'), null)
+  assert.throws(() => tasks.creation('beta', 'legacy'), /TASK_NOT_IN_PROJECT/)
   assert.equal(assigned.status, 'waiting')
   assert.equal(assigned.version, 5)
   assert.equal(assigned.evidenceStatus, 'partial')

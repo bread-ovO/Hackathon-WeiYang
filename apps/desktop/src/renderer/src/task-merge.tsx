@@ -6,10 +6,12 @@ export function TaskMerge({
   task,
   disabled,
   onMerged,
+  open,
 }: {
   task: WorkspaceTask
   disabled: boolean
   onMerged: (task: WorkspaceTask) => void
+  open?: boolean
 }) {
   const [query, setQuery] = useState(''),
     [options, setOptions] = useState<WorkspaceTask[]>([]),
@@ -54,7 +56,7 @@ export function TaskMerge({
     expectedManualVersion: t.manualVersion,
   })
   return (
-    <Disclosure title="合并重复事项" id="task-merge">
+    <Disclosure title="合并重复事项" id="task-merge" open={open}>
       <p>
         将当前事项合并到同项目的另一事项。目标的标题、状态和截止时间保留；完成条件与证据汇入，证据重新核验。原事项归档并保留历史。
       </p>

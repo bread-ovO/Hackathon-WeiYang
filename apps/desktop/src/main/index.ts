@@ -108,7 +108,7 @@ const startupMode = !demoEnabled || app.isPackaged || process.argv.includes('--m
   ? 'real'
   : process.argv.includes('--mode=demo')
     ? 'demo'
-    : null
+    : 'real'
 // Windows taskbar identity: pins notifications and the icon to this app
 // instead of generic Electron (matters in unpackaged dev runs).
 app.setAppUserModelId('dev.multisource.memo')

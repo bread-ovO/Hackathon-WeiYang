@@ -1,32 +1,39 @@
-import { useEffect, useState } from 'react'
 import type { WorkspaceDetail } from '@memo/contracts'
+import { ArrowRight } from '@phosphor-icons/react'
+import { HelpTip } from './ui/help-tip'
 export function TaskModelSuggestion({
-  projectId,
-  taskId,
+  value,
 }: {
-  projectId: string
-  taskId: string
+  value: WorkspaceDetail['modelSuggestion']
 }) {
-  const [value, setValue] = useState<WorkspaceDetail['modelSuggestion']>(null)
-  useEffect(() => {
-    let mounted = true
-    setValue(null)
-    void window.memo.workspace.detail(projectId, taskId).then((r) => {
-      if (mounted && r.ok) setValue(r.data.modelSuggestion)
-    })
-    return () => {
-      mounted = false
-    }
-  }, [projectId, taskId])
   if (!value) return null
+  const stage = {
+    requested: '待开始',
+    in_progress: '进行中',
+    delivered: '待验收',
+    accepted: '原文已确认完成',
+    cancelled: '原文已取消',
+  }[value.candidate.stage]
   return (
-    <section className="candidate-provenance" aria-label="AI 分析建议">
-      <h3>自动整理的进展</h3>
-      <p>来源：{value.sourceName} · AI 判断：{{ requested: '待开始', in_progress: '进行中', delivered: '待验收', accepted: '原文已确认完成', cancelled: '原文已取消' }[value.candidate.stage]}</p>
-      <p>{value.candidate.nextAction || '暂无后续动作，请核对当前状态。'}</p>
+    <section className="task-next-action" aria-label="AI 分析建议">
+      <header>
+        <h3>下一步</h3>
+        <span>AI · {stage}</span>
+        <HelpTip label="AI 进展说明">
+          进展来自已授权内容，由 {value.model} 整理。建议不替代人工验收。
+        </HelpTip>
+      </header>
+      {value.candidate.nextAction && (
+        <p>
+          <ArrowRight size={16} aria-hidden />
+          <span>{value.candidate.nextAction}</span>
+        </p>
+      )}
       <details>
-        <summary>AI 分析原文依据（{value.candidate.evidence.length}）</summary>
-        <p>整理于 {new Date(value.createdAt).toLocaleString()} · {value.model}。进展建议不替代人工验收。</p>
+        <summary>查看来源依据 · {value.candidate.evidence.length}</summary>
+        <p className="task-analysis-source">
+          {value.sourceName} · {new Date(value.createdAt).toLocaleString()}
+        </p>
         {value.candidate.evidence.map((e, i) => (
           <blockquote key={i}>{e.quote}</blockquote>
         ))}
