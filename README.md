@@ -118,6 +118,8 @@ pnpm start:real  # 本人工作区，读取本机已有数据
 
 ## 验证与构建
 
+JSONL 提取质量可运行 `pnpm eval:extract`；真实模型评测需要显式 `--provider codex-cli --live`。60 个合成会话按精确率、召回率、F1、阶段和原文依据分别计分，规则与模型实际入列结果分开，见 [本地提取评测](docs/evals/JSONL任务提取本地评测.md)。这些数据不代表真实用户准确率。
+
 仓库已移除 GitHub Actions CI 工作流，提交与 PR 不再自动运行全量检查、打包或公网来源探针。开发时按改动范围做本地验证，默认只跑受影响的 E2E 用例。
 
 ```bash
