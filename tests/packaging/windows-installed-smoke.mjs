@@ -88,4 +88,7 @@ try {
   report.passed = !failed
   await writeFile(join(output, 'report.json'), JSON.stringify(report, null, 2))
 }
-if (failed) process.exitCode = 1
+if (failed) {
+  console.error(report.errors.join('\n'))
+  process.exitCode = 1
+}
