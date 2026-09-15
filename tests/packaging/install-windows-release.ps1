@@ -26,7 +26,8 @@ if (-not (Test-Path $exe)) { throw 'Installed executable missing' }
 $app = Start-Process -FilePath $exe -PassThru -RedirectStandardOutput (Join-Path $out 'plain-stdout.txt') -RedirectStandardError (Join-Path $out 'plain-stderr.txt')
 Start-Sleep -Seconds 12
 $app.Refresh()
-$state = @{ installerSha256=$actual; installerExit=$process.ExitCode; executable=$exe; exited=$app.HasExited; title=$app.MainWindowTitle; pid=$app.Id }
+$os = Get-CimInstance Win32_OperatingSystem
+$state = @{ os=$os.Caption; osVersion=$os.Version; osArchitecture=$os.OSArchitecture; installerSha256=$actual; installerExit=$process.ExitCode; executable=$exe; exited=$app.HasExited; title=$app.MainWindowTitle; pid=$app.Id }
 if ($app.HasExited) { $state.exitCode=$app.ExitCode }
 $state | ConvertTo-Json | Out-File (Join-Path $out 'plain-launch.json') -Encoding utf8
 Add-Type -AssemblyName System.Windows.Forms

@@ -1,6 +1,6 @@
 /** Runs only on an ephemeral GitHub Windows runner, against an installed package. */
 import { _electron as electron, expect } from '@playwright/test'
-import { mkdir, writeFile } from 'node:fs/promises'
+import { mkdir, writeFile, readFile } from 'node:fs/promises'
 import { join, resolve } from 'node:path'
 if (process.platform !== 'win32' || process.env.GITHUB_ACTIONS !== 'true')
   throw Error('EPHEMERAL_WINDOWS_RUNNER_REQUIRED')
@@ -12,6 +12,10 @@ const report = { executablePath, checks: {}, errors: [], console: [] }
 let app
 let failed = false
 try {
+  report.plainLaunch = JSON.parse((await readFile(join(output, 'plain-launch.json'), 'utf8')).replace(/^\uFEFF/, ''))
+  expect(report.plainLaunch.installerExit).toBe(0)
+  expect(report.plainLaunch.exited).toBe(false)
+  report.checks.ordinaryLaunch = true
   app = await electron.launch({ executablePath, args: [], timeout: 45000 })
   app.process().stderr?.on('data', c => report.console.push(String(c).slice(0, 8000)))
   app.on('window', page => {
@@ -53,6 +57,11 @@ try {
   expect(report.pet.ok).toBe(true)
   expect(report.pet.data.models).toHaveLength(1)
   expect(JSON.stringify(report.pet.data.models)).not.toMatch(/haru/i)
+  expect((await page.evaluate(() => window.memo.pet.show())).ok).toBe(true)
+  await expect.poll(async () => {
+    const r = await page.evaluate(() => window.memo.pet.state())
+    return r.ok && r.data.renderStatus
+  }, { timeout: 20000 }).toBe('ready')
   const petPage = app.windows().find(p => p.url().includes('pet.html'))
   expect(petPage).toBeDefined()
   await petPage.screenshot({ path: join(output, 'pet.png') })
