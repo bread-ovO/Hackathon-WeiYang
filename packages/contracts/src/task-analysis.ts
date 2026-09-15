@@ -6,6 +6,7 @@ export interface AnalysisMessage {
   role: 'user' | 'assistant'
   text: string
 }
+export const TASK_ANALYSIS_PROTOCOL = 'task-analysis-v3'
 export const analysisRequestSchema = {
   oneOf: [
     {
@@ -72,6 +73,11 @@ export const taskAnalysisSchema = {
             ],
           },
           nextAction: { type: 'string', maxLength: 500 },
+          existingTaskId: {
+            type: ['string', 'null'],
+            minLength: 1,
+            maxLength: 128,
+          },
           evidence: {
             type: 'array',
             minItems: 1,
@@ -92,6 +98,30 @@ export const taskAnalysisSchema = {
   },
 } as const
 export type TaskAnalysis = FromSchema<typeof taskAnalysisSchema>
+export interface KnownAnalysisTask {
+  id: string
+  title: string
+  stage: TaskAnalysis['tasks'][number]['stage']
+  nextAction: string
+  evidence: TaskAnalysis['tasks'][number]['evidence']
+}
+// The storage schema accepts historical proposals without an identity field.
+// Live providers receive a strict shape with every property required.
+export const taskExtractionSchema = {
+  ...taskAnalysisSchema,
+  properties: {
+    tasks: {
+      ...taskAnalysisSchema.properties.tasks,
+      items: {
+        ...taskAnalysisSchema.properties.tasks.items,
+        required: [
+          ...taskAnalysisSchema.properties.tasks.items.required,
+          'existingTaskId',
+        ],
+      },
+    },
+  },
+} as const
 const validate = new Ajv({ strict: true }).compile<TaskAnalysis>(
   taskAnalysisSchema,
 )
@@ -149,27 +179,9 @@ export function parseTaskAnalysis(
     // A separate user turn is required to propose acceptance/cancellation.
     if (['accepted', 'cancelled'].includes(task.stage) && userRefs.size < 2)
       fail()
-    const userQuotes = task.evidence
-      .filter(
-        (e) => messages.find((m) => m.id === e.messageId)?.role === 'user',
-      )
-      .map((e) => e.quote)
-    // Conservative authority gate, never a business-status mutation.
-    if (
-      task.stage === 'accepted' &&
-      !userQuotes.some(
-        (q) =>
-          /验收通过|确认完成|确认已完成|已经解决|确认合入|\b(?:approved|accepted|verified complete)\b/iu.test(
-            q,
-          ) && !/没有|未通过|不通过|尚未|还没|\b(?:not|never)\b/iu.test(q),
-      )
-    )
-      fail()
-    if (
-      task.stage === 'cancelled' &&
-      !userQuotes.some((q) => /取消|不做了|不用做|\bcancel(?:led)?\b/iu.test(q))
-    )
-      fail()
+    // Stage semantics belong to the model and remain review suggestions. A
+    // keyword/negation check over a whole quote incorrectly rejects independent
+    // goals (one accepted, another unfinished), and cannot prove acceptance.
     const key = JSON.stringify([task.title.trim(), [...refs].sort()])
     if (seen.has(key)) fail()
     seen.add(key)

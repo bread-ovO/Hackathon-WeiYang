@@ -1,3 +1,4 @@
+import { commitHistoricalFixture } from './fixtures/legacy-rule-task'
 import assert from 'node:assert/strict'
 import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
@@ -276,7 +277,9 @@ try {
   const now = new Date('2026-09-14T00:00:00Z'),
     job = store.processing.claim(now)!,
     context = store.processing.load(job, now)!
-  const taskId = store.processing.commit(
+  const taskId = commitHistoricalFixture(
+    store,
+    path,
     job,
     context,
     prepareEventProcessing({
@@ -374,5 +377,12 @@ try {
 } finally {
   db.close()
   store.close()
-  try { rmSync(dir, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 }) } catch {}
+  try {
+    rmSync(dir, {
+      recursive: true,
+      force: true,
+      maxRetries: 10,
+      retryDelay: 200,
+    })
+  } catch {}
 }

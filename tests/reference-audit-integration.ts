@@ -1,3 +1,4 @@
+import { commitHistoricalFixture } from './fixtures/legacy-rule-task'
 import assert from 'node:assert/strict'
 import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
@@ -40,7 +41,9 @@ try {
   const now = new Date('2026-09-14T00:00:00Z'),
     job = store.processing.claim(now)!,
     context = store.processing.load(job, now)!
-  const taskId = store.processing.commit(
+  const taskId = commitHistoricalFixture(
+    store,
+    path,
     job,
     context,
     prepareEventProcessing({
@@ -148,7 +151,7 @@ try {
   ).run(new Date().toISOString())
   store.close()
   db.exec(
-    'ALTER TABLE github_connections DROP COLUMN error_scope; ALTER TABLE github_connections DROP COLUMN mode; DROP TABLE delivery_audit; DROP TABLE delivery_links; DROP TABLE delivery_workflows; DROP TABLE task_merges; DROP TABLE task_splits; DROP TABLE plan_change_assessments; DROP TABLE source_association_audit; DROP TABLE explicit_identity_mappings; DROP TABLE task_source_anchors; DROP TABLE source_object_bindings; DROP TABLE plan_change_proposals; ALTER TABLE source_events DROP COLUMN metadata_json; DROP TABLE reference_revision_audit; PRAGMA user_version=13',
+    'ALTER TABLE github_connections DROP COLUMN error_scope; ALTER TABLE github_connections DROP COLUMN mode; DROP TABLE model_analysis_windows; DROP TABLE model_analysis_acceptances; DROP TABLE model_analyses; DROP TABLE agent_chat_runs; DROP TABLE agent_task_trash; DROP TABLE delivery_audit; DROP TABLE delivery_links; DROP TABLE delivery_workflows; DROP TABLE task_merges; DROP TABLE task_splits; DROP TABLE plan_change_assessments; DROP TABLE source_association_audit; DROP TABLE explicit_identity_mappings; DROP TABLE task_source_anchors; DROP TABLE source_object_bindings; DROP TABLE plan_change_proposals; ALTER TABLE source_events DROP COLUMN metadata_json; DROP TABLE reference_revision_audit; PRAGMA user_version=13',
   )
   const migrationStart = Date.now()
   store = openStore(path)
@@ -176,10 +179,17 @@ try {
   )
   ingest({ ...base, revision: '5', text: 'new change after migration' })
   assert.equal(count(), 2)
-  assert.equal(store.health().schemaVersion, 22)
+  assert.equal(store.health().schemaVersion, 25)
   console.log('Reference conflict audit integration passed')
 } finally {
   db.close()
   store.close()
-  try { rmSync(dir, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 }) } catch {}
+  try {
+    rmSync(dir, {
+      recursive: true,
+      force: true,
+      maxRetries: 10,
+      retryDelay: 200,
+    })
+  } catch {}
 }

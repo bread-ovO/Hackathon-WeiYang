@@ -85,7 +85,10 @@ export interface ExportBundle {
     outcome: 'created' | 'review_required'
     reason: string
     createdAt: string
-    policyVersion: 'explicit-commitment-v1' | 'explicit-commitment-v2'
+    policyVersion:
+      | 'explicit-commitment-v1'
+      | 'explicit-commitment-v2'
+      | 'source-observation-v3'
   }[]
   candidateEvidence: {
     id: number
@@ -616,6 +619,7 @@ export function createExports(db: Database.Database) {
           one(r.policyVersion, [
             'explicit-commitment-v1',
             'explicit-commitment-v2',
+            'source-observation-v3',
           ])
           str(r.createdAt, 32)
           if (

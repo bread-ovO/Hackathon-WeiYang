@@ -1,0 +1,3467 @@
+{
+  "generatedAt": "2026-09-15T08:38:45.388Z",
+  "provider": "codex-cli",
+  "path": "JSONL → source observation → live model windows → persisted candidates",
+  "synthetic": true,
+  "requestedModel": null,
+  "resolvedModel": null,
+  "cliVersion": "codex-cli 0.154.0-alpha.6.2",
+  "corpusVersion": "jsonl-extraction-v1",
+  "holdoutVersion": "jsonl-extraction-holdout-v1",
+  "corpusSha256": "6d95494307130e496475ef7f2c52b1a5a5b0cdafe7699f9b9e1f45c01a2a0fcb",
+  "holdoutSha256": "28f6c6f1bcafc31857e1bad35dc5bd85e3fe2ad3ff188e635cd0b374c8c8aa5c",
+  "formatVersion": "synthetic-jsonl-v1",
+  "scorerVersion": "goal-evidence-matching-v1",
+  "analysisVersion": "task-analysis-v3",
+  "gitCommit": "d5085cf5f52f321891a269a7fc33408b43f51f0c",
+  "sourceHashes": {
+    "packages/model/src/task-analyzer.ts": "f6b7d8247c36785d4ec6db12e7e7eb9b1afb267a74472ea4416de4242db6d963",
+    "packages/contracts/src/task-analysis.ts": "dd26ce9e73e1c27325c9793da1b0e22fc27421ed34204948afe85f612c99805a",
+    "packages/application/src/event-processing.ts": "ad1069ead1365929df2b27435fdbc731ce14af1329a8528ceb5ec1c50059cbb3",
+    "packages/plugin-host/src/session-mappers.ts": "b8a22bda4dcfe764a791f284b93ef951ab2bef2b599f3c38e61a4b82093a5259",
+    "packages/storage/src/task-analysis.ts": "9abc4182ac705058f26420155d95b71da842ffef38b6b1728b219068165c177c",
+    "packages/storage/src/task-analysis-context.ts": "b2d45b6df58980441cbd2f3e25d2aa63188183fbc0d4f9a8b59359d80ce776db"
+  },
+  "suite": "holdout",
+  "plannedCases": 40,
+  "corpusCases": 40,
+  "repetitions": 1,
+  "subset": false,
+  "target": 0.99,
+  "completedCases": 40,
+  "modelCalls": 80,
+  "runs": [
+    {
+      "repetition": 1,
+      "combined": {
+        "cases": 40,
+        "errors": 0,
+        "expectedTasks": 33,
+        "predictedTasks": 33,
+        "tp": 33,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1,
+        "recall": 1,
+        "f1": 1,
+        "exactCases": 40,
+        "exactCaseRate": 1,
+        "exactCaseWilson95": [
+          0.9123783988027135,
+          1
+        ],
+        "negativeCases": 10,
+        "cleanNegatives": 10,
+        "negativeSpecificity": 1,
+        "stageAccuracyOnMatched": 1,
+        "evidenceCoverageOnMatched": 1,
+        "invalidEvidence": 0,
+        "duplicatePredictions": 0
+      },
+      "targetMet": true,
+      "suites": {
+        "holdout": {
+          "cases": 40,
+          "errors": 0,
+          "expectedTasks": 33,
+          "predictedTasks": 33,
+          "tp": 33,
+          "fp": 0,
+          "fn": 0,
+          "precision": 1,
+          "recall": 1,
+          "f1": 1,
+          "exactCases": 40,
+          "exactCaseRate": 1,
+          "exactCaseWilson95": [
+            0.9123783988027135,
+            1
+          ],
+          "negativeCases": 10,
+          "cleanNegatives": 10,
+          "negativeSpecificity": 1,
+          "stageAccuracyOnMatched": 1,
+          "evidenceCoverageOnMatched": 1,
+          "invalidEvidence": 0,
+          "duplicatePredictions": 0
+        }
+      },
+      "categories": {
+        "commitment": {
+          "cases": 12,
+          "errors": 0,
+          "expectedTasks": 12,
+          "predictedTasks": 12,
+          "tp": 12,
+          "fp": 0,
+          "fn": 0,
+          "precision": 1,
+          "recall": 1,
+          "f1": 1,
+          "exactCases": 12,
+          "exactCaseRate": 1,
+          "exactCaseWilson95": [
+            0.7575059933447592,
+            1
+          ],
+          "negativeCases": 0,
+          "cleanNegatives": 0,
+          "negativeSpecificity": null,
+          "stageAccuracyOnMatched": 1,
+          "evidenceCoverageOnMatched": 1,
+          "invalidEvidence": 0,
+          "duplicatePredictions": 0
+        },
+        "request": {
+          "cases": 8,
+          "errors": 0,
+          "expectedTasks": 8,
+          "predictedTasks": 8,
+          "tp": 8,
+          "fp": 0,
+          "fn": 0,
+          "precision": 1,
+          "recall": 1,
+          "f1": 1,
+          "exactCases": 8,
+          "exactCaseRate": 1,
+          "exactCaseWilson95": [
+            0.6755924351161198,
+            1
+          ],
+          "negativeCases": 0,
+          "cleanNegatives": 0,
+          "negativeSpecificity": null,
+          "stageAccuracyOnMatched": 1,
+          "evidenceCoverageOnMatched": 1,
+          "invalidEvidence": 0,
+          "duplicatePredictions": 0
+        },
+        "negative": {
+          "cases": 10,
+          "errors": 0,
+          "expectedTasks": 0,
+          "predictedTasks": 0,
+          "tp": 0,
+          "fp": 0,
+          "fn": 0,
+          "precision": null,
+          "recall": null,
+          "f1": null,
+          "exactCases": 10,
+          "exactCaseRate": 1,
+          "exactCaseWilson95": [
+            0.7224672001371107,
+            0.9999999999999999
+          ],
+          "negativeCases": 10,
+          "cleanNegatives": 10,
+          "negativeSpecificity": 1,
+          "stageAccuracyOnMatched": null,
+          "evidenceCoverageOnMatched": null,
+          "invalidEvidence": 0,
+          "duplicatePredictions": 0
+        },
+        "progress": {
+          "cases": 5,
+          "errors": 0,
+          "expectedTasks": 6,
+          "predictedTasks": 6,
+          "tp": 6,
+          "fp": 0,
+          "fn": 0,
+          "precision": 1,
+          "recall": 1,
+          "f1": 1,
+          "exactCases": 5,
+          "exactCaseRate": 1,
+          "exactCaseWilson95": [
+            0.5655175352168251,
+            1
+          ],
+          "negativeCases": 0,
+          "cleanNegatives": 0,
+          "negativeSpecificity": null,
+          "stageAccuracyOnMatched": 1,
+          "evidenceCoverageOnMatched": 1,
+          "invalidEvidence": 0,
+          "duplicatePredictions": 0
+        },
+        "multi-task": {
+          "cases": 1,
+          "errors": 0,
+          "expectedTasks": 3,
+          "predictedTasks": 3,
+          "tp": 3,
+          "fp": 0,
+          "fn": 0,
+          "precision": 1,
+          "recall": 1,
+          "f1": 1,
+          "exactCases": 1,
+          "exactCaseRate": 1,
+          "exactCaseWilson95": [
+            0.20654931437723745,
+            1
+          ],
+          "negativeCases": 0,
+          "cleanNegatives": 0,
+          "negativeSpecificity": null,
+          "stageAccuracyOnMatched": 1,
+          "evidenceCoverageOnMatched": 1,
+          "invalidEvidence": 0,
+          "duplicatePredictions": 0
+        },
+        "context": {
+          "cases": 4,
+          "errors": 0,
+          "expectedTasks": 4,
+          "predictedTasks": 4,
+          "tp": 4,
+          "fp": 0,
+          "fn": 0,
+          "precision": 1,
+          "recall": 1,
+          "f1": 1,
+          "exactCases": 4,
+          "exactCaseRate": 1,
+          "exactCaseWilson95": [
+            0.5101091635454027,
+            1
+          ],
+          "negativeCases": 0,
+          "cleanNegatives": 0,
+          "negativeSpecificity": null,
+          "stageAccuracyOnMatched": 1,
+          "evidenceCoverageOnMatched": 1,
+          "invalidEvidence": 0,
+          "duplicatePredictions": 0
+        }
+      }
+    }
+  ],
+  "rows": [
+    {
+      "id": "holdout-reversed-owner",
+      "suite": "holdout",
+      "format": "generic",
+      "category": "commitment",
+      "error": null,
+      "elapsedMs": 16133,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [
+        {
+          "title": "完成供应商对账",
+          "stage": "requested",
+          "nextAction": "由用户开展并完成供应商对账",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "可以，供应商对账这件事交给我。"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "anchors": [
+            [
+              "供应商"
+            ],
+            [
+              "对账"
+            ]
+          ],
+          "stage": "requested",
+          "evidenceIds": [
+            "m1"
+          ],
+          "requestIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"完成供应商对账\",\"stage\":\"requested\",\"nextAction\":\"由用户开展供应商对账工作\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"可以，供应商对账这件事交给我。\"}]}]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"完成供应商对账\",\"stage\":\"requested\",\"nextAction\":\"由用户开展并完成供应商对账\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"可以，供应商对账这件事交给我。\"}]}]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 1,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "expected": 1,
+        "predicted": 1,
+        "matchedStageCorrect": 1,
+        "matchedEvidenceComplete": 1,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "holdout-late-time",
+      "suite": "holdout",
+      "format": "codex",
+      "category": "commitment",
+      "error": null,
+      "elapsedMs": 15800,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [
+        {
+          "title": "汇总用户访谈记录",
+          "stage": "requested",
+          "nextAction": "在周四傍晚之前完成用户访谈记录汇总。",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "周四傍晚之前，我来汇总用户访谈记录。"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "anchors": [
+            [
+              "用户"
+            ],
+            [
+              "访谈"
+            ]
+          ],
+          "stage": "requested",
+          "evidenceIds": [
+            "m1"
+          ],
+          "requestIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"汇总用户访谈记录\",\"stage\":\"requested\",\"nextAction\":\"在周四傍晚之前完成用户访谈记录汇总。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"周四傍晚之前，我来汇总用户访谈记录。\"}]}]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"汇总用户访谈记录\",\"stage\":\"requested\",\"nextAction\":\"在周四傍晚之前完成用户访谈记录汇总。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"周四傍晚之前，我来汇总用户访谈记录。\"}]}]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 1,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "expected": 1,
+        "predicted": 1,
+        "matchedStageCorrect": 1,
+        "matchedEvidenceComplete": 1,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "holdout-bullet-owner",
+      "suite": "holdout",
+      "format": "claude-code",
+      "category": "commitment",
+      "error": null,
+      "elapsedMs": 17293,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [
+        {
+          "title": "联系会务负责人确认场地",
+          "stage": "requested",
+          "nextAction": "联系会务负责人，确认场地。",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "• 场地确认：我来联系会务负责人。"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "anchors": [
+            [
+              "场地"
+            ],
+            [
+              "确认",
+              "联系"
+            ]
+          ],
+          "stage": "requested",
+          "evidenceIds": [
+            "m1"
+          ],
+          "requestIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"联系会务负责人确认场地\",\"stage\":\"requested\",\"nextAction\":\"联系会务负责人，确认场地。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"• 场地确认：我来联系会务负责人。\"}]}]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"联系会务负责人确认场地\",\"stage\":\"requested\",\"nextAction\":\"联系会务负责人，确认场地。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"• 场地确认：我来联系会务负责人。\"}]}]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 1,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "expected": 1,
+        "predicted": 1,
+        "matchedStageCorrect": 1,
+        "matchedEvidenceComplete": 1,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "holdout-colloquial",
+      "suite": "holdout",
+      "format": "kimi",
+      "category": "commitment",
+      "error": null,
+      "elapsedMs": 17354,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [
+        {
+          "title": "归档发票",
+          "stage": "requested",
+          "nextAction": "下午开始进行发票归档",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "发票归档我包了，下午着手。"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "anchors": [
+            [
+              "发票"
+            ],
+            [
+              "归档"
+            ]
+          ],
+          "stage": "requested",
+          "evidenceIds": [
+            "m1"
+          ],
+          "requestIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"归档发票\",\"stage\":\"requested\",\"nextAction\":\"下午开始进行发票归档\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"发票归档我包了，下午着手。\"}]}]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"归档发票\",\"stage\":\"requested\",\"nextAction\":\"下午开始进行发票归档\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"发票归档我包了，下午着手。\"}]}]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 1,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "expected": 1,
+        "predicted": 1,
+        "matchedStageCorrect": 1,
+        "matchedEvidenceComplete": 1,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "holdout-unusual-verb",
+      "suite": "holdout",
+      "format": "generic",
+      "category": "commitment",
+      "error": null,
+      "elapsedMs": 18063,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [
+        {
+          "title": "校对印刷版的展会手册",
+          "stage": "requested",
+          "nextAction": "校对印刷版展会手册的内容并完成必要修正。",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "我会校对印刷版的展会手册。"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "anchors": [
+            [
+              "展会"
+            ],
+            [
+              "手册"
+            ],
+            [
+              "校对"
+            ]
+          ],
+          "stage": "requested",
+          "evidenceIds": [
+            "m1"
+          ],
+          "requestIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"校对印刷版的展会手册\",\"stage\":\"requested\",\"nextAction\":\"校对印刷版展会手册的内容并完成必要修正。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"我会校对印刷版的展会手册。\"}]}]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"校对印刷版的展会手册\",\"stage\":\"requested\",\"nextAction\":\"校对印刷版展会手册的内容并完成必要修正。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"我会校对印刷版的展会手册。\"}]}]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 1,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "expected": 1,
+        "predicted": 1,
+        "matchedStageCorrect": 1,
+        "matchedEvidenceComplete": 1,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "holdout-quantity",
+      "suite": "holdout",
+      "format": "codex",
+      "category": "commitment",
+      "error": null,
+      "elapsedMs": 15619,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [
+        {
+          "title": "清点仓库里的备用显示器",
+          "stage": "requested",
+          "nextAction": "清点仓库里的备用显示器。",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "我负责清点仓库里的备用显示器。"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "anchors": [
+            [
+              "显示器"
+            ],
+            [
+              "清点"
+            ]
+          ],
+          "stage": "requested",
+          "evidenceIds": [
+            "m1"
+          ],
+          "requestIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"清点仓库里的备用显示器\",\"stage\":\"requested\",\"nextAction\":\"清点仓库内的备用显示器，并记录清点结果。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"我负责清点仓库里的备用显示器。\"}]}]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"清点仓库里的备用显示器\",\"stage\":\"requested\",\"nextAction\":\"清点仓库里的备用显示器。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"我负责清点仓库里的备用显示器。\"}]}]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 1,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "expected": 1,
+        "predicted": 1,
+        "matchedStageCorrect": 1,
+        "matchedEvidenceComplete": 1,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "holdout-english-owner",
+      "suite": "holdout",
+      "format": "claude-code",
+      "category": "commitment",
+      "error": null,
+      "elapsedMs": 14543,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [
+        {
+          "title": "Draft the database migration checklist this week",
+          "stage": "requested",
+          "nextAction": "Draft the database migration checklist by the end of this week.",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "The database migration checklist is on me; I will draft it this week."
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "anchors": [
+            [
+              "数据库",
+              "database"
+            ],
+            [
+              "迁移",
+              "migration"
+            ],
+            [
+              "清单",
+              "checklist"
+            ]
+          ],
+          "stage": "requested",
+          "evidenceIds": [
+            "m1"
+          ],
+          "requestIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"Draft the database migration checklist this week\",\"stage\":\"requested\",\"nextAction\":\"Draft the database migration checklist by the end of this week.\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"The database migration checklist is on me; I will draft it this week.\"}]}]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"Draft the database migration checklist this week\",\"stage\":\"requested\",\"nextAction\":\"Draft the database migration checklist by the end of this week.\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"The database migration checklist is on me; I will draft it this week.\"}]}]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 1,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "expected": 1,
+        "predicted": 1,
+        "matchedStageCorrect": 1,
+        "matchedEvidenceComplete": 1,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "holdout-mixed",
+      "suite": "holdout",
+      "format": "kimi",
+      "category": "commitment",
+      "error": null,
+      "elapsedMs": 14263,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [
+        {
+          "title": "整理 onboarding 的权限申请说明",
+          "stage": "requested",
+          "nextAction": "整理并完成 onboarding 的权限申请说明。",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "我来整理 onboarding 的权限申请说明。"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "anchors": [
+            [
+              "权限"
+            ],
+            [
+              "申请"
+            ],
+            [
+              "说明"
+            ]
+          ],
+          "stage": "requested",
+          "evidenceIds": [
+            "m1"
+          ],
+          "requestIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"整理 onboarding 的权限申请说明\",\"stage\":\"requested\",\"nextAction\":\"整理并完成 onboarding 权限申请说明。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"我来整理 onboarding 的权限申请说明。\"}]}]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"整理 onboarding 的权限申请说明\",\"stage\":\"requested\",\"nextAction\":\"整理并完成 onboarding 的权限申请说明。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"我来整理 onboarding 的权限申请说明。\"}]}]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 1,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "expected": 1,
+        "predicted": 1,
+        "matchedStageCorrect": 1,
+        "matchedEvidenceComplete": 1,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "holdout-committed-question",
+      "suite": "holdout",
+      "format": "generic",
+      "category": "commitment",
+      "error": null,
+      "elapsedMs": 15861,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [
+        {
+          "title": "制作产品海报并于明天提交初稿",
+          "stage": "requested",
+          "nextAction": "制作产品海报，并在明天提交初稿。",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "这次由我负责制作产品海报，我明天提交初稿。"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "anchors": [
+            [
+              "产品"
+            ],
+            [
+              "海报"
+            ]
+          ],
+          "stage": "requested",
+          "evidenceIds": [
+            "m1"
+          ],
+          "requestIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"制作产品海报并于明天提交初稿\",\"stage\":\"requested\",\"nextAction\":\"制作产品海报，并在明天提交初稿。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"这次由我负责制作产品海报，我明天提交初稿。\"}]}]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"制作产品海报并于明天提交初稿\",\"stage\":\"requested\",\"nextAction\":\"制作产品海报，并在明天提交初稿。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"这次由我负责制作产品海报，我明天提交初稿。\"}]}]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 1,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "expected": 1,
+        "predicted": 1,
+        "matchedStageCorrect": 1,
+        "matchedEvidenceComplete": 1,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "holdout-numeric-list",
+      "suite": "holdout",
+      "format": "codex",
+      "category": "commitment",
+      "error": null,
+      "elapsedMs": 15482,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [
+        {
+          "title": "汇总九月份客服投诉",
+          "stage": "requested",
+          "nextAction": "汇总九月份的客服投诉信息并形成结果。",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "1. 我将汇总九月份客服投诉。"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "anchors": [
+            [
+              "客服"
+            ],
+            [
+              "投诉"
+            ]
+          ],
+          "stage": "requested",
+          "evidenceIds": [
+            "m1"
+          ],
+          "requestIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"汇总九月份客服投诉\",\"stage\":\"requested\",\"nextAction\":\"汇总九月份的客服投诉信息并形成结果。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"1. 我将汇总九月份客服投诉。\"}]}]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"汇总九月份客服投诉\",\"stage\":\"requested\",\"nextAction\":\"汇总九月份的客服投诉信息并形成结果。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"1. 我将汇总九月份客服投诉。\"}]}]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 1,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "expected": 1,
+        "predicted": 1,
+        "matchedStageCorrect": 1,
+        "matchedEvidenceComplete": 1,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "holdout-new-verb",
+      "suite": "holdout",
+      "format": "claude-code",
+      "category": "commitment",
+      "error": null,
+      "elapsedMs": 16400,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [
+        {
+          "title": "复核备份恢复流程",
+          "stage": "requested",
+          "nextAction": "复核一遍备份恢复流程。",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "备份恢复流程我会复核一遍。"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "anchors": [
+            [
+              "备份"
+            ],
+            [
+              "恢复"
+            ],
+            [
+              "复核",
+              "检查"
+            ]
+          ],
+          "stage": "requested",
+          "evidenceIds": [
+            "m1"
+          ],
+          "requestIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"复核备份恢复流程\",\"stage\":\"requested\",\"nextAction\":\"复核一遍备份恢复流程。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"备份恢复流程我会复核一遍。\"}]}]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"复核备份恢复流程\",\"stage\":\"requested\",\"nextAction\":\"复核一遍备份恢复流程。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"备份恢复流程我会复核一遍。\"}]}]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 1,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "expected": 1,
+        "predicted": 1,
+        "matchedStageCorrect": 1,
+        "matchedEvidenceComplete": 1,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "holdout-deadline-after",
+      "suite": "holdout",
+      "format": "kimi",
+      "category": "commitment",
+      "error": null,
+      "elapsedMs": 16838,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [
+        {
+          "title": "重写采购申请模板",
+          "stage": "requested",
+          "nextAction": "在周三截止前重写采购申请模板。",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "我来重写采购申请模板，截止周三。"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "anchors": [
+            [
+              "采购"
+            ],
+            [
+              "申请"
+            ],
+            [
+              "模板"
+            ]
+          ],
+          "stage": "requested",
+          "evidenceIds": [
+            "m1"
+          ],
+          "requestIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"重写采购申请模板\",\"stage\":\"requested\",\"nextAction\":\"在周三截止前重写采购申请模板。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"我来重写采购申请模板，截止周三。\"}]}]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"重写采购申请模板\",\"stage\":\"requested\",\"nextAction\":\"在周三截止前重写采购申请模板。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"我来重写采购申请模板，截止周三。\"}]}]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 1,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "expected": 1,
+        "predicted": 1,
+        "matchedStageCorrect": 1,
+        "matchedEvidenceComplete": 1,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "holdout-polite-question",
+      "suite": "holdout",
+      "format": "generic",
+      "category": "request",
+      "error": null,
+      "elapsedMs": 16264,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [
+        {
+          "title": "添加错误日志下载入口",
+          "stage": "requested",
+          "nextAction": "实现错误日志的下载入口",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "能麻烦你把错误日志的下载入口加上吗？"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "anchors": [
+            [
+              "错误"
+            ],
+            [
+              "日志"
+            ],
+            [
+              "下载"
+            ]
+          ],
+          "stage": "requested",
+          "evidenceIds": [
+            "m1"
+          ],
+          "requestIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"添加错误日志下载入口\",\"stage\":\"requested\",\"nextAction\":\"实现错误日志的下载入口\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"能麻烦你把错误日志的下载入口加上吗？\"}]}]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"添加错误日志下载入口\",\"stage\":\"requested\",\"nextAction\":\"实现错误日志的下载入口\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"能麻烦你把错误日志的下载入口加上吗？\"}]}]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 1,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "expected": 1,
+        "predicted": 1,
+        "matchedStageCorrect": 1,
+        "matchedEvidenceComplete": 1,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "holdout-indirect",
+      "suite": "holdout",
+      "format": "codex",
+      "category": "request",
+      "error": null,
+      "elapsedMs": 17036,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [
+        {
+          "title": "完成移动端导航适配",
+          "stage": "requested",
+          "nextAction": "今天开始进行移动端导航适配并完成交付。",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "希望你这次把移动端导航适配做完，今天就开始。"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "anchors": [
+            [
+              "移动端"
+            ],
+            [
+              "导航"
+            ],
+            [
+              "适配"
+            ]
+          ],
+          "stage": "requested",
+          "evidenceIds": [
+            "m1"
+          ],
+          "requestIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"完成移动端导航适配\",\"stage\":\"requested\",\"nextAction\":\"今天开始进行移动端导航适配并完成交付。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"希望你这次把移动端导航适配做完，今天就开始。\"}]}]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"完成移动端导航适配\",\"stage\":\"requested\",\"nextAction\":\"今天开始进行移动端导航适配并完成交付。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"希望你这次把移动端导航适配做完，今天就开始。\"}]}]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 1,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "expected": 1,
+        "predicted": 1,
+        "matchedStageCorrect": 1,
+        "matchedEvidenceComplete": 1,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "holdout-bare-imperative",
+      "suite": "holdout",
+      "format": "claude-code",
+      "category": "request",
+      "error": null,
+      "elapsedMs": 15844,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [
+        {
+          "title": "补齐服务监控的告警联系人",
+          "stage": "requested",
+          "nextAction": "确定服务监控所需的告警联系人并补充完整。",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "补齐服务监控的告警联系人。"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "anchors": [
+            [
+              "监控"
+            ],
+            [
+              "告警"
+            ],
+            [
+              "联系人"
+            ]
+          ],
+          "stage": "requested",
+          "evidenceIds": [
+            "m1"
+          ],
+          "requestIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"补齐服务监控的告警联系人\",\"stage\":\"requested\",\"nextAction\":\"确定服务监控所需的告警联系人并补充完整。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"补齐服务监控的告警联系人。\"}]}]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"补齐服务监控的告警联系人\",\"stage\":\"requested\",\"nextAction\":\"确定服务监控所需的告警联系人并补充完整。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"补齐服务监控的告警联系人。\"}]}]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 1,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "expected": 1,
+        "predicted": 1,
+        "matchedStageCorrect": 1,
+        "matchedEvidenceComplete": 1,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "holdout-command-owner",
+      "suite": "holdout",
+      "format": "kimi",
+      "category": "request",
+      "error": null,
+      "elapsedMs": 14636,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [
+        {
+          "title": "整理渠道报价对比表",
+          "stage": "requested",
+          "nextAction": "收集各渠道的报价信息并整理成对比表。",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "请帮我整理一份渠道报价对比表。"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "anchors": [
+            [
+              "渠道"
+            ],
+            [
+              "报价"
+            ],
+            [
+              "对比"
+            ]
+          ],
+          "stage": "requested",
+          "evidenceIds": [
+            "m1"
+          ],
+          "requestIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"整理渠道报价对比表\",\"stage\":\"requested\",\"nextAction\":\"收集各渠道的报价信息并整理成对比表。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"请帮我整理一份渠道报价对比表。\"}]}]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"整理渠道报价对比表\",\"stage\":\"requested\",\"nextAction\":\"收集各渠道的报价信息并整理成对比表。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"请帮我整理一份渠道报价对比表。\"}]}]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 1,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "expected": 1,
+        "predicted": 1,
+        "matchedStageCorrect": 1,
+        "matchedEvidenceComplete": 1,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "holdout-english-request",
+      "suite": "holdout",
+      "format": "generic",
+      "category": "request",
+      "error": null,
+      "elapsedMs": 17719,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [
+        {
+          "title": "Add a retry button to the failed upload dialog",
+          "stage": "requested",
+          "nextAction": "Implement the retry button in the failed upload dialog.",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "Could you add a retry button to the failed upload dialog?"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "anchors": [
+            [
+              "上传",
+              "upload"
+            ],
+            [
+              "重试",
+              "retry"
+            ]
+          ],
+          "stage": "requested",
+          "evidenceIds": [
+            "m1"
+          ],
+          "requestIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"Add a retry button to the failed upload dialog\",\"stage\":\"requested\",\"nextAction\":\"Implement the retry button in the failed upload dialog.\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"Could you add a retry button to the failed upload dialog?\"}]}]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"Add a retry button to the failed upload dialog\",\"stage\":\"requested\",\"nextAction\":\"Implement the retry button in the failed upload dialog.\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"Could you add a retry button to the failed upload dialog?\"}]}]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 1,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "expected": 1,
+        "predicted": 1,
+        "matchedStageCorrect": 1,
+        "matchedEvidenceComplete": 1,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "holdout-typo",
+      "suite": "holdout",
+      "format": "codex",
+      "category": "request",
+      "error": null,
+      "elapsedMs": 18368,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [
+        {
+          "title": "修复注册页验证码倒计时",
+          "stage": "requested",
+          "nextAction": "检查注册页验证码倒计时逻辑并完成修复。",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "帮忙把注册页验正码倒计时修一下。"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "anchors": [
+            [
+              "注册"
+            ],
+            [
+              "倒计时"
+            ]
+          ],
+          "stage": "requested",
+          "evidenceIds": [
+            "m1"
+          ],
+          "requestIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"修复注册页验证码倒计时\",\"stage\":\"requested\",\"nextAction\":\"检查注册页验证码倒计时逻辑并完成修复。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"帮忙把注册页验正码倒计时修一下。\"}]}]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"修复注册页验证码倒计时\",\"stage\":\"requested\",\"nextAction\":\"检查注册页验证码倒计时逻辑并完成修复。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"帮忙把注册页验正码倒计时修一下。\"}]}]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 1,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "expected": 1,
+        "predicted": 1,
+        "matchedStageCorrect": 1,
+        "matchedEvidenceComplete": 1,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "holdout-bounded-scope",
+      "suite": "holdout",
+      "format": "claude-code",
+      "category": "request",
+      "error": null,
+      "elapsedMs": 16089,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [
+        {
+          "title": "检查账单导出的金额精度",
+          "stage": "requested",
+          "nextAction": "检查账单导出中的金额精度，暂不改动其他部分。",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "只需要检查账单导出的金额精度，其他部分先别动。"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "anchors": [
+            [
+              "账单"
+            ],
+            [
+              "金额"
+            ],
+            [
+              "精度"
+            ]
+          ],
+          "stage": "requested",
+          "evidenceIds": [
+            "m1"
+          ],
+          "requestIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"检查账单导出的金额精度\",\"stage\":\"requested\",\"nextAction\":\"检查账单导出中的金额精度，暂不改动其他部分。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"只需要检查账单导出的金额精度，其他部分先别动。\"}]}]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"检查账单导出的金额精度\",\"stage\":\"requested\",\"nextAction\":\"检查账单导出中的金额精度，暂不改动其他部分。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"只需要检查账单导出的金额精度，其他部分先别动。\"}]}]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 1,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "expected": 1,
+        "predicted": 1,
+        "matchedStageCorrect": 1,
+        "matchedEvidenceComplete": 1,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "holdout-one-deliverable",
+      "suite": "holdout",
+      "format": "kimi",
+      "category": "request",
+      "error": null,
+      "elapsedMs": 19141,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [
+        {
+          "title": "编写包含部署、回滚和告警操作步骤的运维交接文档",
+          "stage": "requested",
+          "nextAction": "编写运维交接文档，并完整说明部署、回滚和告警的操作步骤。",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "写一份运维交接文档，里面包含部署、回滚和告警的操作步骤。"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "anchors": [
+            [
+              "运维"
+            ],
+            [
+              "交接"
+            ],
+            [
+              "文档"
+            ]
+          ],
+          "stage": "requested",
+          "evidenceIds": [
+            "m1"
+          ],
+          "requestIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"编写包含部署、回滚和告警操作步骤的运维交接文档\",\"stage\":\"requested\",\"nextAction\":\"编写运维交接文档，并完整说明部署、回滚和告警的操作步骤。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"写一份运维交接文档，里面包含部署、回滚和告警的操作步骤。\"}]}]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"编写包含部署、回滚和告警操作步骤的运维交接文档\",\"stage\":\"requested\",\"nextAction\":\"编写运维交接文档，并完整说明部署、回滚和告警的操作步骤。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"写一份运维交接文档，里面包含部署、回滚和告警的操作步骤。\"}]}]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 1,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "expected": 1,
+        "predicted": 1,
+        "matchedStageCorrect": 1,
+        "matchedEvidenceComplete": 1,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "holdout-just-ability",
+      "suite": "holdout",
+      "format": "generic",
+      "category": "negative",
+      "error": null,
+      "elapsedMs": 14714,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [],
+      "expected": [],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 0,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "expected": 0,
+        "predicted": 0,
+        "matchedStageCorrect": 0,
+        "matchedEvidenceComplete": 0,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "holdout-reported-past",
+      "suite": "holdout",
+      "format": "codex",
+      "category": "negative",
+      "error": null,
+      "elapsedMs": 13086,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [],
+      "expected": [],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 0,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "expected": 0,
+        "predicted": 0,
+        "matchedStageCorrect": 0,
+        "matchedEvidenceComplete": 0,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "holdout-wish",
+      "suite": "holdout",
+      "format": "claude-code",
+      "category": "negative",
+      "error": null,
+      "elapsedMs": 16457,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [],
+      "expected": [],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 0,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "expected": 0,
+        "predicted": 0,
+        "matchedStageCorrect": 0,
+        "matchedEvidenceComplete": 0,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "holdout-quote",
+      "suite": "holdout",
+      "format": "kimi",
+      "category": "negative",
+      "error": null,
+      "elapsedMs": 13643,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [],
+      "expected": [],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 0,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "expected": 0,
+        "predicted": 0,
+        "matchedStageCorrect": 0,
+        "matchedEvidenceComplete": 0,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "holdout-code",
+      "suite": "holdout",
+      "format": "generic",
+      "category": "negative",
+      "error": null,
+      "elapsedMs": 15174,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [],
+      "expected": [],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 0,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "expected": 0,
+        "predicted": 0,
+        "matchedStageCorrect": 0,
+        "matchedEvidenceComplete": 0,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "holdout-question",
+      "suite": "holdout",
+      "format": "codex",
+      "category": "negative",
+      "error": null,
+      "elapsedMs": 14874,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [],
+      "expected": [],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 0,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "expected": 0,
+        "predicted": 0,
+        "matchedStageCorrect": 0,
+        "matchedEvidenceComplete": 0,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "holdout-assistant",
+      "suite": "holdout",
+      "format": "claude-code",
+      "category": "negative",
+      "error": null,
+      "elapsedMs": 21,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "windows": 1,
+      "modelCalls": 0,
+      "truncated": false,
+      "predictions": [],
+      "expected": [],
+      "rawResponses": [],
+      "persistence": {
+        "persistedCount": 0,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "expected": 0,
+        "predicted": 0,
+        "matchedStageCorrect": 0,
+        "matchedEvidenceComplete": 0,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "holdout-decline-suggestion",
+      "suite": "holdout",
+      "format": "kimi",
+      "category": "negative",
+      "error": null,
+      "elapsedMs": 14267,
+      "parsedMessages": 2,
+      "inputMessages": 2,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [],
+      "expected": [],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 0,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "expected": 0,
+        "predicted": 0,
+        "matchedStageCorrect": 0,
+        "matchedEvidenceComplete": 0,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "holdout-tool",
+      "suite": "holdout",
+      "format": "generic",
+      "category": "negative",
+      "error": null,
+      "elapsedMs": 16,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "windows": 0,
+      "modelCalls": 0,
+      "truncated": false,
+      "predictions": [],
+      "expected": [],
+      "rawResponses": [],
+      "persistence": {
+        "persistedCount": 0,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "expected": 0,
+        "predicted": 0,
+        "matchedStageCorrect": 0,
+        "matchedEvidenceComplete": 0,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "holdout-hypothesis",
+      "suite": "holdout",
+      "format": "codex",
+      "category": "negative",
+      "error": null,
+      "elapsedMs": 16163,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [],
+      "expected": [],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 0,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "expected": 0,
+        "predicted": 0,
+        "matchedStageCorrect": 0,
+        "matchedEvidenceComplete": 0,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "holdout-accept-paraphrase",
+      "suite": "holdout",
+      "format": "claude-code",
+      "category": "progress",
+      "error": null,
+      "elapsedMs": 19993,
+      "parsedMessages": 3,
+      "inputMessages": 3,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [
+        {
+          "title": "修复头像上传失败",
+          "stage": "accepted",
+          "nextAction": "无需跟进，用户已验证修复有效并确认结束。",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "请修复头像上传失败。"
+            },
+            {
+              "messageId": "m3",
+              "quote": "我验证过了，头像上传现在没问题了，这项可以结束。"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "anchors": [
+            [
+              "头像"
+            ],
+            [
+              "上传"
+            ]
+          ],
+          "stage": "accepted",
+          "evidenceIds": [
+            "m1",
+            "m3"
+          ],
+          "requestIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"修复头像上传失败\",\"stage\":\"accepted\",\"nextAction\":\"无需跟进，用户已验证修复有效并确认结束。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"请修复头像上传失败。\"},{\"messageId\":\"e3\",\"quote\":\"我验证过了，头像上传现在没问题了，这项可以结束。\"}]}]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"修复头像上传失败\",\"stage\":\"accepted\",\"nextAction\":\"无需跟进，用户已验证修复有效并确认结束。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"请修复头像上传失败。\"},{\"messageId\":\"e3\",\"quote\":\"我验证过了，头像上传现在没问题了，这项可以结束。\"}]}]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 1,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "expected": 1,
+        "predicted": 1,
+        "matchedStageCorrect": 1,
+        "matchedEvidenceComplete": 1,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "holdout-rejected",
+      "suite": "holdout",
+      "format": "kimi",
+      "category": "progress",
+      "error": null,
+      "elapsedMs": 17555,
+      "parsedMessages": 3,
+      "inputMessages": 3,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [
+        {
+          "title": "修复邮件通知重复发送问题",
+          "stage": "in_progress",
+          "nextAction": "继续排查并修复邮件通知仍会重复发送两封的问题，完成后重新验证",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "请处理邮件通知重复发送。"
+            },
+            {
+              "messageId": "m3",
+              "quote": "我测试还会收到两封，请继续修复。"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "anchors": [
+            [
+              "邮件"
+            ],
+            [
+              "重复"
+            ]
+          ],
+          "stage": "in_progress",
+          "evidenceIds": [
+            "m1",
+            "m3"
+          ],
+          "requestIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"修复邮件通知重复发送问题\",\"stage\":\"in_progress\",\"nextAction\":\"继续排查并修复邮件通知仍会重复发送两封的问题，完成后重新验证\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"请处理邮件通知重复发送。\"},{\"messageId\":\"e3\",\"quote\":\"我测试还会收到两封，请继续修复。\"}]}]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"修复邮件通知重复发送问题\",\"stage\":\"in_progress\",\"nextAction\":\"继续排查并修复邮件通知仍会重复发送两封的问题，完成后重新验证\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"请处理邮件通知重复发送。\"},{\"messageId\":\"e3\",\"quote\":\"我测试还会收到两封，请继续修复。\"}]}]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 1,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "expected": 1,
+        "predicted": 1,
+        "matchedStageCorrect": 1,
+        "matchedEvidenceComplete": 1,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "holdout-cancel-paraphrase",
+      "suite": "holdout",
+      "format": "generic",
+      "category": "progress",
+      "error": null,
+      "elapsedMs": 14902,
+      "parsedMessages": 2,
+      "inputMessages": 2,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [
+        {
+          "title": "制作纸质邀请函",
+          "stage": "cancelled",
+          "nextAction": "无需继续准备纸质邀请函。",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "做一套纸质邀请函。"
+            },
+            {
+              "messageId": "m2",
+              "quote": "这个活动改线上了，纸质邀请函就不用准备了。"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "anchors": [
+            [
+              "纸质"
+            ],
+            [
+              "邀请函"
+            ]
+          ],
+          "stage": "cancelled",
+          "evidenceIds": [
+            "m1",
+            "m2"
+          ],
+          "requestIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"制作纸质邀请函\",\"stage\":\"cancelled\",\"nextAction\":\"无需继续准备纸质邀请函。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"做一套纸质邀请函。\"},{\"messageId\":\"e2\",\"quote\":\"这个活动改线上了，纸质邀请函就不用准备了。\"}]}]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"制作纸质邀请函\",\"stage\":\"cancelled\",\"nextAction\":\"无需继续准备纸质邀请函。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"做一套纸质邀请函。\"},{\"messageId\":\"e2\",\"quote\":\"这个活动改线上了，纸质邀请函就不用准备了。\"}]}]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 1,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "expected": 1,
+        "predicted": 1,
+        "matchedStageCorrect": 1,
+        "matchedEvidenceComplete": 1,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "holdout-delivered",
+      "suite": "holdout",
+      "format": "codex",
+      "category": "progress",
+      "error": null,
+      "elapsedMs": 18237,
+      "parsedMessages": 2,
+      "inputMessages": 2,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [
+        {
+          "title": "将打包脚本改为支持离线安装",
+          "stage": "delivered",
+          "nextAction": "等待用户确认离线安装包",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "把打包脚本改成支持离线安装。"
+            },
+            {
+              "messageId": "m2",
+              "quote": "离线安装支持已提交，请你确认安装包。"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "anchors": [
+            [
+              "离线"
+            ],
+            [
+              "安装"
+            ]
+          ],
+          "stage": "delivered",
+          "evidenceIds": [
+            "m1",
+            "m2"
+          ],
+          "requestIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"将打包脚本改为支持离线安装\",\"stage\":\"delivered\",\"nextAction\":\"等待用户确认离线安装包\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"把打包脚本改成支持离线安装。\"},{\"messageId\":\"e2\",\"quote\":\"离线安装支持已提交，请你确认安装包。\"}]}]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"将打包脚本改为支持离线安装\",\"stage\":\"delivered\",\"nextAction\":\"等待用户确认离线安装包\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"把打包脚本改成支持离线安装。\"},{\"messageId\":\"e2\",\"quote\":\"离线安装支持已提交，请你确认安装包。\"}]}]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 1,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "expected": 1,
+        "predicted": 1,
+        "matchedStageCorrect": 1,
+        "matchedEvidenceComplete": 1,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "holdout-mixed-verdict",
+      "suite": "holdout",
+      "format": "claude-code",
+      "category": "progress",
+      "error": null,
+      "elapsedMs": 19927,
+      "parsedMessages": 3,
+      "inputMessages": 3,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [
+        {
+          "title": "修复菜单键盘导航",
+          "stage": "accepted",
+          "nextAction": "无需跟进，用户已验收。",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "修复菜单键盘导航。"
+            },
+            {
+              "messageId": "m3",
+              "quote": "菜单键盘导航我验收过了；隐私说明还没写，不要混在一起。"
+            }
+          ]
+        },
+        {
+          "title": "补一份隐私说明",
+          "stage": "requested",
+          "nextAction": "撰写并交付隐私说明。",
+          "evidence": [
+            {
+              "messageId": "m2",
+              "quote": "另外补一份隐私说明。"
+            },
+            {
+              "messageId": "m3",
+              "quote": "菜单键盘导航我验收过了；隐私说明还没写，不要混在一起。"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "anchors": [
+            [
+              "菜单"
+            ],
+            [
+              "键盘"
+            ]
+          ],
+          "stage": "accepted",
+          "evidenceIds": [
+            "m1",
+            "m3"
+          ],
+          "requestIds": [
+            "m1"
+          ]
+        },
+        {
+          "anchors": [
+            [
+              "隐私"
+            ],
+            [
+              "说明"
+            ]
+          ],
+          "stage": "requested",
+          "evidenceIds": [
+            "m2",
+            "m3"
+          ],
+          "requestIds": [
+            "m2"
+          ]
+        }
+      ],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"修复菜单键盘导航\",\"stage\":\"accepted\",\"nextAction\":\"无需跟进，用户已验收。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"修复菜单键盘导航。\"},{\"messageId\":\"e3\",\"quote\":\"菜单键盘导航我验收过了；隐私说明还没写，不要混在一起。\"}]},{\"title\":\"补一份隐私说明\",\"stage\":\"requested\",\"nextAction\":\"撰写并交付隐私说明。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e2\",\"quote\":\"另外补一份隐私说明。\"},{\"messageId\":\"e3\",\"quote\":\"菜单键盘导航我验收过了；隐私说明还没写，不要混在一起。\"}]}]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"修复菜单键盘导航\",\"stage\":\"accepted\",\"nextAction\":\"无需跟进，用户已验收。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"修复菜单键盘导航。\"},{\"messageId\":\"e3\",\"quote\":\"菜单键盘导航我验收过了；隐私说明还没写，不要混在一起。\"}]},{\"title\":\"补一份隐私说明\",\"stage\":\"requested\",\"nextAction\":\"撰写并交付隐私说明。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e2\",\"quote\":\"另外补一份隐私说明。\"},{\"messageId\":\"e3\",\"quote\":\"菜单键盘导航我验收过了；隐私说明还没写，不要混在一起。\"}]}]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 2,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 2,
+        "fp": 0,
+        "fn": 0,
+        "expected": 2,
+        "predicted": 2,
+        "matchedStageCorrect": 2,
+        "matchedEvidenceComplete": 2,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          },
+          {
+            "predicted": 1,
+            "expected": 1,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "holdout-three-goals",
+      "suite": "holdout",
+      "format": "kimi",
+      "category": "multi-task",
+      "error": null,
+      "elapsedMs": 18866,
+      "parsedMessages": 1,
+      "inputMessages": 1,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [
+        {
+          "title": "更新应用安装指南",
+          "stage": "requested",
+          "nextAction": "更新应用安装指南并提交可供确认的版本。",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "请更新应用安装指南"
+            }
+          ]
+        },
+        {
+          "title": "修复搜索框输入法兼容问题",
+          "stage": "requested",
+          "nextAction": "定位并修复搜索框的输入法兼容问题，完成验证。",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "修复搜索框输入法兼容问题"
+            }
+          ]
+        },
+        {
+          "title": "联系供应商核对报价",
+          "stage": "requested",
+          "nextAction": "联系供应商核对报价，并反馈核对结果。",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "联系供应商核对报价"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "anchors": [
+            [
+              "安装"
+            ],
+            [
+              "指南"
+            ]
+          ],
+          "stage": "requested",
+          "evidenceIds": [
+            "m1"
+          ],
+          "requestIds": [
+            "m1"
+          ]
+        },
+        {
+          "anchors": [
+            [
+              "供应商"
+            ],
+            [
+              "报价"
+            ]
+          ],
+          "stage": "requested",
+          "evidenceIds": [
+            "m1"
+          ],
+          "requestIds": [
+            "m1"
+          ]
+        },
+        {
+          "anchors": [
+            [
+              "搜索"
+            ],
+            [
+              "输入法"
+            ]
+          ],
+          "stage": "requested",
+          "evidenceIds": [
+            "m1"
+          ],
+          "requestIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"更新应用安装指南\",\"stage\":\"requested\",\"nextAction\":\"更新应用安装指南并提交可供确认的版本。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"请更新应用安装指南\"}]},{\"title\":\"联系供应商核对报价\",\"stage\":\"requested\",\"nextAction\":\"联系供应商核对报价，并反馈核对结果。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"联系供应商核对报价\"}]},{\"title\":\"修复搜索框输入法兼容问题\",\"stage\":\"requested\",\"nextAction\":\"定位并修复搜索框的输入法兼容问题，完成验证。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"修复搜索框输入法兼容问题\"}]}]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"更新应用安装指南\",\"stage\":\"requested\",\"nextAction\":\"更新应用安装指南并提交可供确认的版本。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"请更新应用安装指南\"}]},{\"title\":\"联系供应商核对报价\",\"stage\":\"requested\",\"nextAction\":\"联系供应商核对报价，并反馈核对结果。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"联系供应商核对报价\"}]},{\"title\":\"修复搜索框输入法兼容问题\",\"stage\":\"requested\",\"nextAction\":\"定位并修复搜索框的输入法兼容问题，完成验证。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"修复搜索框输入法兼容问题\"}]}]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 3,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 3,
+        "fp": 0,
+        "fn": 0,
+        "expected": 3,
+        "predicted": 3,
+        "matchedStageCorrect": 3,
+        "matchedEvidenceComplete": 3,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          },
+          {
+            "predicted": 2,
+            "expected": 1,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          },
+          {
+            "predicted": 1,
+            "expected": 2,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "holdout-adoption",
+      "suite": "holdout",
+      "format": "generic",
+      "category": "context",
+      "error": null,
+      "elapsedMs": 18410,
+      "parsedMessages": 2,
+      "inputMessages": 2,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [
+        {
+          "title": "在导入失败弹窗添加复制错误信息按钮",
+          "stage": "requested",
+          "nextAction": "在导入失败弹窗中实现复制错误信息按钮。",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "建议在导入失败弹窗加一个复制错误信息的按钮。"
+            },
+            {
+              "messageId": "m2",
+              "quote": "采纳，就做你说的这个复制按钮。"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "anchors": [
+            [
+              "复制"
+            ],
+            [
+              "错误"
+            ]
+          ],
+          "stage": "requested",
+          "evidenceIds": [
+            "m1",
+            "m2"
+          ],
+          "requestIds": [
+            "m2"
+          ]
+        }
+      ],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"在导入失败弹窗添加复制错误信息按钮\",\"stage\":\"requested\",\"nextAction\":\"在导入失败弹窗中实现复制错误信息的按钮。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"建议在导入失败弹窗加一个复制错误信息的按钮。\"},{\"messageId\":\"e2\",\"quote\":\"采纳，就做你说的这个复制按钮。\"}]}]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"在导入失败弹窗添加复制错误信息按钮\",\"stage\":\"requested\",\"nextAction\":\"在导入失败弹窗中实现复制错误信息按钮。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"建议在导入失败弹窗加一个复制错误信息的按钮。\"},{\"messageId\":\"e2\",\"quote\":\"采纳，就做你说的这个复制按钮。\"}]}]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 1,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "expected": 1,
+        "predicted": 1,
+        "matchedStageCorrect": 1,
+        "matchedEvidenceComplete": 1,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "holdout-reworded-repeat",
+      "suite": "holdout",
+      "format": "codex",
+      "category": "context",
+      "error": null,
+      "elapsedMs": 17505,
+      "parsedMessages": 2,
+      "inputMessages": 2,
+      "windows": 1,
+      "modelCalls": 2,
+      "truncated": false,
+      "predictions": [
+        {
+          "title": "整理设备采购清单",
+          "stage": "requested",
+          "nextAction": "整理设备采购清单。",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "我来整理设备采购清单。"
+            },
+            {
+              "messageId": "m2",
+              "quote": "设备采购那份清单还是由我负责整理，没有新增工作。"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "anchors": [
+            [
+              "设备"
+            ],
+            [
+              "采购"
+            ],
+            [
+              "清单"
+            ]
+          ],
+          "stage": "requested",
+          "evidenceIds": [
+            "m1",
+            "m2"
+          ],
+          "requestIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"整理设备采购清单\",\"stage\":\"requested\",\"nextAction\":\"整理设备采购清单。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"我来整理设备采购清单。\"},{\"messageId\":\"e2\",\"quote\":\"设备采购那份清单还是由我负责整理，没有新增工作。\"}]}]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"整理设备采购清单\",\"stage\":\"requested\",\"nextAction\":\"整理设备采购清单。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"我来整理设备采购清单。\"},{\"messageId\":\"e2\",\"quote\":\"设备采购那份清单还是由我负责整理，没有新增工作。\"}]}]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 1,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "expected": 1,
+        "predicted": 1,
+        "matchedStageCorrect": 1,
+        "matchedEvidenceComplete": 1,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "holdout-middle-goal",
+      "suite": "holdout",
+      "format": "claude-code",
+      "category": "context",
+      "error": null,
+      "elapsedMs": 33818,
+      "parsedMessages": 91,
+      "inputMessages": 91,
+      "windows": 2,
+      "modelCalls": 4,
+      "truncated": false,
+      "predictions": [
+        {
+          "title": "核对客户合同中的交货地址",
+          "stage": "requested",
+          "nextAction": "核对客户合同所列的交货地址是否正确。",
+          "evidence": [
+            {
+              "messageId": "m46",
+              "quote": "请核对客户合同中的交货地址。"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "anchors": [
+            [
+              "合同"
+            ],
+            [
+              "交货"
+            ],
+            [
+              "地址"
+            ]
+          ],
+          "stage": "requested",
+          "evidenceIds": [
+            "m46"
+          ],
+          "requestIds": [
+            "m46"
+          ]
+        }
+      ],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"核对客户合同中的交货地址\",\"stage\":\"requested\",\"nextAction\":\"核对客户合同所列的交货地址是否正确。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e46\",\"quote\":\"请核对客户合同中的交货地址。\"}]}]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"核对客户合同中的交货地址\",\"stage\":\"requested\",\"nextAction\":\"核对客户合同所列的交货地址是否正确。\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e46\",\"quote\":\"请核对客户合同中的交货地址。\"}]}]}"
+        },
+        {
+          "window": 2,
+          "output": "{\"tasks\":[]}"
+        },
+        {
+          "window": 2,
+          "output": "{\"tasks\":[]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 1,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "expected": 1,
+        "predicted": 1,
+        "matchedStageCorrect": 1,
+        "matchedEvidenceComplete": 1,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    },
+    {
+      "id": "holdout-distant-acceptance",
+      "suite": "holdout",
+      "format": "kimi",
+      "category": "context",
+      "error": null,
+      "elapsedMs": 33454,
+      "parsedMessages": 72,
+      "inputMessages": 72,
+      "windows": 2,
+      "modelCalls": 4,
+      "truncated": false,
+      "predictions": [
+        {
+          "title": "修复附件预览打不开的问题",
+          "stage": "accepted",
+          "nextAction": "无需后续行动，用户已验收通过",
+          "existingTaskId": "c32feb7e-a4fa-4178-aca2-29a67b3b879d",
+          "evidence": [
+            {
+              "messageId": "m1",
+              "quote": "请修复附件预览打不开的问题。"
+            },
+            {
+              "messageId": "m72",
+              "quote": "附件预览的问题我已经验收通过。"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "anchors": [
+            [
+              "附件"
+            ],
+            [
+              "预览"
+            ]
+          ],
+          "stage": "accepted",
+          "evidenceIds": [
+            "m1",
+            "m72"
+          ],
+          "requestIds": [
+            "m1"
+          ]
+        }
+      ],
+      "rawResponses": [
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"修复附件预览打不开的问题\",\"stage\":\"requested\",\"nextAction\":\"排查附件预览无法打开的原因并完成修复和验证\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"请修复附件预览打不开的问题。\"}]}]}"
+        },
+        {
+          "window": 1,
+          "output": "{\"tasks\":[{\"title\":\"修复附件预览打不开的问题\",\"stage\":\"requested\",\"nextAction\":\"排查附件预览无法打开的原因并完成修复和验证\",\"existingTaskId\":null,\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"请修复附件预览打不开的问题。\"}]}]}"
+        },
+        {
+          "window": 2,
+          "output": "{\"tasks\":[{\"title\":\"修复附件预览打不开的问题\",\"stage\":\"accepted\",\"nextAction\":\"无需后续行动，用户已验收通过\",\"existingTaskId\":\"c32feb7e-a4fa-4178-aca2-29a67b3b879d\",\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"请修复附件预览打不开的问题。\"},{\"messageId\":\"e72\",\"quote\":\"附件预览的问题我已经验收通过。\"}]}]}"
+        },
+        {
+          "window": 2,
+          "output": "{\"tasks\":[{\"title\":\"修复附件预览打不开的问题\",\"stage\":\"accepted\",\"nextAction\":\"无需后续行动，用户已验收通过\",\"existingTaskId\":\"c32feb7e-a4fa-4178-aca2-29a67b3b879d\",\"evidence\":[{\"messageId\":\"e1\",\"quote\":\"请修复附件预览打不开的问题。\"},{\"messageId\":\"e72\",\"quote\":\"附件预览的问题我已经验收通过。\"}]}]}"
+        }
+      ],
+      "persistence": {
+        "persistedCount": 1,
+        "replayStable": true,
+        "candidateOnly": true,
+        "noAutomaticCompletion": true,
+        "ruleCreatedTasks": 0
+      },
+      "score": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "expected": 1,
+        "predicted": 1,
+        "matchedStageCorrect": 1,
+        "matchedEvidenceComplete": 1,
+        "invalidEvidence": 0,
+        "duplicates": 0,
+        "exact": true,
+        "matches": [
+          {
+            "predicted": 0,
+            "expected": 0,
+            "stageCorrect": true,
+            "evidenceComplete": true
+          }
+        ],
+        "missed": [],
+        "extra": []
+      },
+      "repetition": 1
+    }
+  ]
+}

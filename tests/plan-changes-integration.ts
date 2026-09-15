@@ -1,3 +1,4 @@
+import { commitHistoricalFixture } from './fixtures/legacy-rule-task'
 import { openStore } from '@memo/storage'
 import { prepareEventProcessing } from '@memo/application'
 import type { SourceEvent } from '@memo/contracts'
@@ -74,7 +75,9 @@ try {
       const lease = store.processing.claim()
       if (!lease) return
       const c = store.processing.load(lease)!
-      store.processing.commit(
+      commitHistoricalFixture(
+        store,
+        path,
         lease,
         c,
         prepareEventProcessing({
@@ -343,5 +346,12 @@ try {
 } finally {
   raw.close()
   store.close()
-  try { rmSync(root, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 }) } catch {}
+  try {
+    rmSync(root, {
+      recursive: true,
+      force: true,
+      maxRetries: 10,
+      retryDelay: 200,
+    })
+  } catch {}
 }

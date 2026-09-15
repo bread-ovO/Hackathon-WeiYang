@@ -1,3 +1,4 @@
+import { commitHistoricalFixture } from './fixtures/legacy-rule-task'
 import { prepareEventProcessing } from '@memo/application'
 import { openStore } from '@memo/storage'
 import { mkdtempSync, rmSync } from 'node:fs'
@@ -218,7 +219,9 @@ try {
     const lease = store.processing.claim()
     if (!lease) break
     const context = store.processing.load(lease)!
-    store.processing.commit(
+    commitHistoricalFixture(
+      store,
+      file,
       lease,
       context,
       prepareEventProcessing({
@@ -300,5 +303,12 @@ try {
 } finally {
   raw.close()
   store.close()
-  try { rmSync(root, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 }) } catch {}
+  try {
+    rmSync(root, {
+      recursive: true,
+      force: true,
+      maxRetries: 10,
+      retryDelay: 200,
+    })
+  } catch {}
 }

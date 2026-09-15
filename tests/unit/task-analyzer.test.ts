@@ -100,3 +100,54 @@ it('bounds requests even when the transport ignores cancellation', async () => {
     vi.useRealTimers()
   }
 })
+
+it('reviews an incomplete draft against the original messages before returning tasks', async () => {
+  const transport = vi
+    .fn()
+    .mockResolvedValueOnce('{"tasks":[]}')
+    .mockImplementationOnce(async (request) => {
+      expect(JSON.parse(request.messages[1].content)).toMatchObject({
+        messages,
+        draft: '{"tasks":[]}',
+      })
+      return JSON.stringify(output)
+    })
+  expect(
+    await analyzeTasks({
+      messages,
+      transport,
+      signal: new AbortController().signal,
+    }),
+  ).toEqual(output)
+  expect(transport).toHaveBeenCalledTimes(2)
+})
+it('rejects a target not supplied in source-backed task memory', async () => {
+  await expect(
+    analyzeTasks({
+      messages,
+      transport: async () =>
+        JSON.stringify({
+          tasks: [{ ...output.tasks[0], existingTaskId: 'foreign' }],
+        }),
+      signal: new AbortController().signal,
+    }),
+  ).rejects.toThrow('INVALID_TASK_ANALYSIS')
+})
+it('validates the reviewed result even if the draft was valid', async () => {
+  const transport = vi
+    .fn()
+    .mockResolvedValueOnce(JSON.stringify(output))
+    .mockResolvedValueOnce(
+      JSON.stringify({
+        tasks: [
+          {
+            ...output.tasks[0],
+            evidence: [{ messageId: 'm1', quote: 'invented' }],
+          },
+        ],
+      }),
+    )
+  await expect(
+    analyzeTasks({ messages, transport, signal: new AbortController().signal }),
+  ).rejects.toThrow('INVALID_TASK_ANALYSIS')
+})

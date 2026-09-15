@@ -1,7 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { parseSourceEvent } from '../../packages/contracts/src/index'
 import { prepareEventProcessing } from '../../packages/application/src/event-processing'
-import { extractExplicitCommitments } from '../../packages/domain/src/commitment'
 const event = {
   schemaVersion: 1 as const,
   sourceInstanceId: 's',
@@ -57,13 +56,6 @@ describe('explicit event retraction', () => {
       expect(() =>
         parseSourceEvent({ ...event, operation: 'retract', text }),
       ).toThrow('INVALID_SOURCE_EVENT')
-      expect(() =>
-        extractExplicitCommitments({
-          text,
-          operation: 'retract',
-          role: 'user',
-        }),
-      ).toThrow('INVALID_COMMITMENT_INPUT')
     },
   )
   it('does not treat empty content or body keywords as an operation', () => {

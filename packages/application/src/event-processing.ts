@@ -1,17 +1,16 @@
 import { parseSourceEvent, type SourceEvent } from '@memo/contracts'
-import {
-  EXPLICIT_COMMITMENT_VERSION,
-  extractExplicitCommitments,
-  parseContextTimestamp,
-  type ExplicitCommitmentResult,
-} from '@memo/domain'
+import { parseContextTimestamp } from '@memo/domain'
 export interface EventProcessingInput {
   event: SourceEvent
   eventId: number
   projectId: string
 }
-export interface PreparedEventProcessing extends ExplicitCommitmentResult {
-  version: typeof EXPLICIT_COMMITMENT_VERSION
+export const SOURCE_OBSERVATION_VERSION = 'source-observation-v3' as const
+export interface PreparedEventProcessing {
+  version: typeof SOURCE_OBSERVATION_VERSION
+  outcome: 'ignored' | 'needs_review'
+  reason: 'model_required' | 'source_retracted'
+  candidates: never[]
   eventId: number
   projectId: string
   sourceInstanceId: string
@@ -44,17 +43,15 @@ export function prepareEventProcessing(
   // A known occurrence instant is required; relative deadlines remain unspecified.
   parseContextTimestamp(event.occurredAt)
   return {
-    version: EXPLICIT_COMMITMENT_VERSION,
+    version: SOURCE_OBSERVATION_VERSION,
     eventId: input.eventId,
     projectId: input.projectId,
     sourceInstanceId: event.sourceInstanceId,
     externalId: event.externalId,
     revision: event.revision,
-    ...extractExplicitCommitments({
-      text: event.text,
-      occurredAt: event.occurredAt,
-      role: event.role,
-      ...(event.operation ? { operation: event.operation } : {}),
-    }),
+    outcome: event.operation === 'retract' ? 'needs_review' : 'ignored',
+    reason:
+      event.operation === 'retract' ? 'source_retracted' : 'model_required',
+    candidates: [],
   }
 }

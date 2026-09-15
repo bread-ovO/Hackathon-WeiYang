@@ -38,6 +38,7 @@ parentPort.on('message', async ({ data }) => {
   let reply: CoreReply<unknown>
   try {
     const request = parseHostRequest(data.request)
+    if (request.method === 'processing.configure' && !request.enabled) analysis.cancel()
     if (request.method.startsWith('pet.')) throw new Error('INVALID_REQUEST')
     reply = {
       ok: true,

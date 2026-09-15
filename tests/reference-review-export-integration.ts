@@ -1,3 +1,4 @@
+import { commitHistoricalFixture } from './fixtures/legacy-rule-task'
 import { openStore, type StoredTask } from '@memo/storage'
 import { prepareEventProcessing } from '@memo/application'
 import type { SourceEvent } from '@memo/contracts'
@@ -50,7 +51,9 @@ try {
   ingest('1', event.text)
   const job = store.processing.claim()!,
     context = store.processing.load(job)!
-  const taskId = store.processing.commit(
+  const taskId = commitHistoricalFixture(
+    store,
+    join(root, 'fixture.sqlite'),
     job,
     context,
     prepareEventProcessing({
@@ -215,5 +218,12 @@ try {
   )
 } finally {
   store.close()
-  try { rmSync(root, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 }) } catch {}
+  try {
+    rmSync(root, {
+      recursive: true,
+      force: true,
+      maxRetries: 10,
+      retryDelay: 200,
+    })
+  } catch {}
 }

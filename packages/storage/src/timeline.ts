@@ -610,9 +610,11 @@ export function createTimeline(db: Database.Database) {
         r.resultProject !== projectId ||
         r.resultOutcome !== r.outcome ||
         r.resultReason !== r.reason ||
-        !['explicit-commitment-v1', 'explicit-commitment-v2'].includes(
-          String(r.rule_version),
-        )
+        ![
+          'explicit-commitment-v1',
+          'explicit-commitment-v2',
+          'source-observation-v3',
+        ].includes(String(r.rule_version))
       )
         fail()
       one(r.outcome, ['created', 'review_required'])

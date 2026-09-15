@@ -6,9 +6,9 @@ import {
   parseSourceManifest,
 } from '../../packages/plugin-host/src/manifest'
 import { readLocalJsonl } from '../../packages/plugin-host/src/local-jsonl'
-import { extractExplicitCommitments } from '../../packages/domain/src/commitment'
+import { prepareEventProcessing } from '../../packages/application/src/event-processing'
 
-it('published schema and installable guide example match runtime, produce a cited commitment and reject scope escape', async () => {
+it('published schema and installable guide example match runtime, preserve source text for the model and reject scope escape', async () => {
   const schema = JSON.parse(
     await readFile('docs/plugins/source-manifest.schema.json', 'utf8'),
   )
@@ -32,11 +32,11 @@ it('published schema and installable guide example match runtime, produce a cite
     role: 'user',
     text: '我会提交发布检查报告。',
   })
-  const candidate = extractExplicitCommitments(first).candidates[0]!
-  expect(first.text.slice(candidate.quoteStart, candidate.quoteEnd)).toBe(
-    '我会提交发布检查报告。',
-  )
-  expect(extractExplicitCommitments(batch.events[1]!).candidates).toEqual([])
+  for (const [i, event] of batch.events.entries())
+    expect(
+      prepareEventProcessing({ event, eventId: i + 1, projectId: 'guide' })
+        .candidates,
+    ).toEqual([])
   expect(() =>
     parseSourceManifest({
       ...manifest,

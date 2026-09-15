@@ -7,7 +7,7 @@ import {
   callModelApi,
 } from '../../apps/desktop/src/main/task-api-provider'
 import {
-  taskAnalysisSchema,
+  taskExtractionSchema,
   parseCoreRequest,
   parseHostRequest,
   type ModelConfig,
@@ -29,7 +29,7 @@ const config: ModelConfig = {
 }
 const input = {
   messages: [{ role: 'user' as const, content: 'synthetic' }],
-  schema: taskAnalysisSchema,
+  schema: taskExtractionSchema,
   signal: new AbortController().signal,
 }
 const response = {

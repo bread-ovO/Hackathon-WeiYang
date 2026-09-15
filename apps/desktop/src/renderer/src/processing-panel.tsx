@@ -4,7 +4,7 @@ import type { ProcessingStatus } from '@memo/contracts'
 import { AppButton } from './ui'
 const labels = {
   idle: '等待新记录',
-  running: '正在整理',
+  running: '正在处理记录',
   paused: '已暂停',
   error: '处理需要检查',
 } as const
@@ -62,8 +62,15 @@ export function ProcessingPanel() {
     }
   }
   return (
-    <section className="source-import" aria-label="本地候选整理">
-<div className="connection-label"><h2>本地候选整理</h2><HelpTip label="本地候选整理说明">自动整理已授权收录的记录，只按有限规则提取明确承诺，生成待确认候选。全程在本机运行，不联网推理，不修改已收录事项或自动标记完成。 默认开启。暂停会停止后续处理，已生成的候选与原文引用保留。</HelpTip></div>
+    <section className="source-import" aria-label="后台整理">
+      <div className="connection-label">
+        <h2>后台整理</h2>
+        <HelpTip label="后台整理说明">
+          已授权记录通过启用的 AI
+          模型提取并复核任务，带原文来源进入待确认清单。暂停会停止后续整理并取消正在运行的分析，已有任务保留。下方计数表示记录接收处理进度，AI
+          分析状态在跟进页查看。
+        </HelpTip>
+      </div>
       <div className="source-import-actions">
         <strong>{status ? labels[status.state] : '正在读取状态…'}</strong>
         <AppButton disabled={!status || busy} onClick={() => void configure()}>
@@ -75,9 +82,8 @@ export function ProcessingPanel() {
       </div>
       {status && (
         <p>
-          待处理 {status.pendingCount} · 已处理 {status.processedCount} ·
-          已生成候选（累计）{status.candidateCount} · 待复核记录（历史累计）{' '}
-          {status.reviewRequiredCount}
+          待处理 {status.pendingCount} · 已处理记录 {status.processedCount} ·
+          待复核记录（历史累计） {status.reviewRequiredCount}
         </p>
       )}
       {status && status.reviewRequiredCount > 0 && (

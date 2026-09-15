@@ -1,3 +1,4 @@
+import { commitHistoricalFixture } from './fixtures/legacy-rule-task'
 import { openStore, type StoredTask } from '@memo/storage'
 import { prepareEventProcessing } from '@memo/application'
 import type { SourceEvent } from '@memo/contracts'
@@ -36,7 +37,9 @@ try {
   store.sources.receiveBatch(source.id, source.grantVersion, [event], '1', '')
   const job = store.processing.claim()!
   const context = store.processing.load(job)!
-  const result = store.processing.commit(
+  const result = commitHistoricalFixture(
+    store,
+    path,
     job,
     context,
     prepareEventProcessing({
@@ -123,7 +126,9 @@ try {
   store.processing.setEnabled(true)
   const retractJob = store.processing.claim()!
   const retractContext = store.processing.load(retractJob)!
-  store.processing.commit(
+  commitHistoricalFixture(
+    store,
+    path,
     retractJob,
     retractContext,
     prepareEventProcessing({
@@ -173,5 +178,12 @@ try {
   )
 } finally {
   store.close()
-  try { rmSync(root, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 }) } catch {}
+  try {
+    rmSync(root, {
+      recursive: true,
+      force: true,
+      maxRetries: 10,
+      retryDelay: 200,
+    })
+  } catch {}
 }

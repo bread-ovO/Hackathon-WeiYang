@@ -4,7 +4,6 @@ import { createPlanChanges } from './plan-changes'
 import { eventMetadataFields } from './event-metadata'
 import { getSourceStatus } from './source-status'
 import type Database from 'better-sqlite3'
-import { randomUUID } from 'node:crypto'
 import { isDeepStrictEqual } from 'node:util'
 import { parseSourceEvent, type SourceEvent } from '@memo/contracts'
 import {
@@ -22,7 +21,6 @@ import {
 import { createRevisionReview } from './revision-review'
 import { createRetractions } from './retractions'
 import { createTaskModel } from './task-model'
-import { createCandidateSearch, projectionTerms } from './search'
 export interface ProcessingContext {
   eventId: number
   projectId: string
@@ -58,8 +56,7 @@ export function migrateProcessing(db: Database.Database) {
 }
 export function createProcessing(db: Database.Database) {
   const jobs = createJobQueue(db),
-    tasks = createTaskModel(db),
-    search = createCandidateSearch(db)
+    tasks = createTaskModel(db)
   const enabled = () =>
     (
       db
@@ -204,7 +201,15 @@ export function createProcessing(db: Database.Database) {
         if (
           !actual ||
           !isDeepStrictEqual(actual, input) ||
-          !isDeepStrictEqual(JSON.parse(prior.payload), proposal)
+          (!isDeepStrictEqual(JSON.parse(prior.payload), proposal) &&
+            !isDeepStrictEqual(
+              prepareEventProcessing({
+                event: actual.event,
+                eventId: actual.eventId,
+                projectId: actual.projectId,
+              }),
+              proposal,
+            ))
         )
           throw Error('PROCESSING_SOURCE_CHANGED')
         return {
@@ -226,7 +231,6 @@ export function createProcessing(db: Database.Database) {
         throw Error('INVALID_PROCESSING_PROPOSAL')
       const delivery = createDelivery(db)
       delivery.observe(actual.projectId, actual.eventId)
-      const deliveryMatch = delivery.associatedTaskIds(actual.projectId, actual.eventId).length > 0
       const origin = db
         .prepare(
           'SELECT DISTINCT task_id AS id FROM processing_origins WHERE project_id=? AND source_id=? AND external_id=?',
@@ -272,54 +276,11 @@ export function createProcessing(db: Database.Database) {
       const outcome =
         retraction || origin.length || proposal.outcome === 'needs_review'
           ? 'review_required'
-          : proposal.outcome === 'candidates' && !deliveryMatch
-            ? 'created'
-            : 'ignored'
+          : 'ignored'
       const ids = origin.map((row) => row.id),
         time = at(now)
-      if (outcome === 'created')
-        for (const candidate of proposal.candidates) {
-          const id = randomUUID()
-          ids.push(id)
-          db.prepare(
-            "INSERT INTO tasks(id,project_id,title,status,evidence_status,version,manual_version,admission,criteria_version,due_at) VALUES(?,?,?,'todo','unknown',1,0,'candidate',0,?)",
-          ).run(id, actual.projectId, candidate.title, candidate.dueAt)
-          db.prepare('INSERT INTO processing_origins VALUES(?,?,?,?,?)').run(
-            actual.projectId,
-            actual.event.sourceInstanceId,
-            actual.event.externalId,
-            candidate.key,
-            id,
-          )
-          db.prepare(
-            'INSERT INTO processing_evidence(project_id,task_id,event_id,quote_start,quote_end,quote) VALUES(?,?,?,?,?,?)',
-          ).run(
-            actual.projectId,
-            id,
-            actual.eventId,
-            candidate.quoteStart,
-            candidate.quoteEnd,
-            actual.event.text.slice(candidate.quoteStart, candidate.quoteEnd),
-          )
-          const task = tasks.get(actual.projectId, id)!
-          db.prepare(
-            'INSERT INTO task_revisions(task_id,version,decision_id,snapshot) VALUES(?,1,NULL,?)',
-          ).run(id, JSON.stringify(task))
-          const projection = {
-            projectId: actual.projectId,
-            candidateId: id,
-            title: candidate.title,
-            text: '',
-            codeIdentifiers: [],
-          }
-          search.upsert(projection)
-          const row = db
-            .prepare('SELECT rowid AS id FROM tasks WHERE id=?')
-            .get(id) as { id: number }
-          db.prepare(
-            'INSERT INTO task_listing_fts(rowid,terms) VALUES(?,?)',
-          ).run(row.id, projectionTerms(projection))
-        }
+      // Source observation updates provenance/retractions only. New task
+      // creation is exclusively performed by validated model discovery.
       createRevisionReview(db).observe(actual.projectId, actual.eventId)
       db.prepare(
         'INSERT INTO processing_results VALUES(?,?,?,?,?,?,?,?,?,?,?)',

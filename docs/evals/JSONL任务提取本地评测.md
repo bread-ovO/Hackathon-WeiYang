@@ -1,87 +1,78 @@
 # JSONL 任务提取本地评测
 
-这套评测回答“授权读取 JSONL 后，真正应该跟进的任务有多少进入清单，是否漏项、误建或重复”，并把模型建议与最终入库结果分开。测试仅使用仓库中的虚构会话，所有数据库隔离在临时目录；不扫描个人会话，也不读取或复制模型登录凭据。
+这套评测检查：授权读取 JSONL 后，该跟进的任务是否进入清单，是否漏项、误收、重复，以及阶段和原文依据是否正确。所有输入均为仓库中的合成会话，数据库、JSONL 和 CLI 工作目录独立隔离；不扫描个人会话，不读取或复制登录凭据。
 
-本次实测见 [2026-09-15 结果与问题清单](JSONL提取基线_2026-09-15.md)。
+当前实现统一走真实模型，已删除规则提取选项。历史数据保留在 [旧基线与问题清单](JSONL提取基线_2026-09-15.md)；当前结果见 [真实模型提取修复评测](真实模型提取修复评测_2026-09-15.md)，实现见 [分段提取与复核](../engineering/真实模型任务提取与分段复核_2026-09-15.md)。
 
-## 固定基准
+## 数据集与独立性
 
-`tests/fixtures/extraction/corpus.ts` 标注 60 个会话、49 个任务。四种格式各 15 个：普通 JSONL、Codex rollout、Claude Code session、Kimi Wire。运行时生成可直接检查的 `.jsonl` 文件，保留消息角色、顺序和引用 ID，经生产 `readLocalJsonl` 与对应 mapper 解析。
+- `tests/fixtures/extraction/corpus.ts`：原有 60 个会话、49 个目标。普通 JSONL、Codex、Claude Code、Kimi 各 15 个，涵盖承诺、指令、多目标、进展、无任务与上下文。
+- `tests/fixtures/extraction/holdout.ts`：修复前补充固定的 40 个验证会话、33 个目标，四种格式各 10 个。包含新措辞、否定、引用、独立目标、采纳建议、长会话及远距离验收。
 
-| 分类 | 会话数 | 主要检验 |
-| --- | ---: | --- |
-| 明确承诺 | 16 | 第一人称、口语、项目符号、中文时间、英文 |
-| 用户指令 | 8 | 祈使句、委婉请求、问句形式的行动要求 |
-| 多个目标 | 4 | 独立交付拆分、同一消息中的多个任务 |
-| 进展与完成 | 8 | 交付与验收区分、驳回、取消、部分完成、验收范围 |
-| 无任务对照 | 16 | 寒暄、知识询问、假设、引用、代码块、第三人称、工具输出 |
-| 上下文 | 8 | 继续、采纳建议、重复表达、双语、长会话截断 |
+原 60 例和评分器保持不变。基于其失败案例调整生产提示词与处理逻辑，不修改标注，不删除难例，不用选择性重试拼出好成绩。40 例也由开发代理编写，未经独立人工标注，属于额外合成验证集，不能视为真实用户留出集。若根据该集调参，应将其列为回归集，并另建独立验证集。
 
-标注与评分规则在运行前固定，没有按模型输出改写提示词或删除失败样本。这是开发基准，尚未经过独立人员标注，不能等同真实用户分布或产品上线准确率。格式分组使用不同会话内容，不能用组间差值断言哪个格式解析得更准；解析一致性由独立 round-trip 测试检查。
-
-定稿时补正了辅助重复计数的边界：只有已找到目标的多余预测，且引用真实原文，才记为重复；虚构引用单列为错误。用保存的原始预测回算后，本轮所有得分和重复计数均未改变。
+格式分组使用不同内容，组间分数不代表解析器孰优；生产 mapper 的逐字、角色与 ID 一致性另由 round-trip 单元测试验证。
 
 ## 运行
 
 ```sh
-# 不调用模型：完整规则基线
-pnpm eval:extract --output test-results/extraction/rules
+# 原 60 例、新 40 例、全部 100 例
+pnpm eval:extract --live --suite baseline --output test-results/extraction/baseline
+pnpm eval:extract --live --suite holdout --output test-results/extraction/holdout
+pnpm eval:extract --live --suite all --output test-results/extraction/all
 
-# 已安装并登录的 Codex：真实模型 + 规则的实际入列结果
-pnpm eval:extract --provider codex-cli --live --output test-results/extraction/codex
+# 单例定位与完整重复运行；每轮分别报告
+pnpm eval:extract --live --case request-fix
+pnpm eval:extract --live --suite all --repeat 2
 
-# 可切换 Claude CLI；模型名可显式指定，否则记录为 CLI 默认模型
-pnpm eval:extract --provider claude-cli --live --model <模型名>
+# Claude CLI；不指定模型时如实记录为 CLI 默认
+pnpm eval:extract --provider claude-cli --live --suite all --model <模型名>
 
-# Responses / Chat Completions 使用专门的评测环境变量，不读取应用凭据库
-# 先在当前终端配置 BUGU_EVAL_API_KEY，不要将密钥写进命令或报告
-pnpm eval:extract --provider responses --live --base-url https://api.openai.com/v1 --model <模型名>
-pnpm eval:extract --provider chat-completions --live --base-url https://api.openai.com/v1 --model <模型名>
-
-# 子集调试、重复运行（每轮单独计分，不挑最好的一次）
-pnpm eval:extract --provider codex-cli --live --case request-fix
-pnpm eval:extract --provider codex-cli --live --repeat 3
+# API 仅使用评测专用 BUGU_EVAL_API_KEY 环境变量；不要将密钥写入命令或报告
+pnpm eval:extract --provider responses --live --suite all --base-url https://api.openai.com/v1 --model <模型名>
+pnpm eval:extract --provider chat-completions --live --suite all --base-url https://api.openai.com/v1 --model <模型名>
 ```
 
-全局没有 pnpm 时使用 `npx --yes pnpm@10.34.5`。模型评测必须显式提供 `--live`，每次最多 60 个会话、3 轮，单次模型调用沿用生产的 60 秒上限。连续 3 个模型失败后不再发请求，剩余案例标记未运行，不包装成正确的空结果。CLI 由自身处理既有登录；评测使用与产品相同的临时目录、无会话持久化、禁工具参数。命令行 API 模式只接受评测专用环境变量中的 key。
+没有全局 pnpm 时使用 `npx --yes pnpm@10.34.5`。必须显式 `--live`；默认提供方为 Codex CLI。每次至多 100 例、3 轮。`--target` 默认 0.99。子集报告带 `subset: true`，子集达标不能解释为完整集达标。
 
-输出目录包含：
+每段真实模型提取、复核各一次，合计共用 60 秒超时。连续 3 次模型失败后停止后续请求，未运行案例留在分母。纯工具或助手记录没有可分析的用户上下文时不请求模型；不把它们算成模型调用。CLI 自行处理已有登录，调用使用临时工作目录、禁工具、禁规则加载和不持久会话参数。
 
-- `fixtures/*.jsonl`：实际读取的合成记录。
-- `report.json`：每个案例的预期目标、预测、引用、匹配、漏项、误项、原始模型响应、错误、耗时、上下文截断、入库幂等检查；另存语料 SHA-256、协议版本、源代码哈希和请求模型标识。
-- `report.md`：可阅读的结果摘要与失败清单。
+`report.json` 保存每例预期、预测、引用、阶段、原始模型回复、错误、耗时、窗口数、实际调用数、幂等和人工状态保护结果，另存语料及代码哈希。`report.md` 汇总结果；`fixtures/*.jsonl` 为实际读取的输入。CLI 未暴露实际路由模型名，报告只记录 CLI 版本和请求模型标识，不猜测服务端模型。
 
-模型适配器未暴露实际路由后的模型名称，因此默认运行只报告“Codex CLI 默认模型”和 CLI 版本，不猜测具体模型。请求模型名也不代表已独立核实服务端路由。
+## 计分与 99% 门槛
 
-## 计分口径
+真正计分的是生产 `readLocalJsonl → source observation → analyzeTasks → discover → SQLite 任务` 链路，包含两遍真实模型、结构校验、原文校验和最终入库。脚本先确认来源处理没有创建任何规则任务，再遍历全部会话片段，并重放写入和游标检查幂等。
 
-任务预测必须匹配预先标注的目标词组，并且引用原请求的消息 ID 与逐字原文。使用一对一最大匹配：两个重复预测不能算成两个正确任务，一条合并预测也不能同时满足两个独立任务。
+任务必须命中运行前标注的目标词组，并引用原请求消息 ID 和逐字原文。一对一最大匹配保证：重复预测只算一个正确任务，合并了两个独立任务的预测也只能匹配一个。
 
-- **精确率**：TP / (TP + FP)，衡量收进来的任务有多少正确。
-- **召回率**：TP / (TP + FN)，衡量应该收录的任务找到了多少。
-- **F1**：两者的综合指标。未输出任何任务时精确率为 N/A，不写成 100%。
-- **会话完全正确率**：没有漏项和多项，阶段与后续依据也全部符合标注。空白/失败响应不能算无任务案例通过。
-- **阶段与依据覆盖**：只在匹配上的任务中统计，不能用它掩盖漏掉的任务。
-- **错误与上下文覆盖**：记录模型失败、未运行和截断，不移出总案例数。
+| 指标 | 口径 |
+| --- | --- |
+| 精确率 | TP / (TP + FP)：收进来的任务有多少正确 |
+| 召回率 | TP / (TP + FN)：应该收录的任务找到多少 |
+| F1 | 精确率与召回率的调和平均 |
+| 会话完全正确 | 无漏项、无多项，所有阶段和必要后续依据都正确 |
+| 错误、覆盖与持久化 | 失败不移出分母；检查窗口是否截断、无规则建项、重放无重复、业务状态未自动完成 |
 
-模型模式报告两组：一组是 `analyzeTasks` 校验后的模型建议；另一组先运行生产规则，再调用模型并通过 `discover` 入库后的清单。这样能发现“模型理解对了，但入库重复”的问题。模型阶段不会被评测直接改成业务完成，最终检查仍要求候选状态、不能自动完成，以及重放幂等。
+完整运行必须同时满足精确率、召回率、会话完全正确率 ≥99%，无模型错误或覆盖截断，且写入检查通过，命令才返回成功。没有任何任务预测时精确率为 N/A，不伪装为 100%。JSON 中 `runs[].combined` 沿用历史字段名，目前仅表示真实模型最终入库结果，没有混合规则输出。
 
-本轮不评价截止时间、负责人识别、跨会话合并或工具执行结果的真实性。模型校验失败时该样本仍计入分母，模型入库重放尚未执行；基线报告中的 `replayStable: false` 在这种情况下表示该检查未完成，不能解释为已证明重复写入。
+关键词匹配无法完整衡量语义等价，严格标题改写可能被计漏项；因此原始预测保留供复核，不悄悄改评分器。暂不评价日期/负责人提取、跨会话或跨渠道归并、工具结果真实性。
 
-关键词评分无法完整判断语义等价和标题质量。短标题改写可能被严格计为漏项；含多个目标的笼统标题也需复核。原始预测随报告保留，后续人工复核应保留原始分数及修正原因，不悄悄调整答案。
+会话完全正确率附 Wilson 95% 区间，仅作样本量参考。合成分布、未独立标注和案例相关性都会影响外推；重复运行不增加独立样本量。固定集 100% 不足以声称真实场景稳定达到 99%。
 
-会话完全正确率附 Wilson 95% 区间，仅作样本量参考：它假定案例独立，不能覆盖合成分布和标注偏差；一个会话内的多个任务也不能当独立统计样本。重复运行按轮报告，不能将重复案例当作新增独立样本。要估计真实使用准确率，还需要经过授权、匿名化、独立标注的留出集。
-
-## 桌面 E2E
+## 桌面 E2E 与回归
 
 ```sh
-pnpm exec vitest run tests/unit/extraction-score.test.ts tests/unit/extraction-format.test.ts
-pnpm test:desktop tests/desktop/jsonl-extraction.spec.ts
+pnpm exec vitest run tests/unit/extraction-score.test.ts tests/unit/extraction-format.test.ts tests/unit/task-analyzer.test.ts tests/unit/automatic-analysis.test.ts tests/unit/task-model-host.test.ts
+pnpm test:storage model-only-extraction-integration task-analysis-integration processing-integration
+pnpm build
 
-# 可选：真实 Codex 经后台自动分析到界面入列（独立临时工作区）
-BUGU_EVAL_LIVE=1 pnpm test:desktop tests/desktop/jsonl-extraction.spec.ts --grep 'live Codex'
+# 未配置模型、暂停与重启路径可离线验证
+pnpm test:desktop tests/desktop/jsonl-extraction.spec.ts tests/desktop/processing.spec.ts
+
+# 四种 JSONL：真实模型、实际后台调度、入列、引用、增量与重放
+BUGU_EVAL_LIVE=1 pnpm test:desktop tests/desktop/jsonl-extraction.spec.ts tests/desktop/processing.spec.ts
 ```
 
-四种格式均验证界面授权、真实后台规则提取、任务入列、原文引用、重复同步和未完成行追加。无任务对照不会变成候选。另一个显式开启的 live E2E 验证“请修复登录白屏”通过实际模型后台调度成为 AI 候选。E2E 成功只说明链路跑通，不能代替 60 会话的准确率评测。
+文件选择器使用测试路径，其余走真实读取、模型、IPC、存储和 UI。包含不完整尾行、重复同步、任务到达动画，以及后台新增时保留编辑草稿。无模型对照验证任务始终为零；暂停控制跨重启保留。存储和边界测试使用的合成模型响应仅用于事务、授权及校验测试，不计入真实模型准确率。
 
-仅运行上述相关用例；不恢复全量 CI。此评测没有修改生产提取规则、提示词或任务写入策略。
+只运行受影响的 E2E，不恢复全量 CI。
