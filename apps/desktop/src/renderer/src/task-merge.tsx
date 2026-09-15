@@ -19,6 +19,7 @@ export function TaskMerge({
     [busy, setBusy] = useState(false),
     [error, setError] = useState('')
   useEffect(() => {
+    if (open === false) return
     let active = true
     setTarget('')
     const timer = setTimeout(() => {
@@ -46,7 +47,7 @@ export function TaskMerge({
       active = false
       clearTimeout(timer)
     }
-  }, [task.id, query])
+  }, [task.id, task.projectId, query, open])
   const selected = options.find((t) => t.id === target)
   const expectation = (t: WorkspaceTask) => ({
     projectId: t.projectId!,

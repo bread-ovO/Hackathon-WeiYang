@@ -6,6 +6,7 @@ import {
   type AnalysisMessage,
   type KnownAnalysisTask,
 } from '@memo/contracts'
+import { canonicalTaskId } from './task-lineage'
 
 export function migrateAnalysisWindows(db: Database.Database) {
   db.transaction(() =>
@@ -25,11 +26,17 @@ const eligible = `e.source_id=? AND e.role IN ('user','assistant')
   AND COALESCE(e.operation,'upsert')!='retract'
   AND EXISTS(SELECT 1 FROM event_projects p WHERE p.event_id=e.id AND p.project_id=?)
   AND NOT EXISTS(SELECT 1 FROM source_events newer WHERE newer.source_id=e.source_id AND newer.external_id=e.external_id AND newer.id>e.id)`
-type Row = { id: number; role: 'user' | 'assistant'; content: string }
+type Row = {
+  id: number
+  role: 'user' | 'assistant'
+  content: string
+  occurred_at: string
+}
 const asMessage = (r: Row): AnalysisMessage => ({
   id: `e${r.id}`,
   role: r.role,
   text: r.content,
+  occurredAt: r.occurred_at,
 })
 
 /** Pages in ingestion order; never discards the front of a conversation. The
@@ -62,13 +69,14 @@ export function createAnalysisContext(db: Database.Database) {
     if (!grant) throw new Error('ANALYSIS_SOURCE_UNAVAILABLE')
     const rows = db
       .prepare(
-        `SELECT e.id,e.role,e.content FROM source_events e WHERE ${eligible} AND e.id>? AND e.id<=? ORDER BY e.id LIMIT 49`,
+        `SELECT e.id,e.role,e.content,e.occurred_at FROM source_events e WHERE ${eligible} AND e.id>? AND e.id<=? ORDER BY e.id LIMIT 49`,
       )
       .all(sourceId, grant.projectId, afterEventId, throughEventId) as Row[]
     const selected: Row[] = []
     let length = 0
     for (const row of rows) {
-      if (selected.length === 48 || length + row.content.length > 24000) break
+      if (selected.length === 48 || length + row.content.length > 24000)
+        break
       selected.push(row)
       length += row.content.length
     }
@@ -106,21 +114,31 @@ export function createAnalysisContext(db: Database.Database) {
     for (const row of history) {
       if (seen.has(row.task_id)) continue
       seen.add(row.task_id)
-      if (knownTasks.length === 12) {
+      const canonical = canonicalTaskId(db, grant.projectId, row.task_id)
+      if (
+        db
+          .prepare('SELECT 1 FROM agent_task_trash WHERE task_id=?')
+          .get(canonical)
+      )
+        continue
+      const remembered = knownTasks.find((t) => t.id === canonical)
+      if (!remembered && knownTasks.length === 12) {
         memoryTruncated = true
         break
       }
       try {
         const priorMessages = JSON.parse(row.messages) as AnalysisMessage[]
-        const task = parseTaskAnalysis(JSON.parse(row.result), priorMessages)
-          .tasks[row.candidate_index]
+        const task = parseTaskAnalysis(
+          JSON.parse(row.result),
+          priorMessages,
+        ).tasks[row.candidate_index]
         if (!task) continue
         const refs = [...new Set(task.evidence.map((e) => e.messageId))]
         const originals = refs.map(
           (id) =>
             db
               .prepare(
-                `SELECT e.id,e.role,e.content FROM source_events e WHERE ${eligible} AND e.id=?`,
+                `SELECT e.id,e.role,e.content,e.occurred_at FROM source_events e WHERE ${eligible} AND e.id=?`,
               )
               .get(sourceId, grant.projectId, Number(id.slice(1))) as
               | Row
@@ -143,13 +161,30 @@ export function createAnalysisContext(db: Database.Database) {
         }
         extra.forEach((r) => selectedMessages.set(`e${r.id}`, asMessage(r)))
         length += extraLength
-        knownTasks.push({
-          id: row.task_id,
-          title: row.title,
-          stage: task.stage,
-          nextAction: task.nextAction,
-          evidence: task.evidence,
-        })
+        if (remembered) {
+          const additions = task.evidence.filter(
+            (e) =>
+              !remembered.evidence.some(
+                (r) => r.messageId === e.messageId && r.quote === e.quote,
+              ),
+          )
+          if (remembered.evidence.length + additions.length > 16)
+            memoryTruncated = true
+          else remembered.evidence.push(...additions)
+        } else
+          knownTasks.push({
+            id: canonical,
+            title: (
+              db
+                .prepare(
+                  'SELECT title FROM tasks WHERE id=? AND project_id=?',
+                )
+                .get(canonical, grant.projectId) as { title: string }
+            ).title,
+            stage: task.stage,
+            nextAction: task.nextAction,
+            evidence: task.evidence,
+          })
       } catch {
         memoryTruncated = true
       }
@@ -157,7 +192,7 @@ export function createAnalysisContext(db: Database.Database) {
     // A nearby unadopted assistant suggestion may become actionable in this page.
     const preceding = db
       .prepare(
-        `SELECT e.id,e.role,e.content FROM source_events e WHERE ${eligible} AND e.id<=? ORDER BY e.id DESC LIMIT 8`,
+        `SELECT e.id,e.role,e.content,e.occurred_at FROM source_events e WHERE ${eligible} AND e.id<=? ORDER BY e.id DESC LIMIT 8`,
       )
       .all(sourceId, grant.projectId, afterEventId) as Row[]
     for (const r of preceding) {
@@ -171,7 +206,16 @@ export function createAnalysisContext(db: Database.Database) {
       (a, b) => Number(a.id.slice(1)) - Number(b.id.slice(1)),
     )
     const fingerprint = createHash('sha256')
-      .update(JSON.stringify([grant, afterEventId, messages, knownTasks]))
+      // Event IDs identify immutable rows, including their occurrence time.
+      // Keep the v3 cache identity so a metadata-only rollout does not replay old tasks.
+      .update(
+        JSON.stringify([
+          grant,
+          afterEventId,
+          messages.map(({ id, role, text }) => ({ id, role, text })),
+          knownTasks,
+        ]),
+      )
       .digest('hex')
     return {
       ...grant,

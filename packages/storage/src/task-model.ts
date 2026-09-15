@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto'
 import { createRevisionReview } from './revision-review'
 import { createRetractions } from './retractions'
+import { modelActivity, modelSourceFilter } from './task-lineage'
 import type Database from 'better-sqlite3'
 import {
   createCandidateSearch,
@@ -415,7 +416,9 @@ export function createTaskModel(db: Database.Database) {
       const runId = row.reason.startsWith('用户确认AI聊天建议 ')
         ? row.reason.slice('用户确认AI聊天建议 '.length) : null
       const chat = runId && db.prepare('SELECT 1 FROM agent_chat_runs WHERE id=? AND project_id=?').get(runId, projectId)
-      return { createdAt: row.createdAt, kind: chat ? 'chat' as const : 'manual' as const }
+      const ai = row.reason.startsWith('后台整理为待确认事项：大模型建议（') ||
+        row.reason.startsWith('用户确认大模型建议（')
+      return { createdAt: row.createdAt, kind: chat ? 'chat' as const : ai ? 'ai' as const : 'manual' as const }
     },
     splitChildren(projectId: string, taskId: string): TaskSplitLink[] {
       text(projectId)
@@ -818,9 +821,10 @@ export function createTaskModel(db: Database.Database) {
       if (input.sourceInstanceId !== undefined) {
         text(input.sourceInstanceId)
         where.push(
-          `(EXISTS(SELECT 1 FROM processing_evidence e JOIN source_events s ON s.id=e.event_id WHERE e.task_id=tasks.id AND e.project_id=tasks.project_id AND s.source_id=?) OR EXISTS(SELECT 1 FROM evidence_links e JOIN source_events s ON s.id=e.event_id WHERE e.task_id=tasks.id AND e.project_id=tasks.project_id AND s.source_id=?) OR EXISTS(SELECT 1 FROM source_object_bindings b WHERE b.task_id=tasks.id AND b.project_id=tasks.project_id AND b.source_id=? AND b.active=1) OR EXISTS(SELECT 1 FROM delivery_links l JOIN source_events e ON e.id=l.event_id WHERE l.task_id=tasks.id AND l.decision IN('auto','confirm') AND e.source_id=?))`,
+          `(EXISTS(SELECT 1 FROM processing_evidence e JOIN source_events s ON s.id=e.event_id WHERE e.task_id=tasks.id AND e.project_id=tasks.project_id AND s.source_id=?) OR EXISTS(SELECT 1 FROM evidence_links e JOIN source_events s ON s.id=e.event_id WHERE e.task_id=tasks.id AND e.project_id=tasks.project_id AND s.source_id=?) OR EXISTS(SELECT 1 FROM source_object_bindings b WHERE b.task_id=tasks.id AND b.project_id=tasks.project_id AND b.source_id=? AND b.active=1) OR EXISTS(SELECT 1 FROM delivery_links l JOIN source_events e ON e.id=l.event_id WHERE l.task_id=tasks.id AND l.decision IN('auto','confirm') AND e.source_id=?) OR ${modelSourceFilter})`,
         )
         params.push(
+          input.sourceInstanceId,
           input.sourceInstanceId,
           input.sourceInstanceId,
           input.sourceInstanceId,
@@ -828,7 +832,7 @@ export function createTaskModel(db: Database.Database) {
         )
       }
       // Activity is recorded changes, never a completion inference.
-      const activity = `max(coalesce((SELECT max(created_at) FROM decisions d WHERE d.task_id=tasks.id),''),coalesce((SELECT max(created_at) FROM processing_decisions d WHERE d.task_id=tasks.id),''),coalesce((SELECT max(recorded_at) FROM source_association_audit d WHERE d.task_id=tasks.id),''),coalesce((SELECT max(recorded_at) FROM reference_revision_audit d WHERE d.task_id=tasks.id),''),coalesce((SELECT max(created_at) FROM reference_revision_decisions d WHERE d.task_id=tasks.id),''),coalesce((SELECT max(recorded_at) FROM plan_change_assessments d WHERE d.task_id=tasks.id),''),coalesce((SELECT max(recorded_at) FROM delivery_audit d WHERE d.task_id=tasks.id),''))`
+      const activity = `max(coalesce((SELECT max(created_at) FROM decisions d WHERE d.task_id=tasks.id),''),coalesce((SELECT max(created_at) FROM processing_decisions d WHERE d.task_id=tasks.id),''),coalesce((SELECT max(recorded_at) FROM source_association_audit d WHERE d.task_id=tasks.id),''),coalesce((SELECT max(recorded_at) FROM reference_revision_audit d WHERE d.task_id=tasks.id),''),coalesce((SELECT max(created_at) FROM reference_revision_decisions d WHERE d.task_id=tasks.id),''),coalesce((SELECT max(recorded_at) FROM plan_change_assessments d WHERE d.task_id=tasks.id),''),coalesce((SELECT max(recorded_at) FROM delivery_audit d WHERE d.task_id=tasks.id),''),coalesce(${modelActivity},''))`
       for (const [value, op] of [
         [input.updatedSince, '>='],
         [input.updatedBefore, '<'],

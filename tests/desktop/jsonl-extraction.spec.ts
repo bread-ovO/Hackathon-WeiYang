@@ -31,7 +31,8 @@ async function launch(root: string) {
     page.getByRole('heading', { name: '跟进', exact: true }),
   ).toBeVisible()
   const projectId = await page.evaluate(async () => {
-    const result = await window.memo.workspace.createProject('JSONL 提取验收')
+    const result =
+      await window.memo.workspace.createProject('JSONL 提取验收')
     if (!result.ok) throw Error('PROJECT_FAILED')
     return result.data.projects[0]!.id
   })
@@ -64,9 +65,11 @@ async function importFromUi(
       .getByRole('button', { name: '选择 JSONL 文件', exact: true })
       .click()
   } else {
-    const name = { codex: 'Codex', 'claude-code': 'Claude Code', kimi: 'Kimi' }[
-      format
-    ]
+    const name = {
+      codex: 'Codex',
+      'claude-code': 'Claude Code',
+      kimi: 'Kimi',
+    }[format]
     await page
       .getByRole('button', { name: `配置 ${name}`, exact: true })
       .click()
@@ -108,7 +111,9 @@ for (const format of ['generic', 'codex', 'claude-code', 'kimi'] as const) {
       'Explicit real-model E2E; never replaces the accuracy corpus.',
     )
     test.setTimeout(180000)
-    const root = await mkdtemp(join(tmpdir(), `bugu-e2e-extraction-${format}-`))
+    const root = await mkdtemp(
+      join(tmpdir(), `bugu-e2e-extraction-${format}-`),
+    )
     const directory = join(root, 'sessions')
     await mkdir(directory)
     const file = join(
@@ -188,7 +193,10 @@ for (const format of ['generic', 'codex', 'claude-code', 'kimi'] as const) {
           .getByRole('button', { name: '保存标题', exact: true })
           .click()
         await expect(
-          page.getByRole('heading', { name: '人工保留的标题', exact: true }),
+          page.getByRole('heading', {
+            name: '人工保留的标题',
+            exact: true,
+          }),
         ).toBeVisible()
         await page.getByLabel('编辑事项标题').fill('尚未保存的标题草稿')
       }
@@ -248,7 +256,7 @@ for (const format of ['generic', 'codex', 'claude-code', 'kimi'] as const) {
   })
 }
 
-test('live Codex: an imperative JSONL request becomes a candidate through automatic analysis', async ({}, info) => {
+test('live Codex: model deadline, source filtering and merged citations through automatic analysis', async ({}, info) => {
   test.skip(
     process.env.BUGU_EVAL_LIVE !== '1',
     'Explicit live provider run only; never counted as a model accuracy score.',
@@ -256,10 +264,12 @@ test('live Codex: an imperative JSONL request becomes a candidate through automa
   test.setTimeout(120000)
   const root = await mkdtemp(join(tmpdir(), 'bugu-e2e-extraction-live-'))
   const file = join(root, 'live-synthetic.jsonl')
-  const request = '请修复登录白屏，并针对这个修复补回归测试。'
+  const request =
+    '请在2026年9月20日18:00（UTC+8）前修复登录白屏，并针对这个修复补回归测试。'
   await writeFile(
     file,
-    formatJsonl([{ id: 'm1', role: 'user', text: request }], 'generic').content,
+    formatJsonl([{ id: 'm1', role: 'user', text: request }], 'generic')
+      .content,
   )
   const { app, page, projectId } = await launch(root)
   try {
@@ -285,7 +295,94 @@ test('live Codex: an imperative JSONL request becomes a candidate through automa
     const evidence = detail.getByRole('region', { name: 'AI 分析建议' })
     await evidence.locator('summary').click()
     await expect(evidence.locator('blockquote')).toContainText('登录白屏')
-    await page.screenshot({ path: info.outputPath('live-model-candidate.png') })
+    const state = await page.evaluate(async () => {
+      const tasks = await window.memo.workspace.list()
+      const sources = await window.memo.sources.list()
+      if (!tasks.ok || !sources.ok) throw Error('LOAD_FAILED')
+      return {
+        task: tasks.data.tasks[0]!,
+        sourceId: sources.data.sources[0]!.id,
+      }
+    })
+    expect(state.task.dueAt).toBe('2026-09-20T10:00:00.000Z')
+    const target = await page.evaluate(async (projectId) => {
+      const result = await window.memo.workspace.createTask(
+        projectId,
+        '人工保留的登录修复',
+      )
+      if (!result.ok) throw Error('CREATE_FAILED')
+      return result.data.tasks.find(
+        (t) => t.title === '人工保留的登录修复',
+      )!
+    }, projectId)
+    await detail
+      .getByRole('button', { name: '更多操作', exact: true })
+      .click()
+    await page
+      .getByRole('menuitem', { name: '合并重复事项', exact: true })
+      .click()
+    await page.getByLabel('合并到事项').selectOption(target.id)
+    await page
+      .getByRole('button', { name: '确认合并到此事项', exact: true })
+      .click()
+    await expect(
+      detail.getByRole('heading', {
+        name: '人工保留的登录修复',
+        exact: true,
+      }),
+    ).toBeVisible()
+    // Merge preserves the target's own deadline, and keeps the original model suggestion.
+    const merged = await page.evaluate(
+      async ({ projectId, taskId }) =>
+        window.memo.workspace.detail(projectId, taskId),
+      { projectId, taskId: target.id },
+    )
+    expect(merged.ok && merged.data.task.dueAt).toBeNull()
+    expect(merged.ok && merged.data.origin?.kind).toBe('manual')
+    await detail
+      .getByRole('region', { name: 'AI 分析建议' })
+      .locator('summary')
+      .click()
+    await expect(
+      detail
+        .getByRole('region', { name: 'AI 分析建议' })
+        .locator('blockquote'),
+    ).toContainText('登录白屏')
+    await page.screenshot({
+      path: info.outputPath('live-merged-citations-wide.png'),
+    })
+    await app.evaluate(({ BrowserWindow }) =>
+      BrowserWindow.getAllWindows()
+        .find((w) => w.isVisible())!
+        .setSize(980, 760),
+    )
+    await page.screenshot({
+      path: info.outputPath('live-merged-citations-narrow.png'),
+    })
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth > innerWidth,
+      ),
+    ).toBe(false)
+    await detail.getByRole('button', { name: '关闭详情' }).click()
+    await page
+      .getByRole('button', { name: '筛选事项', exact: true })
+      .click()
+    await page.getByLabel('来源筛选').selectOption(state.sourceId)
+    await expect(rows).toHaveCount(1)
+    await expect(rows).toContainText('人工保留的登录修复')
+    await page.reload()
+    await expect(rows).toHaveCount(1)
+    await rows.click()
+    await detail
+      .getByRole('region', { name: 'AI 分析建议' })
+      .locator('summary')
+      .click()
+    await expect(
+      detail
+        .getByRole('region', { name: 'AI 分析建议' })
+        .locator('blockquote'),
+    ).toContainText('登录白屏')
   } finally {
     await app.close()
     await rm(root, { recursive: true, force: true })

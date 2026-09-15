@@ -140,8 +140,8 @@ export function handleWorkspace(
         .sort((a, b) => a.createdAt.localeCompare(b.createdAt))[0]
       return {
         task,
-        origin: modelSuggestion
-          ? { kind: 'ai', createdAt: creation?.createdAt ?? modelSuggestion.createdAt, sourceName: modelSuggestion.sourceName }
+        origin: creation?.kind === 'ai'
+          ? { ...creation, sourceName: modelSuggestion?.sourceName }
           : firstSource ? { kind: 'rule', createdAt: firstSource.createdAt }
             : creation,
         modelSuggestion,
@@ -225,7 +225,7 @@ export function handleWorkspace(
   return {
     projects: store.tasks.listProjects(),
     tasks: page.items.map(task => {
-      const analysis = task.projectId ? store.taskAnalysis.forTask(task.projectId, task.id) : null
+      const analysis = task.projectId ? store.taskAnalysis.forTask(task.projectId, task.id, false) : null
       return { ...task, aiSource: analysis ? { name: analysis.sourceName, sourceId: analysis.sourceId } : null }
     }),
     nextCursor: page.nextCursor,

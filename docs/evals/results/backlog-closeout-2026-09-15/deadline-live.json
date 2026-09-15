@@ -1,0 +1,240 @@
+{
+  "suite": "synthetic-deadline-v1",
+  "provider": "codex-cli/default",
+  "createdAt": "2026-09-15T10:02:07.418Z",
+  "results": [
+    {
+      "id": "relative",
+      "passed": true,
+      "calls": 2,
+      "elapsedMs": 16844,
+      "expectedDue": "2026-09-15T09:00:00Z",
+      "result": {
+        "tasks": [
+          {
+            "title": "提交报告",
+            "stage": "requested",
+            "nextAction": "在截止时间前提交报告",
+            "deadline": {
+              "dueAt": "2026-09-15T09:00:00Z",
+              "messageId": "m1",
+              "quote": "请明天下午5点前提交报告。"
+            },
+            "evidence": [
+              {
+                "messageId": "m1",
+                "quote": "请明天下午5点前提交报告。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "absolute",
+      "passed": true,
+      "calls": 2,
+      "elapsedMs": 17247,
+      "expectedDue": "2026-09-20T10:00:00Z",
+      "result": {
+        "tasks": [
+          {
+            "title": "提交报告",
+            "stage": "requested",
+            "nextAction": "在截止时间前提交报告",
+            "deadline": {
+              "dueAt": "2026-09-20T10:00:00Z",
+              "messageId": "m1",
+              "quote": "请在2026年9月20日18:00（UTC+8）前提交报告。"
+            },
+            "evidence": [
+              {
+                "messageId": "m1",
+                "quote": "请在2026年9月20日18:00（UTC+8）前提交报告。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "date-only",
+      "passed": true,
+      "calls": 2,
+      "elapsedMs": 18310,
+      "expectedDue": "2026-09-20T15:59:59Z",
+      "result": {
+        "tasks": [
+          {
+            "title": "准备并提交报告",
+            "stage": "requested",
+            "nextAction": "在截止日期前准备并提交报告。",
+            "deadline": {
+              "dueAt": "2026-09-20T15:59:59Z",
+              "messageId": "m1",
+              "quote": "报告的截止日期定为2026年9月20日。"
+            },
+            "evidence": [
+              {
+                "messageId": "m1",
+                "quote": "报告的截止日期定为2026年9月20日。请准备并提交。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "weekday",
+      "passed": true,
+      "calls": 2,
+      "elapsedMs": 16836,
+      "expectedDue": "2026-09-18T09:00:00Z",
+      "result": {
+        "tasks": [
+          {
+            "title": "提交报告",
+            "stage": "requested",
+            "nextAction": "在本周五下午5点前将报告提交给用户",
+            "deadline": {
+              "dueAt": "2026-09-18T09:00:00Z",
+              "messageId": "m1",
+              "quote": "这周五下午5点前把报告提交给我。"
+            },
+            "evidence": [
+              {
+                "messageId": "m1",
+                "quote": "这周五下午5点前把报告提交给我。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "ambiguous",
+      "passed": true,
+      "calls": 2,
+      "elapsedMs": 19903,
+      "expectedDue": null,
+      "result": {
+        "tasks": [
+          {
+            "title": "提交报告",
+            "stage": "requested",
+            "nextAction": "尽快提交报告",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "m1",
+                "quote": "请尽快提交报告。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "vague-time",
+      "passed": true,
+      "calls": 2,
+      "elapsedMs": 16935,
+      "expectedDue": null,
+      "result": {
+        "tasks": [
+          {
+            "title": "提交报告",
+            "stage": "requested",
+            "nextAction": "明天下午提交报告，具体提交时刻待定。",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "m1",
+                "quote": "明天下午提交报告，具体几点待定。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "calendar-title",
+      "passed": true,
+      "calls": 2,
+      "elapsedMs": 17094,
+      "expectedDue": null,
+      "result": {
+        "tasks": [
+          {
+            "title": "撰写题为《2026年9月20日工作日历》的报告",
+            "stage": "requested",
+            "nextAction": "撰写并交付报告；交付时间尚未确定",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "m1",
+                "quote": "请写一份题为“2026年9月20日工作日历”的报告，交付时间待定。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "assistant-proposal",
+      "passed": true,
+      "calls": 2,
+      "elapsedMs": 15314,
+      "expectedDue": null,
+      "result": {
+        "tasks": [
+          {
+            "title": "提交报告",
+            "stage": "requested",
+            "nextAction": "确定提交时间并提交报告",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "m1",
+                "quote": "请提交报告，时间待定。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "no-timestamp",
+      "passed": true,
+      "calls": 2,
+      "elapsedMs": 16239,
+      "expectedDue": null,
+      "result": {
+        "tasks": [
+          {
+            "title": "提交报告",
+            "stage": "requested",
+            "nextAction": "提交报告",
+            "deadline": null,
+            "evidence": [
+              {
+                "messageId": "m1",
+                "quote": "明天下午5点前提交报告。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "example",
+      "passed": true,
+      "calls": 2,
+      "elapsedMs": 15988,
+      "expectedDue": null,
+      "result": {
+        "tasks": []
+      }
+    }
+  ]
+}

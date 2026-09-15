@@ -817,7 +817,7 @@ export function TaskEditor({
             <TaskMerge
               task={task}
               disabled={busy}
-              open
+              open={panel === 'merge'}
               onMerged={(next) => openRelated(next.id)}
             />
           )}

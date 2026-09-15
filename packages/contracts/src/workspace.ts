@@ -198,7 +198,12 @@ export const workspaceRequestSchema = {
             required: ['title', 'criterionIds'],
             properties: {
               title: { type: 'string', minLength: 1, maxLength: 512 },
-              criterionIds: { type: 'array', minItems: 1, maxItems: 32, items: id },
+              criterionIds: {
+                type: 'array',
+                minItems: 1,
+                maxItems: 32,
+                items: id,
+              },
             },
           },
         },
@@ -253,9 +258,25 @@ export interface CandidateProvenance {
   reason: string
   createdAt: string
 }
+export interface ModelTaskSuggestion {
+  sourceId: string
+  sourceName: string
+  model: string
+  createdAt: string
+  candidate: import('./task-analysis').TaskAnalysis['tasks'][number]
+}
 export interface WorkspaceDetail {
-  origin?: { kind: 'manual' | 'chat' | 'ai' | 'rule'; createdAt: string; sourceName?: string } | null
-  modelSuggestion?: { sourceId: string; sourceName: string; model: string; createdAt: string; candidate: import('./task-analysis').TaskAnalysis['tasks'][number] } | null
+  origin?: {
+    kind: 'manual' | 'chat' | 'ai' | 'rule'
+    createdAt: string
+    sourceName?: string
+  } | null
+  modelSuggestion?:
+    | (ModelTaskSuggestion & {
+        related?: ModelTaskSuggestion[]
+        truncated?: boolean
+      })
+    | null
   merge?: {
     mergedInto: string | null
     mergedFrom: { id: string; title: string }[]

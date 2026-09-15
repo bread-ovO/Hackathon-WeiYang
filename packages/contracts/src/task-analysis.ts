@@ -5,6 +5,7 @@ export interface AnalysisMessage {
   id: string
   role: 'user' | 'assistant'
   text: string
+  occurredAt?: string
 }
 export const TASK_ANALYSIS_PROTOCOL = 'task-analysis-v3'
 export const analysisRequestSchema = {
@@ -78,6 +79,25 @@ export const taskAnalysisSchema = {
             minLength: 1,
             maxLength: 128,
           },
+          deadline: {
+            anyOf: [
+              { type: 'null' },
+              {
+                type: 'object',
+                additionalProperties: false,
+                required: ['dueAt', 'messageId', 'quote'],
+                properties: {
+                  dueAt: { type: 'string', minLength: 20, maxLength: 24 },
+                  messageId: {
+                    type: 'string',
+                    minLength: 1,
+                    maxLength: 128,
+                  },
+                  quote: { type: 'string', minLength: 1, maxLength: 2000 },
+                },
+              },
+            ],
+          },
           evidence: {
             type: 'array',
             minItems: 1,
@@ -117,6 +137,7 @@ export const taskExtractionSchema = {
         required: [
           ...taskAnalysisSchema.properties.tasks.items.required,
           'existingTaskId',
+          'deadline',
         ],
       },
     },
@@ -128,8 +149,14 @@ const validate = new Ajv({ strict: true }).compile<TaskAnalysis>(
 function fail(): never {
   throw new Error('INVALID_TASK_ANALYSIS')
 }
-export function validateAnalysisMessages(messages: AnalysisMessage[]): void {
-  if (!Array.isArray(messages) || messages.length < 1 || messages.length > 64)
+export function validateAnalysisMessages(
+  messages: AnalysisMessage[],
+): void {
+  if (
+    !Array.isArray(messages) ||
+    messages.length < 1 ||
+    messages.length > 64
+  )
     fail()
   const ids = new Set<string>()
   let length = 0
@@ -142,6 +169,16 @@ export function validateAnalysisMessages(messages: AnalysisMessage[]): void {
       !['user', 'assistant'].includes(m.role) ||
       typeof m.text !== 'string' ||
       !m.text.length
+    )
+      fail()
+    if (
+      m.occurredAt !== undefined &&
+      (typeof m.occurredAt !== 'string' ||
+        m.occurredAt.length > 40 ||
+        !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/.test(
+          m.occurredAt,
+        ) ||
+        !Number.isFinite(Date.parse(m.occurredAt)))
     )
       fail()
     ids.add(m.id)
@@ -176,6 +213,28 @@ export function parseTaskAnalysis(
       if (m.role === 'user') userRefs.add(m.id)
     }
     if (!userRefs.size) fail()
+    if (task.deadline) {
+      const d = task.deadline
+      const m = messages.find((m) => m.id === d.messageId)
+      // Validate authority and calendar shape; deadline meaning is model work.
+      if (
+        !m ||
+        m.role !== 'user' ||
+        !m.occurredAt ||
+        !d.quote.trim() ||
+        !m.text.includes(d.quote) ||
+        !task.evidence.some(
+          (e) => e.messageId === d.messageId && e.quote.includes(d.quote),
+        ) ||
+        !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?Z$/.test(
+          d.dueAt,
+        ) ||
+        !Number.isFinite(Date.parse(d.dueAt)) ||
+        new Date(d.dueAt).toISOString().slice(0, 19) !==
+          d.dueAt.slice(0, 19)
+      )
+        fail()
+    }
     // A separate user turn is required to propose acceptance/cancellation.
     if (['accepted', 'cancelled'].includes(task.stage) && userRefs.size < 2)
       fail()
